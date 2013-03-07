@@ -4,10 +4,12 @@ public class Tweet {
 
 	private final String username;
 	private final String body;
+	private final long time;
 
-	public Tweet (String username, String body) {
+	public Tweet (String username, String body, long time) {
 		this.username = username;
 		this.body = body;
+		this.time = time;
 	}
 
 	public String getUsername () {
@@ -16,6 +18,10 @@ public class Tweet {
 
 	public String getBody () {
 		return this.body;
+	}
+
+	public long getTime () {
+		return this.time;
 	}
 
 }

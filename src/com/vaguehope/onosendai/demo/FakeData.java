@@ -16,7 +16,7 @@ public class FakeData {
 	public static TweetList makeFakeTweets () {
 		ArrayList<Tweet> tweets = new ArrayList<Tweet>();
 		for (int i = 0; i < 500; i++) {
-			tweets.add(new Tweet(makeUsername(), makeTweetBody()));
+			tweets.add(new Tweet(makeUsername(), makeTweetBody(), 0L));
 		}
 		return new TweetList(tweets);
 	}

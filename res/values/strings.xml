@@ -3,5 +3,6 @@
 
     <string name="app_name">onosendai</string>
     <string name="menu_settings">Settings</string>
+    <string name="service_label">onosendai update service</string>
 
 </resources>
