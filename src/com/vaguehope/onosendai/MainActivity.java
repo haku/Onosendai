@@ -5,12 +5,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -39,11 +37,11 @@ public class MainActivity extends FragmentActivity {
 
 		// Create the adapter that will return a fragment for each of the three
 		// primary sections of the app.
-		mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+		this.mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
 		// Set up the ViewPager with the sections adapter.
-		mViewPager = (ViewPager) findViewById(R.id.pager);
-		mViewPager.setAdapter(mSectionsPagerAdapter);
+		this.mViewPager = (ViewPager) findViewById(R.id.pager);
+		this.mViewPager.setAdapter(this.mSectionsPagerAdapter);
 
 	}
 
@@ -86,11 +84,11 @@ public class MainActivity extends FragmentActivity {
 		public CharSequence getPageTitle (int position) {
 			switch (position) {
 				case 0:
-					return getString(R.string.title_section1).toUpperCase();
+					return getString(R.string.title_section1);
 				case 1:
-					return getString(R.string.title_section2).toUpperCase();
+					return getString(R.string.title_section2);
 				case 2:
-					return getString(R.string.title_section3).toUpperCase();
+					return getString(R.string.title_section3);
 			}
 			return null;
 		}
