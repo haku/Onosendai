@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import com.vaguehope.onosendai.demo.FakeData;
+import com.vaguehope.onosendai.storage.DbClient;
 
 public class MainActivity extends FragmentActivity {
 
@@ -31,6 +32,8 @@ public class MainActivity extends FragmentActivity {
 	 */
 	private ViewPager mViewPager;
 
+	private DbClient bndDb;
+
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -45,16 +48,80 @@ public class MainActivity extends FragmentActivity {
 	}
 
 	@Override
+	public void onDestroy () {
+		this.bndDb.finalize();
+		super.onDestroy();
+	}
+
+	@Override
+	protected void onResume () {
+		super.onResume();
+		resumeDb();
+	}
+
+	@Override
+	public void onPause () {
+		super.onPause();
+
+		suspendDb();
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private void resumeDb () {
+		if (this.bndDb == null) {
+			this.bndDb = new DbClient(getApplicationContext(), new Runnable() {
+				@Override
+				public void run () {
+					/*
+					 * this convoluted method is because the service connection
+					 * won't finish until this thread processes messages again
+					 * (i.e., after it exits this thread). if we try to talk to
+					 * the DB service before then, it will NPE.
+					 */
+					getBndDb().getDb().addTwUpdateListener(getGuiUpdateRunnable());
+				}
+			});
+		}
+		else { // because we stop listening in onPause(), we must resume if the user comes back.
+			this.bndDb.getDb().addTwUpdateListener(getGuiUpdateRunnable());
+		}
+	}
+
+	private void suspendDb () {
+		// We might be pausing before the callback has come.
+		if (this.bndDb.getDb() != null) {
+			this.bndDb.getDb().removeTwUpdateListener(getGuiUpdateRunnable());
+		}
+		else {
+			// If we have not even had the callback yet, cancel it.
+			this.bndDb.clearReadyListener();
+		}
+	}
+
+	public DbClient getBndDb () {
+		return this.bndDb;
+	}
+
+	public Runnable getGuiUpdateRunnable () {
+		return this.guiUpdateRunnable;
+	}
+
+	private Runnable guiUpdateRunnable = new Runnable() {
+		@Override
+		public void run() {
+			// TODO
+		}
+	};
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@Override
 	public boolean onCreateOptionsMenu (Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
 	}
 
-	/**
-	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-	 * one of the sections/tabs/pages.
-	 */
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 		public SectionsPagerAdapter (FragmentManager fm) {
@@ -64,8 +131,6 @@ public class MainActivity extends FragmentActivity {
 		@Override
 		public Fragment getItem (int position) {
 			// getItem is called to instantiate the fragment for the given page.
-			// Return a DummySectionFragment (defined as a static inner class
-			// below) with the page number as its lone argument.
 			Fragment fragment = new TweetListFragment();
 			Bundle args = new Bundle();
 			args.putInt(TweetListFragment.ARG_SECTION_NUMBER, position + 1);
