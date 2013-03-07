@@ -3,8 +3,8 @@ package com.vaguehope.onosendai.demo;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.vaguehope.onosendai.Tweet;
-import com.vaguehope.onosendai.TweetList;
+import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.model.TweetList;
 
 public class FakeData {
 

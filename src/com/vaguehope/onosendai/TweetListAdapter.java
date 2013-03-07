@@ -7,6 +7,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.model.TweetList;
+
 public class TweetListAdapter extends BaseAdapter {
 
 	private final LayoutInflater layoutInflater;

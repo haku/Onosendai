@@ -1,4 +1,4 @@
-package com.vaguehope.onosendai;
+package com.vaguehope.onosendai.model;
 
 import java.util.ArrayList;
 
