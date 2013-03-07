@@ -6,12 +6,13 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ListView;
+
+import com.vaguehope.onosendai.demo.FakeData;
 
 public class MainActivity extends FragmentActivity {
 
@@ -51,7 +52,8 @@ public class MainActivity extends FragmentActivity {
 	}
 
 	/**
-	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to one of the sections/tabs/pages.
+	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
+	 * one of the sections/tabs/pages.
 	 */
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
@@ -64,9 +66,9 @@ public class MainActivity extends FragmentActivity {
 			// getItem is called to instantiate the fragment for the given page.
 			// Return a DummySectionFragment (defined as a static inner class
 			// below) with the page number as its lone argument.
-			Fragment fragment = new DummySectionFragment();
+			Fragment fragment = new TweetListFragment();
 			Bundle args = new Bundle();
-			args.putInt(DummySectionFragment.ARG_SECTION_NUMBER, position + 1);
+			args.putInt(TweetListFragment.ARG_SECTION_NUMBER, position + 1);
 			fragment.setArguments(args);
 			return fragment;
 		}
@@ -83,24 +85,24 @@ public class MainActivity extends FragmentActivity {
 
 	}
 
-	/**
-	 * A dummy fragment representing a section of the app, but that simply displays dummy text.
-	 */
-	public static class DummySectionFragment extends Fragment {
+	public static class TweetListFragment extends Fragment {
 		/**
-		 * The fragment argument representing the section number for this fragment.
+		 * The fragment argument representing the section number for this
+		 * fragment.
 		 */
 		public static final String ARG_SECTION_NUMBER = "section_number";
 
-		public DummySectionFragment () {}
+		public TweetListFragment () {}
 
 		@Override
 		public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-			// Create a new TextView and set its text to the fragment's section number argument value.
-			TextView textView = new TextView(getActivity());
-			textView.setGravity(Gravity.CENTER);
-			textView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
-			return textView;
+			//getArguments().getInt(ARG_SECTION_NUMBER);
+
+			ListView tweetList = new ListView(getActivity());
+			TweetListAdapter adapter = new TweetListAdapter(getActivity());
+			adapter.setInputData(FakeData.makeFakeTweets());
+			tweetList.setAdapter(adapter);
+			return tweetList;
 		}
 
 	}
