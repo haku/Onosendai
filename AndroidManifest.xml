@@ -28,12 +28,12 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".BootReceiver" >
+        <receiver android:name=".update.BootReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".AlarmReceiver" />
+        <receiver android:name=".update.AlarmReceiver" />
 
         <service
             android:name=".update.UpdateService"
