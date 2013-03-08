@@ -12,9 +12,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
-import com.vaguehope.onosendai.TweetListAdapter;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.model.TweetListAdapter;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.util.LogWrapper;
 

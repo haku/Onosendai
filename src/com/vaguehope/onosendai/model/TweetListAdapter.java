@@ -1,4 +1,4 @@
-package com.vaguehope.onosendai;
+package com.vaguehope.onosendai.model;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,8 +7,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.vaguehope.onosendai.model.Tweet;
-import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.R.id;
+import com.vaguehope.onosendai.R.layout;
 
 public class TweetListAdapter extends BaseAdapter {
 
