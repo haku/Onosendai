@@ -38,6 +38,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 				SystemClock.elapsedRealtime() + TimeUnit.SECONDS.toMillis(300), // ~ 5 min before first run.
 				AlarmManager.INTERVAL_FIFTEEN_MINUTES,
 				i);
+		Log.i(C.TAG, "Alarm service configured.");
 	}
 
 	private static PendingIntent getPendingIntent (Context context) {
