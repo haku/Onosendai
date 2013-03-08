@@ -4,29 +4,32 @@ import java.util.ArrayList;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
-import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.TweetListAdapter;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.storage.DbClient;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class TweetListFragment extends Fragment {
 
 	public static final String ARG_COLUMN_ID = "column_id";
+
+	protected final LogWrapper log = new LogWrapper();
 
 	private int columnId;
 	private TweetListAdapter adapter;
 	private DbClient bndDb;
 
 	@Override
-	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+	public View onCreateView (final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		this.columnId = getArguments().getInt(ARG_COLUMN_ID);
+		this.log.setPrefix("C" + this.columnId);
+
 		ListView tweetList = new ListView(getActivity());
 		this.adapter = new TweetListAdapter(getActivity());
 		tweetList.setAdapter(this.adapter);
@@ -52,7 +55,7 @@ public class TweetListFragment extends Fragment {
 	}
 
 	private void resumeDb () {
-		Log.i(C.TAG, "UI Binding DB service...");
+		this.log.i("UI Binding DB service...");
 		if (this.bndDb == null) {
 			this.bndDb = new DbClient(getActivity(), new Runnable() {
 				@Override
@@ -65,13 +68,15 @@ public class TweetListFragment extends Fragment {
 					 * NPE.
 					 */
 					getBndDb().getDb().addTwUpdateListener(getGuiUpdateRunnable());
-					Log.i(C.TAG, "UI DB service bound.");
+					refreshUi();
+					TweetListFragment.this.log.i("UI DB service bound.");
 				}
 			});
 		}
 		else { // because we stop listening in onPause(), we must resume if the user comes back.
 			this.bndDb.getDb().addTwUpdateListener(getGuiUpdateRunnable());
-			Log.i(C.TAG, "UI DB service rebound.");
+			refreshUi();
+			this.log.i("UI DB service rebound.");
 		}
 	}
 
@@ -84,7 +89,7 @@ public class TweetListFragment extends Fragment {
 			// If we have not even had the callback yet, cancel it.
 			this.bndDb.clearReadyListener();
 		}
-		Log.i(C.TAG, "UI DB service released.");
+		this.log.i("UI DB service released.");
 	}
 
 	public DbClient getBndDb () {
@@ -95,7 +100,7 @@ public class TweetListFragment extends Fragment {
 		return this.guiUpdateRunnable;
 	}
 
-	private Runnable guiUpdateRunnable = new Runnable() {
+	private final Runnable guiUpdateRunnable = new Runnable() {
 		@Override
 		public void run () {
 			refreshUi();
@@ -105,6 +110,7 @@ public class TweetListFragment extends Fragment {
 	protected void refreshUi () {
 		ArrayList<Tweet> tweets = this.bndDb.getDb().getTweets(this.columnId, 200);
 		this.adapter.setInputData(new TweetList(tweets));
+		this.log.i("UI refreshed.");
 	}
 
 }
