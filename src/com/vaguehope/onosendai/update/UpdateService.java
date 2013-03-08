@@ -11,15 +11,16 @@ import android.net.NetworkInfo;
 import android.net.NetworkInfo.State;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.util.Log;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.demo.FakeData;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.storage.DbClient;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class UpdateService extends IntentService {
 
+	protected final LogWrapper log = new LogWrapper("US");
 	protected final CountDownLatch dbReadyLatch = new CountDownLatch(1);
 	private DbClient bndDb;
 
@@ -40,8 +41,8 @@ public class UpdateService extends IntentService {
 	}
 
 	@Override
-	protected void onHandleIntent (Intent i) {
-		Log.i(C.TAG, "UpdateService invoked.");
+	protected void onHandleIntent (final Intent i) {
+		this.log.i("UpdateService invoked.");
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
 		wl.acquire();
@@ -56,19 +57,19 @@ public class UpdateService extends IntentService {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void connectDb () {
-		Log.i(C.TAG, "US Binding DB service...");
-		this.bndDb = new DbClient(getApplicationContext(), new Runnable() {
+		this.log.i("Binding DB service...");
+		this.bndDb = new DbClient(getApplicationContext(), this.log.getPrefix(), new Runnable() {
 			@Override
 			public void run () {
 				UpdateService.this.dbReadyLatch.countDown();
-				Log.i(C.TAG, "US DB service bound.");
+				UpdateService.this.log.i("DB service bound.");
 			}
 		});
 	}
 
 	private void disconnectDb () {
 		this.bndDb.finalize();
-		Log.i(C.TAG, "US DB service rebound.");
+		this.log.i("DB service rebound.");
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -78,7 +79,7 @@ public class UpdateService extends IntentService {
 			fetchTweets();
 		}
 		else {
-			Log.i(C.TAG, "No connection, aborted.");
+			this.log.i("No connection, aborted.");
 		}
 	}
 
@@ -86,7 +87,7 @@ public class UpdateService extends IntentService {
 		// TODO check which columns need refreshing.
 		int columnId = 0;
 		TweetList tweets = FakeData.makeFakeTweets(); // TODO
-		Log.i(C.TAG, "US fetched " + tweets.count() + " tweets.");
+		this.log.i("Fetched " + tweets.count() + " tweets.");
 
 		boolean dbReady = false;
 		try {
@@ -97,7 +98,7 @@ public class UpdateService extends IntentService {
 			this.bndDb.getDb().storeTweets(columnId, tweets.getTweets());
 		}
 		else {
-			Log.e(C.TAG, "Time out waiting for DB service to connect.");
+			this.log.e("Time out waiting for DB service to connect.");
 		}
 	}
 

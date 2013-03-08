@@ -5,23 +5,26 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.util.Log;
 
-import com.vaguehope.onosendai.C;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class DbClient {
 
+	protected final LogWrapper log = new LogWrapper();
+
+	private final Context context;
 	protected Runnable dbIsReady = null;
 	protected DbInterface mBoundDbService;
-	private Context context;
 	private boolean boundToService = false;
 
-	public DbClient (Context context) {
-		this(context, null);
+
+	public DbClient (final Context context, final String name) {
+		this(context, name, null);
 	}
 
-	public DbClient (Context context, Runnable dbIsReady) {
+	public DbClient (final Context context, final String name, final Runnable dbIsReady) {
 		this.context = context;
+		this.log.setPrefix(name);
 		this.dbIsReady = dbIsReady;
 		bindDbService();
 	}
@@ -39,24 +42,26 @@ public class DbClient {
 		return this.mBoundDbService;
 	}
 
-	private ServiceConnection mDbServiceConnection = new ServiceConnection() {
+	private final ServiceConnection mDbServiceConnection = new ServiceConnection() {
 
 		@Override
-		public void onServiceConnected (ComponentName className, IBinder service) {
+		public void onServiceConnected (final ComponentName className, final IBinder service) {
 			DbClient.this.mBoundDbService = ((DbService.LocalBinder) service).getService();
-			if (DbClient.this.mBoundDbService == null) Log.e(C.TAG, "Got service call back, but mBoundDbService==null.  Expect more error messags!");
+			if (DbClient.this.mBoundDbService == null) {
+				DbClient.this.log.e("Got service call back, but mBoundDbService==null.  Expect more error messags!");
+			}
 			if (DbClient.this.dbIsReady != null) DbClient.this.dbIsReady.run();
 		}
 
 		@Override
-		public void onServiceDisconnected (ComponentName className) {
+		public void onServiceDisconnected (final ComponentName className) {
 			// This is called when the connection with the service has been
 			// unexpectedly disconnected -- that is, its process crashed.
 			// Because it is running in our same process, we should never
 			// see this happen.
 
 			DbClient.this.mBoundDbService = null;
-			Log.w(C.TAG, "DbService unexpectadly disconnected.");
+			DbClient.this.log.w("DbService unexpectadly disconnected.");
 		}
 
 	};
@@ -64,7 +69,7 @@ public class DbClient {
 	private void bindDbService () {
 		this.boundToService = this.context.bindService(new Intent(this.context, DbService.class), this.mDbServiceConnection, Context.BIND_AUTO_CREATE);
 		if (!this.boundToService) {
-			Log.e(C.TAG, "Failed to bind to DBService.  Expect further nasty errors.");
+			this.log.e("Failed to bind to DBService.  Expect further nasty errors.");
 		}
 	}
 
@@ -74,7 +79,7 @@ public class DbClient {
 				this.context.unbindService(this.mDbServiceConnection);
 			}
 			catch (Exception e) {
-				Log.e(C.TAG, "Exception caught in unbindDbService().", e);
+				this.log.e("Exception caught in unbindDbService().", e);
 			}
 		}
 		this.mBoundDbService = null;

@@ -55,9 +55,9 @@ public class TweetListFragment extends Fragment {
 	}
 
 	private void resumeDb () {
-		this.log.i("UI Binding DB service...");
+		this.log.i("Binding DB service...");
 		if (this.bndDb == null) {
-			this.bndDb = new DbClient(getActivity(), new Runnable() {
+			this.bndDb = new DbClient(getActivity(), this.log.getPrefix(), new Runnable() {
 				@Override
 				public void run () {
 					/*
@@ -69,14 +69,14 @@ public class TweetListFragment extends Fragment {
 					 */
 					getBndDb().getDb().addTwUpdateListener(getGuiUpdateRunnable());
 					refreshUi();
-					TweetListFragment.this.log.i("UI DB service bound.");
+					TweetListFragment.this.log.i("DB service bound.");
 				}
 			});
 		}
 		else { // because we stop listening in onPause(), we must resume if the user comes back.
 			this.bndDb.getDb().addTwUpdateListener(getGuiUpdateRunnable());
 			refreshUi();
-			this.log.i("UI DB service rebound.");
+			this.log.i("DB service rebound.");
 		}
 	}
 
@@ -89,7 +89,7 @@ public class TweetListFragment extends Fragment {
 			// If we have not even had the callback yet, cancel it.
 			this.bndDb.clearReadyListener();
 		}
-		this.log.i("UI DB service released.");
+		this.log.i("DB service released.");
 	}
 
 	public DbClient getBndDb () {
@@ -110,7 +110,7 @@ public class TweetListFragment extends Fragment {
 	protected void refreshUi () {
 		ArrayList<Tweet> tweets = this.bndDb.getDb().getTweets(this.columnId, 200);
 		this.adapter.setInputData(new TweetList(tweets));
-		this.log.i("UI refreshed.");
+		this.log.i("Refreshed %d tweets.", tweets.size());
 	}
 
 }
