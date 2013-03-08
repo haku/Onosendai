@@ -1,7 +1,5 @@
 package com.vaguehope.onosendai.update;
 
-import java.util.concurrent.TimeUnit;
-
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -35,14 +33,14 @@ public class AlarmReceiver extends BroadcastReceiver {
 		am.cancel(i);
 		am.setInexactRepeating(
 				AlarmManager.ELAPSED_REALTIME_WAKEUP,
-				SystemClock.elapsedRealtime() + TimeUnit.SECONDS.toMillis(300), // ~ 5 min before first run.
+				SystemClock.elapsedRealtime(),
 				AlarmManager.INTERVAL_FIFTEEN_MINUTES,
 				i);
 		Log.i(C.TAG, "Alarm service configured.");
 	}
 
 	private static PendingIntent getPendingIntent (Context context) {
-		return PendingIntent.getBroadcast(context, 0, new Intent(context, AlarmReceiver.class), 0);
+		return PendingIntent.getBroadcast(context, 0, new Intent(context, AlarmReceiver.class), PendingIntent.FLAG_CANCEL_CURRENT);
 	}
 
 }
