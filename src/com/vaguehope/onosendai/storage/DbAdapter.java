@@ -133,7 +133,7 @@ public class DbAdapter implements DbInterface {
 			open();
 		}
 
-		ArrayList<Tweet> ret = null;
+		ArrayList<Tweet> ret = new ArrayList<Tweet>();
 
 		Cursor c = null;
 		try {
