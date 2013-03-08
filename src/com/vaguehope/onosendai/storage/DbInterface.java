@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.storage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.vaguehope.onosendai.model.Tweet;
@@ -7,7 +8,7 @@ import com.vaguehope.onosendai.model.Tweet;
 public interface DbInterface {
 
 	void storeTweets(int columnId, List<Tweet> tweets);
-	List<Tweet> getTweets(int columnId, int numberOf);
+	ArrayList<Tweet> getTweets(int columnId, int numberOf);
 
 	void addTwUpdateListener (Runnable action);
 	void removeTwUpdateListener (Runnable action);

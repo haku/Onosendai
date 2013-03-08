@@ -31,7 +31,7 @@ public class TweetListAdapter extends BaseAdapter {
 
 	@Override
 	public int getCount () {
-		return this.listData.count();
+		return this.listData == null ? 0 : this.listData.count();
 	}
 
 	@Override

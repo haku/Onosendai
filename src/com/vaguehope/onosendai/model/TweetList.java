@@ -18,4 +18,8 @@ public class TweetList {
 		return this.tweets.get(index);
 	}
 
+	public ArrayList<Tweet> getTweets () {
+		return this.tweets;
+	}
+
 }

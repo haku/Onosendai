@@ -36,8 +36,9 @@
         <receiver android:name=".AlarmReceiver" />
 
         <service
-            android:name=".UpdateService"
+            android:name=".update.UpdateService"
             android:label="@string/service_label" />
+        <service android:name=".storage.DbService" />
     </application>
 
 </manifest>
