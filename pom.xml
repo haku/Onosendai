@@ -20,6 +20,8 @@
 		<android.version>4.1.1.4</android.version>
 		<android.platform>11</android.platform>
 		<android-support.version>r7</android-support.version>
+		
+		<twitter4j.version>3.0.3</twitter4j.version>
 
 		<android-maven.version>3.5.1</android-maven.version>
 		<junit.version>4.10</junit.version>
@@ -41,6 +43,14 @@
 			<groupId>com.google.android</groupId>
 			<artifactId>support-v4</artifactId>
 			<version>${android-support.version}</version>
+		</dependency>
+
+		<!-- Twitter -->
+
+		<dependency>
+			<groupId>org.twitter4j</groupId>
+			<artifactId>twitter4j-core</artifactId>
+			<version>${twitter4j.version}</version>
 		</dependency>
 
 		<!-- Test -->
