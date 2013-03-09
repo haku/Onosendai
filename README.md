@@ -62,3 +62,12 @@ If this file does not exist it will created when the UI is launched.
 
 Currently all lists will always background refresh on a 15 min time.
 
+Building from source
+--------------------
+
+This code is build using Maven.
+
+```sh
+mvn clean install android:deploy android:run
+```
+
