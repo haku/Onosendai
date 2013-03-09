@@ -8,8 +8,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
+import android.widget.Toast;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.update.AlarmReceiver;
 
 public class MainActivity extends FragmentActivity {
@@ -30,14 +32,22 @@ public class MainActivity extends FragmentActivity {
 	private ViewPager mViewPager;
 
 	@Override
-	protected void onCreate (Bundle savedInstanceState) {
+	protected void onCreate (final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		// Create the adapter that will return a fragment for each of the three primary sections of the app.
-		this.mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+		Config conf = null;
+		try {
+			conf = new Config();
+		}
+		catch (Exception e) {
+			Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+			finish();
+			return;
+		}
 
-		// Set up the ViewPager with the sections adapter.
+		this.mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), conf);
+
 		this.mViewPager = (ViewPager) findViewById(R.id.pager);
 		this.mViewPager.setAdapter(this.mSectionsPagerAdapter);
 
@@ -47,19 +57,22 @@ public class MainActivity extends FragmentActivity {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@Override
-	public boolean onCreateOptionsMenu (Menu menu) {
+	public boolean onCreateOptionsMenu (final Menu menu) {
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
 	}
 
 	public static class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-		public SectionsPagerAdapter (FragmentManager fm) {
+		private final Config conf;
+
+		public SectionsPagerAdapter (final FragmentManager fm, final Config conf) {
 			super(fm);
+			this.conf = conf;
 		}
 
 		@Override
-		public Fragment getItem (int position) {
+		public Fragment getItem (final int position) {
 			// getItem is called to instantiate the fragment for the given page.
 			Fragment fragment = new TweetListFragment();
 			Bundle args = new Bundle();
@@ -70,12 +83,12 @@ public class MainActivity extends FragmentActivity {
 
 		@Override
 		public int getCount () {
-			return 3; // Show 3 total pages.
+			return this.conf.getColumns().size();
 		}
 
 		@Override
-		public CharSequence getPageTitle (int position) {
-			return "Column " + position;
+		public CharSequence getPageTitle (final int position) {
+			return this.conf.getColumn(position).title;
 		}
 
 	}
