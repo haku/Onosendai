@@ -65,9 +65,9 @@ public class ConfigTest {
 		assertEquals("15min", c0.refresh);
 
 		Column c1 = cs.get(Integer.valueOf(1));
-		assertEquals("mentions", c1.title);
+		assertEquals("my list", c1.title);
 		assertEquals("t0", c1.accountId);
-		assertEquals("mentions", c1.resource);
+		assertEquals("lists/mylist", c1.resource);
 		assertEquals("15min", c1.refresh);
 	}
 

@@ -113,8 +113,7 @@ public class DbAdapter implements DbInterface {
 				values.put(TBL_TW_TIME, tweet.getTime());
 				values.put(TBL_TW_NAME, tweet.getUsername());
 				values.put(TBL_TW_BODY, tweet.getBody());
-				long ret = this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_IGNORE);
-				if (ret == -1) Log.e(C.TAG, "Failed to write tweet to DB.");
+				this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_IGNORE);
 			}
 			this.mDb.setTransactionSuccessful();
 		}

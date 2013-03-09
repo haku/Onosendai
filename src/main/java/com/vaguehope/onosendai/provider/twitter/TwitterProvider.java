@@ -32,19 +32,10 @@ public class TwitterProvider {
 		this.accounts.putIfAbsent(account.id, t);
 	}
 
-	public TweetList getTweets (final TwitteResource resource, final Account account) throws TwitterException {
+	public TweetList getTweets (final TwitterFeed feed, final Account account) throws TwitterException {
 		Twitter t = this.accounts.get(account.id);
 		if (t == null) throw new IllegalStateException("Account not configured: '" + account.id + "'.");
-		switch (resource) {
-			case TIMELINE:
-				return fetchTwitterFeed(t, TwitterFeeds.HOME_TIMELINE, 100); // FIXME extract count.
-			case MENTIONS:
-				return fetchTwitterFeed(t, TwitterFeeds.MENTIONS, 20); // FIXME extract count.
-			case ME:
-				return fetchTwitterFeed(t, TwitterFeeds.ME, 20); // FIXME extract count.
-			default:
-				throw new IllegalStateException("Unknown resource type: " + resource);
-		}
+		return fetchTwitterFeed(t, feed);
 	}
 
 	private static TwitterFactory makeTwitterFactory (final Account account) {
@@ -56,8 +47,9 @@ public class TwitterProvider {
 		return new TwitterFactory(cb.build());
 	}
 
-	private static TweetList fetchTwitterFeed (final Twitter t, final TwitterFeed feed, final int minCount) throws TwitterException {
+	private static TweetList fetchTwitterFeed (final Twitter t, final TwitterFeed feed) throws TwitterException {
 		ArrayList<Tweet> tweets = new ArrayList<Tweet>();
+		int minCount = feed.recommendedFetchCount();
 		int pageSize = Math.min(minCount, C.TWEET_FETCH_PAGE_SIZE);
 		int page = 1; // First page is 1.
 		while (tweets.size() < minCount) {
