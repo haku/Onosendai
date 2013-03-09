@@ -1,9 +1,11 @@
 package com.vaguehope.onosendai.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -16,9 +18,11 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.vaguehope.onosendai.config.Config;
-
 import android.os.Environment;
+
+import com.vaguehope.onosendai.config.Config.Account;
+import com.vaguehope.onosendai.config.Config.AccountProvider;
+import com.vaguehope.onosendai.config.Config.Column;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Environment.class })
@@ -36,8 +40,38 @@ public class ConfigTest {
 	}
 
 	@Test
-	public void itReadsConfig () throws Exception {
+	public void itReadsAccounts () throws Exception {
 		Config conf = new Config();
+
+		Map<String, Account> as = conf.getAccounts();
+		assertEquals(1, as.size());
+
+		Account a = as.get("t0");
+		assertEquals(AccountProvider.TWITTER, a.provider);
+		assertEquals("?ckey?", a.consumerKey);
+		assertEquals("?csecret?", a.consumerSecret);
+		assertEquals("?atoken?", a.accessToken);
+		assertEquals("?asecret?", a.accessSecret);
+	}
+
+	@Test
+	public void itReadsColumns () throws Exception {
+		Config conf = new Config();
+
+		Map<Integer, Column> cs = conf.getColumns();
+		assertEquals(2, cs.size());
+
+		Column c0 = cs.get(Integer.valueOf(0));
+		assertEquals("main", c0.title);
+		assertEquals("t0", c0.accountId);
+		assertEquals("timeline", c0.resource);
+		assertEquals("15min", c0.refresh);
+
+		Column c1 = cs.get(Integer.valueOf(1));
+		assertEquals("mentions", c1.title);
+		assertEquals("t0", c1.accountId);
+		assertEquals("mentions", c1.resource);
+		assertEquals("15min", c1.refresh);
 	}
 
 	private String fixture (final String path) throws IOException {
