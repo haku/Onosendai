@@ -67,19 +67,19 @@ public class UpdateService extends IntentService {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void connectDb () {
-		this.log.i("Binding DB service...");
+		this.log.d("Binding DB service...");
 		this.bndDb = new DbClient(getApplicationContext(), this.log.getPrefix(), new Runnable() {
 			@Override
 			public void run () {
 				UpdateService.this.dbReadyLatch.countDown();
-				UpdateService.this.log.i("DB service bound.");
+				UpdateService.this.log.d("DB service bound.");
 			}
 		});
 	}
 
 	private void disconnectDb () {
 		this.bndDb.finalize();
-		this.log.i("DB service rebound.");
+		this.log.d("DB service rebound.");
 	}
 
 	private boolean waitForDbReady() {
@@ -101,7 +101,7 @@ public class UpdateService extends IntentService {
 			fetchTweets();
 		}
 		else {
-			this.log.i("No connection, aborted.");
+			this.log.i("No connection, all updating aborted.");
 		}
 	}
 
@@ -111,11 +111,11 @@ public class UpdateService extends IntentService {
 			conf = new Config();
 		}
 		catch (IOException e) {
-			this.log.w("Not updateing: " + e.getMessage());
+			this.log.w("Can not update: " + e.getMessage());
 			return;
 		}
 		catch (JSONException e) {
-			this.log.w("Not updateing: " + e.getMessage());
+			this.log.w("Can not update: " + e.getMessage());
 			return;
 		}
 
@@ -138,7 +138,7 @@ public class UpdateService extends IntentService {
 						this.bndDb.getDb().storeTweets(column.index, tweets.getTweets());
 					}
 					catch (TwitterException e) {
-						this.log.e("Failed to fetch tweets: " + e.getMessage());
+						this.log.w("Failed to fetch tweets: " + e.getMessage());
 					}
 					break;
 				default:
