@@ -6,9 +6,7 @@ import java.io.InputStreamReader;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
 
-@Ignore
 public class ConfigTest {
 
 	private Config undertest;
@@ -28,7 +26,7 @@ public class ConfigTest {
 		BufferedReader r = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(path)));
 		try {
 			String line;
-			while((line = r.readLine()) != null) {
+			while ((line = r.readLine()) != null) {
 				s.append(line).append("\n");
 			}
 			return s.toString();
