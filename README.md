@@ -4,13 +4,13 @@ Onosendai - A better deck
 A multi-column Twitter client with a focus on list support.
 
 Configuration
-=============
+-------------
 
 All configuration is stored in `deck.conf` file that lives in the root
 of the external storage device, typically `/sdcard/deck.conf`.
 If this file does not exist it will created when the UI is launched.
 
-# Example config:
+### Example config
 
 ```JSON
 {
@@ -50,7 +50,7 @@ If this file does not exist it will created when the UI is launched.
 }
 ```
 
-# Background refreshing
+### Background refreshing
 
 Currently all lists will always background refresh on a 15 min time.
 
