@@ -10,6 +10,8 @@
 	<packaging>apk</packaging>
 	<name>Onosendai</name>
 
+	<!-- https://code.google.com/p/maven-android-plugin/wiki/GettingStarted -->
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
