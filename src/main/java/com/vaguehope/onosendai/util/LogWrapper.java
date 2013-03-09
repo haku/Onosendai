@@ -47,4 +47,9 @@ public class LogWrapper {
 		Log.e(C.TAG, this.prefix == null ? msg : String.format("%s %s", this.prefix, msg), t);
 	}
 
+	public void d (final String msg) {
+		if (!Log.isLoggable(C.TAG, Log.DEBUG)) return;
+		Log.d(C.TAG, msg);
+	}
+
 }
