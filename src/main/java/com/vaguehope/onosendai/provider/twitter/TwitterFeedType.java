@@ -2,12 +2,13 @@ package com.vaguehope.onosendai.provider.twitter;
 
 import java.util.Locale;
 
-public enum TwitteResource {
+public enum TwitterFeedType {
 	TIMELINE,
 	MENTIONS,
-	ME;
+	ME,
+	LIST;
 
-	public static TwitteResource parse (final String s) {
+	public static TwitterFeedType parse (final String s) {
 		return valueOf(s.toUpperCase(Locale.UK));
 	}
 

@@ -22,7 +22,8 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.model.TweetList;
-import com.vaguehope.onosendai.provider.twitter.TwitteResource;
+import com.vaguehope.onosendai.provider.twitter.TwitterFeed;
+import com.vaguehope.onosendai.provider.twitter.TwitterFeeds;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -131,8 +132,8 @@ public class UpdateService extends IntentService {
 				case TWITTER:
 					try {
 						twitterProvider.addAccount(account);
-						TwitteResource resource = TwitteResource.parse(column.resource);
-						TweetList tweets = twitterProvider.getTweets(resource, account);
+						TwitterFeed feed = TwitterFeeds.parse(column.resource);
+						TweetList tweets = twitterProvider.getTweets(feed, account);
 						if (!waitForDbReady()) return;
 						this.bndDb.getDb().storeTweets(column.index, tweets.getTweets());
 					}
