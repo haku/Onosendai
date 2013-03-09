@@ -22,34 +22,38 @@ public class LogWrapper {
 		return this.prefix;
 	}
 
-	public void i (final String msg) {
-		if (!Log.isLoggable(C.TAG, Log.INFO)) return;
-		Log.i(C.TAG, this.prefix == null ? msg : String.format("%s %s", this.prefix, msg));
-	}
-
-	public void i (final String msg, final Object... args) {
-		if (!Log.isLoggable(C.TAG, Log.INFO)) return;
-		Log.i(C.TAG, this.prefix == null ? msg : String.format("%s %s", this.prefix, String.format(msg, args)));
-	}
-
-	public void w (final String msg) {
-		if (!Log.isLoggable(C.TAG, Log.WARN)) return;
-		Log.w(C.TAG, this.prefix == null ? msg : String.format("%s %s", this.prefix, msg));
-	}
-
 	public void e (final String msg) {
 		if (!Log.isLoggable(C.TAG, Log.ERROR)) return;
-		Log.e(C.TAG, this.prefix == null ? msg : String.format("%s %s", this.prefix, msg));
+		Log.e(C.TAG, this.prefix == null ? msg : addPrefix(msg));
 	}
 
 	public void e (final String msg, final Throwable t) {
 		if (!Log.isLoggable(C.TAG, Log.ERROR)) return;
-		Log.e(C.TAG, this.prefix == null ? msg : String.format("%s %s", this.prefix, msg), t);
+		Log.e(C.TAG, this.prefix == null ? msg : addPrefix(msg), t);
+	}
+
+	public void w (final String msg) {
+		if (!Log.isLoggable(C.TAG, Log.WARN)) return;
+		Log.w(C.TAG, this.prefix == null ? msg : addPrefix(msg));
+	}
+
+	public void i (final String msg) {
+		if (!Log.isLoggable(C.TAG, Log.INFO)) return;
+		Log.i(C.TAG, this.prefix == null ? msg : addPrefix(msg));
+	}
+
+	public void i (final String msg, final Object... args) {
+		if (!Log.isLoggable(C.TAG, Log.INFO)) return;
+		Log.i(C.TAG, this.prefix == null ? msg : addPrefix(String.format(msg, args)));
 	}
 
 	public void d (final String msg) {
 		if (!Log.isLoggable(C.TAG, Log.DEBUG)) return;
-		Log.d(C.TAG, msg);
+		Log.d(C.TAG, this.prefix == null ? msg : addPrefix(msg));
+	}
+
+	private String addPrefix (final String msg) {
+		return String.format("%s %s", this.prefix, msg);
 	}
 
 }
