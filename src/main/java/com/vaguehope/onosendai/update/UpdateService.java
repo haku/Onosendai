@@ -1,8 +1,13 @@
 package com.vaguehope.onosendai.update;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.json.JSONException;
+
+import twitter4j.TwitterException;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
@@ -13,8 +18,12 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 
 import com.vaguehope.onosendai.C;
-import com.vaguehope.onosendai.demo.FakeData;
+import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.provider.twitter.TwitteResource;
+import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -72,6 +81,18 @@ public class UpdateService extends IntentService {
 		this.log.i("DB service rebound.");
 	}
 
+	private boolean waitForDbReady() {
+		boolean dbReady = false;
+		try {
+			dbReady = this.dbReadyLatch.await(3, TimeUnit.SECONDS);
+		}
+		catch (InterruptedException e) {/**/}
+		if (!dbReady) {
+			this.log.e("Not updateing: Time out waiting for DB service to connect.");
+		}
+		return dbReady;
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void doWork () {
@@ -84,21 +105,45 @@ public class UpdateService extends IntentService {
 	}
 
 	private void fetchTweets () {
-		// TODO check which columns need refreshing.
-		int columnId = 0;
-		TweetList tweets = FakeData.makeFakeTweets(); // TODO
-		this.log.i("Fetched " + tweets.count() + " tweets.");
-
-		boolean dbReady = false;
+		Config conf;
 		try {
-			dbReady = this.dbReadyLatch.await(3, TimeUnit.SECONDS);
+			conf = new Config();
 		}
-		catch (InterruptedException e) {/**/}
-		if (dbReady) {
-			this.bndDb.getDb().storeTweets(columnId, tweets.getTweets());
+		catch (IOException e) {
+			this.log.w("Not updateing: " + e.getMessage());
+			return;
 		}
-		else {
-			this.log.e("Time out waiting for DB service to connect.");
+		catch (JSONException e) {
+			this.log.w("Not updateing: " + e.getMessage());
+			return;
+		}
+
+		final TwitterProvider twitterProvider = new TwitterProvider();
+
+		Map<Integer, Column> columns = conf.getColumns();
+		for (Column column : columns.values()) {
+			Account account = conf.getAccount(column.accountId);
+			if (account == null) {
+				this.log.e("Unknown acountId: '" + column.accountId + "'.");
+				continue;
+			}
+			switch (account.provider) {
+				case TWITTER:
+					try {
+						twitterProvider.addAccount(account);
+						TwitteResource resource = TwitteResource.parse(column.resource);
+						TweetList tweets = twitterProvider.getTweets(resource, account);
+						if (!waitForDbReady()) return;
+						this.bndDb.getDb().storeTweets(column.index, tweets.getTweets());
+					}
+					catch (TwitterException e) {
+						this.log.e("Failed to fetch tweets: " + e.getMessage());
+					}
+					break;
+				default:
+					this.log.e("Unknown account type: " + account.provider);
+					continue;
+			}
 		}
 	}
 

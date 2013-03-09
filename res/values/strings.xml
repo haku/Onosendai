@@ -2,7 +2,8 @@
 <resources>
 
     <string name="app_name">onosendai</string>
-    <string name="menu_settings">Settings</string>
+    <string name="menu_reload_config">Reload config</string>
+    <string name="menu_refresh_now">Refresh now</string>
     <string name="service_label">onosendai update service</string>
 
 </resources>
