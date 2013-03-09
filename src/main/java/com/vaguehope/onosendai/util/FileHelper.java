@@ -20,8 +20,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
@@ -37,7 +40,7 @@ public final class FileHelper {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	public static List<String> fileToList (File file) throws IOException {
+	public static List<String> fileToList (final File file) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 		try {
 			List<String> ret = new ArrayList<String>();
@@ -55,7 +58,7 @@ public final class FileHelper {
 	/**
 	 * Returns null if file does not exist.
 	 */
-	public static String fileToString (File file) throws IOException {
+	public static String fileToString (final File file) throws IOException {
 		try {
 			FileInputStream stream = new FileInputStream(file);
 			try {
@@ -70,6 +73,26 @@ public final class FileHelper {
 		}
 		catch (FileNotFoundException e) {
 			return null;
+		}
+	}
+
+	public static void resourceToFile(final String res, final File f) throws IOException {
+		byte[] arr = new byte[1024 * 4];
+		InputStream is = FileHelper.class.getResourceAsStream(res);
+		try {
+			OutputStream os = new FileOutputStream(f);
+			try {
+				int count;
+				while ((count = is.read(arr)) >= 0) {
+					os.write(arr, 0, count);
+				}
+			}
+			finally {
+				os.close();
+			}
+		}
+		finally {
+			is.close();
 		}
 	}
 

@@ -23,6 +23,11 @@ public class Config {
 
 	public Config () throws IOException, JSONException {
 		File f = new File(Environment.getExternalStorageDirectory().getPath(), C.CONFIG_FILE_NAME);
+
+		if (!f.exists()) {
+			FileHelper.resourceToFile("/deck.conf", f);
+		}
+
 		String s = FileHelper.fileToString(f);
 		JSONObject o = (JSONObject) new JSONTokener(s).nextValue();
 
@@ -39,6 +44,10 @@ public class Config {
 
 	public Map<Integer, Column> getColumns () {
 		return this.columns;
+	}
+
+	public Column getColumn (final int index) {
+		return this.columns.get(Integer.valueOf(index));
 	}
 
 	private static Map<String, Account> parseAccounts (final JSONArray accountsJson) throws JSONException {
