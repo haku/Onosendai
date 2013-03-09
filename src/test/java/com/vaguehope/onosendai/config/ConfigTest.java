@@ -20,9 +20,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import android.os.Environment;
 
-import com.vaguehope.onosendai.config.Config.Account;
-import com.vaguehope.onosendai.config.Config.AccountProvider;
-import com.vaguehope.onosendai.config.Config.Column;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Environment.class })
