@@ -9,4 +9,6 @@ public interface C {
 
 	String DATA_TW_MAX_AGE_DAYS = "-7 days";
 
+	int TWEET_FETCH_PAGE_SIZE = 40;
+
 }
