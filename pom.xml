@@ -23,9 +23,12 @@
 
 		<android-maven.version>3.5.1</android-maven.version>
 		<junit.version>4.10</junit.version>
+		<powermock.version>1.5</powermock.version>
 	</properties>
 
 	<dependencies>
+
+		<!-- Android -->
 
 		<dependency>
 			<groupId>com.google.android</groupId>
@@ -40,12 +43,36 @@
 			<version>${android-support.version}</version>
 		</dependency>
 
+		<!-- Test -->
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>1.9.5</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+
 
 	</dependencies>
 
