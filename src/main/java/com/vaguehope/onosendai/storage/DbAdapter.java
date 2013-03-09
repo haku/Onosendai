@@ -9,10 +9,10 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,6 +22,7 @@ public class DbAdapter implements DbInterface {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	private final LogWrapper log = new LogWrapper();
 	private final Context mCtx;
 
 	private DatabaseHelper mDbHelper;
@@ -32,6 +33,8 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static class DatabaseHelper extends SQLiteOpenHelper {
+
+		private final LogWrapper log = new LogWrapper();
 
 		DatabaseHelper (final Context context) {
 			super(context, DB_NAME, null, DB_VERSION);
@@ -44,7 +47,7 @@ public class DbAdapter implements DbInterface {
 
 		@Override
 		public void onUpgrade (final SQLiteDatabase db, final int oldVersion, final int newVersion) {
-			Log.w(C.TAG, "Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data.");
+			this.log.w("Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data.");
 			db.execSQL("DROP TABLE IF EXISTS " + TBL_TW);
 			onCreate(db);
 		}
@@ -97,7 +100,7 @@ public class DbAdapter implements DbInterface {
 		try {
 			// TODO only specified column?
 			int n = this.mDb.delete(TBL_TW, "date('now', '" + C.DATA_TW_MAX_AGE_DAYS + "') > datetime(" + TBL_TW_TIME + ", 'unixepoch')", null);
-			Log.d(C.TAG, "Deleted " + n + " rows from " + TBL_TW + ".");
+			this.log.i("Deleted " + n + " rows from " + TBL_TW + " column " + columnId + ".");
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
@@ -127,12 +130,12 @@ public class DbAdapter implements DbInterface {
 	@Override
 	public ArrayList<Tweet> getTweets (final int columnId, final int numberOf) {
 		if (this.mDb == null) {
-			Log.e(C.TAG, "aborting because mDb==null.");
+			this.log.e("aborting because mDb==null.");
 			return null;
 		}
 
 		if (!this.mDb.isOpen()) {
-			Log.d(C.TAG, "mDb was not open; opeing it...");
+			this.log.d("mDb was not open; opeing it...");
 			open();
 		}
 
