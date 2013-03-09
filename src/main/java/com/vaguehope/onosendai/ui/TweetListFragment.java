@@ -60,7 +60,7 @@ public class TweetListFragment extends Fragment {
 	}
 
 	private void resumeDb () {
-		this.log.i("Binding DB service...");
+		this.log.d("Binding DB service...");
 		if (this.bndDb == null) {
 			this.bndDb = new DbClient(getActivity(), this.log.getPrefix(), new Runnable() {
 				@Override
@@ -73,14 +73,14 @@ public class TweetListFragment extends Fragment {
 					 */
 					getBndDb().getDb().addTwUpdateListener(getGuiUpdateRunnable());
 					refreshUi();
-					TweetListFragment.this.log.i("DB service bound.");
+					TweetListFragment.this.log.d("DB service bound.");
 				}
 			});
 		}
 		else { // because we stop listening in onPause(), we must resume if the user comes back.
 			this.bndDb.getDb().addTwUpdateListener(getGuiUpdateRunnable());
 			refreshUi();
-			this.log.i("DB service rebound.");
+			this.log.d("DB service rebound.");
 		}
 	}
 
@@ -93,7 +93,7 @@ public class TweetListFragment extends Fragment {
 			// If we have not even had the callback yet, cancel it.
 			this.bndDb.clearReadyListener();
 		}
-		this.log.i("DB service released.");
+		this.log.d("DB service released.");
 	}
 
 	public DbClient getBndDb () {
