@@ -3,6 +3,14 @@ Onosendai - A better deck
 
 A multi-column Twitter client with a focus on list support.
 
+Features
+--------
+
+* Background tweet fetching (currently fixed 15 min interval)
+* Home timeline, mentions, personal timeline, and lists can all be columns.
+* Configured via JSON file on the file system.
+* Currently can only read, not write (its a work in progress)
+
 Configuration
 -------------
 
