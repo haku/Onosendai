@@ -1,12 +1,12 @@
 package com.vaguehope.onosendai.model;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class TweetList {
 
-	private final ArrayList<Tweet> tweets;
+	private final List<Tweet> tweets;
 
-	public TweetList (ArrayList<Tweet> tweets) {
+	public TweetList (final List<Tweet> tweets) {
 		this.tweets = tweets;
 	}
 
@@ -14,11 +14,11 @@ public class TweetList {
 		return this.tweets.size();
 	}
 
-	public Tweet getTweet (int index) {
+	public Tweet getTweet (final int index) {
 		return this.tweets.get(index);
 	}
 
-	public ArrayList<Tweet> getTweets () {
+	public List<Tweet> getTweets () {
 		return this.tweets;
 	}
 

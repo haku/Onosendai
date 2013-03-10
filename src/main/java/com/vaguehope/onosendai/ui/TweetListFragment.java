@@ -1,7 +1,7 @@
 package com.vaguehope.onosendai.ui;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
+import java.util.List;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,7 +28,8 @@ public class TweetListFragment extends Fragment {
 
 	private int columnId;
 	private RefreshUiHandler refreshUiHandler;
-	private ListView tweetListView;
+	private ListView listView;
+	private ScrollState scrollState;
 	private TweetListAdapter adapter;
 	private DbClient bndDb;
 
@@ -38,10 +39,10 @@ public class TweetListFragment extends Fragment {
 		this.log.setPrefix("C" + this.columnId);
 
 		this.refreshUiHandler = new RefreshUiHandler(this);
-		this.tweetListView = new ListView(getActivity());
+		this.listView = new ListView(getActivity());
 		this.adapter = new TweetListAdapter(getActivity());
-		this.tweetListView.setAdapter(this.adapter);
-		return this.tweetListView;
+		this.listView.setAdapter(this.adapter);
+		return this.listView;
 	}
 
 	@Override
@@ -49,8 +50,6 @@ public class TweetListFragment extends Fragment {
 		this.bndDb.dispose();
 		super.onDestroy();
 	}
-
-	private ScrollState tweetListViewScrollState;
 
 	@Override
 	public void onResume () {
@@ -73,15 +72,15 @@ public class TweetListFragment extends Fragment {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void saveScroll () {
-		this.tweetListViewScrollState = ListViewHelper.saveScrollState(this.tweetListView);
-		this.log.d("Saved scroll: " + this.tweetListViewScrollState);
+		this.scrollState = ListViewHelper.saveScrollState(this.listView);
+		this.log.d("Saved scroll: " + this.scrollState);
 	}
 
 	private void restoreScroll () {
-		if (this.tweetListViewScrollState == null) return;
-		ListViewHelper.restoreScrollState(this.tweetListView, this.tweetListViewScrollState);
-		this.log.d("Restored scroll: " + this.tweetListViewScrollState);
-		this.tweetListViewScrollState = null;
+		if (this.scrollState == null) return;
+		ListViewHelper.restoreScrollState(this.listView, this.scrollState);
+		this.log.d("Restored scroll: " + this.scrollState);
+		this.scrollState = null;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -161,7 +160,7 @@ public class TweetListFragment extends Fragment {
 	}
 
 	protected void refreshUiOnUiThread () {
-		ArrayList<Tweet> tweets = this.bndDb.getDb().getTweets(this.columnId, 200);
+		List<Tweet> tweets = this.bndDb.getDb().getTweets(this.columnId, 200);
 		this.adapter.setInputData(new TweetList(tweets));
 		restoreScroll();
 		this.log.i("Refreshed %d tweets.", tweets.size());

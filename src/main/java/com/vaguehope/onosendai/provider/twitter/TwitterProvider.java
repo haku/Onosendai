@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.provider.twitter;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -58,7 +59,7 @@ public class TwitterProvider {
 	}
 
 	private static TweetList fetchTwitterFeed (final Twitter t, final TwitterFeed feed) throws TwitterException {
-		ArrayList<Tweet> tweets = new ArrayList<Tweet>();
+		List<Tweet> tweets = new ArrayList<Tweet>();
 		int minCount = feed.recommendedFetchCount();
 		int pageSize = Math.min(minCount, C.TWEET_FETCH_PAGE_SIZE);
 		int page = 1; // First page is 1.
@@ -72,7 +73,7 @@ public class TwitterProvider {
 		return new TweetList(tweets);
 	}
 
-	private static void addTweetsToList (final ArrayList<Tweet> list, final ResponseList<Status> tweets) {
+	private static void addTweetsToList (final List<Tweet> list, final ResponseList<Status> tweets) {
 		for (Status status : tweets) {
 			Tweet tweet = convertTweet(status);
 			list.add(tweet);

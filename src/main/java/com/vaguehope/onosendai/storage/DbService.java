@@ -1,6 +1,5 @@
 package com.vaguehope.onosendai.storage;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Service;
@@ -62,7 +61,7 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public ArrayList<Tweet> getTweets (final int columnId, final int numberOf) {
+	public List<Tweet> getTweets (final int columnId, final int numberOf) {
 		return this.dbAdaptor.getTweets(columnId, numberOf);
 	}
 
