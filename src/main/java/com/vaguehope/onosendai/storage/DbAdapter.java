@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.vaguehope.onosendai.C;
+import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -94,7 +95,7 @@ public class DbAdapter implements DbInterface {
 	// TODO add table index by time?
 
 	@Override
-	public void storeTweets (final int columnId, final List<Tweet> tweets) {
+	public void storeTweets (final Column column, final List<Tweet> tweets) {
 		// Clear old data.
 		this.mDb.beginTransaction();
 		try {
@@ -107,9 +108,9 @@ public class DbAdapter implements DbInterface {
 							" WHERE " + TBL_TW_COLID + "=?" +
 							" ORDER BY " + TBL_TW_TIME +
 							" DESC LIMIT " + C.DATA_TW_MAX_COL_ENTRIES + ")",
-					new String[] { String.valueOf(columnId), String.valueOf(columnId) });
+					new String[] { String.valueOf(column.index), String.valueOf(column.index) });
 
-			this.log.i("Deleted " + n + " rows from " + TBL_TW + " column " + columnId + ".");
+			this.log.i("Deleted " + n + " rows from " + TBL_TW + " column " + column.index + ".");
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
@@ -120,7 +121,7 @@ public class DbAdapter implements DbInterface {
 		try {
 			for (Tweet tweet : tweets) {
 				ContentValues values = new ContentValues();
-				values.put(TBL_TW_COLID, columnId);
+				values.put(TBL_TW_COLID, column.index);
 				values.put(TBL_TW_SID, tweet.getId());
 				values.put(TBL_TW_TIME, tweet.getTime());
 				values.put(TBL_TW_NAME, tweet.getUsername());

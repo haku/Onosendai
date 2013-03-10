@@ -1,7 +1,6 @@
 package com.vaguehope.onosendai.update;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -134,7 +133,7 @@ public class UpdateService extends IntentService {
 		}
 	}
 
-	public void fetchColumn (final Config conf, Column column, final TwitterProvider twitterProvider) {
+	public void fetchColumn (final Config conf, final Column column, final TwitterProvider twitterProvider) {
 		Account account = conf.getAccount(column.accountId);
 		if (account == null) {
 			this.log.e("Unknown acountId: '" + column.accountId + "'.");
@@ -147,7 +146,7 @@ public class UpdateService extends IntentService {
 					TwitterFeed feed = TwitterFeeds.parse(column.resource);
 					TweetList tweets = twitterProvider.getTweets(feed, account);
 					if (!waitForDbReady()) return;
-					this.bndDb.getDb().storeTweets(column.index, tweets.getTweets());
+					this.bndDb.getDb().storeTweets(column, tweets.getTweets());
 				}
 				catch (TwitterException e) {
 					this.log.w("Failed to fetch tweets: " + e.getMessage());

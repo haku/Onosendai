@@ -20,7 +20,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import android.os.Environment;
 
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Environment.class })
 public class ConfigTest {
@@ -59,12 +58,14 @@ public class ConfigTest {
 		assertEquals(2, cs.size());
 
 		Column c0 = cs.get(Integer.valueOf(0));
+		assertEquals(0, c0.index);
 		assertEquals("main", c0.title);
 		assertEquals("t0", c0.accountId);
 		assertEquals("timeline", c0.resource);
 		assertEquals("15min", c0.refresh);
 
 		Column c1 = cs.get(Integer.valueOf(1));
+		assertEquals(1, c1.index);
 		assertEquals("my list", c1.title);
 		assertEquals("t0", c1.accountId);
 		assertEquals("lists/mylist", c1.resource);

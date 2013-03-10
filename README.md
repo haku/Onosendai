@@ -34,21 +34,25 @@ If this file does not exist it will created when the UI is launched.
   ],
   "columns": [
     {
+      "id": 0,
       "title": "My World",
       "account": "t0",
       "resource": "timeline",
       "refresh": "15min"
     }, {
+      "id": 1,
       "title": "About Me",
       "account": "t0",
       "resource": "mentions",
       "refresh": "15min"
     }, {
+      "id": 2,
       "title": "My Tweets",
       "account": "t0",
       "resource": "me",
       "refresh": "15min"
     }, {
+      "id": 3,
       "title": "My List",
       "account": "t0",
       "resource": "lists/mylist",
