@@ -8,8 +8,6 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
-import com.vaguehope.onosendai.R.id;
-import com.vaguehope.onosendai.R.layout;
 
 public class TweetListAdapter extends BaseAdapter {
 
@@ -17,11 +15,11 @@ public class TweetListAdapter extends BaseAdapter {
 
 	private TweetList listData;
 
-	public TweetListAdapter (Context context) {
+	public TweetListAdapter (final Context context) {
 		this.layoutInflater = LayoutInflater.from(context);
 	}
 
-	public void setInputData (TweetList data) {
+	public void setInputData (final TweetList data) {
 		this.listData = data;
 		notifyDataSetChanged();
 	}
@@ -36,17 +34,17 @@ public class TweetListAdapter extends BaseAdapter {
 	}
 
 	@Override
-	public Object getItem (int position) {
+	public Object getItem (final int position) {
 		return this.listData.getTweet(position);
 	}
 
 	@Override
-	public long getItemId (int position) {
+	public long getItemId (final int position) {
 		return position;
 	}
 
 	@Override
-	public View getView (int position, View convertView, ViewGroup parent) {
+	public View getView (final int position, final View convertView, final ViewGroup parent) {
 		View view = convertView;
 		RowView rowView;
 		if (view == null) {
@@ -73,7 +71,7 @@ public class TweetListAdapter extends BaseAdapter {
 		public final TextView tweet;
 		public final TextView name;
 
-		public RowView (TextView tweet, TextView name) {
+		public RowView (final TextView tweet, final TextView name) {
 			this.tweet = tweet;
 			this.name = name;
 		}
