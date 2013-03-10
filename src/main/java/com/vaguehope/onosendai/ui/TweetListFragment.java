@@ -38,6 +38,7 @@ public class TweetListFragment extends Fragment {
 		this.columnId = getArguments().getInt(ARG_COLUMN_ID);
 		this.log.setPrefix("C" + this.columnId);
 
+		this.scrollState = ListViewHelper.fromBundle(savedInstanceState);
 		this.refreshUiHandler = new RefreshUiHandler(this);
 		this.listView = new ListView(getActivity());
 		this.adapter = new TweetListAdapter(getActivity());
@@ -67,6 +68,7 @@ public class TweetListFragment extends Fragment {
 	@Override
 	public void onSaveInstanceState (final Bundle outState) {
 		super.onSaveInstanceState(outState);
+		this.scrollState.writeTo(outState);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
