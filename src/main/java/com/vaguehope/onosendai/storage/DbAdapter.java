@@ -137,7 +137,7 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public ArrayList<Tweet> getTweets (final int columnId, final int numberOf) {
+	public List<Tweet> getTweets (final int columnId, final int numberOf) {
 		if (this.mDb == null) {
 			this.log.e("aborting because mDb==null.");
 			return null;
@@ -148,7 +148,7 @@ public class DbAdapter implements DbInterface {
 			open();
 		}
 
-		ArrayList<Tweet> ret = new ArrayList<Tweet>();
+		List<Tweet> ret = new ArrayList<Tweet>();
 
 		Cursor c = null;
 		try {

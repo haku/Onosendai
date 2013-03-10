@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.demo;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import com.vaguehope.onosendai.model.Tweet;
@@ -14,7 +15,7 @@ public final class FakeData {
 	private FakeData () {}
 
 	public static TweetList makeFakeTweets () {
-		ArrayList<Tweet> tweets = new ArrayList<Tweet>();
+		List<Tweet> tweets = new ArrayList<Tweet>();
 		for (int i = 0; i < (RAND.nextInt(14) + 1); i++) {
 			tweets.add(new Tweet(RAND.nextLong(), makeUsername(), makeTweetBody(), (System.currentTimeMillis() / 1000L)));
 		}
