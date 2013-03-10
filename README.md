@@ -76,3 +76,12 @@ You must first install [maven-android-sdk-deployer](https://github.com/mosabua/m
 mvn clean install android:deploy android:run
 ```
 
+Logging
+-------
+
+Enable debug logging with:
+```sh
+adb shell
+setprop log.tag.onosendai DEBUG
+```
+
