@@ -77,7 +77,7 @@ public class UpdateService extends IntentService {
 	}
 
 	private void disconnectDb () {
-		this.bndDb.finalize();
+		this.bndDb.dispose();
 		this.log.d("DB service rebound.");
 	}
 

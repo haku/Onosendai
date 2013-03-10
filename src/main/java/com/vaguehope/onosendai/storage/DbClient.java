@@ -29,8 +29,12 @@ public class DbClient {
 		bindDbService();
 	}
 
+	public void dispose () {
+		unbindDbService();
+	}
+
 	@Override
-	public void finalize () {
+	protected void finalize () {
 		unbindDbService();
 	}
 
