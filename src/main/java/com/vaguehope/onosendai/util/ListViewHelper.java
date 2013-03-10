@@ -5,10 +5,12 @@ import android.view.View;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
+import com.vaguehope.onosendai.model.ScrollState;
+
 public final class ListViewHelper {
 
-	private static final String KEY_ITEM_ID = "list_view_item_id";
-	private static final String KEY_TOP = "list_view_top";
+	static final String KEY_ITEM_ID = "list_view_item_id";
+	static final String KEY_TOP = "list_view_top";
 
 	private ListViewHelper () {
 		throw new AssertionError();
@@ -47,30 +49,10 @@ public final class ListViewHelper {
 		return null;
 	}
 
-	public static class ScrollState {
-
-		final long itemId;
-		final int top;
-
-		public ScrollState (final long itemId, final int top) {
-			this.itemId = itemId;
-			this.top = top;
-		}
-
-		public void writeTo (final Bundle bundle) {
-			bundle.putLong(KEY_ITEM_ID, this.itemId);
-			bundle.putInt(KEY_TOP, this.top);
-		}
-
-		@Override
-		public String toString () {
-			return new StringBuilder()
-					.append("SaveScrollState{").append(this.itemId)
-					.append(',').append(this.top)
-					.append('}')
-					.toString();
-		}
-
+	public static void toBundle (final ScrollState state, final Bundle bundle) {
+		if (state == null || bundle == null) return;
+		bundle.putLong(ListViewHelper.KEY_ITEM_ID, state.itemId);
+		bundle.putInt(ListViewHelper.KEY_TOP, state.top);
 	}
 
 }
