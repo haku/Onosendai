@@ -79,6 +79,11 @@ public class TweetListFragment extends Fragment {
 		this.log.d("Saved scroll: " + this.scrollState);
 	}
 
+	private void saveScrollIfNotSaved () {
+		if (this.scrollState != null) return;
+		saveScroll();
+	}
+
 	private void restoreScroll () {
 		if (this.scrollState == null) return;
 		ListViewHelper.restoreScrollState(this.listView, this.scrollState);
@@ -164,6 +169,7 @@ public class TweetListFragment extends Fragment {
 
 	protected void refreshUiOnUiThread () {
 		List<Tweet> tweets = this.bndDb.getDb().getTweets(this.columnId, 200);
+		saveScrollIfNotSaved();
 		this.adapter.setInputData(new TweetList(tweets));
 		restoreScroll();
 		this.log.i("Refreshed %d tweets.", tweets.size());
