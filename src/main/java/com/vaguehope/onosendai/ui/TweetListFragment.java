@@ -69,7 +69,7 @@ public class TweetListFragment extends Fragment {
 	@Override
 	public void onSaveInstanceState (final Bundle outState) {
 		super.onSaveInstanceState(outState);
-		this.scrollState.writeTo(outState);
+		if (this.scrollState != null) this.scrollState.writeTo(outState);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
