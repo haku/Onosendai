@@ -98,14 +98,14 @@ public class UpdateService extends IntentService {
 
 	private void doWork () {
 		if (connectionPresent()) {
-			fetchTweets();
+			fetchColumns();
 		}
 		else {
 			this.log.i("No connection, all updating aborted.");
 		}
 	}
 
-	private void fetchTweets () {
+	private void fetchColumns () {
 		Config conf;
 		try {
 			conf = new Config();
@@ -120,31 +120,42 @@ public class UpdateService extends IntentService {
 		}
 
 		final TwitterProvider twitterProvider = new TwitterProvider();
+		try {
+			fetchColumns(conf, twitterProvider);
+		}
+		finally {
+			twitterProvider.shutdown();
+		}
+	}
 
-		Map<Integer, Column> columns = conf.getColumns();
-		for (Column column : columns.values()) {
-			Account account = conf.getAccount(column.accountId);
-			if (account == null) {
-				this.log.e("Unknown acountId: '" + column.accountId + "'.");
-				continue;
-			}
-			switch (account.provider) {
-				case TWITTER:
-					try {
-						twitterProvider.addAccount(account);
-						TwitterFeed feed = TwitterFeeds.parse(column.resource);
-						TweetList tweets = twitterProvider.getTweets(feed, account);
-						if (!waitForDbReady()) return;
-						this.bndDb.getDb().storeTweets(column.index, tweets.getTweets());
-					}
-					catch (TwitterException e) {
-						this.log.w("Failed to fetch tweets: " + e.getMessage());
-					}
-					break;
-				default:
-					this.log.e("Unknown account type: " + account.provider);
-					continue;
-			}
+	private void fetchColumns (final Config conf, final TwitterProvider twitterProvider) {
+		for (Column column : conf.getColumns().values()) {
+			fetchColumn(conf, column, twitterProvider);
+		}
+	}
+
+	public void fetchColumn (final Config conf, Column column, final TwitterProvider twitterProvider) {
+		Account account = conf.getAccount(column.accountId);
+		if (account == null) {
+			this.log.e("Unknown acountId: '" + column.accountId + "'.");
+			return;
+		}
+		switch (account.provider) {
+			case TWITTER:
+				try {
+					twitterProvider.addAccount(account);
+					TwitterFeed feed = TwitterFeeds.parse(column.resource);
+					TweetList tweets = twitterProvider.getTweets(feed, account);
+					if (!waitForDbReady()) return;
+					this.bndDb.getDb().storeTweets(column.index, tweets.getTweets());
+				}
+				catch (TwitterException e) {
+					this.log.w("Failed to fetch tweets: " + e.getMessage());
+				}
+				break;
+			default:
+				this.log.e("Unknown account type: " + account.provider);
+				return;
 		}
 	}
 

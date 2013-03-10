@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.provider.twitter;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -36,6 +37,15 @@ public class TwitterProvider {
 		Twitter t = this.accounts.get(account.id);
 		if (t == null) throw new IllegalStateException("Account not configured: '" + account.id + "'.");
 		return fetchTwitterFeed(t, feed);
+	}
+
+	public void shutdown() {
+		Iterator<Twitter> itr = this.accounts.values().iterator();
+		while (itr.hasNext()) {
+			Twitter t = itr.next();
+			t.shutdown();
+			itr.remove();
+		}
 	}
 
 	private static TwitterFactory makeTwitterFactory (final Account account) {
