@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.config;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,7 +66,7 @@ public class Config {
 			String accessSecret = accountJson.getString("accessSecret");
 			ret.put(id, new Account(id, provider, consumerKey, consumerSecret, accessToken, accessSecret));
 		}
-		return ret;
+		return Collections.unmodifiableMap(ret);
 	}
 
 	private static Map<Integer, Column> parseColumns (final JSONArray columnsJson) throws JSONException {
@@ -78,7 +79,7 @@ public class Config {
 			String refresh = colJson.getString("refresh");
 			ret.put(Integer.valueOf(i), new Column(i, title, account, resource, refresh));
 		}
-		return ret;
+		return Collections.unmodifiableMap(ret);
 	}
 
 }
