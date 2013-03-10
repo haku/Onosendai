@@ -20,7 +20,7 @@ public final class ListViewHelper {
 		int top = (v == null) ? 0 : v.getTop();
 
 		long itemId = lv.getAdapter().getItemId(index);
-
+		if (itemId < 0) return null;
 		return new ScrollState(itemId, top);
 	}
 
