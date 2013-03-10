@@ -8,6 +8,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 
 public class DbService extends Service implements DbInterface {
@@ -73,6 +74,16 @@ public class DbService extends Service implements DbInterface {
 	@Override
 	public void removeTwUpdateListener (final Runnable action) {
 		this.dbAdaptor.removeTwUpdateListener(action);
+	}
+
+	@Override
+	public void storeScroll (final int columnId, final ScrollState state) {
+		this.dbAdaptor.storeScroll(columnId, state);
+	}
+
+	@Override
+	public ScrollState getScroll (final int columnId) {
+		return this.dbAdaptor.getScroll(columnId);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

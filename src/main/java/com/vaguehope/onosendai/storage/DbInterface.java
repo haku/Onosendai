@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.storage;
 import java.util.List;
 
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 
 public interface DbInterface {
@@ -12,5 +13,8 @@ public interface DbInterface {
 
 	void addTwUpdateListener (Runnable action);
 	void removeTwUpdateListener (Runnable action);
+
+	void storeScroll(int columnId, ScrollState state);
+	ScrollState getScroll(int columnId);
 
 }
