@@ -85,7 +85,7 @@ public class MainActivity extends FragmentActivity {
 			// getItem is called to instantiate the fragment for the given page.
 			Fragment fragment = new TweetListFragment();
 			Bundle args = new Bundle();
-			args.putInt(TweetListFragment.ARG_COLUMN_ID, position);
+			args.putInt(TweetListFragment.ARG_COLUMN_ID, this.conf.getColumns().get(position).id);
 			fragment.setArguments(args);
 			return fragment;
 		}

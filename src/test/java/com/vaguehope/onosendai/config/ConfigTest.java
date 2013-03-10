@@ -58,14 +58,14 @@ public class ConfigTest {
 		assertEquals(2, cs.size());
 
 		Column c0 = cs.get(Integer.valueOf(0));
-		assertEquals(0, c0.index);
+		assertEquals(0, c0.id);
 		assertEquals("main", c0.title);
 		assertEquals("t0", c0.accountId);
 		assertEquals("timeline", c0.resource);
 		assertEquals("15min", c0.refresh);
 
 		Column c1 = cs.get(Integer.valueOf(1));
-		assertEquals(1, c1.index);
+		assertEquals(1, c1.id);
 		assertEquals("my list", c1.title);
 		assertEquals("t0", c1.accountId);
 		assertEquals("lists/mylist", c1.resource);

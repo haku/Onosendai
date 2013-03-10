@@ -50,8 +50,8 @@ public class Config {
 		return this.columns;
 	}
 
-	public Column getColumn (final int index) {
-		return this.columns.get(Integer.valueOf(index));
+	public Column getColumn (final int id) {
+		return this.columns.get(Integer.valueOf(id));
 	}
 
 	private static Map<String, Account> parseAccounts (final JSONArray accountsJson) throws JSONException {

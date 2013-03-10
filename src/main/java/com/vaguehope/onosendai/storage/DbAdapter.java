@@ -110,9 +110,9 @@ public class DbAdapter implements DbInterface {
 							" WHERE " + TBL_TW_COLID + "=?" +
 							" ORDER BY " + TBL_TW_TIME +
 							" DESC LIMIT " + C.DATA_TW_MAX_COL_ENTRIES + ")",
-					new String[] { String.valueOf(column.index), String.valueOf(column.index) });
+					new String[] { String.valueOf(column.id), String.valueOf(column.id) });
 
-			this.log.i("Deleted " + n + " rows from " + TBL_TW + " column " + column.index + ".");
+			this.log.i("Deleted " + n + " rows from " + TBL_TW + " column " + column.id + ".");
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
@@ -123,7 +123,7 @@ public class DbAdapter implements DbInterface {
 		try {
 			for (Tweet tweet : tweets) {
 				ContentValues values = new ContentValues();
-				values.put(TBL_TW_COLID, column.index);
+				values.put(TBL_TW_COLID, column.id);
 				values.put(TBL_TW_SID, tweet.getId());
 				values.put(TBL_TW_TIME, tweet.getTime());
 				values.put(TBL_TW_NAME, tweet.getUsername());
