@@ -37,8 +37,16 @@ public class TweetListFragment extends Fragment {
 	public View onCreateView (final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		this.columnId = getArguments().getInt(ARG_COLUMN_ID);
 		this.log.setPrefix("C" + this.columnId);
+		this.log.d("onCreateView()");
 
-		this.scrollState = ListViewHelper.fromBundle(savedInstanceState);
+		/* Fragment life cycles are strange.
+		 * onCreateView() is called multiple times before onSaveInstanceState() is called.
+		 * Do not overwrite perfectly good stated stored in member var.
+		 */
+		if (this.scrollState == null) {
+			this.scrollState = ListViewHelper.fromBundle(savedInstanceState);
+		}
+
 		this.refreshUiHandler = new RefreshUiHandler(this);
 		this.adapter = new TweetListAdapter(getActivity());
 		this.listView = new ListView(getActivity());
@@ -75,8 +83,11 @@ public class TweetListFragment extends Fragment {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void saveScroll () {
-		this.scrollState = ListViewHelper.saveScrollState(this.listView);
-		this.log.d("Saved scroll: " + this.scrollState);
+		ScrollState newState = ListViewHelper.saveScrollState(this.listView);
+		if (newState != null) {
+			this.scrollState = newState;
+			this.log.d("Saved scroll: " + this.scrollState);
+		}
 	}
 
 	private void saveScrollIfNotSaved () {
