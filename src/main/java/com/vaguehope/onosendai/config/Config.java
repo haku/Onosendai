@@ -73,11 +73,12 @@ public class Config {
 		Map<Integer, Column> ret = new HashMap<Integer, Column>();
 		for (int i = 0; i < columnsJson.length(); i++) {
 			JSONObject colJson = columnsJson.getJSONObject(i);
+			int index = colJson.getInt("id");
 			String title = colJson.getString("title");
 			String account = colJson.getString("account");
 			String resource = colJson.getString("resource");
 			String refresh = colJson.getString("refresh");
-			ret.put(Integer.valueOf(i), new Column(i, title, account, resource, refresh));
+			ret.put(Integer.valueOf(i), new Column(index, title, account, resource, refresh));
 		}
 		return Collections.unmodifiableMap(ret);
 	}

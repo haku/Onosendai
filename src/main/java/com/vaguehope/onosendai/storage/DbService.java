@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
+import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.Tweet;
 
 public class DbService extends Service implements DbInterface {
@@ -26,7 +27,7 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public IBinder onBind (Intent arg0) {
+	public IBinder onBind (final Intent arg0) {
 		return this.mBinder;
 	}
 
@@ -56,22 +57,22 @@ public class DbService extends Service implements DbInterface {
 //	DB methods.
 
 	@Override
-	public void storeTweets (int columnId, List<Tweet> tweets) {
-		this.dbAdaptor.storeTweets(columnId, tweets);
+	public void storeTweets (final Column column, final List<Tweet> tweets) {
+		this.dbAdaptor.storeTweets(column, tweets);
 	}
 
 	@Override
-	public ArrayList<Tweet> getTweets (int columnId, int numberOf) {
+	public ArrayList<Tweet> getTweets (final int columnId, final int numberOf) {
 		return this.dbAdaptor.getTweets(columnId, numberOf);
 	}
 
 	@Override
-	public void addTwUpdateListener (Runnable action) {
+	public void addTwUpdateListener (final Runnable action) {
 		this.dbAdaptor.addTwUpdateListener(action);
 	}
 
 	@Override
-	public void removeTwUpdateListener (Runnable action) {
+	public void removeTwUpdateListener (final Runnable action) {
 		this.dbAdaptor.removeTwUpdateListener(action);
 	}
 
