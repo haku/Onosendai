@@ -36,6 +36,12 @@ public class DbClient {
 	@Override
 	protected void finalize () {
 		unbindDbService();
+		try {
+			super.finalize();
+		}
+		catch (Throwable e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	public void clearReadyListener () {
