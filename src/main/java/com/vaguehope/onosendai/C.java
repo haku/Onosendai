@@ -7,8 +7,9 @@ public interface C {
 
 	String CONFIG_FILE_NAME = "deck.conf";
 
-	String DATA_TW_MAX_AGE_DAYS = "-7 days";
-
 	int TWEET_FETCH_PAGE_SIZE = 40;
+
+	//String DATA_TW_MAX_AGE_DAYS = "-7 days";
+	String DATA_TW_MAX_COL_ENTRIES = "500";
 
 }
