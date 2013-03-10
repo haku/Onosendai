@@ -39,9 +39,10 @@ public class TweetListFragment extends Fragment {
 		this.log.setPrefix("C" + this.columnId);
 		this.log.d("onCreateView()");
 
-		/* Fragment life cycles are strange.
-		 * onCreateView() is called multiple times before onSaveInstanceState() is called.
-		 * Do not overwrite perfectly good stated stored in member var.
+		/*
+		 * Fragment life cycles are strange. onCreateView() is called multiple
+		 * times before onSaveInstanceState() is called. Do not overwrite
+		 * perfectly good stated stored in member var.
 		 */
 		if (this.scrollState == null) {
 			this.scrollState = ListViewHelper.fromBundle(savedInstanceState);
@@ -70,6 +71,7 @@ public class TweetListFragment extends Fragment {
 	@Override
 	public void onPause () {
 		saveScroll();
+		saveSavedScrollToDb();
 		suspendDb();
 		super.onPause();
 	}
@@ -102,6 +104,15 @@ public class TweetListFragment extends Fragment {
 		this.scrollState = null;
 	}
 
+	private void saveSavedScrollToDb () {
+		this.bndDb.getDb().storeScroll(this.columnId, this.scrollState);
+	}
+
+	protected void restoreSavedScrollFromDb () {
+		if (this.scrollState != null) return;
+		this.scrollState = this.bndDb.getDb().getScroll(this.columnId);
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void resumeDb () {
@@ -117,6 +128,7 @@ public class TweetListFragment extends Fragment {
 					 * the DB service before then, it will NPE.
 					 */
 					getBndDb().getDb().addTwUpdateListener(getGuiUpdateRunnable());
+					restoreSavedScrollFromDb();
 					refreshUi();
 					TweetListFragment.this.log.d("DB service bound.");
 				}
@@ -124,6 +136,7 @@ public class TweetListFragment extends Fragment {
 		}
 		else { // because we stop listening in onPause(), we must resume if the user comes back.
 			this.bndDb.getDb().addTwUpdateListener(getGuiUpdateRunnable());
+			restoreSavedScrollFromDb();
 			refreshUi();
 			this.log.d("DB service rebound.");
 		}

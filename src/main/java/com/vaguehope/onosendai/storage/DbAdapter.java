@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -18,7 +19,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 2;
+	private static final int DB_VERSION = 3;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -43,12 +44,14 @@ public class DbAdapter implements DbInterface {
 		@Override
 		public void onCreate (final SQLiteDatabase db) {
 			db.execSQL(TBL_TW_CREATE);
+			db.execSQL(TBL_SC_CREATE);
 		}
 
 		@Override
 		public void onUpgrade (final SQLiteDatabase db, final int oldVersion, final int newVersion) {
 			this.log.w("Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data.");
 			db.execSQL("DROP TABLE IF EXISTS " + TBL_TW);
+			db.execSQL("DROP TABLE IF EXISTS " + TBL_SC);
 			onCreate(db);
 		}
 
@@ -71,7 +74,7 @@ public class DbAdapter implements DbInterface {
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//	Activity.
+//	Tweets.
 
 	private static final String TBL_TW = "tw";
 	private static final String TBL_TW_ID = "_id";
@@ -195,6 +198,80 @@ public class DbAdapter implements DbInterface {
 	@Override
 	public void removeTwUpdateListener (final Runnable action) {
 		this.twUpdateActions.remove(action);
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//	Scrolls.
+
+	private static final String TBL_SC = "sc";
+	private static final String TBL_SC_ID = "_id";
+	private static final String TBL_SC_COLID = "colid";
+	private static final String TBL_SC_ITEMID = "itemid";
+	private static final String TBL_SC_TOP = "top";
+
+	private static final String TBL_SC_CREATE = "create table " + TBL_SC + " ("
+			+ TBL_SC_ID + " integer primary key autoincrement,"
+			+ TBL_SC_COLID + " integer,"
+			+ TBL_SC_ITEMID + " integer,"
+			+ TBL_SC_TOP + " integer,"
+			+ "UNIQUE(" + TBL_SC_COLID + ") ON CONFLICT REPLACE" +
+			");";
+
+	@Override
+	public void storeScroll (final int columnId, final ScrollState state) {
+		if (state == null) return;
+
+		this.mDb.beginTransaction();
+		try {
+			ContentValues values = new ContentValues();
+			values.put(TBL_SC_COLID, columnId);
+			values.put(TBL_SC_ITEMID, state.itemId);
+			values.put(TBL_SC_TOP, state.top);
+			this.mDb.insertWithOnConflict(TBL_SC, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+		this.log.i("Saved scroll to DB for col " + columnId + ": " + state);
+	}
+
+	@Override
+	public ScrollState getScroll (final int columnId) {
+		if (this.mDb == null) {
+			this.log.e("aborting because mDb==null.");
+			return null;
+		}
+
+		if (!this.mDb.isOpen()) {
+			this.log.d("mDb was not open; opeing it...");
+			open();
+		}
+
+		ScrollState ret = null;
+
+		Cursor c = null;
+		try {
+			c = this.mDb.query(true, TBL_SC,
+					new String[] { TBL_SC_ITEMID, TBL_SC_TOP },
+					TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) },
+					null, null, null, null);
+
+			if (c != null && c.moveToFirst()) {
+				int colItemId = c.getColumnIndex(TBL_SC_ITEMID);
+				int colTop = c.getColumnIndex(TBL_SC_TOP);
+
+				long itemId = c.getLong(colItemId);
+				int top = c.getInt(colTop);
+				ret = new ScrollState(itemId, top);
+			}
+		}
+		finally {
+			if (c != null) c.close();
+		}
+
+		this.log.i("Read scroll from DB for col " + columnId + ": " + ret);
+		return ret;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
