@@ -40,9 +40,10 @@ public class TweetListFragment extends Fragment {
 
 		this.scrollState = ListViewHelper.fromBundle(savedInstanceState);
 		this.refreshUiHandler = new RefreshUiHandler(this);
-		this.listView = new ListView(getActivity());
 		this.adapter = new TweetListAdapter(getActivity());
+		this.listView = new ListView(getActivity());
 		this.listView.setAdapter(this.adapter);
+		this.listView.setScrollbarFadingEnabled(false);
 		return this.listView;
 	}
 
