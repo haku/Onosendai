@@ -70,6 +70,7 @@ Building from source
 --------------------
 
 This code is build using Maven.
+You must first install [maven-android-sdk-deployer](https://github.com/mosabua/maven-android-sdk-deployer).
 
 ```sh
 mvn clean install android:deploy android:run
