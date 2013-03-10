@@ -2,14 +2,14 @@ package com.vaguehope.onosendai.config;
 
 public class Column {
 
-	public final int index;
+	public final int id;
 	public final String title;
 	public final String accountId;
 	public final String resource;
 	public final String refresh;
 
-	public Column (final int index, final String title, final String accountId, final String resource, final String refresh) {
-		this.index = index;
+	public Column (final int id, final String title, final String accountId, final String resource, final String refresh) {
+		this.id = id;
 		this.title = title;
 		this.accountId = accountId;
 		this.resource = resource;
@@ -19,7 +19,7 @@ public class Column {
 	@Override
 	public String toString () {
 		StringBuilder s = new StringBuilder();
-		s.append("Column{").append(this.index)
+		s.append("Column{").append(this.id)
 				.append(",").append(this.title)
 				.append(",").append(this.accountId)
 				.append(",").append(this.resource)
