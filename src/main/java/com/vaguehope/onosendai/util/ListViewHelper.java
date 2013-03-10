@@ -22,6 +22,7 @@ public final class ListViewHelper {
 
 	public static void restoreScrollState (final ListView lv, final ScrollState state) {
 		if (state == null) return;
+		// NOTE if this seems unreliable try wrapping setSelection*() calls in lv.post(...);
 		ListAdapter adapter = lv.getAdapter();
 		for (int i = 0; i < adapter.getCount(); i++) {
 			if (adapter.getItemId(i) == state.itemId) {
@@ -29,6 +30,7 @@ public final class ListViewHelper {
 				return;
 			}
 		}
+		lv.setSelection(lv.getCount() - 1);
 	}
 
 	public static class ScrollState {
