@@ -6,7 +6,7 @@ import java.util.Random;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 
-public class FakeData {
+public final class FakeData {
 
 	private static final String IPSUM = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad mi.";
 	private static final Random RAND = new Random();
