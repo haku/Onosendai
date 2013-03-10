@@ -129,6 +129,7 @@ public class UpdateService extends IntentService {
 
 	private void fetchColumns (final Config conf, final TwitterProvider twitterProvider) {
 		for (Column column : conf.getColumns().values()) {
+			// TODO parallelise this.
 			fetchColumn(conf, column, twitterProvider);
 		}
 	}
