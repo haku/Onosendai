@@ -12,12 +12,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.model.TweetListAdapter;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.util.ListViewHelper;
-import com.vaguehope.onosendai.util.ListViewHelper.ScrollState;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class TweetListFragment extends Fragment {
@@ -77,7 +77,7 @@ public class TweetListFragment extends Fragment {
 	@Override
 	public void onSaveInstanceState (final Bundle outState) {
 		super.onSaveInstanceState(outState);
-		if (this.scrollState != null) this.scrollState.writeTo(outState);
+		ListViewHelper.toBundle(this.scrollState, outState);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
