@@ -19,21 +19,6 @@ import com.vaguehope.onosendai.update.UpdateService;
 
 public class MainActivity extends FragmentActivity {
 
-	/**
-	 * The {@link android.support.v4.view.PagerAdapter} that will provide
-	 * fragments for each of the sections. We use a
-	 * {@link android.support.v4.app.FragmentPagerAdapter} derivative, which
-	 * will keep every loaded fragment in memory. If this becomes too memory
-	 * intensive, it may be best to switch to a
-	 * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-	 */
-	private SectionsPagerAdapter mSectionsPagerAdapter;
-
-	/**
-	 * The {@link ViewPager} that will host the section contents.
-	 */
-	private ViewPager mViewPager;
-
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -49,10 +34,17 @@ public class MainActivity extends FragmentActivity {
 			return;
 		}
 
-		this.mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), conf);
+		/* The {@link android.support.v4.view.PagerAdapter} that will provide
+		 * fragments for each of the sections. We use a
+		 * {@link android.support.v4.app.FragmentPagerAdapter} derivative, which
+		 * will keep every loaded fragment in memory. If this becomes too memory
+		 * intensive, it may be best to switch to a
+		 * {@link android.support.v4.app.FragmentStatePagerAdapter}.
+		 */
+		SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), conf);
 
-		this.mViewPager = (ViewPager) findViewById(R.id.pager);
-		this.mViewPager.setAdapter(this.mSectionsPagerAdapter);
+		ViewPager mViewPager = (ViewPager) findViewById(R.id.pager);
+		mViewPager.setAdapter(sectionsPagerAdapter);
 
 		AlarmReceiver.configureAlarm(this); // FIXME be more smart about this?
 	}
@@ -79,7 +71,7 @@ public class MainActivity extends FragmentActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
-	public static class SectionsPagerAdapter extends FragmentPagerAdapter {
+	private static class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 		private final Config conf;
 
