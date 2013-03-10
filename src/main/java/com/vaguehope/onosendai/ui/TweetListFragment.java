@@ -16,6 +16,8 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.model.TweetListAdapter;
 import com.vaguehope.onosendai.storage.DbClient;
+import com.vaguehope.onosendai.util.ListViewHelper;
+import com.vaguehope.onosendai.util.ListViewHelper.ScrollState;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class TweetListFragment extends Fragment {
@@ -25,9 +27,10 @@ public class TweetListFragment extends Fragment {
 	protected final LogWrapper log = new LogWrapper();
 
 	private int columnId;
+	private RefreshUiHandler refreshUiHandler;
+	private ListView tweetListView;
 	private TweetListAdapter adapter;
 	private DbClient bndDb;
-	private RefreshUiHandler refreshUiHandler;
 
 	@Override
 	public View onCreateView (final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
@@ -35,10 +38,10 @@ public class TweetListFragment extends Fragment {
 		this.log.setPrefix("C" + this.columnId);
 
 		this.refreshUiHandler = new RefreshUiHandler(this);
-		ListView tweetList = new ListView(getActivity());
+		this.tweetListView = new ListView(getActivity());
 		this.adapter = new TweetListAdapter(getActivity());
-		tweetList.setAdapter(this.adapter);
-		return tweetList;
+		this.tweetListView.setAdapter(this.adapter);
+		return this.tweetListView;
 	}
 
 	@Override
@@ -46,6 +49,8 @@ public class TweetListFragment extends Fragment {
 		this.bndDb.finalize();
 		super.onDestroy();
 	}
+
+	private ScrollState tweetListViewScrollState;
 
 	@Override
 	public void onResume () {
@@ -55,9 +60,31 @@ public class TweetListFragment extends Fragment {
 
 	@Override
 	public void onPause () {
-		super.onPause();
+		saveScroll();
 		suspendDb();
+		super.onPause();
 	}
+
+	@Override
+	public void onSaveInstanceState (final Bundle outState) {
+		super.onSaveInstanceState(outState);
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private void saveScroll () {
+		this.tweetListViewScrollState = ListViewHelper.saveScrollState(this.tweetListView);
+		this.log.d("Saved scroll: " + this.tweetListViewScrollState);
+	}
+
+	private void restoreScroll () {
+		if (this.tweetListViewScrollState == null) return;
+		ListViewHelper.restoreScrollState(this.tweetListView, this.tweetListViewScrollState);
+		this.log.d("Restored scroll: " + this.tweetListViewScrollState);
+		this.tweetListViewScrollState = null;
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void resumeDb () {
 		this.log.d("Binding DB service...");
@@ -100,6 +127,8 @@ public class TweetListFragment extends Fragment {
 		return this.bndDb;
 	}
 
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	public Runnable getGuiUpdateRunnable () {
 		return this.guiUpdateRunnable;
 	}
@@ -134,6 +163,7 @@ public class TweetListFragment extends Fragment {
 	protected void refreshUiOnUiThread () {
 		ArrayList<Tweet> tweets = this.bndDb.getDb().getTweets(this.columnId, 200);
 		this.adapter.setInputData(new TweetList(tweets));
+		restoreScroll();
 		this.log.i("Refreshed %d tweets.", tweets.size());
 	}
 
