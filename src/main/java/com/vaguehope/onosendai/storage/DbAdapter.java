@@ -98,8 +98,17 @@ public class DbAdapter implements DbInterface {
 		// Clear old data.
 		this.mDb.beginTransaction();
 		try {
-			// TODO only specified column?
-			int n = this.mDb.delete(TBL_TW, "date('now', '" + C.DATA_TW_MAX_AGE_DAYS + "') > datetime(" + TBL_TW_TIME + ", 'unixepoch')", null);
+//			int n = this.mDb.delete(TBL_TW,
+//					"date('now', '?') > datetime(" + TBL_TW_TIME + ", 'unixepoch')",
+//					new String[] { C.DATA_TW_MAX_AGE_DAYS });
+
+			int n = this.mDb.delete(TBL_TW,
+					TBL_TW_COLID + "=? AND " + TBL_TW_ID + " NOT IN (SELECT " + TBL_TW_ID + " FROM " + TBL_TW +
+							" WHERE " + TBL_TW_COLID + "=?" +
+							" ORDER BY " + TBL_TW_TIME +
+							" DESC LIMIT " + C.DATA_TW_MAX_COL_ENTRIES + ")",
+					new String[] { String.valueOf(columnId), String.valueOf(columnId) });
+
 			this.log.i("Deleted " + n + " rows from " + TBL_TW + " column " + columnId + ".");
 			this.mDb.setTransactionSuccessful();
 		}
