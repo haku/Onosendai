@@ -34,13 +34,13 @@ public class TwitterProvider {
 		this.accounts.putIfAbsent(account.id, t);
 	}
 
-	public TweetList getTweets (final TwitterFeed feed, final Account account) throws TwitterException {
+	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId) throws TwitterException {
 		Twitter t = this.accounts.get(account.id);
 		if (t == null) throw new IllegalStateException("Account not configured: '" + account.id + "'.");
-		return fetchTwitterFeed(t, feed);
+		return fetchTwitterFeed(t, feed, sinceId);
 	}
 
-	public void shutdown() {
+	public void shutdown () {
 		Iterator<Twitter> itr = this.accounts.values().iterator();
 		while (itr.hasNext()) {
 			Twitter t = itr.next();
@@ -58,16 +58,26 @@ public class TwitterProvider {
 		return new TwitterFactory(cb.build());
 	}
 
-	private static TweetList fetchTwitterFeed (final Twitter t, final TwitterFeed feed) throws TwitterException {
+	/*
+	 * Paging:
+	 * https://dev.twitter.com/docs/working-with-timelines
+	 * http://twitter4j.org/en/code-examples.html
+	 */
+
+	private static TweetList fetchTwitterFeed (final Twitter t, final TwitterFeed feed, final long sinceId) throws TwitterException {
 		List<Tweet> tweets = new ArrayList<Tweet>();
 		int minCount = feed.recommendedFetchCount();
 		int pageSize = Math.min(minCount, C.TWEET_FETCH_PAGE_SIZE);
 		int page = 1; // First page is 1.
+		long minId = -1;
 		while (tweets.size() < minCount) {
-			Paging paging = new Paging(page, pageSize);
+			Paging paging = new Paging(page, pageSize, sinceId);
+			if (minId > 0) paging.setMaxId(minId);
 			ResponseList<Status> timelinePage = feed.getTweets(t, paging);
 			if (timelinePage.size() < 1) break;
 			addTweetsToList(tweets, timelinePage);
+			if (timelinePage.size() < pageSize) break;
+			minId = minIdOf(minId, timelinePage);
 			page++;
 		}
 		return new TweetList(tweets);
@@ -82,6 +92,14 @@ public class TwitterProvider {
 
 	private static Tweet convertTweet (final Status s) {
 		return new Tweet(s.getId(), s.getUser().getScreenName(), s.getText(), s.getCreatedAt().getTime() / 1000L);
+	}
+
+	private static long minIdOf (final long statingMin, final ResponseList<Status> tweets) {
+		long min = statingMin;
+		for (Status status : tweets) {
+			min = Math.min(min, status.getId());
+		}
+		return min;
 	}
 
 }

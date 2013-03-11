@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.update;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -20,6 +21,7 @@ import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
+import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeed;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeeds;
@@ -135,6 +137,7 @@ public class UpdateService extends IntentService {
 	}
 
 	public void fetchColumn (final Config conf, final Column column, final TwitterProvider twitterProvider) {
+		final long startTime = System.nanoTime();
 		Account account = conf.getAccount(column.accountId);
 		if (account == null) {
 			this.log.e("Unknown acountId: '" + column.accountId + "'.");
@@ -145,9 +148,17 @@ public class UpdateService extends IntentService {
 				try {
 					twitterProvider.addAccount(account);
 					TwitterFeed feed = TwitterFeeds.parse(column.resource);
-					TweetList tweets = twitterProvider.getTweets(feed, account);
 					if (!waitForDbReady()) return;
+
+					long sinceId = -1;
+					List<Tweet> existingTweets = this.bndDb.getDb().getTweets(column.id, 1);
+					if (existingTweets.size() > 0) sinceId = existingTweets.get(existingTweets.size() - 1).getId();
+
+					TweetList tweets = twitterProvider.getTweets(feed, account, sinceId);
 					this.bndDb.getDb().storeTweets(column, tweets.getTweets());
+
+					long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.title, durationMillis);
 				}
 				catch (TwitterException e) {
 					this.log.w("Failed to fetch tweets: " + e.getMessage());
@@ -155,7 +166,6 @@ public class UpdateService extends IntentService {
 				break;
 			default:
 				this.log.e("Unknown account type: " + account.provider);
-				return;
 		}
 	}
 

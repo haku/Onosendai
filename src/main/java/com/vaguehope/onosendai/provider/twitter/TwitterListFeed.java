@@ -6,6 +6,8 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
+import com.vaguehope.onosendai.C;
+
 public class TwitterListFeed implements TwitterFeed {
 
 	private final String slug;
@@ -21,7 +23,7 @@ public class TwitterListFeed implements TwitterFeed {
 
 	@Override
 	public int recommendedFetchCount () {
-		return 50;
+		return C.TWITTER_LIST_MAX_FETCH;
 	}
 
 }

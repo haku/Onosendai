@@ -8,6 +8,8 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
+import com.vaguehope.onosendai.C;
+
 public enum TwitterFeeds implements TwitterFeed {
 	TIMELINE {
 		@Override
@@ -17,7 +19,7 @@ public enum TwitterFeeds implements TwitterFeed {
 
 		@Override
 		public int recommendedFetchCount () {
-			return 50;
+			return C.TWITTER_TIMELINE_MAX_FETCH;
 		}
 	},
 	MENTIONS {
@@ -28,7 +30,7 @@ public enum TwitterFeeds implements TwitterFeed {
 
 		@Override
 		public int recommendedFetchCount () {
-			return 15;
+			return C.TWITTER_MENTIONS_MAX_FETCH;
 		}
 	},
 	ME {
@@ -39,7 +41,7 @@ public enum TwitterFeeds implements TwitterFeed {
 
 		@Override
 		public int recommendedFetchCount () {
-			return 15;
+			return C.TWITTER_ME_MAX_FETCH;
 		}
 	};
 
