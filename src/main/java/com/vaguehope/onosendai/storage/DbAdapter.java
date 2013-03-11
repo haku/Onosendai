@@ -112,7 +112,7 @@ public class DbAdapter implements DbInterface {
 							" DESC LIMIT " + C.DATA_TW_MAX_COL_ENTRIES + ")",
 					new String[] { String.valueOf(column.id), String.valueOf(column.id) });
 
-			this.log.i("Deleted %d rows from %s column %d.", n, TBL_TW, column.id);
+			this.log.d("Deleted %d rows from %s column %d.", n, TBL_TW, column.id);
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
