@@ -32,9 +32,19 @@ public class LogWrapper {
 		Log.e(C.TAG, this.prefix == null ? msg : addPrefix(msg), t);
 	}
 
+	public void e (final String msg, final Object... args) {
+		if (!Log.isLoggable(C.TAG, Log.ERROR)) return;
+		Log.e(C.TAG, this.prefix == null ? msg : addPrefix(String.format(msg, args)));
+	}
+
 	public void w (final String msg) {
 		if (!Log.isLoggable(C.TAG, Log.WARN)) return;
 		Log.w(C.TAG, this.prefix == null ? msg : addPrefix(msg));
+	}
+
+	public void w (final String msg, final Object... args) {
+		if (!Log.isLoggable(C.TAG, Log.WARN)) return;
+		Log.w(C.TAG, this.prefix == null ? msg : addPrefix(String.format(msg, args)));
 	}
 
 	public void i (final String msg) {
@@ -50,6 +60,11 @@ public class LogWrapper {
 	public void d (final String msg) {
 		if (!Log.isLoggable(C.TAG, Log.DEBUG)) return;
 		Log.d(C.TAG, this.prefix == null ? msg : addPrefix(msg));
+	}
+
+	public void d (final String msg, final Object... args) {
+		if (!Log.isLoggable(C.TAG, Log.DEBUG)) return;
+		Log.d(C.TAG, this.prefix == null ? msg : addPrefix(String.format(msg, args)));
 	}
 
 	private String addPrefix (final String msg) {

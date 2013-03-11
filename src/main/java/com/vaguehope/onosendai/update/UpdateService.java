@@ -112,11 +112,11 @@ public class UpdateService extends IntentService {
 			conf = new Config();
 		}
 		catch (IOException e) {
-			this.log.w("Can not update: " + e.getMessage());
+			this.log.w("Can not update: %s", e.getMessage());
 			return;
 		}
 		catch (JSONException e) {
-			this.log.w("Can not update: " + e.getMessage());
+			this.log.w("Can not update: %s", e.getMessage());
 			return;
 		}
 
@@ -140,7 +140,7 @@ public class UpdateService extends IntentService {
 		final long startTime = System.nanoTime();
 		Account account = conf.getAccount(column.accountId);
 		if (account == null) {
-			this.log.e("Unknown acountId: '" + column.accountId + "'.");
+			this.log.e("Unknown acountId: '%s'.", column.accountId);
 			return;
 		}
 		switch (account.provider) {
@@ -161,11 +161,11 @@ public class UpdateService extends IntentService {
 					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.title, durationMillis);
 				}
 				catch (TwitterException e) {
-					this.log.w("Failed to fetch tweets: " + e.getMessage());
+					this.log.w("Failed to fetch tweets: %s", e.getMessage());
 				}
 				break;
 			default:
-				this.log.e("Unknown account type: " + account.provider);
+				this.log.e("Unknown account type: %s", account.provider);
 		}
 	}
 
