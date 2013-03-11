@@ -1,8 +1,17 @@
 package com.vaguehope.onosendai.update;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
@@ -130,10 +139,72 @@ public class UpdateService extends IntentService {
 	}
 
 	private void fetchColumns (final Config conf, final TwitterProvider twitterProvider) {
-		for (Column column : conf.getColumns().values()) {
-			// TODO parallelise this.
+		final long startTime = System.nanoTime();
+
+		Collection<Column> columns = conf.getColumns().values();
+		if (columns.size() >= C.MIN_COLUMS_TO_USE_THREADPOOL) {
+			fetchColumnsMultiThread(conf, twitterProvider, columns);
+		}
+		else {
+			fetchColumnsSingleThread(conf, twitterProvider, columns);
+		}
+
+		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+		this.log.i("Fetched %d columns in %d millis.", columns.size(), durationMillis);
+	}
+
+	private void fetchColumnsSingleThread (final Config conf, final TwitterProvider twitterProvider, final Collection<Column> columns) {
+		for (Column column : columns) {
 			fetchColumn(conf, column, twitterProvider);
 		}
+	}
+
+	private void fetchColumnsMultiThread (final Config conf, final TwitterProvider twitterProvider, final Collection<Column> columns) {
+		int poolSize = Math.min(columns.size(), C.MAX_THREAD_POOL_SIZE);
+		this.log.i("Using thread pool size %d for %d columns.", poolSize, columns.size());
+		ExecutorService ex = Executors.newFixedThreadPool(poolSize);
+		try {
+			Map<Column, Future<Void>> jobs = new LinkedHashMap<Column, Future<Void>>();
+			for (Column column : columns) {
+				jobs.put(column, ex.submit(new FetchColumn(conf, column, twitterProvider, this)));
+			}
+			for (Entry<Column, Future<Void>> job : jobs.entrySet()) {
+				try {
+					job.getValue().get();
+				}
+				catch (InterruptedException e) {
+					this.log.w("Error fetching column '%s': %s %s", job.getKey().title, e.getClass().getName(), e.getMessage());
+				}
+				catch (ExecutionException e) {
+					this.log.w("Error fetching column '%s': %s %s", job.getKey().title, e.getClass().getName(), e.getMessage());
+				}
+			}
+		}
+		finally {
+			ex.shutdownNow();
+		}
+	}
+
+	private static class FetchColumn implements Callable<Void> {
+
+		private final Config conf;
+		private final Column column;
+		private final TwitterProvider twitterProvider;
+		private final UpdateService updateService;
+
+		public FetchColumn (final Config conf, final Column column, final TwitterProvider twitterProvider, final UpdateService updateService) {
+			this.conf = conf;
+			this.column = column;
+			this.twitterProvider = twitterProvider;
+			this.updateService = updateService;
+		}
+
+		@Override
+		public Void call () throws Exception {
+			this.updateService.fetchColumn(this.conf, this.column, this.twitterProvider);
+			return null;
+		}
+
 	}
 
 	public void fetchColumn (final Config conf, final Column column, final TwitterProvider twitterProvider) {

@@ -16,5 +16,8 @@ public interface C {
 	//String DATA_TW_MAX_AGE_DAYS = "-7 days";
 	String DATA_TW_MAX_COL_ENTRIES = "500";
 
+	// Arbitrary values.
+	int MIN_COLUMS_TO_USE_THREADPOOL = 2;
+	int MAX_THREAD_POOL_SIZE = 3;
 
 }
