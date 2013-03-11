@@ -23,7 +23,7 @@ public class DbAdapter implements DbInterface {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private final LogWrapper log = new LogWrapper();
+	private final LogWrapper log = new LogWrapper("DB");
 	private final Context mCtx;
 
 	private DatabaseHelper mDbHelper;
@@ -49,7 +49,7 @@ public class DbAdapter implements DbInterface {
 
 		@Override
 		public void onUpgrade (final SQLiteDatabase db, final int oldVersion, final int newVersion) {
-			this.log.w("Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data.");
+			this.log.w("Upgrading database from version %d to %d, which will destroy all old data.", oldVersion, newVersion);
 			db.execSQL("DROP TABLE IF EXISTS " + TBL_TW);
 			db.execSQL("DROP TABLE IF EXISTS " + TBL_SC);
 			onCreate(db);
@@ -112,7 +112,7 @@ public class DbAdapter implements DbInterface {
 							" DESC LIMIT " + C.DATA_TW_MAX_COL_ENTRIES + ")",
 					new String[] { String.valueOf(column.id), String.valueOf(column.id) });
 
-			this.log.i("Deleted " + n + " rows from " + TBL_TW + " column " + column.id + ".");
+			this.log.i("Deleted %d rows from %s column %d.", n, TBL_TW, column.id);
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
@@ -233,7 +233,7 @@ public class DbAdapter implements DbInterface {
 		finally {
 			this.mDb.endTransaction();
 		}
-		this.log.i("Saved scroll to DB for col " + columnId + ": " + state);
+		this.log.d("Stored scroll for col %d: %s", columnId, state);
 	}
 
 	@Override
@@ -270,7 +270,7 @@ public class DbAdapter implements DbInterface {
 			if (c != null) c.close();
 		}
 
-		this.log.i("Read scroll from DB for col " + columnId + ": " + ret);
+		this.log.d("Read scroll for col %d: %s", columnId, ret);
 		return ret;
 	}
 

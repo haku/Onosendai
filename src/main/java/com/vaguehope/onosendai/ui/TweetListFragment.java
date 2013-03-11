@@ -88,7 +88,7 @@ public class TweetListFragment extends Fragment {
 		ScrollState newState = ListViewHelper.saveScrollState(this.listView);
 		if (newState != null) {
 			this.scrollState = newState;
-			this.log.d("Saved scroll: " + this.scrollState);
+			this.log.d("Saved scroll: %s", this.scrollState);
 		}
 	}
 
@@ -100,7 +100,7 @@ public class TweetListFragment extends Fragment {
 	private void restoreScroll () {
 		if (this.scrollState == null) return;
 		ListViewHelper.restoreScrollState(this.listView, this.scrollState);
-		this.log.d("Restored scroll: " + this.scrollState);
+		this.log.d("Restored scroll: %s", this.scrollState);
 		this.scrollState = null;
 	}
 
@@ -196,7 +196,7 @@ public class TweetListFragment extends Fragment {
 		saveScrollIfNotSaved();
 		this.adapter.setInputData(new TweetList(tweets));
 		restoreScroll();
-		this.log.i("Refreshed %d tweets.", tweets.size());
+		this.log.d("Refreshed %d tweets.", tweets.size());
 	}
 
 }
