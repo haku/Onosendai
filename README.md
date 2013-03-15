@@ -66,6 +66,12 @@ If this file does not exist it will created when the UI is launched.
 
 Currently all lists will always background refresh on a 15 min time.
 
+License
+-------
+This source code is made avaiable under the Apache 2 licence.
+This copy of the source code should also contain LICENCE and NOTICE files which contain the full licence terms copyright notices respectfully.
+The full licence can also be found here: http://www.apache.org/licenses/LICENSE-2.0
+
 Building from source
 --------------------
 
