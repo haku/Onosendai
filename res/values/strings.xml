@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">onosendai</string>
-    <string name="menu_reload_config">Reload config</string>
-    <string name="menu_refresh_now">Refresh now</string>
-    <string name="service_label">onosendai update service</string>
+	<string name="app_name">onosendai</string>
+	<string name="service_label">onosendai update service</string>
+
+	<string name="menu_jump_top">Top</string>
+	<string name="menu_refresh_now">Refresh</string>
 
 </resources>

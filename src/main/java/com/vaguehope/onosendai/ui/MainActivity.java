@@ -1,6 +1,5 @@
 package com.vaguehope.onosendai.ui;
 
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -34,12 +33,13 @@ public class MainActivity extends FragmentActivity {
 			return;
 		}
 
-		/* The {@link android.support.v4.view.PagerAdapter} that will provide
-		 * fragments for each of the sections. We use a
-		 * {@link android.support.v4.app.FragmentPagerAdapter} derivative, which
-		 * will keep every loaded fragment in memory. If this becomes too memory
-		 * intensive, it may be best to switch to a
-		 * {@link android.support.v4.app.FragmentStatePagerAdapter}.
+		/*
+		 * The {@link android.support.v4.view.PagerAdapter} that will provide
+		 * fragments for each of the sections. We use a {@link
+		 * android.support.v4.app.FragmentPagerAdapter} derivative, which will
+		 * keep every loaded fragment in memory. If this becomes too memory
+		 * intensive, it may be best to switch to a {@link
+		 * android.support.v4.app.FragmentStatePagerAdapter}.
 		 */
 		SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), conf);
 
@@ -60,15 +60,13 @@ public class MainActivity extends FragmentActivity {
 	@Override
 	public boolean onOptionsItemSelected (final MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.menu_reload_config:
-				Toast.makeText(this, "TODO: reload config feature.", Toast.LENGTH_SHORT).show();
-				return true;
 			case R.id.menu_refresh_now:
 				this.startService(new Intent(this, UpdateService.class));
+				Toast.makeText(this, "Refresh requested.", Toast.LENGTH_SHORT).show();
 				return true;
+			default:
+				return super.onOptionsItemSelected(item);
 		}
-
-		return super.onOptionsItemSelected(item);
 	}
 
 	private static class SectionsPagerAdapter extends FragmentPagerAdapter {
