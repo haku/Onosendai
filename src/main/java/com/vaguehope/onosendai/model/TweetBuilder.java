@@ -7,6 +7,10 @@ public class TweetBuilder {
 	private String body;
 	private long unitTimeSeconds;
 
+	public TweetBuilder () {
+		reset();
+	}
+
 	public void reset () {
 		this.id = 0L;
 		this.username = null;
