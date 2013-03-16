@@ -8,10 +8,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
@@ -32,6 +36,12 @@ public class TweetListFragment extends Fragment {
 	private ScrollState scrollState;
 	private TweetListAdapter adapter;
 	private DbClient bndDb;
+
+	@Override
+	public void onCreate (final Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setHasOptionsMenu(true);
+	}
 
 	@Override
 	public View onCreateView (final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
@@ -156,6 +166,27 @@ public class TweetListFragment extends Fragment {
 
 	public DbClient getBndDb () {
 		return this.bndDb;
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	// https://developer.android.com/intl/fr/guide/topics/ui/actionbar.html#Home
+	// http://www.grokkingandroid.com/adding-action-items-from-within-fragments/
+
+	@Override
+	public void onCreateOptionsMenu (final Menu menu, final MenuInflater inflater) {
+		inflater.inflate(R.menu.tweetlist_menu, menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected (final MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.menu_jump_top:
+				this.listView.setSelectionAfterHeaderView();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
