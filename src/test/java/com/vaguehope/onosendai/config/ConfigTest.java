@@ -40,7 +40,7 @@ public class ConfigTest {
 		Config conf = new Config();
 
 		Map<String, Account> as = conf.getAccounts();
-		assertEquals(1, as.size());
+		assertEquals(2, as.size());
 
 		Account a = as.get("t0");
 		assertEquals(AccountProvider.TWITTER, a.provider);
@@ -48,6 +48,13 @@ public class ConfigTest {
 		assertEquals("?csecret?", a.consumerSecret);
 		assertEquals("?atoken?", a.accessToken);
 		assertEquals("?asecret?", a.accessSecret);
+
+		Account b = as.get("sw0");
+		assertEquals(AccountProvider.SUCCESSWHALE, b.provider);
+		assertEquals(null, b.consumerKey);
+		assertEquals(null, b.consumerSecret);
+		assertEquals("?username?", b.accessToken);
+		assertEquals("?password?", b.accessSecret);
 	}
 
 	@Test
