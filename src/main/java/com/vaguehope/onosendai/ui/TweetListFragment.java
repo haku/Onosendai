@@ -1,6 +1,8 @@
 package com.vaguehope.onosendai.ui;
 
 import java.lang.ref.WeakReference;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.List;
 
 import android.os.Bundle;
@@ -13,9 +15,15 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.layouts.SidebarLayout;
+import com.vaguehope.onosendai.layouts.SidebarLayout.SidebarListener;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
@@ -24,17 +32,29 @@ import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.util.ListViewHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
+/**
+ * https://developer.android.com/intl/fr/guide/components/fragments.html#
+ * Creating
+ */
 public class TweetListFragment extends Fragment {
 
 	public static final String ARG_COLUMN_ID = "column_id";
 
 	protected final LogWrapper log = new LogWrapper();
+	private final DateFormat dateFormat = DateFormat.getDateTimeInstance();
 
 	private int columnId;
 	private RefreshUiHandler refreshUiHandler;
-	private ListView listView;
+
+	private SidebarLayout sidebar;
+	private ListView tweetList;
+
+	private TextView txtTweetBody;
+	private TextView txtTweetName;
+	private TextView txtTweetDate;
+
 	private ScrollState scrollState;
-	private TweetListAdapter adapter;
+	protected TweetListAdapter adapter;
 	private DbClient bndDb;
 
 	@Override
@@ -58,12 +78,28 @@ public class TweetListFragment extends Fragment {
 			this.scrollState = ListViewHelper.fromBundle(savedInstanceState);
 		}
 
+		final View rootView = inflater.inflate(R.layout.tweetlist, container, false);
+		this.sidebar = (SidebarLayout) rootView.findViewById(R.id.tweetListLayout);
+		this.sidebar.setListener(this.sidebarListener);
+
+		rootView.setFocusableInTouchMode(true);
+		rootView.requestFocus();
+		rootView.setOnKeyListener(new SidebarLayout.BackButtonListener(this.sidebar));
+
+		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
+		this.adapter = new TweetListAdapter(container.getContext());
+		this.tweetList.setAdapter(this.adapter);
+		this.tweetList.setScrollbarFadingEnabled(false);
+		this.tweetList.setOnItemClickListener(this.listItemClickedListener);
 		this.refreshUiHandler = new RefreshUiHandler(this);
-		this.adapter = new TweetListAdapter(getActivity());
-		this.listView = new ListView(getActivity());
-		this.listView.setAdapter(this.adapter);
-		this.listView.setScrollbarFadingEnabled(false);
-		return this.listView;
+
+		this.txtTweetBody = (TextView) rootView.findViewById(R.id.tweetDetailBody);
+		this.txtTweetName = (TextView) rootView.findViewById(R.id.tweetDetailName);
+		this.txtTweetDate = (TextView) rootView.findViewById(R.id.tweetDetailDate);
+		Button btnTweetClose = (Button) rootView.findViewById(R.id.tweetDetailClose);
+		btnTweetClose.setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
+
+		return rootView;
 	}
 
 	@Override
@@ -95,7 +131,7 @@ public class TweetListFragment extends Fragment {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void saveScroll () {
-		ScrollState newState = ListViewHelper.saveScrollState(this.listView);
+		ScrollState newState = ListViewHelper.saveScrollState(this.tweetList);
 		if (newState != null) {
 			this.scrollState = newState;
 			this.log.d("Saved scroll: %s", this.scrollState);
@@ -109,7 +145,7 @@ public class TweetListFragment extends Fragment {
 
 	private void restoreScroll () {
 		if (this.scrollState == null) return;
-		ListViewHelper.restoreScrollState(this.listView, this.scrollState);
+		ListViewHelper.restoreScrollState(this.tweetList, this.scrollState);
 		this.log.d("Restored scroll: %s", this.scrollState);
 		this.scrollState = null;
 	}
@@ -182,12 +218,41 @@ public class TweetListFragment extends Fragment {
 	public boolean onOptionsItemSelected (final MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.menu_jump_top:
-				this.listView.setSelectionAfterHeaderView();
+				this.tweetList.setSelectionAfterHeaderView();
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
 	}
+
+	private final OnItemClickListener listItemClickedListener = new OnItemClickListener() {
+		@Override
+		public void onItemClick (final AdapterView<?> parent, final View view, final int position, final long id) {
+			showTweet(TweetListFragment.this.adapter.getInputData().getTweet(position));
+		}
+	};
+
+	protected void showTweet (final Tweet tweet) {
+		this.txtTweetBody.setText(tweet.getBody());
+		this.txtTweetName.setText(tweet.getUsername());
+		this.txtTweetDate.setText(this.dateFormat.format(new Date(tweet.getTime() * 1000L)));
+		this.sidebar.openSidebar();
+	}
+
+	private final SidebarListener sidebarListener = new SidebarListener() {
+
+		@Override
+		public boolean onContentTouchedWhenOpening (final SidebarLayout sb) {
+			sb.closeSidebar();
+			return true;
+		}
+
+		@Override
+		public void onSidebarOpened (final SidebarLayout sb) {/* Unused. */}
+
+		@Override
+		public void onSidebarClosed (final SidebarLayout sb) {/* Unused. */}
+	};
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
