@@ -3,13 +3,19 @@ package com.vaguehope.onosendai.provider.successwhale;
 import java.io.IOException;
 import java.net.URLEncoder;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.xml.sax.SAXException;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.TweetList;
-import com.vaguehope.onosendai.util.HttpHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 /**
@@ -23,62 +29,67 @@ public class SuccessWhale {
 
 	private final LogWrapper log = new LogWrapper("SW");
 	private final Account account;
+	private final HttpClientFactory httpClientFactory;
 
-	private String userid = null;
-	private String secret = null;
+	private SuccessWhaleAuth auth;
 
-	public SuccessWhale (final Account account) {
+	public SuccessWhale (final Account account, final HttpClientFactory httpClientFactory) {
 		this.account = account;
+		this.httpClientFactory = httpClientFactory;
 	}
 
 	/**
 	 * FIXME lock against multiple calls.
 	 */
 	public void authenticate () throws SuccessWhaleException {
-		String username = this.account.accessToken;
-		String password = this.account.accessSecret;
+		final String username = this.account.accessToken;
+		final String password = this.account.accessSecret;
 		try {
 			StringBuilder params = new StringBuilder();
-			params
-					.append("username=").append(URLEncoder.encode(username, "UTF-8"))
+			params.append("username=").append(URLEncoder.encode(username, "UTF-8"))
 					.append("&password=").append(URLEncoder.encode(password, "UTF-8"));
-			String authRespRaw = HttpHelper.getUrlContent(BASE_URL + API_AUTH, "POST", params.toString());
-
-			JSONObject authResp = (JSONObject) new JSONTokener(authRespRaw).nextValue();
-
-			// FIXME it would be better if the API used HTTP status codes to indicate failure.
-			// HTTP 200 with 'failed' in the body is somewhat untidy.
-			if (!authResp.getBoolean("success")) {
-				String msg = authResp.getString("error");
-				throw new SuccessWhaleException("Auth rejected for user '" + username + "': " + msg);
-			}
-
-			this.userid = authResp.getString("userid");
-			this.secret = authResp.getString("secret");
-			this.log.i("Authenticated username='%s' userid='%s'.", username, this.userid);
+			this.auth = this.httpClientFactory.getHttpClient().execute(new HttpPost(BASE_URL + API_AUTH), new ResponseHandler<SuccessWhaleAuth>() {
+				@Override
+				public SuccessWhaleAuth handleResponse (final HttpResponse response) throws ClientProtocolException, IOException {
+					try {
+						String authRespRaw = EntityUtils.toString(response.getEntity());
+						JSONObject authResp = (JSONObject) new JSONTokener(authRespRaw).nextValue();
+						if (!authResp.getBoolean("success")) {
+							throw new IOException("Auth rejected: " + authResp.getString("error"));
+						}
+						return new SuccessWhaleAuth(authResp.getString("userid"), authResp.getString("secret"));
+					}
+					catch (JSONException e) {
+						throw new IOException("Response unparsable: " + e.getMessage(), e);
+					}
+				}
+			});
+			this.log.i("Authenticated username='%s' userid='%s'.", username, this.auth.userid);
 		}
 		catch (IOException e) {
-			throw new SuccessWhaleException("Auth failed for user '" + username + "'.", e);
-		}
-		catch (JSONException e) {
-			throw new SuccessWhaleException("Auth response unparsable.", e);
+			throw new SuccessWhaleException("Auth failed for user '" + username + "': " + e.getMessage(), e);
 		}
 	}
 
 	public TweetList getFeed (final SuccessWhaleFeed feed) throws SuccessWhaleException {
 		ensureAuthenticated();
 		try {
-			StringBuilder params = new StringBuilder();
-			params
-					// TODO how is auth passed?
+			StringBuilder url = new StringBuilder();
+			url.append(BASE_URL).append(API_FEED)
+					.append("sw_uid=").append(this.auth.userid)
+					.append("secret=").append(this.auth.secret)
 					.append("sources=").append(URLEncoder.encode(feed.getSources(), "UTF-8"));
-
-			// TODO use SAX parser.
-			String feedRespRaw = HttpHelper.getUrlContent(BASE_URL + API_FEED, "GET", params.toString());
-
-			// TODO
-
-			throw new UnsupportedOperationException("Not impl.");
+			return this.httpClientFactory.getHttpClient().execute(new HttpGet(url.toString()), new ResponseHandler<TweetList>() {
+				@Override
+				public TweetList handleResponse (final HttpResponse response) throws ClientProtocolException, IOException {
+					try {
+						return new SuccessWhaleFeedXml(response.getEntity().getContent()).getTweets();
+					}
+					catch (SAXException e) {
+						throw new IOException("Failed to parse response: " + e.getMessage(), e);
+					}
+				}
+			});
 		}
 		catch (IOException e) {
 			throw new SuccessWhaleException("Failed to fetch feed '" + feed.toString() + "'.", e); // FIXME does feed have good toString()?
@@ -86,11 +97,23 @@ public class SuccessWhale {
 	}
 
 	private boolean authenticated () {
-		return this.userid != null && this.secret != null;
+		return this.auth != null;
 	}
 
 	private void ensureAuthenticated () throws SuccessWhaleException {
 		if (!authenticated()) authenticate();
+	}
+
+	private static class SuccessWhaleAuth {
+
+		public final String userid;
+		public final String secret;
+
+		public SuccessWhaleAuth (final String userid, final String secret) {
+			this.userid = userid;
+			this.secret = secret;
+		}
+
 	}
 
 }

@@ -9,14 +9,16 @@ import com.vaguehope.onosendai.model.TweetList;
 public class SuccessWhaleProvider {
 
 	private final ConcurrentMap<String, SuccessWhale> accounts;
+	private final HttpClientFactory httpClientFactory;
 
 	public SuccessWhaleProvider () {
 		this.accounts = new ConcurrentHashMap<String, SuccessWhale>();
+		this.httpClientFactory = new HttpClientFactory();
 	}
 
 	public void addAccount (final Account account) {
 		if (this.accounts.containsKey(account.id)) return;
-		SuccessWhale s = new SuccessWhale(account);
+		SuccessWhale s = new SuccessWhale(account, this.httpClientFactory);
 		this.accounts.putIfAbsent(account.id, s);
 	}
 
@@ -26,7 +28,9 @@ public class SuccessWhaleProvider {
 		return fetchSuccessWhaleFeed(sw, feed);
 	}
 
-	public void shutdown () {/* Unused. */}
+	public void shutdown () {
+		this.httpClientFactory.shutdown();
+	}
 
 	private static TweetList fetchSuccessWhaleFeed (final SuccessWhale sw, final SuccessWhaleFeed feed) throws SuccessWhaleException {
 		// TODO paging, etc.
