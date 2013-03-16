@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.ui;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -33,6 +34,9 @@ public class MainActivity extends FragmentActivity {
 			return;
 		}
 
+		final boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+		final float columnWidth = isLandscape ? 0.5f : 1f;
+
 		/*
 		 * The {@link android.support.v4.view.PagerAdapter} that will provide
 		 * fragments for each of the sections. We use a {@link
@@ -41,10 +45,10 @@ public class MainActivity extends FragmentActivity {
 		 * intensive, it may be best to switch to a {@link
 		 * android.support.v4.app.FragmentStatePagerAdapter}.
 		 */
-		SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), conf);
+		SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), conf, columnWidth);
 
-		ViewPager mViewPager = (ViewPager) findViewById(R.id.pager);
-		mViewPager.setAdapter(sectionsPagerAdapter);
+		ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+		viewPager.setAdapter(sectionsPagerAdapter);
 
 		AlarmReceiver.configureAlarm(this); // FIXME be more smart about this?
 	}
@@ -72,10 +76,12 @@ public class MainActivity extends FragmentActivity {
 	private static class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 		private final Config conf;
+		private final float pageWidth;
 
-		public SectionsPagerAdapter (final FragmentManager fm, final Config conf) {
+		public SectionsPagerAdapter (final FragmentManager fm, final Config conf, final float pageWidth) {
 			super(fm);
 			this.conf = conf;
+			this.pageWidth = pageWidth;
 		}
 
 		@Override
@@ -96,6 +102,11 @@ public class MainActivity extends FragmentActivity {
 		@Override
 		public CharSequence getPageTitle (final int position) {
 			return this.conf.getColumn(position).title;
+		}
+
+		@Override
+		public float getPageWidth (final int position) {
+			return this.pageWidth;
 		}
 
 	}
