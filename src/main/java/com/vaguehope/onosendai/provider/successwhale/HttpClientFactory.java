@@ -19,6 +19,7 @@ import org.apache.http.params.HttpParams;
 
 /**
  * https://hc.apache.org/httpcomponents-client-ga/tutorial/html/index.html
+ * https://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/impl/conn/tsccm/ThreadSafeClientConnManager.html
  */
 public class HttpClientFactory {
 
