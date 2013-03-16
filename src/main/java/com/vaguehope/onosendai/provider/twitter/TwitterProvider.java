@@ -71,7 +71,8 @@ public class TwitterProvider {
 		int page = 1; // First page is 1.
 		long minId = -1;
 		while (tweets.size() < minCount) {
-			Paging paging = new Paging(page, pageSize, sinceId);
+			Paging paging = new Paging(page, pageSize);
+			if (sinceId > 0) paging.setSinceId(sinceId);
 			if (minId > 0) paging.setMaxId(minId);
 			ResponseList<Status> timelinePage = feed.getTweets(t, paging);
 			if (timelinePage.size() < 1) break;
