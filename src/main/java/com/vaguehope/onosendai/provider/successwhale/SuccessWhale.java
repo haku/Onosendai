@@ -48,7 +48,10 @@ public class SuccessWhale {
 
 			// FIXME it would be better if the API used HTTP status codes to indicate failure.
 			// HTTP 200 with 'failed' in the body is somewhat untidy.
-			if (!authResp.getBoolean("success")) throw new SuccessWhaleException("Auth rejected for user '" + username + "'.");
+			if (!authResp.getBoolean("success")) {
+				String msg = authResp.getString("error");
+				throw new SuccessWhaleException("Auth rejected for user '" + username + "': " + msg);
+			}
 
 			this.userid = authResp.getString("userid");
 			this.secret = authResp.getString("secret");
