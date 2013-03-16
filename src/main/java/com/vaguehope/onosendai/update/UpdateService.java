@@ -32,6 +32,10 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.provider.ProviderMgr;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleFeed;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeed;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeeds;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
@@ -129,44 +133,44 @@ public class UpdateService extends IntentService {
 			return;
 		}
 
-		final TwitterProvider twitterProvider = new TwitterProvider();
+		final ProviderMgr providerMgr = new ProviderMgr();
 		try {
-			fetchColumns(conf, twitterProvider);
+			fetchColumns(conf, providerMgr);
 		}
 		finally {
-			twitterProvider.shutdown();
+			providerMgr.shutdown();
 		}
 	}
 
-	private void fetchColumns (final Config conf, final TwitterProvider twitterProvider) {
+	private void fetchColumns (final Config conf, final ProviderMgr providerMgr) {
 		final long startTime = System.nanoTime();
 
 		Collection<Column> columns = conf.getColumns().values();
 		if (columns.size() >= C.MIN_COLUMS_TO_USE_THREADPOOL) {
-			fetchColumnsMultiThread(conf, twitterProvider, columns);
+			fetchColumnsMultiThread(conf, providerMgr, columns);
 		}
 		else {
-			fetchColumnsSingleThread(conf, twitterProvider, columns);
+			fetchColumnsSingleThread(conf, providerMgr, columns);
 		}
 
 		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 		this.log.i("Fetched %d columns in %d millis.", columns.size(), durationMillis);
 	}
 
-	private void fetchColumnsSingleThread (final Config conf, final TwitterProvider twitterProvider, final Collection<Column> columns) {
+	private void fetchColumnsSingleThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns) {
 		for (Column column : columns) {
-			fetchColumn(conf, column, twitterProvider);
+			fetchColumn(conf, column, providerMgr);
 		}
 	}
 
-	private void fetchColumnsMultiThread (final Config conf, final TwitterProvider twitterProvider, final Collection<Column> columns) {
+	private void fetchColumnsMultiThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns) {
 		int poolSize = Math.min(columns.size(), C.MAX_THREAD_POOL_SIZE);
 		this.log.i("Using thread pool size %d for %d columns.", poolSize, columns.size());
 		ExecutorService ex = Executors.newFixedThreadPool(poolSize);
 		try {
 			Map<Column, Future<Void>> jobs = new LinkedHashMap<Column, Future<Void>>();
 			for (Column column : columns) {
-				jobs.put(column, ex.submit(new FetchColumn(conf, column, twitterProvider, this)));
+				jobs.put(column, ex.submit(new FetchColumn(conf, column, providerMgr, this)));
 			}
 			for (Entry<Column, Future<Void>> job : jobs.entrySet()) {
 				try {
@@ -189,27 +193,27 @@ public class UpdateService extends IntentService {
 
 		private final Config conf;
 		private final Column column;
-		private final TwitterProvider twitterProvider;
+		private final ProviderMgr providerMgr;
 		private final UpdateService updateService;
 
-		public FetchColumn (final Config conf, final Column column, final TwitterProvider twitterProvider, final UpdateService updateService) {
+		public FetchColumn (final Config conf, final Column column, final ProviderMgr providerMgr, final UpdateService updateService) {
 			this.conf = conf;
 			this.column = column;
-			this.twitterProvider = twitterProvider;
+			this.providerMgr = providerMgr;
 			this.updateService = updateService;
 		}
 
 		@Override
 		public Void call () throws Exception {
-			this.updateService.fetchColumn(this.conf, this.column, this.twitterProvider);
+			this.updateService.fetchColumn(this.conf, this.column, this.providerMgr);
 			return null;
 		}
 
 	}
 
-	public void fetchColumn (final Config conf, final Column column, final TwitterProvider twitterProvider) {
+	public void fetchColumn (final Config conf, final Column column, final ProviderMgr providerMgr) {
 		final long startTime = System.nanoTime();
-		Account account = conf.getAccount(column.accountId);
+		final Account account = conf.getAccount(column.accountId);
 		if (account == null) {
 			this.log.e("Unknown acountId: '%s'.", column.accountId);
 			return;
@@ -217,6 +221,7 @@ public class UpdateService extends IntentService {
 		switch (account.provider) {
 			case TWITTER:
 				try {
+					final TwitterProvider twitterProvider = providerMgr.getTwitterProvider();
 					twitterProvider.addAccount(account);
 					TwitterFeed feed = TwitterFeeds.parse(column.resource);
 					if (!waitForDbReady()) return;
@@ -232,7 +237,24 @@ public class UpdateService extends IntentService {
 					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.title, durationMillis);
 				}
 				catch (TwitterException e) {
-					this.log.w("Failed to fetch tweets: %s", e.getMessage());
+					this.log.w("Failed to fetch from Twitter: %s", e.getMessage());
+				}
+				break;
+			case SUCCESSWHALE:
+				try {
+					final SuccessWhaleProvider successWhaleProvider = providerMgr.getSuccessWhaleProvider();
+					successWhaleProvider.addAccount(account);
+					SuccessWhaleFeed feed = new SuccessWhaleFeed(column.resource);
+					if (!waitForDbReady()) return;
+
+					TweetList tweets = successWhaleProvider.getTweets(feed, account);
+					this.bndDb.getDb().storeTweets(column, tweets.getTweets());
+
+					long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.title, durationMillis);
+				}
+				catch (SuccessWhaleException e) {
+					this.log.w("Failed to fetch from Success Whale: %s", e.getMessage());
 				}
 				break;
 			default:

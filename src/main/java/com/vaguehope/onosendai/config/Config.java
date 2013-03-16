@@ -60,13 +60,39 @@ public class Config {
 			JSONObject accountJson = accountsJson.getJSONObject(i);
 			String id = accountJson.getString("id");
 			AccountProvider provider = AccountProvider.parse(accountJson.getString("provider"));
-			String consumerKey = accountJson.getString("consumerKey");
-			String consumerSecret = accountJson.getString("consumerSecret");
-			String accessToken = accountJson.getString("accessToken");
-			String accessSecret = accountJson.getString("accessSecret");
-			ret.put(id, new Account(id, provider, consumerKey, consumerSecret, accessToken, accessSecret));
+			Account account;
+			switch (provider) {
+				case TWITTER:
+					account = parseTwitterAccount(accountJson, id);
+					break;
+				case SUCCESSWHALE:
+					account = parseSuccessWhaleAccount(accountJson, id);
+					break;
+				default:
+					throw new IllegalArgumentException("Unknown provider: " + provider);
+			}
+
+			ret.put(id, account);
 		}
 		return Collections.unmodifiableMap(ret);
+	}
+
+	private static Account parseTwitterAccount (final JSONObject accountJson, final String id) throws JSONException {
+		Account account;
+		String consumerKey = accountJson.getString("consumerKey");
+		String consumerSecret = accountJson.getString("consumerSecret");
+		String accessToken = accountJson.getString("accessToken");
+		String accessSecret = accountJson.getString("accessSecret");
+		account = new Account(id, AccountProvider.TWITTER, consumerKey, consumerSecret, accessToken, accessSecret);
+		return account;
+	}
+
+	private static Account parseSuccessWhaleAccount (final JSONObject accountJson, final String id) throws JSONException {
+		Account account;
+		String accessToken = accountJson.getString("username");
+		String accessSecret = accountJson.getString("password");
+		account = new Account(id, AccountProvider.SUCCESSWHALE, null, null, accessToken, accessSecret);
+		return account;
 	}
 
 	private static Map<Integer, Column> parseColumns (final JSONArray columnsJson) throws JSONException {

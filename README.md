@@ -6,10 +6,16 @@ A multi-column Twitter client with a focus on list support.
 Features
 --------
 
-* Background tweet fetching (currently fixed 15 min interval)
+* Background tweet fetching (currently fixed 15 min interval).
 * Home timeline, mentions, personal timeline, and lists can all be columns.
 * Configured via JSON file on the file system.
-* Currently can only read, not write (its a work in progress)
+* Currently can only read, not write (its a work in progress).
+
+Supported Services
+------------------
+
+Currently only Twitter columns are supported.
+SuccessWhale intergration is in progress but currently incomplete.
 
 Configuration
 -------------
@@ -30,6 +36,12 @@ If this file does not exist it will created when the UI is launched.
       "consumerSecret": "?csecret?",
       "accessToken": "?atoken?",
       "accessSecret": "?asecret?"
+    },
+    {
+      "id": "sw0",
+      "provider": "successwhale",
+      "username": "?username?",
+      "password": "?password?"
     }
   ],
   "columns": [
