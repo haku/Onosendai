@@ -7,5 +7,6 @@
 	<string name="menu_jump_top">Top</string>
 	<string name="menu_refresh_now">Refresh</string>
 	<string name="btn_tweet_close">Close</string>
+	<string name="btn_tweet_later">Later</string>
 
 </resources>

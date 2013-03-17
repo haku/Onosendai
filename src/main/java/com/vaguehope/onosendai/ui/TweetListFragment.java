@@ -14,12 +14,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.layouts.SidebarLayout;
@@ -90,14 +92,14 @@ public class TweetListFragment extends Fragment {
 		this.adapter = new TweetListAdapter(container.getContext());
 		this.tweetList.setAdapter(this.adapter);
 		this.tweetList.setScrollbarFadingEnabled(false);
-		this.tweetList.setOnItemClickListener(this.listItemClickedListener);
+		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
 		this.refreshUiHandler = new RefreshUiHandler(this);
 
 		this.txtTweetBody = (TextView) rootView.findViewById(R.id.tweetDetailBody);
 		this.txtTweetName = (TextView) rootView.findViewById(R.id.tweetDetailName);
 		this.txtTweetDate = (TextView) rootView.findViewById(R.id.tweetDetailDate);
-		Button btnTweetClose = (Button) rootView.findViewById(R.id.tweetDetailClose);
-		btnTweetClose.setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
+		((Button) rootView.findViewById(R.id.tweetDetailClose)).setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
+		((Button) rootView.findViewById(R.id.tweetDetailLater)).setOnClickListener(this.laterClickListener);
 
 		return rootView;
 	}
@@ -225,7 +227,7 @@ public class TweetListFragment extends Fragment {
 		}
 	}
 
-	private final OnItemClickListener listItemClickedListener = new OnItemClickListener() {
+	private final OnItemClickListener tweetItemClickedListener = new OnItemClickListener() {
 		@Override
 		public void onItemClick (final AdapterView<?> parent, final View view, final int position, final long id) {
 			showTweet(TweetListFragment.this.adapter.getInputData().getTweet(position));
@@ -238,6 +240,13 @@ public class TweetListFragment extends Fragment {
 		this.txtTweetDate.setText(this.dateFormat.format(new Date(tweet.getTime() * 1000L)));
 		this.sidebar.openSidebar();
 	}
+
+	private final OnClickListener laterClickListener = new OnClickListener() {
+		@Override
+		public void onClick (final View v) {
+			Toast.makeText(getActivity(), "TODO: save to read later.", Toast.LENGTH_SHORT).show();
+		}
+	};
 
 	private final SidebarListener sidebarListener = new SidebarListener() {
 
