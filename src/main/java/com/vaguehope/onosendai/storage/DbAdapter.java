@@ -140,6 +140,21 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public void deleteTweet (final Column column, final Tweet tweet) {
+		this.mDb.beginTransaction();
+		try {
+			this.mDb.delete(TBL_TW, TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?",
+					new String[] { String.valueOf(column.id), String.valueOf(tweet.getId()) });
+			this.log.d("Deleted tweet %d from %s column %d.", tweet.getId(), TBL_TW, column.id);
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+		notifyTwListeners();
+	}
+
+	@Override
 	public List<Tweet> getTweets (final int columnId, final int numberOf) {
 		if (this.mDb == null) {
 			this.log.e("aborting because mDb==null.");
