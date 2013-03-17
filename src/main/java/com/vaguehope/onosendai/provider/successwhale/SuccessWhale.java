@@ -67,14 +67,14 @@ public class SuccessWhale {
 						return new SuccessWhaleAuth(authResp.getString("userid"), authResp.getString("secret"));
 					}
 					catch (JSONException e) {
-						throw new IOException("Response unparsable: " + e.getMessage(), e);
+						throw new IOException("Response unparsable: " + e.toString(), e);
 					}
 				}
 			});
 			this.log.i("Authenticated username='%s' userid='%s'.", username, this.auth.userid);
 		}
 		catch (IOException e) {
-			throw new SuccessWhaleException("Auth failed for user '" + username + "': " + e.getMessage(), e);
+			throw new SuccessWhaleException("Auth failed for user '" + username + "': " + e.toString(), e);
 		}
 	}
 
@@ -93,13 +93,13 @@ public class SuccessWhale {
 						return new SuccessWhaleFeedXml(response.getEntity().getContent()).getTweets();
 					}
 					catch (SAXException e) {
-						throw new IOException("Failed to parse response: " + e.getMessage(), e);
+						throw new IOException("Failed to parse response: " + e.toString(), e);
 					}
 				}
 			});
 		}
 		catch (IOException e) {
-			throw new SuccessWhaleException("Failed to fetch feed '" + feed.toString() + "'.", e); // FIXME does feed have good toString()?
+			throw new SuccessWhaleException("Failed to fetch feed '" + feed.toString() + "': " + e.toString(), e); // FIXME does feed have good toString()?
 		}
 	}
 
