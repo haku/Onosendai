@@ -16,7 +16,7 @@
 
 		<LinearLayout
 			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
+			android:layout_height="0dip"
 			android:layout_weight="1"
 			android:orientation="vertical">
 
@@ -45,6 +45,7 @@
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:layout_gravity="top"
+				android:textIsSelectable="true"
 				android:padding="5dip"
 				android:layout_marginLeft="10dip"
 				android:textSize="16sp"
@@ -52,13 +53,30 @@
 
 		</LinearLayout>
 
-		<Button
-			android:id="@+id/tweetDetailClose"
-			android:text="@string/btn_tweet_close"
-			android:layout_width="fill_parent"
-			android:layout_height="50dip"
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
 			android:layout_gravity="bottom"
-			android:layout_weight="0" />
+			style="?android:attr/buttonBarStyle">
+
+			<Button
+				android:id="@+id/tweetDetailClose"
+				android:text="@string/btn_tweet_close"
+				android:layout_width="fill_parent"
+				android:layout_height="50dip"
+				android:layout_weight="1"
+				style="?android:attr/buttonBarButtonStyle" />
+
+			<Button
+				android:id="@+id/tweetDetailLater"
+				android:text="@string/btn_tweet_later"
+				android:layout_width="fill_parent"
+				android:layout_height="50dip"
+				android:layout_weight="1"
+				style="?android:attr/buttonBarButtonStyle" />
+
+		</LinearLayout>
 
 	</LinearLayout>
 
