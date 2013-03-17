@@ -1,10 +1,15 @@
 package com.vaguehope.onosendai.ui;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.DateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.json.JSONException;
+
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,6 +29,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.Config;
+import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.layouts.SidebarLayout;
 import com.vaguehope.onosendai.layouts.SidebarLayout.SidebarListener;
 import com.vaguehope.onosendai.model.ScrollState;
@@ -54,6 +62,7 @@ public class TweetListFragment extends Fragment {
 	private TextView txtTweetBody;
 	private TextView txtTweetName;
 	private TextView txtTweetDate;
+	private Button btnDetailsLater;
 
 	private ScrollState scrollState;
 	protected TweetListAdapter adapter;
@@ -99,7 +108,7 @@ public class TweetListFragment extends Fragment {
 		this.txtTweetName = (TextView) rootView.findViewById(R.id.tweetDetailName);
 		this.txtTweetDate = (TextView) rootView.findViewById(R.id.tweetDetailDate);
 		((Button) rootView.findViewById(R.id.tweetDetailClose)).setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
-		((Button) rootView.findViewById(R.id.tweetDetailLater)).setOnClickListener(this.laterClickListener);
+		this.btnDetailsLater = (Button) rootView.findViewById(R.id.tweetDetailLater);
 
 		return rootView;
 	}
@@ -230,23 +239,51 @@ public class TweetListFragment extends Fragment {
 	private final OnItemClickListener tweetItemClickedListener = new OnItemClickListener() {
 		@Override
 		public void onItemClick (final AdapterView<?> parent, final View view, final int position, final long id) {
-			showTweet(TweetListFragment.this.adapter.getInputData().getTweet(position));
+			showTweetDetails(TweetListFragment.this.adapter.getInputData().getTweet(position));
 		}
 	};
 
-	protected void showTweet (final Tweet tweet) {
+	protected void showTweetDetails (final Tweet tweet) {
 		this.txtTweetBody.setText(tweet.getBody());
 		this.txtTweetName.setText(tweet.getUsername());
 		this.txtTweetDate.setText(this.dateFormat.format(new Date(tweet.getTime() * 1000L)));
+		this.btnDetailsLater.setOnClickListener(new DetailsLaterClickListener(getActivity(), tweet, this.bndDb));
 		this.sidebar.openSidebar();
 	}
 
-	private final OnClickListener laterClickListener = new OnClickListener() {
+	private static class DetailsLaterClickListener implements OnClickListener {
+
+		private final Context context;
+		private final Tweet tweet;
+		private final DbClient bndDb;
+
+		public DetailsLaterClickListener (final Context context, final Tweet tweet, final DbClient bndDb) {
+			this.context = context;
+			this.tweet = tweet;
+			this.bndDb = bndDb;
+		}
+
 		@Override
 		public void onClick (final View v) {
-			Toast.makeText(getActivity(), "TODO: save to read later.", Toast.LENGTH_SHORT).show();
+			try {
+				Config conf = new Config();
+				Column col = conf.findInternalColumn(InternalColumnType.LATER);
+				if (col != null) {
+					this.bndDb.getDb().storeTweets(col, Collections.singletonList(this.tweet));
+					Toast.makeText(this.context, "Saved for later.", Toast.LENGTH_SHORT).show();
+				}
+				else {
+					Toast.makeText(this.context, "Read later column not configured.", Toast.LENGTH_SHORT).show();
+				}
+			}
+			catch (IOException e) {
+				Toast.makeText(this.context, e.toString(), Toast.LENGTH_LONG).show();
+			}
+			catch (JSONException e) {
+				Toast.makeText(this.context, e.toString(), Toast.LENGTH_LONG).show();
+			}
 		}
-	};
+	}
 
 	private final SidebarListener sidebarListener = new SidebarListener() {
 

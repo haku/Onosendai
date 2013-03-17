@@ -54,6 +54,13 @@ public class Config {
 		return this.columns.get(Integer.valueOf(id));
 	}
 
+	public Column findInternalColumn (final InternalColumnType res) {
+		for (Column col : getColumns().values()) {
+			if (res.matchesColumn(col)) return col;
+		}
+		return null;
+	}
+
 	private static Map<String, Account> parseAccounts (final JSONArray accountsJson) throws JSONException {
 		Map<String, Account> ret = new HashMap<String, Account>();
 		for (int i = 0; i < accountsJson.length(); i++) {
@@ -101,9 +108,9 @@ public class Config {
 			JSONObject colJson = columnsJson.getJSONObject(i);
 			int index = colJson.getInt("id");
 			String title = colJson.getString("title");
-			String account = colJson.getString("account");
+			String account = colJson.has("account") ? colJson.getString("account") : null;
 			String resource = colJson.getString("resource");
-			String refresh = colJson.getString("refresh");
+			String refresh = colJson.has("refresh") ? colJson.getString("refresh") : null;
 			ret.put(Integer.valueOf(i), new Column(index, title, account, resource, refresh));
 		}
 		return Collections.unmodifiableMap(ret);

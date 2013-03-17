@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.update;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -145,7 +146,7 @@ public class UpdateService extends IntentService {
 	private void fetchColumns (final Config conf, final ProviderMgr providerMgr) {
 		final long startTime = System.nanoTime();
 
-		Collection<Column> columns = conf.getColumns().values();
+		Collection<Column> columns = remoteNonFetchable(conf.getColumns().values());
 		if (columns.size() >= C.MIN_COLUMS_TO_USE_THREADPOOL) {
 			fetchColumnsMultiThread(conf, providerMgr, columns);
 		}
@@ -155,6 +156,14 @@ public class UpdateService extends IntentService {
 
 		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 		this.log.i("Fetched %d columns in %d millis.", columns.size(), durationMillis);
+	}
+
+	private static Collection<Column> remoteNonFetchable (final Collection<Column> columns) {
+		List<Column> ret = new ArrayList<Column>();
+		for (Column column : columns) {
+			if (column.accountId != null) ret.add(column);
+		}
+		return ret;
 	}
 
 	private void fetchColumnsSingleThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns) {
