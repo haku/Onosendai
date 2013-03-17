@@ -8,23 +8,21 @@
 	app:hostView="@id/tweetListView"
 	app:sidebarView="@id/tweetDetailView">
 
-	<LinearLayout
+	<RelativeLayout
 		android:id="@id/tweetDetailView"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:orientation="vertical">
+		android:layout_height="match_parent">
 
 		<LinearLayout
 			android:layout_width="fill_parent"
-			android:layout_height="0dip"
-			android:layout_weight="1"
-			android:orientation="vertical">
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:background="@drawable/tweet_border" >
 
 			<TextView
 				android:id="@+id/tweetDetailBody"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
-				android:layout_gravity="top"
 				android:textIsSelectable="true"
 				android:padding="5dip"
 				android:textSize="20sp" />
@@ -33,9 +31,8 @@
 				android:id="@+id/tweetDetailName"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
-				android:layout_gravity="top"
 				android:textIsSelectable="true"
-				android:padding="5dip"
+				android:padding="3dip"
 				android:layout_marginLeft="10dip"
 				android:textSize="16sp"
 				android:textColor="@android:color/darker_gray" />
@@ -44,9 +41,8 @@
 				android:id="@+id/tweetDetailDate"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
-				android:layout_gravity="top"
 				android:textIsSelectable="true"
-				android:padding="5dip"
+				android:padding="3dip"
 				android:layout_marginLeft="10dip"
 				android:textSize="16sp"
 				android:textColor="@android:color/darker_gray" />
@@ -57,7 +53,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:orientation="horizontal"
-			android:layout_gravity="bottom"
+			android:layout_alignParentBottom="true"
 			style="?android:attr/buttonBarStyle">
 
 			<Button
@@ -78,7 +74,7 @@
 
 		</LinearLayout>
 
-	</LinearLayout>
+	</RelativeLayout>
 
     <!-- Note: set background to disable transparency. -->
 
