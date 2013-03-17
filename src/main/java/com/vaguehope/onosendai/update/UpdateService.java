@@ -244,7 +244,7 @@ public class UpdateService extends IntentService {
 				try {
 					final SuccessWhaleProvider successWhaleProvider = providerMgr.getSuccessWhaleProvider();
 					successWhaleProvider.addAccount(account);
-					SuccessWhaleFeed feed = new SuccessWhaleFeed(column.resource);
+					SuccessWhaleFeed feed = new SuccessWhaleFeed(column);
 					if (!waitForDbReady()) return;
 
 					TweetList tweets = successWhaleProvider.getTweets(feed, account);

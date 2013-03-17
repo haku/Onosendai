@@ -1,13 +1,27 @@
 package com.vaguehope.onosendai.provider.successwhale;
 
+import com.vaguehope.onosendai.config.Column;
+
 public class SuccessWhaleFeed {
 
-	public SuccessWhaleFeed (final String resource) {
-		// TODO Validate resource.  Throw if not valid.
+	private final Column column;
+
+	public SuccessWhaleFeed (final Column column) {
+		// TODO Validate resource.  Convert from a nicer format?  Throw if not valid.
+		this.column = column;
 	}
 
 	public String getSources () {
-		throw new UnsupportedOperationException("Not impl.");
+		return this.column.resource;
+	}
+
+	@Override
+	public String toString () {
+		return new StringBuilder()
+				.append("SWFeed{c{").append(this.column.id)
+				.append(",").append(this.column.title)
+				.append(",").append(this.column.accountId)
+				.append("}}").toString();
 	}
 
 }

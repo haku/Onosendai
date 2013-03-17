@@ -51,10 +51,10 @@ public class HttpClientFactory {
 			return this.httpClient;
 		}
 		catch (IOException e) {
-			throw new SuccessWhaleException("Failed to create HTTP client: " + e.getMessage(), e);
+			throw new SuccessWhaleException("Failed to create HTTP client: " + e.toString(), e);
 		}
 		catch (GeneralSecurityException e) {
-			throw new SuccessWhaleException("Failed to create HTTP client. " + e.getMessage(), e);
+			throw new SuccessWhaleException("Failed to create HTTP client. " + e.toString(), e);
 		}
 	}
 
