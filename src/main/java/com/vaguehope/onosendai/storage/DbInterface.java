@@ -9,6 +9,7 @@ import com.vaguehope.onosendai.model.Tweet;
 public interface DbInterface {
 
 	void storeTweets(Column column, List<Tweet> tweets);
+	void deleteTweet(Column column, Tweet tweet);
 	List<Tweet> getTweets(int columnId, int numberOf);
 
 	void addTwUpdateListener (Runnable action);

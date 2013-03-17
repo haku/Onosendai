@@ -48,12 +48,14 @@ import com.vaguehope.onosendai.util.LogWrapper;
  */
 public class TweetListFragment extends Fragment {
 
-	public static final String ARG_COLUMN_ID = "column_id";
+	static final String ARG_COLUMN_ID = "column_id";
+	static final String ARG_COLUMN_IS_LATER = "column_is_later";
 
 	protected final LogWrapper log = new LogWrapper();
 	private final DateFormat dateFormat = DateFormat.getDateTimeInstance();
 
 	private int columnId;
+	private boolean isLaterColumn;
 	private RefreshUiHandler refreshUiHandler;
 
 	private SidebarLayout sidebar;
@@ -77,6 +79,7 @@ public class TweetListFragment extends Fragment {
 	@Override
 	public View onCreateView (final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		this.columnId = getArguments().getInt(ARG_COLUMN_ID);
+		this.isLaterColumn = getArguments().getBoolean(ARG_COLUMN_IS_LATER, false);
 		this.log.setPrefix("C" + this.columnId);
 		this.log.d("onCreateView()");
 
@@ -109,6 +112,7 @@ public class TweetListFragment extends Fragment {
 		this.txtTweetDate = (TextView) rootView.findViewById(R.id.tweetDetailDate);
 		((Button) rootView.findViewById(R.id.tweetDetailClose)).setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
 		this.btnDetailsLater = (Button) rootView.findViewById(R.id.tweetDetailLater);
+		this.btnDetailsLater.setText(this.isLaterColumn ? R.string.btn_tweet_read : R.string.btn_tweet_later);
 
 		return rootView;
 	}
@@ -247,7 +251,7 @@ public class TweetListFragment extends Fragment {
 		this.txtTweetBody.setText(tweet.getBody());
 		this.txtTweetName.setText(tweet.getUsername());
 		this.txtTweetDate.setText(this.dateFormat.format(new Date(tweet.getTime() * 1000L)));
-		this.btnDetailsLater.setOnClickListener(new DetailsLaterClickListener(getActivity(), tweet, this.bndDb));
+		this.btnDetailsLater.setOnClickListener(new DetailsLaterClickListener(getActivity(), tweet, this.bndDb, this.isLaterColumn));
 		this.sidebar.openSidebar();
 	}
 
@@ -256,11 +260,13 @@ public class TweetListFragment extends Fragment {
 		private final Context context;
 		private final Tweet tweet;
 		private final DbClient bndDb;
+		private final boolean isLaterColumn;
 
-		public DetailsLaterClickListener (final Context context, final Tweet tweet, final DbClient bndDb) {
+		public DetailsLaterClickListener (final Context context, final Tweet tweet, final DbClient bndDb, final boolean isLaterColumn) {
 			this.context = context;
 			this.tweet = tweet;
 			this.bndDb = bndDb;
+			this.isLaterColumn = isLaterColumn;
 		}
 
 		@Override
@@ -269,8 +275,14 @@ public class TweetListFragment extends Fragment {
 				Config conf = new Config();
 				Column col = conf.findInternalColumn(InternalColumnType.LATER);
 				if (col != null) {
-					this.bndDb.getDb().storeTweets(col, Collections.singletonList(this.tweet));
-					Toast.makeText(this.context, "Saved for later.", Toast.LENGTH_SHORT).show();
+					if (this.isLaterColumn) {
+						this.bndDb.getDb().deleteTweet(col, this.tweet);
+						Toast.makeText(this.context, "Removed.", Toast.LENGTH_SHORT).show();
+					}
+					else {
+						this.bndDb.getDb().storeTweets(col, Collections.singletonList(this.tweet));
+						Toast.makeText(this.context, "Saved for later.", Toast.LENGTH_SHORT).show();
+					}
 				}
 				else {
 					Toast.makeText(this.context, "Read later column not configured.", Toast.LENGTH_SHORT).show();

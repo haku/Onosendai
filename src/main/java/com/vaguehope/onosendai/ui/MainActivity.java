@@ -13,7 +13,9 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
+import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.update.AlarmReceiver;
 import com.vaguehope.onosendai.update.UpdateService;
 
@@ -86,10 +88,12 @@ public class MainActivity extends FragmentActivity {
 
 		@Override
 		public Fragment getItem (final int position) {
+			final Column col = this.conf.getColumns().get(position);
 			// getItem is called to instantiate the fragment for the given page.
 			Fragment fragment = new TweetListFragment();
 			Bundle args = new Bundle();
-			args.putInt(TweetListFragment.ARG_COLUMN_ID, this.conf.getColumns().get(position).id);
+			args.putInt(TweetListFragment.ARG_COLUMN_ID, col.id);
+			args.putBoolean(TweetListFragment.ARG_COLUMN_IS_LATER, InternalColumnType.LATER.matchesColumn(col));
 			fragment.setArguments(args);
 			return fragment;
 		}
