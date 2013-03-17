@@ -162,17 +162,17 @@ public class DbAdapter implements DbInterface {
 					TBL_TW_TIME + " desc", String.valueOf(numberOf));
 
 			if (c != null && c.moveToFirst()) {
-				int col_sid = c.getColumnIndex(TBL_TW_SID);
-				int col_name = c.getColumnIndex(TBL_TW_NAME);
-				int col_body = c.getColumnIndex(TBL_TW_BODY);
-				int col_time = c.getColumnIndex(TBL_TW_TIME);
+				int colSid = c.getColumnIndex(TBL_TW_SID);
+				int colName = c.getColumnIndex(TBL_TW_NAME);
+				int colBody = c.getColumnIndex(TBL_TW_BODY);
+				int colTime = c.getColumnIndex(TBL_TW_TIME);
 
 				ret = new ArrayList<Tweet>();
 				do {
-					long sid = c.getLong(col_sid);
-					String name = c.getString(col_name);
-					String body = c.getString(col_body);
-					long time = c.getLong(col_time);
+					long sid = c.getLong(colSid);
+					String name = c.getString(colName);
+					String body = c.getString(colBody);
+					long time = c.getLong(colTime);
 					ret.add(new Tweet(sid, name, body, time));
 				}
 				while (c.moveToNext());

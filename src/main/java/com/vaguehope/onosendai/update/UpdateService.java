@@ -204,7 +204,7 @@ public class UpdateService extends IntentService {
 		}
 
 		@Override
-		public Void call () throws Exception {
+		public Void call () {
 			this.updateService.fetchColumn(this.conf, this.column, this.providerMgr);
 			return null;
 		}

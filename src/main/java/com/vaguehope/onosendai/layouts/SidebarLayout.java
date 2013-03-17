@@ -278,11 +278,11 @@ public class SidebarLayout extends ViewGroup {
 
 	public interface SidebarListener {
 
-		public void onSidebarOpened (SidebarLayout sidebar);
+		void onSidebarOpened (SidebarLayout sidebar);
 
-		public void onSidebarClosed (SidebarLayout sidebar);
+		void onSidebarClosed (SidebarLayout sidebar);
 
-		public boolean onContentTouchedWhenOpening (SidebarLayout sidebar);
+		boolean onContentTouchedWhenOpening (SidebarLayout sidebar);
 
 	}
 

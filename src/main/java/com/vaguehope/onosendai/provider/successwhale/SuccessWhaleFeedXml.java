@@ -71,8 +71,8 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private final Stack<String> stack = new Stack<String>();
+	private final TweetBuilder currentItem = new TweetBuilder();
 	private StringBuilder currentText;
-	private TweetBuilder currentItem;
 
 	@Override
 	public void startElement (final String uri, final String localName, final String qName, final Attributes attributes) throws SAXException {
