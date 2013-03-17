@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -58,6 +59,7 @@ public class SuccessWhale {
 			this.auth = this.httpClientFactory.getHttpClient().execute(post, new ResponseHandler<SuccessWhaleAuth>() {
 				@Override
 				public SuccessWhaleAuth handleResponse (final HttpResponse response) throws ClientProtocolException, IOException {
+					checkReponseCode(response.getStatusLine(), 200);
 					try {
 						String authRespRaw = EntityUtils.toString(response.getEntity());
 						JSONObject authResp = (JSONObject) new JSONTokener(authRespRaw).nextValue();
@@ -82,13 +84,14 @@ public class SuccessWhale {
 		ensureAuthenticated();
 		try {
 			StringBuilder url = new StringBuilder();
-			url.append(BASE_URL).append(API_FEED)
+			url.append(BASE_URL).append(API_FEED).append("?")
 					.append("sw_uid=").append(this.auth.userid)
-					.append("secret=").append(this.auth.secret)
-					.append("sources=").append(URLEncoder.encode(feed.getSources(), "UTF-8"));
+					.append("&secret=").append(this.auth.secret)
+					.append("&sources=").append(URLEncoder.encode(feed.getSources(), "UTF-8"));
 			return this.httpClientFactory.getHttpClient().execute(new HttpGet(url.toString()), new ResponseHandler<TweetList>() {
 				@Override
 				public TweetList handleResponse (final HttpResponse response) throws ClientProtocolException, IOException {
+					checkReponseCode(response.getStatusLine(), 200);
 					try {
 						return new SuccessWhaleFeedXml(response.getEntity().getContent()).getTweets();
 					}
@@ -109,6 +112,12 @@ public class SuccessWhale {
 
 	private void ensureAuthenticated () throws SuccessWhaleException {
 		if (!authenticated()) authenticate();
+	}
+
+	public static void checkReponseCode(final StatusLine statusLine, final int code) throws IOException {
+		if (statusLine.getStatusCode() != code) {
+			throw new IOException("Server returned " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase());
+		}
 	}
 
 	private static class SuccessWhaleAuth {
