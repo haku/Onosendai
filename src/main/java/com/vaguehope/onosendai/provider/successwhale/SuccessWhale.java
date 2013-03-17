@@ -2,12 +2,17 @@ package com.vaguehope.onosendai.provider.successwhale;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +28,7 @@ import com.vaguehope.onosendai.util.LogWrapper;
  */
 public class SuccessWhale {
 
-	private static final String BASE_URL = "http://api.successwhale.com"; // FIXME this should really be HTTPS with a preset trust store.
+	private static final String BASE_URL = "https://api.successwhale.com:443";
 	private static final String API_AUTH = "/v3/authenticate.json";
 	private static final String API_FEED = "/v3/feed.xml";
 
@@ -45,10 +50,12 @@ public class SuccessWhale {
 		final String username = this.account.accessToken;
 		final String password = this.account.accessSecret;
 		try {
-			StringBuilder params = new StringBuilder();
-			params.append("username=").append(URLEncoder.encode(username, "UTF-8"))
-					.append("&password=").append(URLEncoder.encode(password, "UTF-8"));
-			this.auth = this.httpClientFactory.getHttpClient().execute(new HttpPost(BASE_URL + API_AUTH), new ResponseHandler<SuccessWhaleAuth>() {
+			HttpPost post = new HttpPost(BASE_URL + API_AUTH);
+			List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+			params.add(new BasicNameValuePair("username", username));
+			params.add(new BasicNameValuePair("password", password));
+			post.setEntity(new UrlEncodedFormEntity(params));
+			this.auth = this.httpClientFactory.getHttpClient().execute(post, new ResponseHandler<SuccessWhaleAuth>() {
 				@Override
 				public SuccessWhaleAuth handleResponse (final HttpResponse response) throws ClientProtocolException, IOException {
 					try {
