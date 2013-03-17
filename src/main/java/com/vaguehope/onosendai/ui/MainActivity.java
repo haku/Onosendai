@@ -29,7 +29,7 @@ public class MainActivity extends FragmentActivity {
 			conf = new Config();
 		}
 		catch (Exception e) {
-			Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+			Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
 			finish();
 			return;
 		}
