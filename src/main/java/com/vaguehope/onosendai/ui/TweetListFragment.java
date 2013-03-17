@@ -112,7 +112,6 @@ public class TweetListFragment extends Fragment {
 		this.txtTweetDate = (TextView) rootView.findViewById(R.id.tweetDetailDate);
 		((Button) rootView.findViewById(R.id.tweetDetailClose)).setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
 		this.btnDetailsLater = (Button) rootView.findViewById(R.id.tweetDetailLater);
-		this.btnDetailsLater.setText(this.isLaterColumn ? R.string.btn_tweet_read : R.string.btn_tweet_later);
 
 		return rootView;
 	}
@@ -215,7 +214,7 @@ public class TweetListFragment extends Fragment {
 		this.log.d("DB service released.");
 	}
 
-	public DbClient getBndDb () {
+	DbClient getBndDb () {
 		return this.bndDb;
 	}
 
@@ -251,21 +250,27 @@ public class TweetListFragment extends Fragment {
 		this.txtTweetBody.setText(tweet.getBody());
 		this.txtTweetName.setText(tweet.getUsername());
 		this.txtTweetDate.setText(this.dateFormat.format(new Date(tweet.getTime() * 1000L)));
-		this.btnDetailsLater.setOnClickListener(new DetailsLaterClickListener(getActivity(), tweet, this.bndDb, this.isLaterColumn));
+		// TODO extract URLs, etc.
+		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
+	}
+
+	protected void setReadLaterButton (final Tweet tweet, final boolean laterColumn) {
+		this.btnDetailsLater.setText(laterColumn ? R.string.btn_tweet_read : R.string.btn_tweet_later);
+		this.btnDetailsLater.setOnClickListener(new DetailsLaterClickListener(this, tweet, laterColumn));
 	}
 
 	private static class DetailsLaterClickListener implements OnClickListener {
 
+		private final TweetListFragment tweetListFragment;
 		private final Context context;
 		private final Tweet tweet;
-		private final DbClient bndDb;
 		private final boolean isLaterColumn;
 
-		public DetailsLaterClickListener (final Context context, final Tweet tweet, final DbClient bndDb, final boolean isLaterColumn) {
-			this.context = context;
+		public DetailsLaterClickListener (final TweetListFragment tweetListFragment, final Tweet tweet, final boolean isLaterColumn) {
+			this.tweetListFragment = tweetListFragment;
+			this.context = tweetListFragment.getActivity();
 			this.tweet = tweet;
-			this.bndDb = bndDb;
 			this.isLaterColumn = isLaterColumn;
 		}
 
@@ -276,13 +281,14 @@ public class TweetListFragment extends Fragment {
 				Column col = conf.findInternalColumn(InternalColumnType.LATER);
 				if (col != null) {
 					if (this.isLaterColumn) {
-						this.bndDb.getDb().deleteTweet(col, this.tweet);
+						this.tweetListFragment.getBndDb().getDb().deleteTweet(col, this.tweet);
 						Toast.makeText(this.context, "Removed.", Toast.LENGTH_SHORT).show();
 					}
 					else {
-						this.bndDb.getDb().storeTweets(col, Collections.singletonList(this.tweet));
+						this.tweetListFragment.getBndDb().getDb().storeTweets(col, Collections.singletonList(this.tweet));
 						Toast.makeText(this.context, "Saved for later.", Toast.LENGTH_SHORT).show();
 					}
+					this.tweetListFragment.setReadLaterButton(this.tweet, !this.isLaterColumn);
 				}
 				else {
 					Toast.makeText(this.context, "Read later column not configured.", Toast.LENGTH_SHORT).show();
