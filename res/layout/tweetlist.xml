@@ -85,15 +85,33 @@
 		android:clickable="true"
 		android:orientation="vertical">
 
-		<TextView
-			android:id="@+id/tweetListTitle"
+		<LinearLayout
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:textIsSelectable="true"
-			android:padding="3dip"
-			android:gravity="center"
-			android:textSize="16sp"
-			android:textColor="@android:color/primary_text_dark" />
+			android:orientation="horizontal"
+			style="?android:attr/buttonBarStyle">
+
+			<Button
+				android:id="@+id/tweetListTitle"
+				android:text="@string/menu_jump_top"
+				android:layout_width="0dip"
+				android:layout_height="40dip"
+				android:textSize="16sp"
+				android:layout_weight="1"
+				android:textColor="@android:color/primary_text_dark"
+				style="?android:attr/buttonBarButtonStyle" />
+
+			<Button
+				android:id="@+id/tweetListRefresh"
+				android:text="@string/menu_refresh_now"
+				android:layout_width="wrap_content"
+				android:layout_height="40dip"
+				android:textSize="16sp"
+				android:layout_weight="0"
+				style="?android:attr/buttonBarButtonStyle"
+				android:textColor="@android:color/darker_gray" />
+
+		</LinearLayout>
 
 		<ListView
 			android:id="@+id/tweetListList"

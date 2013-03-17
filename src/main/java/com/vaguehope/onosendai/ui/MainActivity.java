@@ -1,14 +1,11 @@
 package com.vaguehope.onosendai.ui;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.R;
@@ -16,7 +13,6 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.update.AlarmReceiver;
-import com.vaguehope.onosendai.update.UpdateService;
 
 public class MainActivity extends FragmentActivity {
 
@@ -54,24 +50,6 @@ public class MainActivity extends FragmentActivity {
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	@Override
-	public boolean onCreateOptionsMenu (final Menu menu) {
-		getMenuInflater().inflate(R.menu.activity_main, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected (final MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.menu_refresh_now:
-				this.startService(new Intent(this, UpdateService.class));
-				Toast.makeText(this, "Refresh requested.", Toast.LENGTH_SHORT).show();
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
-		}
-	}
 
 	private static class SectionsPagerAdapter extends FragmentPagerAdapter {
 

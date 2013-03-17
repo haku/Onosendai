@@ -10,14 +10,12 @@ import java.util.List;
 import org.json.JSONException;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -39,6 +37,7 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.model.TweetListAdapter;
 import com.vaguehope.onosendai.storage.DbClient;
+import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.ListViewHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -101,7 +100,11 @@ public class TweetListFragment extends Fragment {
 		rootView.requestFocus();
 		rootView.setOnKeyListener(new SidebarLayout.BackButtonListener(this.sidebar));
 
-		((TextView) rootView.findViewById(R.id.tweetListTitle)).setText(getArguments().getString(ARG_COLUMN_TITLE));
+		Button btnColumnTitle = (Button) rootView.findViewById(R.id.tweetListTitle);
+		btnColumnTitle.setText(getArguments().getString(ARG_COLUMN_TITLE));
+		btnColumnTitle.setOnClickListener(this.columnTitleClickListener);
+
+		((Button) rootView.findViewById(R.id.tweetListRefresh)).setOnClickListener(this.refreshClickListener);
 
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
 		this.adapter = new TweetListAdapter(container.getContext());
@@ -176,6 +179,10 @@ public class TweetListFragment extends Fragment {
 		this.scrollState = this.bndDb.getDb().getScroll(this.columnId);
 	}
 
+	protected void scrollTop () {
+		this.tweetList.setSelectionAfterHeaderView();
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void resumeDb () {
@@ -217,30 +224,33 @@ public class TweetListFragment extends Fragment {
 		this.log.d("DB service released.");
 	}
 
-	DbClient getBndDb () {
+	protected DbClient getBndDb () {
 		return this.bndDb;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	// https://developer.android.com/intl/fr/guide/topics/ui/actionbar.html#Home
-	// http://www.grokkingandroid.com/adding-action-items-from-within-fragments/
-
-	@Override
-	public void onCreateOptionsMenu (final Menu menu, final MenuInflater inflater) {
-		inflater.inflate(R.menu.tweetlist_menu, menu);
+	protected void scheduleRefresh () {
+		getActivity().startService(new Intent(getActivity(), UpdateService.class));
+		Toast.makeText(getActivity(), "Refresh all columns requested.", Toast.LENGTH_SHORT).show();
 	}
 
-	@Override
-	public boolean onOptionsItemSelected (final MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.menu_jump_top:
-				this.tweetList.setSelectionAfterHeaderView();
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private final OnClickListener columnTitleClickListener = new OnClickListener() {
+		@Override
+		public void onClick (final View v) {
+			scrollTop();
 		}
-	}
+	};
+
+	private final OnClickListener refreshClickListener = new OnClickListener() {
+		@Override
+		public void onClick (final View v) {
+			scheduleRefresh();
+		}
+	};
+
 
 	private final OnItemClickListener tweetItemClickedListener = new OnItemClickListener() {
 		@Override
@@ -323,7 +333,7 @@ public class TweetListFragment extends Fragment {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	public Runnable getGuiUpdateRunnable () {
+	protected Runnable getGuiUpdateRunnable () {
 		return this.guiUpdateRunnable;
 	}
 
