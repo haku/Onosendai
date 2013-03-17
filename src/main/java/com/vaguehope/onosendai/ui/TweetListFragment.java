@@ -104,7 +104,13 @@ public class TweetListFragment extends Fragment {
 		btnColumnTitle.setText(getArguments().getString(ARG_COLUMN_TITLE));
 		btnColumnTitle.setOnClickListener(this.columnTitleClickListener);
 
-		((Button) rootView.findViewById(R.id.tweetListRefresh)).setOnClickListener(this.refreshClickListener);
+		Button btnRefresh = (Button) rootView.findViewById(R.id.tweetListRefresh);
+		if (this.isLaterColumn) {
+			((ViewGroup) btnRefresh.getParent()).removeView(btnRefresh);
+		}
+		else {
+			btnRefresh.setOnClickListener(this.refreshClickListener);
+		}
 
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
 		this.adapter = new TweetListAdapter(container.getContext());
