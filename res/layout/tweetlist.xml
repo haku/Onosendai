@@ -17,7 +17,7 @@
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:orientation="vertical"
-			android:background="@drawable/tweet_border" >
+			android:background="@drawable/tweet_border">
 
 			<TextView
 				android:id="@+id/tweetDetailBody"
@@ -84,6 +84,16 @@
 		android:background="@android:color/background_dark"
 		android:clickable="true"
 		android:orientation="vertical">
+
+		<TextView
+			android:id="@+id/tweetListTitle"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:textIsSelectable="true"
+			android:padding="3dip"
+			android:gravity="center"
+			android:textSize="16sp"
+			android:textColor="@android:color/primary_text_dark" />
 
 		<ListView
 			android:id="@+id/tweetListList"
