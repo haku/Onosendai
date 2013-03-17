@@ -1,7 +1,6 @@
 package com.vaguehope.onosendai.ui;
 
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -36,8 +35,7 @@ public class MainActivity extends FragmentActivity {
 			return;
 		}
 
-		final boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-		final float columnWidth = isLandscape ? 0.5f : 1f;
+		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
 
 		/*
 		 * The {@link android.support.v4.view.PagerAdapter} that will provide
