@@ -125,11 +125,11 @@ public class UpdateService extends IntentService {
 			conf = new Config();
 		}
 		catch (IOException e) {
-			this.log.w("Can not update: %s", e.getMessage());
+			this.log.w("Can not update: %s", e.toString());
 			return;
 		}
 		catch (JSONException e) {
-			this.log.w("Can not update: %s", e.getMessage());
+			this.log.w("Can not update: %s", e.toString());
 			return;
 		}
 
@@ -177,10 +177,10 @@ public class UpdateService extends IntentService {
 					job.getValue().get();
 				}
 				catch (InterruptedException e) {
-					this.log.w("Error fetching column '%s': %s %s", job.getKey().title, e.getClass().getName(), e.getMessage());
+					this.log.w("Error fetching column '%s': %s %s", job.getKey().title, e.getClass().getName(), e.toString());
 				}
 				catch (ExecutionException e) {
-					this.log.w("Error fetching column '%s': %s %s", job.getKey().title, e.getClass().getName(), e.getMessage());
+					this.log.w("Error fetching column '%s': %s %s", job.getKey().title, e.getClass().getName(), e.toString());
 				}
 			}
 		}
@@ -237,7 +237,7 @@ public class UpdateService extends IntentService {
 					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.title, durationMillis);
 				}
 				catch (TwitterException e) {
-					this.log.w("Failed to fetch from Twitter: %s", e.getMessage());
+					this.log.w("Failed to fetch from Twitter: %s", e.toString());
 				}
 				break;
 			case SUCCESSWHALE:
@@ -254,7 +254,7 @@ public class UpdateService extends IntentService {
 					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.title, durationMillis);
 				}
 				catch (SuccessWhaleException e) {
-					this.log.w("Failed to fetch from Success Whale: %s", e.getMessage());
+					this.log.w("Failed to fetch from Success Whale: %s", e.toString());
 				}
 				break;
 			default:
