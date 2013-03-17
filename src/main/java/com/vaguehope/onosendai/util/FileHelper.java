@@ -16,20 +16,16 @@
 
 package com.vaguehope.onosendai.util;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
 
 public final class FileHelper {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -39,21 +35,6 @@ public final class FileHelper {
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	public static List<String> fileToList (final File file) throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader(file));
-		try {
-			List<String> ret = new ArrayList<String>();
-			String line;
-			while ((line = reader.readLine()) != null) {
-				if (line.length() > 0) ret.add(line);
-			}
-			return ret;
-		}
-		finally {
-			reader.close();
-		}
-	}
 
 	/**
 	 * Returns null if file does not exist.
