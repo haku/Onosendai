@@ -8,6 +8,7 @@ Features
 
 * Background tweet fetching (currently fixed 15 min interval).
 * Home timeline, mentions, personal timeline, and lists can all be columns.
+* Read Later column: any tweet can be saved locally for reading later.
 * Configured via JSON file on the file system.
 * Currently can only read, not write (its a work in progress).
 
@@ -69,6 +70,10 @@ If this file does not exist it will created when the UI is launched.
       "account": "t0",
       "resource": "lists/mylist",
       "refresh": "15min"
+    }, {
+      "id": 4,
+      "title": "reading list",
+      "resource": "later"
     }
   ]
 }

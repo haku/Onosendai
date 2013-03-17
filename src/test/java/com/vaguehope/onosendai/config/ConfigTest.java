@@ -62,7 +62,7 @@ public class ConfigTest {
 		Config conf = new Config();
 
 		Map<Integer, Column> cs = conf.getColumns();
-		assertEquals(2, cs.size());
+		assertEquals(3, cs.size());
 
 		Column c0 = cs.get(Integer.valueOf(0));
 		assertEquals(0, c0.id);
@@ -77,6 +77,13 @@ public class ConfigTest {
 		assertEquals("t0", c1.accountId);
 		assertEquals("lists/mylist", c1.resource);
 		assertEquals("15min", c1.refresh);
+
+		Column c2 = cs.get(Integer.valueOf(2));
+		assertEquals(2, c2.id);
+		assertEquals("reading list", c2.title);
+		assertEquals(null, c2.accountId);
+		assertEquals("later", c2.resource);
+		assertEquals(null, c2.refresh);
 	}
 
 	private String fixture (final String path) throws IOException {
