@@ -91,6 +91,7 @@ public class MainActivity extends FragmentActivity {
 			Fragment fragment = new TweetListFragment();
 			Bundle args = new Bundle();
 			args.putInt(TweetListFragment.ARG_COLUMN_ID, col.id);
+			args.putString(TweetListFragment.ARG_COLUMN_TITLE, col.title);
 			args.putBoolean(TweetListFragment.ARG_COLUMN_IS_LATER, InternalColumnType.LATER.matchesColumn(col));
 			fragment.setArguments(args);
 			return fragment;

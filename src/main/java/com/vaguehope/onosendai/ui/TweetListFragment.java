@@ -49,6 +49,7 @@ import com.vaguehope.onosendai.util.LogWrapper;
 public class TweetListFragment extends Fragment {
 
 	static final String ARG_COLUMN_ID = "column_id";
+	static final String ARG_COLUMN_TITLE = "column_title";
 	static final String ARG_COLUMN_IS_LATER = "column_is_later";
 
 	protected final LogWrapper log = new LogWrapper();
@@ -99,6 +100,8 @@ public class TweetListFragment extends Fragment {
 		rootView.setFocusableInTouchMode(true);
 		rootView.requestFocus();
 		rootView.setOnKeyListener(new SidebarLayout.BackButtonListener(this.sidebar));
+
+		((TextView) rootView.findViewById(R.id.tweetListTitle)).setText(getArguments().getString(ARG_COLUMN_TITLE));
 
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
 		this.adapter = new TweetListAdapter(container.getContext());
