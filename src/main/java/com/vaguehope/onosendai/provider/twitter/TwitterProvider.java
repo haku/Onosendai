@@ -12,14 +12,18 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.URLEntity;
 import twitter4j.conf.ConfigurationBuilder;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class TwitterProvider {
+
+	private static final LogWrapper LOG = new LogWrapper("TP");
 
 	private final ConcurrentMap<String, Twitter> accounts;
 
@@ -59,8 +63,7 @@ public class TwitterProvider {
 	}
 
 	/*
-	 * Paging:
-	 * https://dev.twitter.com/docs/working-with-timelines
+	 * Paging: https://dev.twitter.com/docs/working-with-timelines
 	 * http://twitter4j.org/en/code-examples.html
 	 */
 
@@ -92,7 +95,26 @@ public class TwitterProvider {
 	}
 
 	private static Tweet convertTweet (final Status s) {
-		return new Tweet(s.getId(), s.getUser().getScreenName(), s.getText(), s.getCreatedAt().getTime() / 1000L);
+		String text = expandUrls(s);
+		return new Tweet(s.getId(), s.getUser().getScreenName(), text, s.getCreatedAt().getTime() / 1000L);
+	}
+
+	private static String expandUrls (final Status s) {
+		final URLEntity[] urls = s.getURLEntities();
+		final String text = s.getText();
+		if (urls == null || urls.length < 1) return text;
+
+		final StringBuilder bld = new StringBuilder();
+		for (int i = 0; i < urls.length; i++) {
+			final URLEntity url = urls[i];
+			if (url.getStart() < 0 || url.getEnd() > text.length()) return text; // All bets are off.
+			bld.append(text.substring(i == 0 ? 0 : urls[i - 1].getEnd(), url.getStart()))
+					.append(url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL());
+		}
+		bld.append(text.substring(urls[urls.length - 1].getEnd()));
+		String expandedText = bld.toString();
+		LOG.d("Expanded '%s' --> '%s'.", text, expandedText);
+		return expandedText;
 	}
 
 	private static long minIdOf (final long statingMin, final ResponseList<Status> tweets) {
