@@ -23,6 +23,7 @@ public final class PayloadUtils {
 	}
 
 	private static void extractUrls (final String text, final List<Payload> result) {
+		if (text == null || text.isEmpty()) return;
 		Matcher m = URL_PATTERN.matcher(text);
 		while (m.find()) {
 			String g = m.group();
