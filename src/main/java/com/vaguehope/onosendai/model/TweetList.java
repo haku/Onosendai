@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.model;
 
+import java.util.Collections;
 import java.util.List;
 
 public class TweetList {
@@ -7,7 +8,7 @@ public class TweetList {
 	private final List<Tweet> tweets;
 
 	public TweetList (final List<Tweet> tweets) {
-		this.tweets = tweets;
+		this.tweets = Collections.unmodifiableList(tweets);
 	}
 
 	public int count () {
