@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.payload;
 
+import android.content.Intent;
+
 public abstract class Payload {
 
 	private final PayloadType type;
@@ -13,5 +15,13 @@ public abstract class Payload {
 	}
 
 	public abstract String getTitle ();
+
+	public boolean intentable () {
+		return false;
+	}
+
+	public Intent toIntent () {
+		throw new UnsupportedOperationException("This payload type '" + this.type + "' can not be expressed as an intent.");
+	}
 
 }

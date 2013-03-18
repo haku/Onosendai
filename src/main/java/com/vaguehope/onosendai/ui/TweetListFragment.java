@@ -37,6 +37,7 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.model.TweetListAdapter;
 import com.vaguehope.onosendai.payload.PayloadListAdapter;
+import com.vaguehope.onosendai.payload.PayloadListClickListener;
 import com.vaguehope.onosendai.payload.PayloadUtils;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.update.UpdateService;
@@ -126,7 +127,9 @@ public class TweetListFragment extends Fragment {
 		this.txtTweetName = (TextView) rootView.findViewById(R.id.tweetDetailName);
 		this.txtTweetDate = (TextView) rootView.findViewById(R.id.tweetDetailDate);
 		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext());
-		((ListView) rootView.findViewById(R.id.tweetDetailPayloadList)).setAdapter(this.lstTweetPayloadAdaptor);
+		ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
+		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
+		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(container.getContext(), this.lstTweetPayloadAdaptor));
 		((Button) rootView.findViewById(R.id.tweetDetailClose)).setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
 		this.btnDetailsLater = (Button) rootView.findViewById(R.id.tweetDetailLater);
 
