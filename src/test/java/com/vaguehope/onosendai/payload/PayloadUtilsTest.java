@@ -10,6 +10,12 @@ import com.vaguehope.onosendai.model.Tweet;
 public class PayloadUtilsTest {
 
 	@Test
+	public void itDoesNotCrashOnNullOrBlank () throws Exception {
+		textLinkExtraction(null, new String[] {});
+		textLinkExtraction("", new String[] {});
+	}
+
+	@Test
 	public void itParsesALinkFromTweet () throws Exception {
 		textLinkExtraction("A tweet with a link http://example.com/foo123.", "http://example.com/foo123");
 	}
