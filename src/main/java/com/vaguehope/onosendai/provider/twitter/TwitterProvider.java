@@ -96,6 +96,7 @@ public class TwitterProvider {
 
 	private static Tweet convertTweet (final Status s) {
 		String text = expandUrls(s);
+		// TODO process s.getMediaEntities().
 		return new Tweet(s.getId(), s.getUser().getScreenName(), text, s.getCreatedAt().getTime() / 1000L);
 	}
 
@@ -113,7 +114,7 @@ public class TwitterProvider {
 		}
 		bld.append(text.substring(urls[urls.length - 1].getEnd()));
 		String expandedText = bld.toString();
-		LOG.d("Expanded '%s' --> '%s'.", text, expandedText);
+		LOG.i("Expanded '%s' --> '%s'.", text, expandedText);
 		return expandedText;
 	}
 
