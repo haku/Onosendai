@@ -132,7 +132,7 @@ public class DbAdapter implements DbInterface {
 			this.mDb.endTransaction();
 		}
 
-		notifyTwListeners();
+		notifyTwListeners(); // TODO include column id.
 	}
 
 	@Override
@@ -147,7 +147,7 @@ public class DbAdapter implements DbInterface {
 		finally {
 			this.mDb.endTransaction();
 		}
-		notifyTwListeners();
+		notifyTwListeners(); // TODO include column id.
 	}
 
 	@Override
