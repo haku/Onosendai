@@ -19,7 +19,7 @@ import com.vaguehope.onosendai.util.FileHelper;
 public class Config {
 
 	private final Map<String, Account> accounts;
-	private final Map<Integer, Column> columns;
+	private final Map<Integer, Column> feeds;
 
 	public Config () throws IOException, JSONException {
 		File f = new File(Environment.getExternalStorageDirectory().getPath(), C.CONFIG_FILE_NAME);
@@ -34,8 +34,8 @@ public class Config {
 		JSONArray accountsJson = o.getJSONArray("accounts");
 		this.accounts = parseAccounts(accountsJson);
 
-		JSONArray columnsJson = o.getJSONArray("columns");
-		this.columns = parseColumns(columnsJson);
+		JSONArray feedsJson = o.getJSONArray("feeds");
+		this.feeds = parseFeeds(feedsJson);
 	}
 
 	public Map<String, Account> getAccounts () {
@@ -47,11 +47,11 @@ public class Config {
 	}
 
 	public Map<Integer, Column> getColumns () {
-		return this.columns;
+		return this.feeds;
 	}
 
 	public Column getColumn (final int id) {
-		return this.columns.get(Integer.valueOf(id));
+		return this.feeds.get(Integer.valueOf(id));
 	}
 
 	public Column findInternalColumn (final InternalColumnType res) {
@@ -102,7 +102,10 @@ public class Config {
 		return account;
 	}
 
-	private static Map<Integer, Column> parseColumns (final JSONArray columnsJson) throws JSONException {
+	/**
+	 * // TODO allow multiple feeds per column.
+	 */
+	private static Map<Integer, Column> parseFeeds (final JSONArray columnsJson) throws JSONException {
 		Map<Integer, Column> ret = new HashMap<Integer, Column>();
 		for (int i = 0; i < columnsJson.length(); i++) {
 			JSONObject colJson = columnsJson.getJSONObject(i);
