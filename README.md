@@ -45,7 +45,7 @@ If this file does not exist it will created when the UI is launched.
       "password": "?password?"
     }
   ],
-  "columns": [
+  "feeds": [
     {
       "id": 0,
       "title": "My World",
