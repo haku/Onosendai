@@ -101,10 +101,6 @@ public class DbAdapter implements DbInterface {
 		// Clear old data.
 		this.mDb.beginTransaction();
 		try {
-//			int n = this.mDb.delete(TBL_TW,
-//					"date('now', '?') > datetime(" + TBL_TW_TIME + ", 'unixepoch')",
-//					new String[] { C.DATA_TW_MAX_AGE_DAYS });
-
 			int n = this.mDb.delete(TBL_TW,
 					TBL_TW_COLID + "=? AND " + TBL_TW_ID + " NOT IN (SELECT " + TBL_TW_ID + " FROM " + TBL_TW +
 							" WHERE " + TBL_TW_COLID + "=?" +

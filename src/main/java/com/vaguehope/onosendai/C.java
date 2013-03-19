@@ -13,7 +13,6 @@ public interface C {
 	int TWITTER_MENTIONS_MAX_FETCH = TWEET_FETCH_PAGE_SIZE;
 	int TWITTER_LIST_MAX_FETCH = TWEET_FETCH_PAGE_SIZE;
 
-	//String DATA_TW_MAX_AGE_DAYS = "-7 days";
 	String DATA_TW_MAX_COL_ENTRIES = "500";
 
 	// Arbitrary values.
