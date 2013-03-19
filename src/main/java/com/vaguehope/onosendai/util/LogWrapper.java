@@ -24,50 +24,51 @@ public class LogWrapper {
 
 	public void e (final String msg) {
 		if (!Log.isLoggable(C.TAG, Log.ERROR)) return;
-		Log.e(C.TAG, this.prefix == null ? msg : addPrefix(msg));
+		Log.e(C.TAG, addPrefix(msg));
 	}
 
 	public void e (final String msg, final Throwable t) {
 		if (!Log.isLoggable(C.TAG, Log.ERROR)) return;
-		Log.e(C.TAG, this.prefix == null ? msg : addPrefix(msg), t);
+		Log.e(C.TAG, addPrefix(msg), t);
 	}
 
 	public void e (final String msg, final Object... args) {
 		if (!Log.isLoggable(C.TAG, Log.ERROR)) return;
-		Log.e(C.TAG, this.prefix == null ? msg : addPrefix(String.format(msg, args)));
+		Log.e(C.TAG, addPrefix(String.format(msg, args)));
 	}
 
 	public void w (final String msg) {
 		if (!Log.isLoggable(C.TAG, Log.WARN)) return;
-		Log.w(C.TAG, this.prefix == null ? msg : addPrefix(msg));
+		Log.w(C.TAG, addPrefix(msg));
 	}
 
 	public void w (final String msg, final Object... args) {
 		if (!Log.isLoggable(C.TAG, Log.WARN)) return;
-		Log.w(C.TAG, this.prefix == null ? msg : addPrefix(String.format(msg, args)));
+		Log.w(C.TAG, addPrefix(String.format(msg, args)));
 	}
 
 	public void i (final String msg) {
 		if (!Log.isLoggable(C.TAG, Log.INFO)) return;
-		Log.i(C.TAG, this.prefix == null ? msg : addPrefix(msg));
+		Log.i(C.TAG, addPrefix(msg));
 	}
 
 	public void i (final String msg, final Object... args) {
 		if (!Log.isLoggable(C.TAG, Log.INFO)) return;
-		Log.i(C.TAG, this.prefix == null ? msg : addPrefix(String.format(msg, args)));
+		Log.i(C.TAG, addPrefix(String.format(msg, args)));
 	}
 
 	public void d (final String msg) {
 		if (!Log.isLoggable(C.TAG, Log.DEBUG)) return;
-		Log.d(C.TAG, this.prefix == null ? msg : addPrefix(msg));
+		Log.d(C.TAG, addPrefix(msg));
 	}
 
 	public void d (final String msg, final Object... args) {
 		if (!Log.isLoggable(C.TAG, Log.DEBUG)) return;
-		Log.d(C.TAG, this.prefix == null ? msg : addPrefix(String.format(msg, args)));
+		Log.d(C.TAG, addPrefix(String.format(msg, args)));
 	}
 
 	private String addPrefix (final String msg) {
+		if (this.prefix == null) return msg;
 		return String.format("%s %s", this.prefix, msg);
 	}
 
