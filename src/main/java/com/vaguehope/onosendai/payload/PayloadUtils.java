@@ -19,6 +19,8 @@ public final class PayloadUtils {
 	public static PayloadList extractPayload (final Tweet tweet) {
 		List<Payload> ret = new ArrayList<Payload>();
 		extractUrls(tweet.getBody(), ret);
+		// TODO #tags
+		// TODO @usernames
 		return new PayloadList(ret);
 	}
 
