@@ -26,6 +26,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
@@ -74,6 +76,19 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	private final TweetBuilder currentItem = new TweetBuilder();
 	private StringBuilder currentText;
 
+	private final DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
+
+//	<feed>
+//	  <success type="boolean">true</success>
+//	  <items type="array">
+//	    <item>
+//	      <service type="symbol">twitter</service>
+//	      <content>
+//	        <text>a tweet</text>
+//	        <id type="integer">113751352559691810</id>
+//	        <time type="datetime">2013-03-18T22:38:01+00:00</time>
+//	        <fromuser>username</fromuser>
+
 	@Override
 	public void startElement (final String uri, final String localName, final String qName, final Attributes attributes) throws SAXException {
 		this.stack.push(localName);
@@ -84,21 +99,25 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 
 	@Override
 	public void endElement (final String uri, final String localName, final String qName) throws SAXException {
-		if (this.stack.size() == 2 && localName.equals("entry")) {
+		final String elementName = !localName.isEmpty() ? localName : qName;
+		if (this.stack.size() == 4 && elementName.equals("content")) {
 			this.tweets.add(this.currentItem.build());
 		}
-		else if (this.stack.size() == 3 && localName.equals("id")) {
-			long v = Long.parseLong(this.currentText.toString());
-			this.currentItem.id(v);
-		}
-		else if (this.stack.size() == 3 && localName.equals("fromuser")) {
-			this.currentItem.username(this.currentItem.toString());
-		}
-		else if (this.stack.size() == 3 && localName.equals("text")) {
-			this.currentItem.body(this.currentItem.toString());
-		}
-		else if (this.stack.size() == 3 && localName.equals("time")) {
-			// TODO parse XML timestamp.
+		else if (this.stack.size() == 5) {
+			if (elementName.equals("id")) {
+				long v = Long.parseLong(this.currentText.toString());
+				this.currentItem.id(v);
+			}
+			else if (elementName.equals("fromuser")) {
+				this.currentItem.username(this.currentText.toString());
+			}
+			else if (elementName.equals("text")) {
+				this.currentItem.body(this.currentText.toString());
+			}
+			else if (elementName.equals("time")) {
+				long millis = this.dateFormat.parseMillis(this.currentText.toString());
+				this.currentItem.unitTimeSeconds(millis / 1000L);
+			}
 		}
 
 		this.stack.pop();
