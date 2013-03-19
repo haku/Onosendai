@@ -175,7 +175,7 @@ public class TwitterProvider {
 		return min;
 	}
 
-	private final static Comparator<URLEntity> URLENTITY_COMP = new Comparator<URLEntity>() {
+	private static final Comparator<URLEntity> URLENTITY_COMP = new Comparator<URLEntity>() {
 		@Override
 		public int compare (final URLEntity lhs, final URLEntity rhs) {
 			return lhs.getStart() - rhs.getStart();
