@@ -4,3 +4,4 @@ launchpad-*.tar.gz
 local.properties
 *~
 target
+tmp
