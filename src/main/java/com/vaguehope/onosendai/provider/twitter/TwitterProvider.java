@@ -1,6 +1,8 @@
 package com.vaguehope.onosendai.provider.twitter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -95,14 +97,28 @@ public class TwitterProvider {
 	}
 
 	private static Tweet convertTweet (final Status s) {
-		String text = expandUrls(s);
-		// TODO process s.getMediaEntities().
+		URLEntity[] urls = mergeArrays(s.getURLEntities(), s.getMediaEntities());
+		String text = expandUrls(s.getText(), urls);
+		// TODO stash MediaEntity.getMediaURLHttps().  Also mentions, tags?
 		return new Tweet(s.getId(), s.getUser().getScreenName(), text, s.getCreatedAt().getTime() / 1000L);
 	}
 
-	private static String expandUrls (final Status s) {
-		final URLEntity[] urls = s.getURLEntities();
-		final String text = s.getText();
+	private static URLEntity[] mergeArrays (final URLEntity[]... urlss) {
+		int count = 0;
+		for (URLEntity[] urls : urlss) {
+			count += urls.length;
+		}
+		URLEntity[] ret = new URLEntity[count];
+		int x = 0;
+		for (URLEntity[] urls : urlss) {
+			System.arraycopy(urls, 0, ret, x, urls.length);
+			x += urls.length;
+		}
+		Arrays.sort(ret, URLENTITY_COMP);
+		return ret;
+	}
+
+	private static String expandUrls (final String text, final URLEntity[] urls) {
 		if (urls == null || urls.length < 1) return text;
 
 		final StringBuilder bld = new StringBuilder();
@@ -114,7 +130,7 @@ public class TwitterProvider {
 		}
 		bld.append(text.substring(urls[urls.length - 1].getEnd()));
 		String expandedText = bld.toString();
-		LOG.i("Expanded '%s' --> '%s'.", text, expandedText);
+		LOG.i("Expanded '%s' --> '%s'.", text, expandedText); // FIXME remove this.
 		return expandedText;
 	}
 
@@ -125,5 +141,12 @@ public class TwitterProvider {
 		}
 		return min;
 	}
+
+	private final static Comparator<URLEntity> URLENTITY_COMP = new Comparator<URLEntity>() {
+		@Override
+		public int compare (final URLEntity lhs, final URLEntity rhs) {
+			return lhs.getStart() - rhs.getStart();
+		}
+	};
 
 }
