@@ -19,7 +19,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 3;
+	private static final int DB_VERSION = 4;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -35,7 +35,7 @@ public class DbAdapter implements DbInterface {
 
 	private static class DatabaseHelper extends SQLiteOpenHelper {
 
-		private final LogWrapper log = new LogWrapper();
+		private final LogWrapper log = new LogWrapper("DBH");
 
 		DatabaseHelper (final Context context) {
 			super(context, DB_NAME, null, DB_VERSION);
@@ -73,6 +73,20 @@ public class DbAdapter implements DbInterface {
 		this.mDbHelper.close();
 	}
 
+	public boolean checkDbOpen () {
+		if (this.mDb == null) {
+			this.log.e("aborting because mDb==null.");
+			return false;
+		}
+
+		if (!this.mDb.isOpen()) {
+			this.log.d("mDb was not open; opeing it...");
+			open();
+		}
+
+		return true;
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //	Tweets.
 
@@ -83,6 +97,7 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_TW_TIME = "time";
 	private static final String TBL_TW_NAME = "name";
 	private static final String TBL_TW_BODY = "body";
+	private static final String TBL_TW_META = "meta";
 
 	private static final String TBL_TW_CREATE = "create table " + TBL_TW + " ("
 			+ TBL_TW_ID + " integer primary key autoincrement,"
@@ -91,6 +106,7 @@ public class DbAdapter implements DbInterface {
 			+ TBL_TW_TIME + " integer,"
 			+ TBL_TW_NAME + " text,"
 			+ TBL_TW_BODY + " text,"
+			+ TBL_TW_META + " meta,"
 			+ "UNIQUE(" + TBL_TW_COLID + ", " + TBL_TW_SID + ") ON CONFLICT REPLACE" +
 			");";
 
@@ -124,6 +140,7 @@ public class DbAdapter implements DbInterface {
 				values.put(TBL_TW_TIME, tweet.getTime());
 				values.put(TBL_TW_NAME, tweet.getUsername());
 				values.put(TBL_TW_BODY, tweet.getBody());
+				values.put(TBL_TW_META, tweet.getMeta());
 				this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_IGNORE);
 			}
 			this.mDb.setTransactionSuccessful();
@@ -152,18 +169,8 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public List<Tweet> getTweets (final int columnId, final int numberOf) {
-		if (this.mDb == null) {
-			this.log.e("aborting because mDb==null.");
-			return null;
-		}
-
-		if (!this.mDb.isOpen()) {
-			this.log.d("mDb was not open; opeing it...");
-			open();
-		}
-
+		if (!checkDbOpen()) return null;
 		List<Tweet> ret = new ArrayList<Tweet>();
-
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
@@ -187,6 +194,39 @@ public class DbAdapter implements DbInterface {
 					ret.add(new Tweet(sid, name, body, time));
 				}
 				while (c.moveToNext());
+			}
+		}
+		finally {
+			if (c != null) c.close();
+		}
+		return ret;
+	}
+
+	@Override
+	public Tweet getTweetDetails (final int columnId, final Tweet tweet) {
+		if (!checkDbOpen()) return null;
+		Tweet ret = null;
+		Cursor c = null;
+		try {
+			c = this.mDb.query(true, TBL_TW,
+					new String[] { TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_META },
+					TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?",
+					new String[] { String.valueOf(columnId), String.valueOf(tweet.getId()) },
+					null, null, null, null);
+
+			if (c != null && c.moveToFirst()) {
+				int colSid = c.getColumnIndex(TBL_TW_SID);
+				int colName = c.getColumnIndex(TBL_TW_NAME);
+				int colBody = c.getColumnIndex(TBL_TW_BODY);
+				int colTime = c.getColumnIndex(TBL_TW_TIME);
+				int colMeta = c.getColumnIndex(TBL_TW_META);
+
+				long sid = c.getLong(colSid);
+				String name = c.getString(colName);
+				String body = c.getString(colBody);
+				long time = c.getLong(colTime);
+				String meta = c.getString(colMeta);
+				ret = new Tweet(sid, name, body, time, meta);
 			}
 		}
 		finally {
@@ -249,18 +289,8 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public ScrollState getScroll (final int columnId) {
-		if (this.mDb == null) {
-			this.log.e("aborting because mDb==null.");
-			return null;
-		}
-
-		if (!this.mDb.isOpen()) {
-			this.log.d("mDb was not open; opeing it...");
-			open();
-		}
-
+		if (!checkDbOpen()) return null;
 		ScrollState ret = null;
-
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_SC,
