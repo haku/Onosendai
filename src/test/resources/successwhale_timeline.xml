@@ -1,0 +1,45 @@
+<feed>
+  <success type="boolean">true</success>
+  <items type="array">
+    <item>
+      <service type="symbol">twitter</service>
+      <content>
+        <text>first tweets message</text>
+        <id type="integer">313781345934852800</id>
+        <time type="datetime">2013-03-18T22:38:01+00:00</time>
+        <fromuser>some_user_name</fromuser>
+        <fromusername>The User</fromusername>
+        <fromuseravatar>http://si0.twimg.com/profile_images/2344890405/af462a16c498087e4372cb6ac6aff134_normal.jpeg</fromuseravatar>
+        <isreply type="boolean">true</isreply>
+        <isretweet type="boolean">false</isretweet>
+        <numfavourited nil="true"/>
+        <numretweeted type="integer">0</numretweeted>
+        <numreplied nil="true"/>
+        <inreplytostatusid type="integer">313783459384590224</inreplytostatusid>
+        <inreplytouserid type="integer">13453457</inreplytouserid>
+      </content>
+      <actions>
+      </actions>
+    </item>
+    <item>
+      <service type="symbol">twitter</service>
+      <content>
+        <text>The second tweets message.</text>
+        <id type="integer">313434534579697409</id>
+        <time type="datetime">2013-03-17T23:31:00+00:00</time>
+        <fromuser>some_other_user</fromuser>
+        <fromusername>Just another user</fromusername>
+        <fromuseravatar>http://si0.twimg.com/profile_images/19393922/informal_profile_small2_normal.jpg</fromuseravatar>
+        <isreply type="boolean">true</isreply>
+        <isretweet type="boolean">false</isretweet>
+        <numfavourited nil="true"/>
+        <numretweeted type="integer">0</numretweeted>
+        <numreplied nil="true"/>
+        <inreplytostatusid type="integer">313437897890484096</inreplytostatusid>
+        <inreplytouserid type="integer">12326017</inreplytouserid>
+      </content>
+      <actions>
+      </actions>
+    </item>
+  </items>
+</feed>
