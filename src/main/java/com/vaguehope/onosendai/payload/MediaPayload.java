@@ -6,16 +6,16 @@ import android.net.Uri;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.util.EqualHelper;
 
-public class LinkPayload extends Payload {
+public class MediaPayload extends Payload {
 
 	private final String url;
 
-	public LinkPayload (final Meta meta) {
+	public MediaPayload (final Meta meta) {
 		this(meta.getData());
 	}
 
-	public LinkPayload (final String url) {
-		super(PayloadType.LINK);
+	public MediaPayload (final String url) {
+		super(PayloadType.MEDIA);
 		this.url = url;
 	}
 
@@ -50,8 +50,8 @@ public class LinkPayload extends Payload {
 	public boolean equals (final Object o) {
 		if (o == null) return false;
 		if (o == this) return true;
-		if (!(o instanceof LinkPayload)) return false;
-		LinkPayload that = (LinkPayload) o;
+		if (!(o instanceof MediaPayload)) return false;
+		MediaPayload that = (MediaPayload) o;
 		return EqualHelper.equal(this.url, that.url);
 	}
 

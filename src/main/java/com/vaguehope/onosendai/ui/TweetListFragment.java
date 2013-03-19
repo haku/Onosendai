@@ -273,7 +273,8 @@ public class TweetListFragment extends Fragment {
 		}
 	};
 
-	protected void showTweetDetails (final Tweet tweet) {
+	protected void showTweetDetails (final Tweet listTweet) {
+		final Tweet tweet = this.bndDb.getDb().getTweetDetails(this.columnId, listTweet);
 		this.txtTweetBody.setText(tweet.getBody());
 		this.txtTweetName.setText(tweet.getUsername());
 		this.txtTweetDate.setText(this.dateFormat.format(new Date(tweet.getTime() * 1000L)));
@@ -379,7 +380,7 @@ public class TweetListFragment extends Fragment {
 	}
 
 	protected void refreshUiOnUiThread () {
-		List<Tweet> tweets = this.bndDb.getDb().getTweets(this.columnId, 200);
+		List<Tweet> tweets = this.bndDb.getDb().getTweets(this.columnId, 200); // FIXME replace 200 with dynamic list.
 		saveScrollIfNotSaved();
 		this.adapter.setInputData(new TweetList(tweets));
 		restoreScroll();

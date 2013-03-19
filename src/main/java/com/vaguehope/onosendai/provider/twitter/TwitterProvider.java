@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import twitter4j.HashtagEntity;
+import twitter4j.MediaEntity;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -15,10 +17,13 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.URLEntity;
+import twitter4j.UserMentionEntity;
 import twitter4j.conf.ConfigurationBuilder;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.MetaBuilder;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -91,16 +96,20 @@ public class TwitterProvider {
 
 	private static void addTweetsToList (final List<Tweet> list, final ResponseList<Status> tweets) {
 		for (Status status : tweets) {
-			Tweet tweet = convertTweet(status);
-			list.add(tweet);
+			list.add(convertTweet(status));
 		}
 	}
 
 	private static Tweet convertTweet (final Status s) {
 		URLEntity[] urls = mergeArrays(s.getURLEntities(), s.getMediaEntities());
 		String text = expandUrls(s.getText(), urls);
-		// TODO stash MediaEntity.getMediaURLHttps().  Also mentions, tags?
-		return new Tweet(s.getId(), s.getUser().getScreenName(), text, s.getCreatedAt().getTime() / 1000L);
+
+		MetaBuilder metaBuilder = new MetaBuilder();
+		addMedia(s, metaBuilder);
+		addHashtags(s, metaBuilder);
+		addMentions(s, metaBuilder);
+
+		return new Tweet(s.getId(), s.getUser().getScreenName(), text, s.getCreatedAt().getTime() / 1000L, metaBuilder);
 	}
 
 	private static URLEntity[] mergeArrays (final URLEntity[]... urlss) {
@@ -132,6 +141,30 @@ public class TwitterProvider {
 		String expandedText = bld.toString();
 		LOG.i("Expanded '%s' --> '%s'.", text, expandedText); // FIXME remove this.
 		return expandedText;
+	}
+
+	private static void addMedia (final Status s, final MetaBuilder metaBuilder) {
+		MediaEntity[] mes = s.getMediaEntities();
+		if (mes == null || mes.length < 1) return;
+		for (int i = 0; i < mes.length; i++) {
+			metaBuilder.add(MetaType.MEDIA, mes[i].getMediaURLHttps());
+		}
+	}
+
+	private static void addHashtags (final Status s, final MetaBuilder metaBuilder) {
+		HashtagEntity[] tags = s.getHashtagEntities();
+		if (tags == null || tags.length < 1) return;
+		for (int i = 0; i < tags.length; i++) {
+			metaBuilder.add(MetaType.HASHTAG, tags[i].getText());
+		}
+	}
+
+	private static void addMentions (final Status s, final MetaBuilder metaBuilder) {
+		UserMentionEntity[] ums = s.getUserMentionEntities();
+		if (ums == null || ums.length < 1) return;
+		for (int i = 0; i < ums.length; i++) {
+			metaBuilder.add(MetaType.MENTION, ums[i].getScreenName());
+		}
 	}
 
 	private static long minIdOf (final long statingMin, final ResponseList<Status> tweets) {
