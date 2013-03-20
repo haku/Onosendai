@@ -139,7 +139,7 @@ public class TwitterProvider {
 		}
 		bld.append(text.substring(urls[urls.length - 1].getEnd()));
 		String expandedText = bld.toString();
-		LOG.i("Expanded '%s' --> '%s'.", text, expandedText); // FIXME remove this.
+		LOG.d("Expanded '%s' --> '%s'.", text, expandedText);
 		return expandedText;
 	}
 
