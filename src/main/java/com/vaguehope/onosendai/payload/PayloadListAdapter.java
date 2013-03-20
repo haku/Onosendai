@@ -8,6 +8,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.util.ImageFetcherTask;
 import com.vaguehope.onosendai.util.ImageFetcherTask.ImageFetchRequest;
 
@@ -48,13 +49,23 @@ public class PayloadListAdapter extends BaseAdapter {
 	}
 
 	@Override
+	public int getViewTypeCount () {
+		return PayloadLayout.values().length;
+	}
+
+	@Override
+	public int getItemViewType (final int position) {
+		return this.listData.getPayload(position).getLayout().getIndex();
+	}
+
+	@Override
 	public View getView (final int position, final View convertView, final ViewGroup parent) {
 		final Payload item = this.listData.getPayload(position);
 
 		View view = convertView;
 		RowView rowView;
 		if (view == null) {
-			view = this.layoutInflater.inflate(item.getLayout(), null);
+			view = this.layoutInflater.inflate(item.getLayout().getLayout(), null);
 			rowView = item.makeRowView(view);
 			view.setTag(rowView);
 		}
@@ -64,6 +75,7 @@ public class PayloadListAdapter extends BaseAdapter {
 
 		rowView.getMain().setText(item.getTitle());
 		if (item.getType() == PayloadType.MEDIA) {
+			rowView.getImage().setImageResource(R.drawable.question_blue);
 			MediaPayload media = (MediaPayload) item;
 			new ImageFetcherTask().execute(new ImageFetchRequest(media.getUrl(), rowView.getImage()));
 		}

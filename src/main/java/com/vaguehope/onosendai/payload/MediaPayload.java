@@ -45,9 +45,10 @@ public class MediaPayload extends Payload {
 		return i;
 	}
 
+
 	@Override
-	public int getLayout () {
-		return R.layout.payloadmedialistrow;
+	public PayloadLayout getLayout () {
+		return PayloadLayout.TEXT_IMAGE;
 	}
 
 	@Override
