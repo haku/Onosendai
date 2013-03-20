@@ -39,7 +39,6 @@ public class HttpHelper {
 	public static <R, T extends Exception> R get (final String sUrl, final HttpStreamHandler<R, T> streamHandler) throws IOException, T {
 		URL url = new URL(sUrl);
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-		connection.setUseCaches(false);
 		connection.setRequestMethod("GET");
 		connection.setConnectTimeout(HTTP_CONNECT_TIMEOUT_SECONDS * 1000);
 		connection.setReadTimeout(HTTP_READ_TIMEOUT_SECONDS * 1000);
