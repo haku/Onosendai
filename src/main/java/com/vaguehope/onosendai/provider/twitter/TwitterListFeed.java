@@ -26,4 +26,9 @@ public class TwitterListFeed implements TwitterFeed {
 		return C.TWITTER_LIST_MAX_FETCH;
 	}
 
+	@Override
+	public String toString () {
+		return "list:" + this.slug;
+	}
+
 }

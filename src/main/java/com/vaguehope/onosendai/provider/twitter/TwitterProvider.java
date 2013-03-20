@@ -85,6 +85,7 @@ public class TwitterProvider {
 			if (sinceId > 0) paging.setSinceId(sinceId);
 			if (minId > 0) paging.setMaxId(minId);
 			ResponseList<Status> timelinePage = feed.getTweets(t, paging);
+			LOG.i("Page %d of '%s' contains %d items.", page, feed.toString(), timelinePage.size());
 			if (timelinePage.size() < 1) break;
 			addTweetsToList(tweets, timelinePage);
 			if (timelinePage.size() < pageSize) break;
