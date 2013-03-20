@@ -5,9 +5,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.util.ImageFetcherTask;
+import com.vaguehope.onosendai.util.ImageFetcherTask.ImageFetchRequest;
 
 public class PayloadListAdapter extends BaseAdapter {
 
@@ -47,31 +49,48 @@ public class PayloadListAdapter extends BaseAdapter {
 
 	@Override
 	public View getView (final int position, final View convertView, final ViewGroup parent) {
+		final Payload item = this.listData.getPayload(position);
+
 		View view = convertView;
 		RowView rowView;
 		if (view == null) {
-			view = this.layoutInflater.inflate(R.layout.payloadlistrow, null);
-			rowView = new RowView(
-					(TextView) view.findViewById(R.id.txtMain)
-					);
+			view = this.layoutInflater.inflate(item.getLayout(), null);
+			rowView = item.makeRowView(view);
 			view.setTag(rowView);
 		}
 		else {
 			rowView = (RowView) view.getTag();
 		}
 
-		Payload item = this.listData.getPayload(position);
-		rowView.main.setText(item.getTitle());
+		rowView.getMain().setText(item.getTitle());
+		if (item.getType() == PayloadType.MEDIA) {
+			MediaPayload media = (MediaPayload) item;
+			new ImageFetcherTask().execute(new ImageFetchRequest(media.getUrl(), rowView.getImage()));
+		}
 
 		return view;
 	}
 
-	private static class RowView {
+	static class RowView {
 
-		public final TextView main;
+		private final TextView main;
+		private final ImageView image;
 
 		public RowView (final TextView main) {
+			this(main, null);
+		}
+
+		public RowView (final TextView main, final ImageView image) {
 			this.main = main;
+			this.image = image;
+		}
+
+		public TextView getMain () {
+			return this.main;
+		}
+
+		public ImageView getImage () {
+			return this.image;
 		}
 
 	}

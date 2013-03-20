@@ -2,8 +2,13 @@ package com.vaguehope.onosendai.payload;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.payload.PayloadListAdapter.RowView;
 import com.vaguehope.onosendai.util.EqualHelper;
 
 public class MediaPayload extends Payload {
@@ -41,10 +46,19 @@ public class MediaPayload extends Payload {
 	}
 
 	@Override
+	public int getLayout () {
+		return R.layout.payloadmedialistrow;
+	}
+
+	@Override
+	public RowView makeRowView (final View view) {
+		return new RowView((TextView) view.findViewById(R.id.txtMain), (ImageView) view.findViewById(R.id.imgMain));
+	}
+
+	@Override
 	public int hashCode () {
 		return this.url.hashCode();
 	}
-
 
 	@Override
 	public boolean equals (final Object o) {
