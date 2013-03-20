@@ -31,8 +31,8 @@ public abstract class Payload {
 		throw new UnsupportedOperationException("This payload type '" + this.type + "' can not be expressed as an intent.");
 	}
 
-	public int getLayout () {
-		return R.layout.payloadlistrow;
+	public PayloadLayout getLayout () {
+		return PayloadLayout.TEXT_ONLY;
 	}
 
 	public RowView makeRowView (final View view) {
