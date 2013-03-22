@@ -1,4 +1,4 @@
-package com.vaguehope.onosendai.util;
+package com.vaguehope.onosendai.images;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,21 +6,21 @@ import java.io.InputStream;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.widget.ImageView;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.images.ImageFetcherTask.ImageFetchResult;
+import com.vaguehope.onosendai.util.HttpHelper;
 import com.vaguehope.onosendai.util.HttpHelper.HttpStreamHandler;
-import com.vaguehope.onosendai.util.ImageFetcherTask.ImageFetchRequest;
-import com.vaguehope.onosendai.util.ImageFetcherTask.ImageFetchResult;
+import com.vaguehope.onosendai.util.LogWrapper;
 
-public class ImageFetcherTask extends AsyncTask<ImageFetchRequest, Void, ImageFetchResult> {
+public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFetchResult> {
 
 	private static final LogWrapper LOG = new LogWrapper("IF");
 
 	@Override
-	protected ImageFetchResult doInBackground (final ImageFetchRequest... reqs) {
+	protected ImageFetchResult doInBackground (final ImageLoadRequest... reqs) {
 		if (reqs.length != 1) throw new IllegalArgumentException("Only one request per task.");
-		ImageFetchRequest req = reqs[0];
+		ImageLoadRequest req = reqs[0];
 		try {
 			LOG.d("Fetching image: '%s'...", req.getUrl());
 			Bitmap bmp = HttpHelper.get(req.getUrl(), ImageStreamHandler.INSTNACE);
@@ -42,36 +42,14 @@ public class ImageFetcherTask extends AsyncTask<ImageFetchRequest, Void, ImageFe
 		}
 	}
 
-	public static class ImageFetchRequest {
-
-		private final String url;
-		private final ImageView imageView;
-
-		public ImageFetchRequest (final String url, final ImageView imageView) {
-			if (url == null) throw new IllegalArgumentException("Missing arg: url.");
-			if (imageView == null) throw new IllegalArgumentException("Missing arg: imageView.");
-			this.url = url;
-			this.imageView = imageView;
-		}
-
-		public String getUrl () {
-			return this.url;
-		}
-
-		public ImageView getImageView () {
-			return this.imageView;
-		}
-
-	}
-
 	protected static class ImageFetchResult {
 
 		private final boolean success;
-		private final ImageFetchRequest request;
+		private final ImageLoadRequest request;
 		private final Bitmap bmp;
 		private final Exception e;
 
-		public ImageFetchResult (final ImageFetchRequest request, final Bitmap bmp) {
+		public ImageFetchResult (final ImageLoadRequest request, final Bitmap bmp) {
 			if (request == null) throw new IllegalArgumentException("Missing arg: request.");
 			if (bmp == null) throw new IllegalArgumentException("Missing arg: bmp.");
 			this.success = true;
@@ -80,7 +58,7 @@ public class ImageFetcherTask extends AsyncTask<ImageFetchRequest, Void, ImageFe
 			this.e = null;
 		}
 
-		public ImageFetchResult (final ImageFetchRequest request, final Exception e) {
+		public ImageFetchResult (final ImageLoadRequest request, final Exception e) {
 			if (request == null) throw new IllegalArgumentException("Missing arg: request.");
 			if (e == null) throw new IllegalArgumentException("Missing arg: e.");
 			this.success = false;
@@ -93,7 +71,7 @@ public class ImageFetcherTask extends AsyncTask<ImageFetchRequest, Void, ImageFe
 			return this.success;
 		}
 
-		public ImageFetchRequest getRequest () {
+		public ImageLoadRequest getRequest () {
 			return this.request;
 		}
 
