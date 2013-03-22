@@ -8,16 +8,20 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.widget.Toast;
 
+import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
+import com.vaguehope.onosendai.images.BitmapCache;
 import com.vaguehope.onosendai.images.ImageFetcherTask;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.update.AlarmReceiver;
 
 public class MainActivity extends FragmentActivity implements ImageLoader {
+
+	private final BitmapCache<String> imageCache = new BitmapCache<String>(C.MAX_MEMORY_IMAGE_CACHE);
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -36,30 +40,23 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
 
-		/*
-		 * The {@link android.support.v4.view.PagerAdapter} that will provide
-		 * fragments for each of the sections. We use a {@link
-		 * android.support.v4.app.FragmentPagerAdapter} derivative, which will
-		 * keep every loaded fragment in memory. If this becomes too memory
-		 * intensive, it may be best to switch to a {@link
-		 * android.support.v4.app.FragmentStatePagerAdapter}.
-		 */
+		// If this becomes too memory intensive, switch to android.support.v4.app.FragmentStatePagerAdapter.
 		SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), conf, columnWidth);
-
-		ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
-		viewPager.setAdapter(sectionsPagerAdapter);
+		((ViewPager) findViewById(R.id.pager)).setAdapter(sectionsPagerAdapter);
 
 		AlarmReceiver.configureAlarm(this); // FIXME be more smart about this?
 	}
 
-//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	@Override
+	protected void onDestroy () {
+		this.imageCache.evictAll();
+		super.onDestroy();
+	}
 
 	@Override
 	public void loadImage (final ImageLoadRequest req) {
-		new ImageFetcherTask().execute(req);
+		new ImageFetcherTask(this.imageCache).execute(req);
 	}
-
-//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static class SectionsPagerAdapter extends FragmentPagerAdapter {
 

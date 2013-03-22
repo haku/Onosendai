@@ -17,13 +17,24 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 
 	private static final LogWrapper LOG = new LogWrapper("IF");
 
+	private final BitmapCache<String> imageCache;
+
+	public ImageFetcherTask (final BitmapCache<String> imageCache) {
+		this.imageCache = imageCache;
+	}
+
 	@Override
 	protected ImageFetchResult doInBackground (final ImageLoadRequest... reqs) {
 		if (reqs.length != 1) throw new IllegalArgumentException("Only one request per task.");
 		ImageLoadRequest req = reqs[0];
 		try {
-			LOG.d("Fetching image: '%s'...", req.getUrl());
-			Bitmap bmp = HttpHelper.get(req.getUrl(), ImageStreamHandler.INSTNACE);
+			final String url = req.getUrl();
+			Bitmap bmp = this.imageCache.get(url);
+			if (bmp == null) {
+				LOG.d("Fetching image: '%s'...", url);
+				bmp = HttpHelper.get(url, ImageStreamHandler.INSTNACE);
+				this.imageCache.put(url, bmp);
+			}
 			return new ImageFetchResult(req, bmp);
 		}
 		catch (Exception e) { // NOSONAR To report errors.
