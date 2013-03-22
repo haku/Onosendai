@@ -32,7 +32,7 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 			Bitmap bmp = this.imageCache.get(url);
 			if (bmp == null) {
 				LOG.d("Fetching image: '%s'...", url);
-				bmp = HttpHelper.get(url, ImageStreamHandler.INSTNACE);
+				bmp = HttpHelper.get(url, ImageStreamHandler.INSTANCE);
 				this.imageCache.put(url, bmp);
 			}
 			return new ImageFetchResult(req, bmp);
@@ -97,7 +97,7 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 	}
 
 	private static enum ImageStreamHandler implements HttpStreamHandler<Bitmap, RuntimeException> {
-		INSTNACE;
+		INSTANCE;
 
 		@Override
 		public Bitmap handleStream (final InputStream is, final int contentLength) throws IOException, RuntimeException {
