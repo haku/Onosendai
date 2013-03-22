@@ -9,17 +9,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
-import com.vaguehope.onosendai.util.ImageFetcherTask;
-import com.vaguehope.onosendai.util.ImageFetcherTask.ImageFetchRequest;
+import com.vaguehope.onosendai.images.ImageLoadRequest;
+import com.vaguehope.onosendai.images.ImageLoader;
 
 public class PayloadListAdapter extends BaseAdapter {
 
 	private final LayoutInflater layoutInflater;
+	private final ImageLoader imageLoader;
 
 	private PayloadList listData;
 
-	public PayloadListAdapter (final Context context) {
+	public PayloadListAdapter (final Context context, final ImageLoader imageLoader) {
 		this.layoutInflater = LayoutInflater.from(context);
+		this.imageLoader = imageLoader;
 	}
 
 	public void setInputData (final PayloadList data) {
@@ -77,7 +79,7 @@ public class PayloadListAdapter extends BaseAdapter {
 		if (item.getType() == PayloadType.MEDIA) {
 			rowView.getImage().setImageResource(R.drawable.question_blue);
 			MediaPayload media = (MediaPayload) item;
-			new ImageFetcherTask().execute(new ImageFetchRequest(media.getUrl(), rowView.getImage()));
+			this.imageLoader.loadImage(new ImageLoadRequest(media.getUrl(), rowView.getImage()));
 		}
 
 		return view;

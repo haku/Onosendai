@@ -12,9 +12,12 @@ import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
+import com.vaguehope.onosendai.images.ImageFetcherTask;
+import com.vaguehope.onosendai.images.ImageLoadRequest;
+import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.update.AlarmReceiver;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends FragmentActivity implements ImageLoader {
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -47,6 +50,13 @@ public class MainActivity extends FragmentActivity {
 		viewPager.setAdapter(sectionsPagerAdapter);
 
 		AlarmReceiver.configureAlarm(this); // FIXME be more smart about this?
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@Override
+	public void loadImage (final ImageLoadRequest req) {
+		new ImageFetcherTask().execute(req);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

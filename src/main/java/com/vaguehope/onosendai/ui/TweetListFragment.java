@@ -30,6 +30,7 @@ import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
+import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.layouts.SidebarLayout;
 import com.vaguehope.onosendai.layouts.SidebarLayout.SidebarListener;
 import com.vaguehope.onosendai.model.ScrollState;
@@ -126,7 +127,7 @@ public class TweetListFragment extends Fragment {
 		this.txtTweetBody = (TextView) rootView.findViewById(R.id.tweetDetailBody);
 		this.txtTweetName = (TextView) rootView.findViewById(R.id.tweetDetailName);
 		this.txtTweetDate = (TextView) rootView.findViewById(R.id.tweetDetailDate);
-		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext());
+		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), ImageLoaderUtils.fromActivity(getActivity()));
 		ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
 		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
 		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(container.getContext(), this.lstTweetPayloadAdaptor));
