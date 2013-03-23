@@ -51,7 +51,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 	@Override
 	protected void onDestroy () {
-		this.imageCache.clean();
+		if (this.imageCache != null) this.imageCache.clean();
 		super.onDestroy();
 	}
 
