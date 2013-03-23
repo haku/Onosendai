@@ -25,6 +25,10 @@ public class HybridBitmapCache {
 		this.baseDir.mkdirs();
 	}
 
+	public Bitmap quickGet (final String key) {
+		return this.memCache.get(key);
+	}
+
 	public Bitmap get (final String key) {
 		Bitmap bmp = this.memCache.get(key);
 		if (bmp == null) bmp = getFromDisc(key);
