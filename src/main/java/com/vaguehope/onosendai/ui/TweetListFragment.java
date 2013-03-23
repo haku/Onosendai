@@ -288,7 +288,7 @@ public class TweetListFragment extends Fragment {
 	protected void showTweetDetails (final Tweet listTweet) {
 		final Tweet tweet = getDb().getTweetDetails(this.columnId, listTweet);
 		this.txtTweetBody.setText(tweet.getBody());
-		this.imageLoader.loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), this.imgTweetAvatar));
+		if (tweet.getAvatarUrl() != null) this.imageLoader.loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), this.imgTweetAvatar));
 		this.txtTweetName.setText(tweet.getUsername());
 		this.txtTweetDate.setText(this.dateFormat.format(new Date(tweet.getTime() * 1000L)));
 		this.lstTweetPayloadAdaptor.setInputData(PayloadUtils.extractPayload(tweet));
