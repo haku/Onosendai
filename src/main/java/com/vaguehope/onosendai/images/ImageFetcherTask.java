@@ -1,26 +1,21 @@
 package com.vaguehope.onosendai.images;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.images.ImageFetcherTask.ImageFetchResult;
 import com.vaguehope.onosendai.util.HttpHelper;
-import com.vaguehope.onosendai.util.HttpHelper.HttpStreamHandler;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFetchResult> {
 
 	private static final LogWrapper LOG = new LogWrapper("IF");
 
-	private final BitmapCache<String> imageCache;
+	private final HybridBitmapCache cache;
 
-	public ImageFetcherTask (final BitmapCache<String> imageCache) {
-		this.imageCache = imageCache;
+	public ImageFetcherTask (final HybridBitmapCache cache) {
+		this.cache = cache;
 	}
 
 	@Override
@@ -29,11 +24,10 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 		ImageLoadRequest req = reqs[0];
 		try {
 			final String url = req.getUrl();
-			Bitmap bmp = this.imageCache.get(url);
+			Bitmap bmp = this.cache.get(url);
 			if (bmp == null) {
 				LOG.d("Fetching image: '%s'...", url);
-				bmp = HttpHelper.get(url, ImageStreamHandler.INSTANCE);
-				this.imageCache.put(url, bmp);
+				bmp = HttpHelper.get(url, this.cache.fromHttp(url));
 			}
 			return new ImageFetchResult(req, bmp);
 		}
@@ -92,16 +86,6 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 
 		public Exception getE () {
 			return this.e;
-		}
-
-	}
-
-	private static enum ImageStreamHandler implements HttpStreamHandler<Bitmap, RuntimeException> {
-		INSTANCE;
-
-		@Override
-		public Bitmap handleStream (final InputStream is, final int contentLength) throws IOException, RuntimeException {
-			return BitmapFactory.decodeStream(is);
 		}
 
 	}

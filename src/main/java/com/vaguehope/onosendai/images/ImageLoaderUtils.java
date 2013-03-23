@@ -12,17 +12,19 @@ public final class ImageLoaderUtils {
 	}
 
 	public static ImageLoader fromActivity (final Activity activity) {
-		if (!(activity instanceof ImageLoader)) throw new IllegalArgumentException("Not an ImageLoader: " + activity);
+		if (!(activity instanceof ImageLoader)) throw new IllegalArgumentException("Activity is not an ImageLoader: " + activity);
 		return (ImageLoader) activity;
 	}
 
-	public static void loadImage (final BitmapCache<String> cache, final ImageLoadRequest req) {
+	public static void loadImage (final HybridBitmapCache cache, final ImageLoadRequest req) {
 		final Bitmap bmp = cache.get(req.getUrl());
 		if (bmp != null) {
 			req.getImageView().setImageBitmap(bmp);
 		}
 		else {
 			req.getImageView().setImageResource(R.drawable.question_blue);
+			// TODO if this becomes multi-threaded, need to lock in each unique URL
+			// to avoid duplicate downloads.
 			new ImageFetcherTask(cache).execute(req);
 		}
 	}

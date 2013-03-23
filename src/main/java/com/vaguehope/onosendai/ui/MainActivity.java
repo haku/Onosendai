@@ -13,7 +13,7 @@ import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
-import com.vaguehope.onosendai.images.BitmapCache;
+import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
@@ -21,7 +21,7 @@ import com.vaguehope.onosendai.update.AlarmReceiver;
 
 public class MainActivity extends FragmentActivity implements ImageLoader {
 
-	private final BitmapCache<String> imageCache = new BitmapCache<String>(C.MAX_MEMORY_IMAGE_CACHE);
+	private HybridBitmapCache imageCache;
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -40,6 +40,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
 
+		this.imageCache = new HybridBitmapCache(this, C.MAX_MEMORY_IMAGE_CACHE);
+
 		// If this becomes too memory intensive, switch to android.support.v4.app.FragmentStatePagerAdapter.
 		SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), conf, columnWidth);
 		((ViewPager) findViewById(R.id.pager)).setAdapter(sectionsPagerAdapter);
@@ -49,7 +51,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 	@Override
 	protected void onDestroy () {
-		this.imageCache.evictAll();
+		this.imageCache.clean();
 		super.onDestroy();
 	}
 
