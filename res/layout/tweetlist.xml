@@ -14,44 +14,6 @@
 		android:layout_height="match_parent">
 
 		<LinearLayout
-			android:id="@+id/tweetDetailTweet"
-			android:layout_alignParentTop="true"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:orientation="vertical"
-			android:background="@drawable/tweet_border">
-
-			<TextView
-				android:id="@+id/tweetDetailBody"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:textIsSelectable="true"
-				android:padding="5dip"
-				android:textSize="20sp" />
-
-			<TextView
-				android:id="@+id/tweetDetailName"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:textIsSelectable="true"
-				android:padding="1dip"
-				android:layout_marginLeft="10dip"
-				android:textSize="16sp"
-				android:textColor="@android:color/darker_gray" />
-
-			<TextView
-				android:id="@+id/tweetDetailDate"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:textIsSelectable="true"
-				android:padding="1dip"
-				android:layout_marginLeft="10dip"
-				android:textSize="16sp"
-				android:textColor="@android:color/darker_gray" />
-
-		</LinearLayout>
-
-		<LinearLayout
 			android:id="@+id/tweetDetailActions"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
@@ -79,8 +41,8 @@
 		<ListView
 			android:id="@+id/tweetDetailPayloadList"
 			android:layout_width="fill_parent"
-			android:layout_height="0dip"
-			android:layout_below="@id/tweetDetailTweet"
+			android:layout_height="wrap_content"
+			android:layout_alignParentTop="true"
 			android:layout_above="@id/tweetDetailActions" />
 
 	</RelativeLayout>
