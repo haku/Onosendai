@@ -8,7 +8,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 
@@ -77,7 +76,6 @@ public class PayloadListAdapter extends BaseAdapter {
 
 		rowView.getMain().setText(item.getTitle());
 		if (item.getType() == PayloadType.MEDIA) {
-			rowView.getImage().setImageResource(R.drawable.question_blue);
 			MediaPayload media = (MediaPayload) item;
 			this.imageLoader.loadImage(new ImageLoadRequest(media.getUrl(), rowView.getImage()));
 		}

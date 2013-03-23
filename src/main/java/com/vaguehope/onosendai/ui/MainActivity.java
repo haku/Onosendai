@@ -14,9 +14,9 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.images.BitmapCache;
-import com.vaguehope.onosendai.images.ImageFetcherTask;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
+import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.update.AlarmReceiver;
 
 public class MainActivity extends FragmentActivity implements ImageLoader {
@@ -55,7 +55,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 	@Override
 	public void loadImage (final ImageLoadRequest req) {
-		new ImageFetcherTask(this.imageCache).execute(req);
+		ImageLoaderUtils.loadImage(this.imageCache, req);
 	}
 
 	private static class SectionsPagerAdapter extends FragmentPagerAdapter {
