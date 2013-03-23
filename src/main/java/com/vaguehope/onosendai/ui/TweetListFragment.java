@@ -41,6 +41,7 @@ import com.vaguehope.onosendai.payload.PayloadListAdapter;
 import com.vaguehope.onosendai.payload.PayloadListClickListener;
 import com.vaguehope.onosendai.payload.PayloadUtils;
 import com.vaguehope.onosendai.storage.DbClient;
+import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.ListViewHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -187,12 +188,12 @@ public class TweetListFragment extends Fragment {
 	}
 
 	private void saveSavedScrollToDb () {
-		this.bndDb.getDb().storeScroll(this.columnId, this.scrollState);
+		getDb().storeScroll(this.columnId, this.scrollState);
 	}
 
 	protected void restoreSavedScrollFromDb () {
 		if (this.scrollState != null) return;
-		this.scrollState = this.bndDb.getDb().getScroll(this.columnId);
+		this.scrollState = getDb().getScroll(this.columnId);
 	}
 
 	protected void scrollTop () {
@@ -213,7 +214,7 @@ public class TweetListFragment extends Fragment {
 					 * (i.e., after it exits this thread). if we try to talk to
 					 * the DB service before then, it will NPE.
 					 */
-					getBndDb().getDb().addTwUpdateListener(getGuiUpdateRunnable());
+					getDb().addTwUpdateListener(getGuiUpdateRunnable());
 					restoreSavedScrollFromDb();
 					refreshUi();
 					TweetListFragment.this.log.d("DB service bound.");
@@ -240,8 +241,10 @@ public class TweetListFragment extends Fragment {
 		this.log.d("DB service released.");
 	}
 
-	protected DbClient getBndDb () {
-		return this.bndDb;
+	protected DbInterface getDb () {
+		final DbClient d = this.bndDb;
+		if (d == null) return null;
+		return d.getDb();
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -267,7 +270,6 @@ public class TweetListFragment extends Fragment {
 		}
 	};
 
-
 	private final OnItemClickListener tweetItemClickedListener = new OnItemClickListener() {
 		@Override
 		public void onItemClick (final AdapterView<?> parent, final View view, final int position, final long id) {
@@ -276,7 +278,7 @@ public class TweetListFragment extends Fragment {
 	};
 
 	protected void showTweetDetails (final Tweet listTweet) {
-		final Tweet tweet = this.bndDb.getDb().getTweetDetails(this.columnId, listTweet);
+		final Tweet tweet = getDb().getTweetDetails(this.columnId, listTweet);
 		this.txtTweetBody.setText(tweet.getBody());
 		this.txtTweetName.setText(tweet.getUsername());
 		this.txtTweetDate.setText(this.dateFormat.format(new Date(tweet.getTime() * 1000L)));
@@ -311,11 +313,11 @@ public class TweetListFragment extends Fragment {
 				Column col = conf.findInternalColumn(InternalColumnType.LATER);
 				if (col != null) {
 					if (this.isLaterColumn) {
-						this.tweetListFragment.getBndDb().getDb().deleteTweet(col, this.tweet);
+						this.tweetListFragment.getDb().deleteTweet(col, this.tweet);
 						Toast.makeText(this.context, "Removed.", Toast.LENGTH_SHORT).show();
 					}
 					else {
-						this.tweetListFragment.getBndDb().getDb().storeTweets(col, Collections.singletonList(this.tweet));
+						this.tweetListFragment.getDb().storeTweets(col, Collections.singletonList(this.tweet));
 						Toast.makeText(this.context, "Saved for later.", Toast.LENGTH_SHORT).show();
 					}
 					this.tweetListFragment.setReadLaterButton(this.tweet, !this.isLaterColumn);
@@ -382,11 +384,17 @@ public class TweetListFragment extends Fragment {
 	}
 
 	protected void refreshUiOnUiThread () {
-		List<Tweet> tweets = this.bndDb.getDb().getTweets(this.columnId, 200); // FIXME replace 200 with dynamic list.
-		saveScrollIfNotSaved();
-		this.adapter.setInputData(new TweetList(tweets));
-		restoreScroll();
-		this.log.d("Refreshed %d tweets.", tweets.size());
+		final DbInterface db = getDb();
+		if (db != null) {
+			List<Tweet> tweets = db.getTweets(this.columnId, 200); // FIXME replace 200 with dynamic list.
+			saveScrollIfNotSaved();
+			this.adapter.setInputData(new TweetList(tweets));
+			restoreScroll();
+			this.log.d("Refreshed %d tweets.", tweets.size());
+		}
+		else {
+			this.log.w("Failed to refresh column as DB was not bound.");
+		}
 	}
 
 }
