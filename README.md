@@ -99,6 +99,12 @@ You must first install [maven-android-sdk-deployer](https://github.com/mosabua/m
 mvn clean install android:deploy android:run
 ```
 
+The apk can be made smaller using ProGuard.  This project is configured to only shrink the output, not obfuscate.  Use this to make a release build.
+
+```sh
+mvn clean install -P release
+```
+
 Logging
 -------
 
