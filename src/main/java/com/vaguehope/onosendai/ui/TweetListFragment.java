@@ -136,7 +136,7 @@ public class TweetListFragment extends Fragment {
 		lstTweetPayload.addHeaderView(inflater.inflate(R.layout.tweetdetail, null));
 		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), this.imageLoader);
 		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
-		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(container.getContext(), this.lstTweetPayloadAdaptor));
+		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener());
 		this.txtTweetBody = (TextView) rootView.findViewById(R.id.tweetDetailBody);
 		this.imgTweetAvatar = (ImageView) rootView.findViewById(R.id.tweetDetailAvatar);
 		this.txtTweetName = (TextView) rootView.findViewById(R.id.tweetDetailName);
