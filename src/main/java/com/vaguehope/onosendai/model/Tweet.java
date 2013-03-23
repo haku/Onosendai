@@ -10,21 +10,23 @@ public class Tweet {
 	private final String username;
 	private final String body;
 	private final long time;
+	private final String avatarUrl;
 	private final String meta;
 
-	public Tweet (final long id, final String username, final String body, final long unitTimeSeconds) {
-		this(id, username, body, unitTimeSeconds, (String)null);
+	public Tweet (final long id, final String username, final String body, final long unitTimeSeconds, final String avatarUrl) {
+		this(id, username, body, unitTimeSeconds, avatarUrl, (String)null);
 	}
 
-	public Tweet (final long id, final String username, final String body, final long unitTimeSeconds, final MetaBuilder metaBuilder) {
-		this(id, username, body, unitTimeSeconds, metaBuilder.build());
+	public Tweet (final long id, final String username, final String body, final long unitTimeSeconds, final String avatarUrl, final MetaBuilder metaBuilder) {
+		this(id, username, body, unitTimeSeconds, avatarUrl, metaBuilder.build());
 	}
 
-	public Tweet (final long id, final String username, final String body, final long unitTimeSeconds, final String meta) {
+	public Tweet (final long id, final String username, final String body, final long unitTimeSeconds, final String avatarUrl, final String meta) {
 		this.id = id;
 		this.username = username;
 		this.body = body;
 		this.time = unitTimeSeconds;
+		this.avatarUrl = avatarUrl;
 		this.meta = meta;
 	}
 
@@ -42,6 +44,10 @@ public class Tweet {
 
 	public long getTime () {
 		return this.time;
+	}
+
+	public String getAvatarUrl () {
+		return this.avatarUrl;
 	}
 
 	public String getMeta() {

@@ -110,7 +110,12 @@ public class TwitterProvider {
 		addHashtags(s, metaBuilder);
 		addMentions(s, metaBuilder);
 
-		return new Tweet(s.getId(), s.getUser().getScreenName(), text, s.getCreatedAt().getTime() / 1000L, metaBuilder);
+		// https://dev.twitter.com/docs/user-profile-images-and-banners
+
+		return new Tweet(s.getId(), s.getUser().getScreenName(), text,
+				s.getCreatedAt().getTime() / 1000L,
+				s.getUser().getProfileImageURLHttps(),
+				metaBuilder);
 	}
 
 	private static URLEntity[] mergeArrays (final URLEntity[]... urlss) {

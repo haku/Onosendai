@@ -10,6 +10,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.model.TweetBuilder;
 
 public class PayloadUtilsTest {
 
@@ -106,7 +107,7 @@ public class PayloadUtilsTest {
 	}
 
 	private static void testLinkExtraction (final String body, final String... expectedUrls) {
-		Tweet tweet = new Tweet(0L, "", body, 0L);
+		Tweet tweet = new TweetBuilder().body(body).build();
 		PayloadList payloadList = PayloadUtils.extractPayload(tweet);
 		payloadList = removeNotOfType(PayloadType.LINK, payloadList);
 
@@ -119,7 +120,7 @@ public class PayloadUtilsTest {
 	}
 
 	private static void testHashTagExtraction (final String body, final String... expectedTags) {
-		Tweet tweet = new Tweet(0L, "", body, 0L);
+		Tweet tweet = new TweetBuilder().body(body).build();
 		PayloadList payloadList = PayloadUtils.extractPayload(tweet);
 		payloadList = removeNotOfType(PayloadType.HASHTAG, payloadList);
 		assertEquals(expectedTags.length, payloadList.size());
@@ -131,7 +132,7 @@ public class PayloadUtilsTest {
 	}
 
 	private static void testMentionExtraction (final String body, final String... expectedMentions) {
-		Tweet tweet = new Tweet(0L, "user", body, 0L);
+		Tweet tweet = new TweetBuilder().body(body).username("user").build();
 		PayloadList payloadList = PayloadUtils.extractPayload(tweet);
 		payloadList = removeNotOfType(PayloadType.MENTION, payloadList);
 

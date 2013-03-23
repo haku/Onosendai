@@ -5,17 +5,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.images.ImageLoadRequest;
+import com.vaguehope.onosendai.images.ImageLoader;
 
 public class TweetListAdapter extends BaseAdapter {
 
 	private final LayoutInflater layoutInflater;
+	private final ImageLoader imageLoader;
 
 	private TweetList listData;
 
-	public TweetListAdapter (final Context context) {
+	public TweetListAdapter (final Context context, final ImageLoader imageLoader) {
+		this.imageLoader = imageLoader;
 		this.layoutInflater = LayoutInflater.from(context);
 	}
 
@@ -54,6 +59,7 @@ public class TweetListAdapter extends BaseAdapter {
 		if (view == null) {
 			view = this.layoutInflater.inflate(R.layout.tweetlistrow, null);
 			rowView = new RowView(
+					(ImageView) view.findViewById(R.id.imgMain),
 					(TextView) view.findViewById(R.id.txtTweet),
 					(TextView) view.findViewById(R.id.txtName)
 					);
@@ -67,15 +73,25 @@ public class TweetListAdapter extends BaseAdapter {
 		rowView.tweet.setText(item.getBody());
 		rowView.name.setText(item.getUsername());
 
+		String avatarUrl = item.getAvatarUrl();
+		if (avatarUrl != null) {
+			this.imageLoader.loadImage(new ImageLoadRequest(avatarUrl, rowView.avatar));
+		}
+		else {
+			rowView.avatar.setImageResource(R.drawable.question_blue);
+		}
+
 		return view;
 	}
 
 	private static class RowView {
 
+		public final ImageView avatar;
 		public final TextView tweet;
 		public final TextView name;
 
-		public RowView (final TextView tweet, final TextView name) {
+		public RowView (final ImageView avatar, final TextView tweet, final TextView name) {
+			this.avatar = avatar;
 			this.tweet = tweet;
 			this.name = name;
 		}
