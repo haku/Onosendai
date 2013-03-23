@@ -3,9 +3,9 @@ package com.vaguehope.onosendai.images;
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
 
-public class BitmapCache<K> extends LruCache<K, Bitmap> {
+public class MemoryBitmapCache<K> extends LruCache<K, Bitmap> {
 
-	public BitmapCache (final int maxSizeBytes) {
+	public MemoryBitmapCache (final int maxSizeBytes) {
 		super(maxSizeBytes);
 	}
 
