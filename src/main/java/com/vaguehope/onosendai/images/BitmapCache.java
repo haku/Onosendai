@@ -16,7 +16,8 @@ public class BitmapCache<K> extends LruCache<K, Bitmap> {
 
 	@Override
 	protected void entryRemoved (final boolean evicted, final K key, final Bitmap oldValue, final Bitmap newValue) {
-		oldValue.recycle();
+		// FIXME in retrospect, this is probably a bad idea as the image may still be in the UI, etc.
+		//oldValue.recycle();
 	}
 
 }
