@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +31,7 @@ import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
+import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.layouts.SidebarLayout;
@@ -63,11 +65,13 @@ public class TweetListFragment extends Fragment {
 	private int columnId;
 	private boolean isLaterColumn;
 	private RefreshUiHandler refreshUiHandler;
+	private ImageLoader imageLoader;
 
 	private SidebarLayout sidebar;
 	private ListView tweetList;
 
 	private TextView txtTweetBody;
+	private ImageView imgTweetAvatar;
 	private TextView txtTweetName;
 	private TextView txtTweetDate;
 	private PayloadListAdapter lstTweetPayloadAdaptor;
@@ -90,7 +94,7 @@ public class TweetListFragment extends Fragment {
 		this.log.setPrefix("C" + this.columnId);
 		this.log.d("onCreateView()");
 
-		final ImageLoader imageLoader = ImageLoaderUtils.fromActivity(getActivity());
+		this.imageLoader = ImageLoaderUtils.fromActivity(getActivity());
 
 		/*
 		 * Fragment life cycles are strange. onCreateView() is called multiple
@@ -122,7 +126,7 @@ public class TweetListFragment extends Fragment {
 		}
 
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
-		this.adapter = new TweetListAdapter(container.getContext(), imageLoader);
+		this.adapter = new TweetListAdapter(container.getContext(), this.imageLoader);
 		this.tweetList.setAdapter(this.adapter);
 		this.tweetList.setScrollbarFadingEnabled(false);
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
@@ -130,10 +134,11 @@ public class TweetListFragment extends Fragment {
 
 		ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
 		lstTweetPayload.addHeaderView(inflater.inflate(R.layout.tweetdetail, null));
-		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), imageLoader);
+		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), this.imageLoader);
 		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
 		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(container.getContext(), this.lstTweetPayloadAdaptor));
 		this.txtTweetBody = (TextView) rootView.findViewById(R.id.tweetDetailBody);
+		this.imgTweetAvatar = (ImageView) rootView.findViewById(R.id.tweetDetailAvatar);
 		this.txtTweetName = (TextView) rootView.findViewById(R.id.tweetDetailName);
 		this.txtTweetDate = (TextView) rootView.findViewById(R.id.tweetDetailDate);
 		((Button) rootView.findViewById(R.id.tweetDetailClose)).setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
@@ -283,6 +288,7 @@ public class TweetListFragment extends Fragment {
 	protected void showTweetDetails (final Tweet listTweet) {
 		final Tweet tweet = getDb().getTweetDetails(this.columnId, listTweet);
 		this.txtTweetBody.setText(tweet.getBody());
+		this.imageLoader.loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), this.imgTweetAvatar));
 		this.txtTweetName.setText(tweet.getUsername());
 		this.txtTweetDate.setText(this.dateFormat.format(new Date(tweet.getTime() * 1000L)));
 		this.lstTweetPayloadAdaptor.setInputData(PayloadUtils.extractPayload(tweet));
