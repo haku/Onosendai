@@ -17,7 +17,7 @@ public final class ImageLoaderUtils {
 	}
 
 	public static void loadImage (final HybridBitmapCache cache, final ImageLoadRequest req) {
-		final Bitmap bmp = cache.get(req.getUrl());
+		final Bitmap bmp = cache.quickGet(req.getUrl());
 		if (bmp != null) {
 			req.getImageView().setImageBitmap(bmp);
 		}
