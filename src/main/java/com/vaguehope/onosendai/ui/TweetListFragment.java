@@ -30,6 +30,7 @@ import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
+import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.layouts.SidebarLayout;
 import com.vaguehope.onosendai.layouts.SidebarLayout.SidebarListener;
@@ -89,6 +90,8 @@ public class TweetListFragment extends Fragment {
 		this.log.setPrefix("C" + this.columnId);
 		this.log.d("onCreateView()");
 
+		final ImageLoader imageLoader = ImageLoaderUtils.fromActivity(getActivity());
+
 		/*
 		 * Fragment life cycles are strange. onCreateView() is called multiple
 		 * times before onSaveInstanceState() is called. Do not overwrite
@@ -119,7 +122,7 @@ public class TweetListFragment extends Fragment {
 		}
 
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
-		this.adapter = new TweetListAdapter(container.getContext());
+		this.adapter = new TweetListAdapter(container.getContext(), imageLoader);
 		this.tweetList.setAdapter(this.adapter);
 		this.tweetList.setScrollbarFadingEnabled(false);
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
@@ -127,7 +130,7 @@ public class TweetListFragment extends Fragment {
 
 		ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
 		lstTweetPayload.addHeaderView(inflater.inflate(R.layout.tweetdetail, null));
-		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), ImageLoaderUtils.fromActivity(getActivity()));
+		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), imageLoader);
 		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
 		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(container.getContext(), this.lstTweetPayloadAdaptor));
 		this.txtTweetBody = (TextView) rootView.findViewById(R.id.tweetDetailBody);

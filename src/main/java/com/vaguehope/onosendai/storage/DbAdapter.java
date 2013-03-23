@@ -19,7 +19,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 4;
+	private static final int DB_VERSION = 5;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -50,9 +50,9 @@ public class DbAdapter implements DbInterface {
 		@Override
 		public void onUpgrade (final SQLiteDatabase db, final int oldVersion, final int newVersion) {
 			this.log.w("Upgrading database from version %d to %d, which will destroy all old data.", oldVersion, newVersion);
-			db.execSQL("DROP TABLE IF EXISTS " + TBL_TW);
-			db.execSQL("DROP TABLE IF EXISTS " + TBL_SC);
-			onCreate(db);
+			if (oldVersion < 5) {
+				db.execSQL("ALTER TABLE " + TBL_TW + " ADD COLUMN " + TBL_TW_AVATAR + " text;");
+			}
 		}
 
 	}
@@ -97,6 +97,7 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_TW_TIME = "time";
 	private static final String TBL_TW_NAME = "name";
 	private static final String TBL_TW_BODY = "body";
+	private static final String TBL_TW_AVATAR = "avatar";
 	private static final String TBL_TW_META = "meta";
 
 	private static final String TBL_TW_CREATE = "create table " + TBL_TW + " ("
@@ -106,7 +107,8 @@ public class DbAdapter implements DbInterface {
 			+ TBL_TW_TIME + " integer,"
 			+ TBL_TW_NAME + " text,"
 			+ TBL_TW_BODY + " text,"
-			+ TBL_TW_META + " meta,"
+			+ TBL_TW_AVATAR + " text,"
+			+ TBL_TW_META + " text,"
 			+ "UNIQUE(" + TBL_TW_COLID + ", " + TBL_TW_SID + ") ON CONFLICT REPLACE" +
 			");";
 
@@ -140,6 +142,7 @@ public class DbAdapter implements DbInterface {
 				values.put(TBL_TW_TIME, tweet.getTime());
 				values.put(TBL_TW_NAME, tweet.getUsername());
 				values.put(TBL_TW_BODY, tweet.getBody());
+				values.put(TBL_TW_AVATAR, tweet.getAvatarUrl());
 				values.put(TBL_TW_META, tweet.getMeta());
 				this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_IGNORE);
 			}
@@ -174,7 +177,7 @@ public class DbAdapter implements DbInterface {
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME },
+					new String[] { TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
 					TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) },
 					null, null,
 					TBL_TW_TIME + " desc", String.valueOf(numberOf));
@@ -184,6 +187,7 @@ public class DbAdapter implements DbInterface {
 				int colName = c.getColumnIndex(TBL_TW_NAME);
 				int colBody = c.getColumnIndex(TBL_TW_BODY);
 				int colTime = c.getColumnIndex(TBL_TW_TIME);
+				int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
 
 				ret = new ArrayList<Tweet>();
 				do {
@@ -191,7 +195,8 @@ public class DbAdapter implements DbInterface {
 					String name = c.getString(colName);
 					String body = c.getString(colBody);
 					long time = c.getLong(colTime);
-					ret.add(new Tweet(sid, name, body, time));
+					String avatar = c.getString(colAvatar);
+					ret.add(new Tweet(sid, name, body, time, avatar));
 				}
 				while (c.moveToNext());
 			}
@@ -209,7 +214,7 @@ public class DbAdapter implements DbInterface {
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_META },
+					new String[] { TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_META },
 					TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?",
 					new String[] { String.valueOf(columnId), String.valueOf(tweet.getId()) },
 					null, null, null, null);
@@ -219,6 +224,7 @@ public class DbAdapter implements DbInterface {
 				int colName = c.getColumnIndex(TBL_TW_NAME);
 				int colBody = c.getColumnIndex(TBL_TW_BODY);
 				int colTime = c.getColumnIndex(TBL_TW_TIME);
+				int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
 				int colMeta = c.getColumnIndex(TBL_TW_META);
 
 				long sid = c.getLong(colSid);
@@ -226,7 +232,8 @@ public class DbAdapter implements DbInterface {
 				String body = c.getString(colBody);
 				long time = c.getLong(colTime);
 				String meta = c.getString(colMeta);
-				ret = new Tweet(sid, name, body, time, meta);
+				String avatar = c.getString(colAvatar);
+				ret = new Tweet(sid, name, body, time, avatar, meta);
 			}
 		}
 		finally {

@@ -6,6 +6,7 @@ public class TweetBuilder {
 	private String username;
 	private String body;
 	private long unitTimeSeconds;
+	private String avatarUrl;
 
 	public TweetBuilder () {
 		reset();
@@ -16,6 +17,7 @@ public class TweetBuilder {
 		this.username = null;
 		this.body = null;
 		this.unitTimeSeconds = 0L;
+		this.avatarUrl = null;
 	}
 
 	public TweetBuilder id (final long v) {
@@ -38,8 +40,14 @@ public class TweetBuilder {
 		return this;
 	}
 
+
+	public TweetBuilder avatarUrl (final String v) {
+		this.avatarUrl = v;
+		return this;
+	}
+
 	public Tweet build () {
-		Tweet t = new Tweet(this.id, this.username, this.body, this.unitTimeSeconds);
+		Tweet t = new Tweet(this.id, this.username, this.body, this.unitTimeSeconds, this.avatarUrl);
 		reset();
 		return t;
 	}
