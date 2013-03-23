@@ -124,13 +124,14 @@ public class TweetListFragment extends Fragment {
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
 		this.refreshUiHandler = new RefreshUiHandler(this);
 
+		ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
+		lstTweetPayload.addHeaderView(inflater.inflate(R.layout.tweetdetail, null));
+		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), ImageLoaderUtils.fromActivity(getActivity()));
+		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
+		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(container.getContext(), this.lstTweetPayloadAdaptor));
 		this.txtTweetBody = (TextView) rootView.findViewById(R.id.tweetDetailBody);
 		this.txtTweetName = (TextView) rootView.findViewById(R.id.tweetDetailName);
 		this.txtTweetDate = (TextView) rootView.findViewById(R.id.tweetDetailDate);
-		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), ImageLoaderUtils.fromActivity(getActivity()));
-		ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
-		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
-		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(container.getContext(), this.lstTweetPayloadAdaptor));
 		((Button) rootView.findViewById(R.id.tweetDetailClose)).setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
 		this.btnDetailsLater = (Button) rootView.findViewById(R.id.tweetDetailLater);
 
