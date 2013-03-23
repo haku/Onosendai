@@ -50,8 +50,13 @@ public class DbAdapter implements DbInterface {
 		@Override
 		public void onUpgrade (final SQLiteDatabase db, final int oldVersion, final int newVersion) {
 			this.log.w("Upgrading database from version %d to %d, which will destroy all old data.", oldVersion, newVersion);
-			if (oldVersion < 5) {
-				db.execSQL("ALTER TABLE " + TBL_TW + " ADD COLUMN " + TBL_TW_AVATAR + " text;");
+			if (oldVersion < 4) {
+				db.execSQL("DROP TABLE IF EXISTS " + TBL_TW);
+				db.execSQL("DROP TABLE IF EXISTS " + TBL_SC);
+				onCreate(db);
+			}
+			else {
+				if (oldVersion < 5) db.execSQL("ALTER TABLE " + TBL_TW + " ADD COLUMN " + TBL_TW_AVATAR + " text;");
 			}
 		}
 
