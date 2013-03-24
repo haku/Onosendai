@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -45,6 +46,8 @@ public class PostActivity extends Activity implements ImageLoader {
 	private DbClient bndDb;
 	private HybridBitmapCache imageCache;
 
+	private EditText txtBody;
+
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -73,6 +76,8 @@ public class PostActivity extends Activity implements ImageLoader {
 		final Column column = conf.getColumnById(this.columnId);
 		final Account account = conf.getAccount(column.accountId);
 		spnAccount.setSelection(accountAdaptor.getAccountPosition(account));
+
+		this.txtBody = (EditText) findViewById(R.id.txtBody);
 
 		((Button) findViewById(R.id.btnCancel)).setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -147,6 +152,8 @@ public class PostActivity extends Activity implements ImageLoader {
 		if (tweet.getAvatarUrl() != null) loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), (ImageView) view.findViewById(R.id.tweetDetailAvatar)));
 		((TextView) view.findViewById(R.id.tweetDetailName)).setText(tweet.getUsername());
 		((TextView) view.findViewById(R.id.tweetDetailDate)).setText(DateFormat.getDateTimeInstance().format(new Date(tweet.getTime() * 1000L)));
+		this.txtBody.setText("@" + tweet.getUsername() + " " + this.txtBody.getText());
+		this.txtBody.setSelection(this.txtBody.getText().length());
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
