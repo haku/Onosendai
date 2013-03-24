@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -117,12 +119,12 @@ public class TweetListFragment extends Fragment {
 		btnColumnTitle.setText(getArguments().getString(ARG_COLUMN_TITLE));
 		btnColumnTitle.setOnClickListener(this.columnTitleClickListener);
 
-		Button btnRefresh = (Button) rootView.findViewById(R.id.tweetListRefresh);
+		Button btnMenu = (Button) rootView.findViewById(R.id.tweetListMenu);
 		if (this.isLaterColumn) {
-			((ViewGroup) btnRefresh.getParent()).removeView(btnRefresh);
+			((ViewGroup) btnMenu.getParent()).removeView(btnMenu);
 		}
 		else {
-			btnRefresh.setOnClickListener(this.refreshClickListener);
+			btnMenu.setOnClickListener(this.menuClickListener);
 		}
 
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
@@ -271,10 +273,29 @@ public class TweetListFragment extends Fragment {
 		}
 	};
 
-	private final OnClickListener refreshClickListener = new OnClickListener() {
+	private final OnClickListener menuClickListener = new OnClickListener() {
 		@Override
 		public void onClick (final View v) {
-			scheduleRefresh();
+			PopupMenu popupMenu = new PopupMenu(getActivity(), v);
+			popupMenu.getMenuInflater().inflate(R.menu.listmenu, popupMenu.getMenu());
+			popupMenu.setOnMenuItemClickListener(TweetListFragment.this.menuItemClientListener);
+			popupMenu.show();
+		}
+	};
+
+	protected final PopupMenu.OnMenuItemClickListener menuItemClientListener = new PopupMenu.OnMenuItemClickListener() {
+		@Override
+		public boolean onMenuItemClick (final MenuItem item) {
+			switch (item.getItemId()) {
+				case R.id.mnuPost:
+					Toast.makeText(getActivity(), "TODO: post.", Toast.LENGTH_SHORT).show();
+					return true;
+				case R.id.mnuRefreshNow:
+					scheduleRefresh();
+					return true;
+				default:
+					return false;
+			}
 		}
 	};
 
