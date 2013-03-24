@@ -8,6 +8,8 @@ import java.util.List;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,6 +49,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	private HybridBitmapCache imageCache;
 
 	private EditText txtBody;
+	private TextView txtCharRemaining;
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -78,6 +81,8 @@ public class PostActivity extends Activity implements ImageLoader {
 		spnAccount.setSelection(accountAdaptor.getAccountPosition(account));
 
 		this.txtBody = (EditText) findViewById(R.id.txtBody);
+		this.txtCharRemaining = (TextView) findViewById(R.id.txtCharRemaining);
+		this.txtBody.addTextChangedListener(new TextCounterWatcher(this.txtCharRemaining, this.txtBody));
 
 		((Button) findViewById(R.id.btnCancel)).setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -222,6 +227,28 @@ public class PostActivity extends Activity implements ImageLoader {
 
 		}
 
+	}
+
+	private static class TextCounterWatcher implements TextWatcher {
+
+		private final TextView txtView;
+		private final EditText editText;
+
+		public TextCounterWatcher (final TextView txtView, final EditText editText) {
+			this.txtView = txtView;
+			this.editText = editText;
+		}
+
+		@Override
+		public void afterTextChanged (final Editable s) {
+			this.txtView.setText(String.valueOf(this.editText.getText().length()));
+		}
+
+		@Override
+		public void onTextChanged (final CharSequence s, final int start, final int before, final int count) {/**/}
+
+		@Override
+		public void beforeTextChanged (final CharSequence s, final int start, final int count, final int after) {/**/}
 	}
 
 }
