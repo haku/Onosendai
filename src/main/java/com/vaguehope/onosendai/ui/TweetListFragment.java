@@ -259,6 +259,12 @@ public class TweetListFragment extends Fragment {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	protected void showPost() {
+		final Intent intent = new Intent(getActivity(), PostActivity.class);
+		intent.putExtra(ARG_COLUMN_ID, this.columnId);
+		startActivity(intent);
+	}
+
 	protected void scheduleRefresh () {
 		getActivity().startService(new Intent(getActivity(), UpdateService.class));
 		Toast.makeText(getActivity(), "Refresh all columns requested.", Toast.LENGTH_SHORT).show();
@@ -288,7 +294,7 @@ public class TweetListFragment extends Fragment {
 		public boolean onMenuItemClick (final MenuItem item) {
 			switch (item.getItemId()) {
 				case R.id.mnuPost:
-					Toast.makeText(getActivity(), "TODO: post.", Toast.LENGTH_SHORT).show();
+					showPost();
 					return true;
 				case R.id.mnuRefreshNow:
 					scheduleRefresh();
