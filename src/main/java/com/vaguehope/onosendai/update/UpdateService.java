@@ -263,7 +263,7 @@ public class UpdateService extends IntentService {
 					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.title, durationMillis);
 				}
 				catch (SuccessWhaleException e) {
-					this.log.w("Failed to fetch from Success Whale: %s", e.toString());
+					this.log.w("Failed to fetch from SuccessWhale: %s", e.toString());
 				}
 				break;
 			default:
