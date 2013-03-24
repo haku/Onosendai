@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:orientation="vertical">
+
+	<Spinner
+		android:id="@+id/spnAccount"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentTop="true" />
+
+	<LinearLayout
+		android:id="@+id/actions"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="horizontal"
+		android:layout_alignParentBottom="true"
+		style="?android:attr/buttonBarStyle">
+
+		<Button
+			android:id="@+id/btnCancel"
+			android:layout_width="fill_parent"
+			android:layout_height="50dip"
+			android:layout_weight="1"
+			style="?android:attr/buttonBarButtonStyle"
+			android:text="Cancel" />
+
+		<Button
+			android:id="@+id/btnPost"
+			android:layout_width="fill_parent"
+			android:layout_height="50dip"
+			android:layout_weight="1"
+			style="?android:attr/buttonBarButtonStyle"
+			android:text="Post" />
+
+	</LinearLayout>
+
+	<EditText
+		android:id="@+id/txtBody"
+		android:layout_width="fill_parent"
+		android:layout_height="0dip"
+		android:layout_below="@id/spnAccount"
+		android:layout_above="@id/actions"
+		android:textSize="16sp"
+		android:padding="10dip"
+		android:inputType="textMultiLine"
+		android:gravity="top"
+		android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi volutpat, purus non semper semper, ante quam tempor nulla, vel aliquet." />
+
+</RelativeLayout>
