@@ -1,63 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<ScrollView
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:id="@+id/rlPost"
-	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
-	android:orientation="vertical">
-
-	<Spinner
-		android:id="@+id/spnAccount"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:layout_alignParentTop="true" />
-
-	<include
-		android:id="@+id/tweetReplyToDetails"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:layout_below="@+id/spnAccount"
-		layout="@layout/tweetdetail"
-		android:visibility="gone" />
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:fillViewport="true"
+	xmlns:tools="http://schemas.android.com/tools">
 
 	<LinearLayout
-		android:id="@+id/actions"
+		android:id="@+id/rlPost"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:orientation="horizontal"
-		android:layout_alignParentBottom="true"
-		style="?android:attr/buttonBarStyle">
+		android:orientation="vertical">
 
-		<Button
-			android:id="@+id/btnCancel"
-			android:layout_width="fill_parent"
-			android:layout_height="50dip"
-			android:layout_weight="1"
-			style="?android:attr/buttonBarButtonStyle"
-			android:text="@string/btn_post_cancel" />
+		<Spinner
+			android:id="@+id/spnAccount"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" />
 
-		<Button
-			android:id="@+id/btnPost"
-			android:layout_width="fill_parent"
-			android:layout_height="50dip"
-			android:layout_weight="1"
-			style="?android:attr/buttonBarButtonStyle"
-			android:text="@string/btn_post_post" />
+		<include
+			android:id="@+id/tweetReplyToDetails"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			layout="@layout/tweetdetail"
+			android:visibility="gone" />
+
+		<!-- height set to wrap_content to prevent double-scrolling. -->
+		<EditText
+			android:id="@+id/txtBody"
+			android:layout_width="match_parent"
+			tools:ignore="InefficientWeight"
+			android:layout_height="wrap_content"
+			android:layout_weight="2"
+			android:textSize="16sp"
+			android:padding="10dip"
+			android:inputType="textMultiLine"
+			android:gravity="top"
+			android:minLines="5"
+			android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi volutpat, purus non semper semper, ante quam tempor nulla, vel aliquet.">
+			<requestFocus />
+		</EditText>
+
+		<LinearLayout
+			android:id="@+id/actions"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			style="?android:attr/buttonBarStyle">
+
+			<Button
+				android:id="@+id/btnCancel"
+				android:layout_width="match_parent"
+				android:layout_height="50dip"
+				android:layout_weight="1"
+				style="?android:attr/buttonBarButtonStyle"
+				android:text="@string/btn_post_cancel" />
+
+			<Button
+				android:id="@+id/btnPost"
+				android:layout_width="match_parent"
+				android:layout_height="50dip"
+				android:layout_weight="1"
+				style="?android:attr/buttonBarButtonStyle"
+				android:text="@string/btn_post_post" />
+
+		</LinearLayout>
 
 	</LinearLayout>
 
-	<EditText
-		android:id="@+id/txtBody"
-		android:layout_width="fill_parent"
-		android:layout_height="0dip"
-		android:layout_below="@id/tweetReplyToDetails"
-		android:layout_above="@id/actions"
-		android:textSize="16sp"
-		android:padding="10dip"
-		android:inputType="textMultiLine"
-		android:gravity="top"
-		android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi volutpat, purus non semper semper, ante quam tempor nulla, vel aliquet.">
-		<requestFocus />
-	</EditText>
-
-</RelativeLayout>
+</ScrollView>
