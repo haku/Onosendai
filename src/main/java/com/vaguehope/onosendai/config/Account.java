@@ -18,6 +18,10 @@ public class Account {
 		this.accessSecret = accessSecret;
 	}
 
+	public String toHumanString() {
+		return String.format("%s (%s)", this.provider.toHumanString(), this.id);
+	}
+
 	@Override
 	public String toString () {
 		StringBuilder s = new StringBuilder();
