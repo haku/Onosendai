@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.payload;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
@@ -8,6 +9,7 @@ import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.payload.PayloadListAdapter.RowView;
 import com.vaguehope.onosendai.util.EqualHelper;
 
@@ -15,12 +17,12 @@ public class MediaPayload extends Payload {
 
 	private final String url;
 
-	public MediaPayload (final Meta meta) {
-		this(meta.getData());
+	public MediaPayload (final Tweet ownerTweet, final Meta meta) {
+		this(ownerTweet, meta.getData());
 	}
 
-	public MediaPayload (final String url) {
-		super(PayloadType.MEDIA);
+	public MediaPayload (final Tweet ownerTweet, final String url) {
+		super(ownerTweet, PayloadType.MEDIA);
 		this.url = url;
 	}
 
@@ -39,7 +41,7 @@ public class MediaPayload extends Payload {
 	}
 
 	@Override
-	public Intent toIntent () {
+	public Intent toIntent (final Context context) {
 		Intent i = new Intent(Intent.ACTION_VIEW);
 		i.setData(Uri.parse(this.url));
 		return i;

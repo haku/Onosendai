@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
@@ -61,24 +62,24 @@ public class ConfigTest {
 	public void itReadsColumns () throws Exception {
 		Config conf = new Config();
 
-		Map<Integer, Column> cs = conf.getColumns();
+		List<Column> cs = conf.getColumns();
 		assertEquals(3, cs.size());
 
-		Column c0 = cs.get(Integer.valueOf(0));
+		Column c0 = cs.get(0);
 		assertEquals(0, c0.id);
 		assertEquals("main", c0.title);
 		assertEquals("t0", c0.accountId);
 		assertEquals("timeline", c0.resource);
 		assertEquals("15min", c0.refresh);
 
-		Column c1 = cs.get(Integer.valueOf(1));
+		Column c1 = cs.get(1);
 		assertEquals(1, c1.id);
 		assertEquals("my list", c1.title);
 		assertEquals("t0", c1.accountId);
 		assertEquals("lists/mylist", c1.resource);
 		assertEquals("15min", c1.refresh);
 
-		Column c2 = cs.get(Integer.valueOf(2));
+		Column c2 = cs.get(2);
 		assertEquals(2, c2.id);
 		assertEquals("reading list", c2.title);
 		assertEquals(null, c2.accountId);

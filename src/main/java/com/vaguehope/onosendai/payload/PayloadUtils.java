@@ -29,23 +29,23 @@ public final class PayloadUtils {
 		throw new AssertionError();
 	}
 
-	public static PayloadList extractPayload (final Tweet tweet) {
+	public static PayloadList extractPayload (final int columnId, final Tweet tweet) {
 		Set<Payload> set = new LinkedHashSet<Payload>();
-		convertMeta(tweet, set);
+		convertMeta(columnId, tweet, set);
 		extractUrls(tweet, set);
 		extractHashTags(tweet, set);
-		extractMentions(tweet, set);
+		extractMentions(columnId, tweet, set);
 		List<Payload> sorted = new ArrayList<Payload>(set);
 		Collections.sort(sorted, Payload.TYPE_TITLE_COMP);
 		return new PayloadList(sorted);
 	}
 
-	private static void convertMeta (final Tweet tweet, final Set<Payload> ret) {
+	private static void convertMeta (final int columnId, final Tweet tweet, final Set<Payload> ret) {
 		try {
 			List<Meta> metas = tweet.parseMeta();
 			if (metas == null) return;
 			for (Meta meta : metas) {
-				Payload payload = metaToPayload(meta);
+				Payload payload = metaToPayload(columnId, tweet, meta);
 				if (payload != null) {
 					ret.add(payload);
 				}
@@ -59,14 +59,14 @@ public final class PayloadUtils {
 		}
 	}
 
-	private static Payload metaToPayload (final Meta meta) {
+	private static Payload metaToPayload (final int columnId, final Tweet tweet, final Meta meta) {
 		switch (meta.getType()) {
 			case MEDIA:
-				return new MediaPayload(meta);
+				return new MediaPayload(tweet, meta);
 			case HASHTAG:
-				return new HashTagPayload(meta);
+				return new HashTagPayload(tweet, meta);
 			case MENTION:
-				return new MentionPayload(meta);
+				return new MentionPayload(columnId, tweet, meta);
 			default:
 				return null;
 		}
@@ -79,7 +79,7 @@ public final class PayloadUtils {
 		while (m.find()) {
 			String g = m.group();
 			if (g.startsWith("(") && g.endsWith(")")) g = g.substring(1, g.length() - 1);
-			ret.add(new LinkPayload(g));
+			ret.add(new LinkPayload(tweet, g));
 		}
 	}
 
@@ -89,18 +89,18 @@ public final class PayloadUtils {
 		Matcher m = HASHTAG_PATTERN.matcher(text);
 		while (m.find()) {
 			String g = m.group();
-			set.add(new HashTagPayload(g));
+			set.add(new HashTagPayload(tweet, g));
 		}
 	}
 
-	private static void extractMentions (final Tweet tweet, final Set<Payload> set) {
-		set.add(new MentionPayload('@' + tweet.getUsername()));
+	private static void extractMentions (final int columnId, final Tweet tweet, final Set<Payload> set) {
+		set.add(new MentionPayload(columnId, tweet, '@' + tweet.getUsername()));
 		String text = tweet.getBody();
 		if (text == null || text.isEmpty()) return;
 		Matcher m = MENTIONS_PATTERN.matcher(text);
 		while (m.find()) {
 			String g = m.group();
-			set.add(new MentionPayload(g));
+			set.add(new MentionPayload(columnId, tweet, g));
 		}
 	}
 

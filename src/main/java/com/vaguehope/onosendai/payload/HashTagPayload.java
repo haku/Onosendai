@@ -1,9 +1,11 @@
 package com.vaguehope.onosendai.payload;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
 import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.EqualHelper;
 
 public class HashTagPayload extends Payload {
@@ -12,12 +14,12 @@ public class HashTagPayload extends Payload {
 
 	private final String hashtag;
 
-	public HashTagPayload (final Meta meta) {
-		this('#' + meta.getData());
+	public HashTagPayload (final Tweet ownerTweet, final Meta meta) {
+		this(ownerTweet, '#' + meta.getData());
 	}
 
-	public HashTagPayload (final String hashtag) {
-		super(PayloadType.HASHTAG);
+	public HashTagPayload (final Tweet ownerTweet, final String hashtag) {
+		super(ownerTweet, PayloadType.HASHTAG);
 		this.hashtag = hashtag;
 	}
 
@@ -36,7 +38,7 @@ public class HashTagPayload extends Payload {
 	}
 
 	@Override
-	public Intent toIntent () {
+	public Intent toIntent (final Context context) {
 		Intent i = new Intent(Intent.ACTION_VIEW);
 		i.setData(Uri.parse(String.format(HASHTAG_URL_TEMPLATE, Uri.encode(this.hashtag))));
 		return i;

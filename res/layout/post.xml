@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/rlPost"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
 	android:orientation="vertical">
@@ -10,6 +11,14 @@
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:layout_alignParentTop="true" />
+
+	<include
+		android:id="@+id/tweetReplyToDetails"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_below="@+id/spnAccount"
+		layout="@layout/tweetdetail"
+		android:visibility="gone" />
 
 	<LinearLayout
 		android:id="@+id/actions"
@@ -41,12 +50,14 @@
 		android:id="@+id/txtBody"
 		android:layout_width="fill_parent"
 		android:layout_height="0dip"
-		android:layout_below="@id/spnAccount"
+		android:layout_below="@id/tweetReplyToDetails"
 		android:layout_above="@id/actions"
 		android:textSize="16sp"
 		android:padding="10dip"
 		android:inputType="textMultiLine"
 		android:gravity="top"
-		android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi volutpat, purus non semper semper, ante quam tempor nulla, vel aliquet." />
+		android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi volutpat, purus non semper semper, ante quam tempor nulla, vel aliquet.">
+		<requestFocus />
+	</EditText>
 
 </RelativeLayout>

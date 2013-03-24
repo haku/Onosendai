@@ -91,7 +91,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 		@Override
 		public CharSequence getPageTitle (final int position) {
-			return this.conf.getColumn(position).title;
+			return this.conf.getColumnByPosition(position).title;
 		}
 
 		@Override

@@ -15,8 +15,8 @@ public class HashTagPayloadTest {
 
 	@Test
 	public void itCreateUrlCorrectly () throws Exception {
-		HashTagPayload tag = new HashTagPayload("#123abc");
-		Intent intent = tag.toIntent();
+		HashTagPayload tag = new HashTagPayload(null, "#123abc");
+		Intent intent = tag.toIntent(null);
 		assertEquals(Uri.parse("https://twitter.com/search?q=%23123abc"), intent.getData());
 	}
 

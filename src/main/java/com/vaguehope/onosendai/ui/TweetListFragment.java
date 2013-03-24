@@ -261,7 +261,7 @@ public class TweetListFragment extends Fragment {
 
 	protected void showPost() {
 		final Intent intent = new Intent(getActivity(), PostActivity.class);
-		intent.putExtra(ARG_COLUMN_ID, this.columnId);
+		intent.putExtra(PostActivity.ARG_COLUMN_ID, this.columnId);
 		startActivity(intent);
 	}
 
@@ -318,7 +318,7 @@ public class TweetListFragment extends Fragment {
 		if (tweet.getAvatarUrl() != null) this.imageLoader.loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), this.imgTweetAvatar));
 		this.txtTweetName.setText(tweet.getUsername());
 		this.txtTweetDate.setText(this.dateFormat.format(new Date(tweet.getTime() * 1000L)));
-		this.lstTweetPayloadAdaptor.setInputData(PayloadUtils.extractPayload(tweet));
+		this.lstTweetPayloadAdaptor.setInputData(PayloadUtils.extractPayload(this.columnId, tweet));
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
 	}

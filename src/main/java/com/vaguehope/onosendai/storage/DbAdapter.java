@@ -214,6 +214,11 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public Tweet getTweetDetails (final int columnId, final Tweet tweet) {
+		return getTweetDetails(columnId, tweet.getId());
+	}
+
+	@Override
+	public Tweet getTweetDetails (final int columnId, final long tweetId) {
 		if (!checkDbOpen()) return null;
 		Tweet ret = null;
 		Cursor c = null;
@@ -221,7 +226,7 @@ public class DbAdapter implements DbInterface {
 			c = this.mDb.query(true, TBL_TW,
 					new String[] { TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_META },
 					TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?",
-					new String[] { String.valueOf(columnId), String.valueOf(tweet.getId()) },
+					new String[] { String.valueOf(columnId), String.valueOf(tweetId) },
 					null, null, null, null);
 
 			if (c != null && c.moveToFirst()) {

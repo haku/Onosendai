@@ -146,7 +146,7 @@ public class UpdateService extends IntentService {
 	private void fetchColumns (final Config conf, final ProviderMgr providerMgr) {
 		final long startTime = System.nanoTime();
 
-		Collection<Column> columns = remoteNonFetchable(conf.getColumns().values());
+		Collection<Column> columns = remoteNonFetchable(conf.getColumns());
 		if (columns.size() >= C.MIN_COLUMS_TO_USE_THREADPOOL) {
 			fetchColumnsMultiThread(conf, providerMgr, columns);
 		}

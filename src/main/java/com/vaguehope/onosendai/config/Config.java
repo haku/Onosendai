@@ -2,8 +2,10 @@ package com.vaguehope.onosendai.config;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -19,7 +21,7 @@ import com.vaguehope.onosendai.util.FileHelper;
 public class Config {
 
 	private final Map<String, Account> accounts;
-	private final Map<Integer, Column> feeds;
+	private final List<Column> feeds;
 
 	public Config () throws IOException, JSONException {
 		File f = new File(Environment.getExternalStorageDirectory().getPath(), C.CONFIG_FILE_NAME);
@@ -46,16 +48,23 @@ public class Config {
 		return this.accounts.get(accountId);
 	}
 
-	public Map<Integer, Column> getColumns () {
+	public List<Column> getColumns () {
 		return this.feeds;
 	}
 
-	public Column getColumn (final int id) {
-		return this.feeds.get(Integer.valueOf(id));
+	public Column getColumnByPosition (final int position) {
+		return this.feeds.get(position);
+	}
+
+	public Column getColumnById (final int columnId) {
+		for (Column col : this.feeds) {
+			if (columnId == col.id) return col;
+		}
+		return null;
 	}
 
 	public Column findInternalColumn (final InternalColumnType res) {
-		for (Column col : getColumns().values()) {
+		for (Column col : getColumns()) {
 			if (res.matchesColumn(col)) return col;
 		}
 		return null;
@@ -105,8 +114,8 @@ public class Config {
 	/**
 	 * // TODO allow multiple feeds per column.
 	 */
-	private static Map<Integer, Column> parseFeeds (final JSONArray columnsJson) throws JSONException {
-		Map<Integer, Column> ret = new HashMap<Integer, Column>();
+	private static List<Column> parseFeeds (final JSONArray columnsJson) throws JSONException {
+		List<Column> ret = new ArrayList<Column>();
 		for (int i = 0; i < columnsJson.length(); i++) {
 			JSONObject colJson = columnsJson.getJSONObject(i);
 			int index = colJson.getInt("id");
@@ -114,9 +123,9 @@ public class Config {
 			String account = colJson.has("account") ? colJson.getString("account") : null;
 			String resource = colJson.getString("resource");
 			String refresh = colJson.has("refresh") ? colJson.getString("refresh") : null;
-			ret.put(Integer.valueOf(i), new Column(index, title, account, resource, refresh));
+			ret.add(new Column(index, title, account, resource, refresh));
 		}
-		return Collections.unmodifiableMap(ret);
+		return Collections.unmodifiableList(ret);
 	}
 
 }
