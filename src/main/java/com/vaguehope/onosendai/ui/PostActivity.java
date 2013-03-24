@@ -207,8 +207,8 @@ public class PostActivity extends Activity implements ImageLoader {
 				rowView = (RowView) view.getTag();
 			}
 
-			Account item = this.accounts.get(position);
-			rowView.getMain().setText(item.id);
+			Account account = this.accounts.get(position);
+			rowView.getMain().setText(String.format("%s (%s)", account.provider.toHumanString(), account.id));
 
 			return view;
 		}
