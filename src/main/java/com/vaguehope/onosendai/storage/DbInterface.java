@@ -12,6 +12,7 @@ public interface DbInterface {
 	void deleteTweet(Column column, Tweet tweet);
 	List<Tweet> getTweets(int columnId, int numberOf);
 	Tweet getTweetDetails(int columnId, Tweet tweet);
+	Tweet getTweetDetails(int columnId, long tweetId);
 
 	// FIXME action should be told what changed.
 	void addTwUpdateListener (Runnable action);

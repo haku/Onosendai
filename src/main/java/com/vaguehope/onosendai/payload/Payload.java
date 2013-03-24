@@ -2,19 +2,27 @@ package com.vaguehope.onosendai.payload;
 
 import java.util.Comparator;
 
+import android.content.Context;
 import android.content.Intent;
 import android.view.View;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.payload.PayloadListAdapter.RowView;
 
 public abstract class Payload {
 
+	private final Tweet ownerTweet;
 	private final PayloadType type;
 
-	public Payload (final PayloadType type) {
+	public Payload (final Tweet ownerTweet, final PayloadType type) {
+		this.ownerTweet = ownerTweet;
 		this.type = type;
+	}
+
+	public Tweet getOwnerTweet () {
+		return this.ownerTweet;
 	}
 
 	public PayloadType getType () {
@@ -23,11 +31,18 @@ public abstract class Payload {
 
 	public abstract String getTitle ();
 
+	/**
+	 * This method may be overridden.
+	 */
 	public boolean intentable () {
 		return false;
 	}
 
-	public Intent toIntent () {
+	/**
+	 * This method may be overridden.
+	 * @param context
+	 */
+	public Intent toIntent (final Context context) {
 		throw new UnsupportedOperationException("This payload type '" + this.type + "' can not be expressed as an intent.");
 	}
 

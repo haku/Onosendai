@@ -15,7 +15,7 @@ public class PayloadListClickListener implements OnItemClickListener {
 		final ListView lv = (ListView) parent;
 		final Payload payload = (Payload) lv.getAdapter().getItem(position);
 		if (payload.intentable()) {
-			parent.getContext().startActivity(payload.toIntent());
+			parent.getContext().startActivity(payload.toIntent(parent.getContext()));
 		}
 		else {
 			Toast.makeText(parent.getContext(), "Do not know how to show: " + payload.getTitle(), Toast.LENGTH_LONG).show();
