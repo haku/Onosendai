@@ -34,7 +34,7 @@
 			android:layout_height="50dip"
 			android:layout_weight="1"
 			style="?android:attr/buttonBarButtonStyle"
-			android:text="Cancel" />
+			android:text="@string/btn_post_cancel" />
 
 		<Button
 			android:id="@+id/btnPost"
@@ -42,7 +42,7 @@
 			android:layout_height="50dip"
 			android:layout_weight="1"
 			style="?android:attr/buttonBarButtonStyle"
-			android:text="Post" />
+			android:text="@string/btn_post_post" />
 
 	</LinearLayout>
 
