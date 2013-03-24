@@ -65,7 +65,7 @@
 
 			<Button
 				android:id="@+id/tweetListTitle"
-				android:text="@string/menu_jump_top"
+				android:text="@string/btn_jump_top"
 				android:layout_width="0dip"
 				android:layout_height="40dip"
 				android:textSize="16sp"
@@ -74,8 +74,8 @@
 				style="?android:attr/buttonBarButtonStyle" />
 
 			<Button
-				android:id="@+id/tweetListRefresh"
-				android:text="@string/menu_refresh_now"
+				android:id="@+id/tweetListMenu"
+				android:text="@string/btn_menu"
 				android:layout_width="wrap_content"
 				android:layout_height="40dip"
 				android:textSize="16sp"

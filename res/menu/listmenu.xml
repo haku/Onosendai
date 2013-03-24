@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<group android:id="@+id/group_popupmenu">
+
+		<item
+			android:id="@+id/mnuPost"
+			android:title="@string/menu_post" />
+
+		<item
+			android:id="@+id/mnuRefreshNow"
+			android:title="@string/menu_refresh_all" />
+
+	</group>
+</menu>
