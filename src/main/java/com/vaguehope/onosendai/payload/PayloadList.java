@@ -23,4 +23,11 @@ public class PayloadList {
 		return this.payloads;
 	}
 
+	@Override
+	public String toString () {
+		return new StringBuilder("PayloadList{")
+				.append(this.payloads)
+				.append("}").toString();
+	}
+
 }
