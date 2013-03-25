@@ -187,8 +187,10 @@ public class PostActivity extends Activity implements ImageLoader {
 					s.append(" @").append(mention);
 				}
 			}
-			s.append(" ").append(this.txtBody.getText());
-			this.txtBody.setText(s.toString());
+			if (s.length() > 0) {
+				s.append(" ");
+				this.txtBody.setText(s.toString());
+			}
 		}
 
 	}
