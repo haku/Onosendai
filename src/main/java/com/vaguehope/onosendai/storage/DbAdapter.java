@@ -11,6 +11,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -19,7 +21,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 5;
+	private static final int DB_VERSION = 6;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,20 +46,21 @@ public class DbAdapter implements DbInterface {
 		@Override
 		public void onCreate (final SQLiteDatabase db) {
 			db.execSQL(TBL_TW_CREATE);
+			db.execSQL(TBL_TW_CREATE_INDEX);
+			db.execSQL(TBL_TM_CREATE);
+			db.execSQL(TBL_TM_CREATE_INDEX);
 			db.execSQL(TBL_SC_CREATE);
 		}
 
 		@Override
 		public void onUpgrade (final SQLiteDatabase db, final int oldVersion, final int newVersion) {
 			this.log.w("Upgrading database from version %d to %d, which will destroy all old data.", oldVersion, newVersion);
-			if (oldVersion < 4) {
-				db.execSQL("DROP TABLE IF EXISTS " + TBL_TW);
-				db.execSQL("DROP TABLE IF EXISTS " + TBL_SC);
-				onCreate(db);
-			}
-			else {
-				if (oldVersion < 5) db.execSQL("ALTER TABLE " + TBL_TW + " ADD COLUMN " + TBL_TW_AVATAR + " text;");
-			}
+			db.execSQL("DROP INDEX IF EXISTS " + TBL_TM_INDEX);
+			db.execSQL("DROP TABLE IF EXISTS " + TBL_TM);
+			db.execSQL("DROP INDEX IF EXISTS " + TBL_TW_INDEX);
+			db.execSQL("DROP TABLE IF EXISTS " + TBL_TW);
+			db.execSQL("DROP TABLE IF EXISTS " + TBL_SC);
+			onCreate(db);
 		}
 
 	}
@@ -103,7 +106,6 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_TW_NAME = "name";
 	private static final String TBL_TW_BODY = "body";
 	private static final String TBL_TW_AVATAR = "avatar";
-	private static final String TBL_TW_META = "meta";
 
 	private static final String TBL_TW_CREATE = "create table " + TBL_TW + " ("
 			+ TBL_TW_ID + " integer primary key autoincrement,"
@@ -113,18 +115,36 @@ public class DbAdapter implements DbInterface {
 			+ TBL_TW_NAME + " text,"
 			+ TBL_TW_BODY + " text,"
 			+ TBL_TW_AVATAR + " text,"
-			+ TBL_TW_META + " text,"
-			+ "UNIQUE(" + TBL_TW_COLID + ", " + TBL_TW_SID + ") ON CONFLICT REPLACE" +
-			");";
+			+ "UNIQUE(" + TBL_TW_COLID + ", " + TBL_TW_SID + ") ON CONFLICT REPLACE"
+			+ ");";
 
-	// TODO add table index by time?
+	private static final String TBL_TW_INDEX = TBL_TW + "_idx";
+	private static final String TBL_TW_CREATE_INDEX = "CREATE INDEX " + TBL_TW_INDEX + " ON " + TBL_TW + "(" + TBL_TW_SID + "," + TBL_TW_TIME + ");";
+
+	private static final String TBL_TM = "tm";
+	private static final String TBL_TM_ID = "_id";
+	private static final String TBL_TM_TWSID = "twsid";
+	private static final String TBL_TM_TYPE = "type";
+	private static final String TBL_TM_DATA = "data";
+
+	private static final String TBL_TM_CREATE = "create table " + TBL_TM + " ("
+			+ TBL_TM_ID + " integer primary key autoincrement,"
+			+ TBL_TM_TWSID + " integer,"
+			+ TBL_TM_TYPE + " integer,"
+			+ TBL_TM_DATA + " text,"
+			+ "FOREIGN KEY (" + TBL_TM_TWSID + ") REFERENCES " + TBL_TW + " (" + TBL_TW_SID + ") ON DELETE CASCADE,"
+			+ "UNIQUE(" + TBL_TM_TWSID + ", " + TBL_TM_TYPE + "," + TBL_TM_DATA + ") ON CONFLICT IGNORE"
+			+ ");";
+
+	private static final String TBL_TM_INDEX = TBL_TM + "_idx";
+	private static final String TBL_TM_CREATE_INDEX = "CREATE INDEX " + TBL_TM_INDEX + " ON " + TBL_TM + "(" + TBL_TM_TWSID + ");";
 
 	@Override
 	public void storeTweets (final Column column, final List<Tweet> tweets) {
 		// Clear old data.
 		this.mDb.beginTransaction();
 		try {
-			int n = this.mDb.delete(TBL_TW,
+			final int n = this.mDb.delete(TBL_TW,
 					TBL_TW_COLID + "=? AND " + TBL_TW_ID + " NOT IN (SELECT " + TBL_TW_ID + " FROM " + TBL_TW +
 							" WHERE " + TBL_TW_COLID + "=?" +
 							" ORDER BY " + TBL_TW_TIME +
@@ -140,16 +160,27 @@ public class DbAdapter implements DbInterface {
 
 		this.mDb.beginTransaction();
 		try {
-			for (Tweet tweet : tweets) {
-				ContentValues values = new ContentValues();
+			final ContentValues values = new ContentValues();
+			for (final Tweet tweet : tweets) {
+				values.clear();
 				values.put(TBL_TW_COLID, column.id);
 				values.put(TBL_TW_SID, tweet.getId());
 				values.put(TBL_TW_TIME, tweet.getTime());
 				values.put(TBL_TW_NAME, tweet.getUsername());
 				values.put(TBL_TW_BODY, tweet.getBody());
 				values.put(TBL_TW_AVATAR, tweet.getAvatarUrl());
-				values.put(TBL_TW_META, tweet.getMeta());
 				this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+
+				final List<Meta> metas = tweet.getMetas();
+				if (metas != null) {
+					for (final Meta meta : metas) {
+						values.clear();
+						values.put(TBL_TM_TWSID, tweet.getId());
+						values.put(TBL_TM_TYPE, meta.getType().getId());
+						values.put(TBL_TM_DATA, meta.getData());
+						this.mDb.insertWithOnConflict(TBL_TM, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+					}
+				}
 			}
 			this.mDb.setTransactionSuccessful();
 		}
@@ -188,19 +219,19 @@ public class DbAdapter implements DbInterface {
 					TBL_TW_TIME + " desc", String.valueOf(numberOf));
 
 			if (c != null && c.moveToFirst()) {
-				int colSid = c.getColumnIndex(TBL_TW_SID);
-				int colName = c.getColumnIndex(TBL_TW_NAME);
-				int colBody = c.getColumnIndex(TBL_TW_BODY);
-				int colTime = c.getColumnIndex(TBL_TW_TIME);
-				int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
+				final int colSid = c.getColumnIndex(TBL_TW_SID);
+				final int colName = c.getColumnIndex(TBL_TW_NAME);
+				final int colBody = c.getColumnIndex(TBL_TW_BODY);
+				final int colTime = c.getColumnIndex(TBL_TW_TIME);
+				final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
 
 				ret = new ArrayList<Tweet>();
 				do {
-					long sid = c.getLong(colSid);
-					String name = c.getString(colName);
-					String body = c.getString(colBody);
-					long time = c.getLong(colTime);
-					String avatar = c.getString(colAvatar);
+					final long sid = c.getLong(colSid);
+					final String name = c.getString(colName);
+					final String body = c.getString(colBody);
+					final long time = c.getLong(colTime);
+					final String avatar = c.getString(colAvatar);
 					ret.add(new Tweet(sid, name, body, time, avatar));
 				}
 				while (c.moveToNext());
@@ -222,28 +253,53 @@ public class DbAdapter implements DbInterface {
 		if (!checkDbOpen()) return null;
 		Tweet ret = null;
 		Cursor c = null;
+		Cursor d = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_META },
+					new String[] { TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
 					TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?",
 					new String[] { String.valueOf(columnId), String.valueOf(tweetId) },
 					null, null, null, null);
 
 			if (c != null && c.moveToFirst()) {
-				int colSid = c.getColumnIndex(TBL_TW_SID);
-				int colName = c.getColumnIndex(TBL_TW_NAME);
-				int colBody = c.getColumnIndex(TBL_TW_BODY);
-				int colTime = c.getColumnIndex(TBL_TW_TIME);
-				int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
-				int colMeta = c.getColumnIndex(TBL_TW_META);
+				final int colSid = c.getColumnIndex(TBL_TW_SID);
+				final int colName = c.getColumnIndex(TBL_TW_NAME);
+				final int colBody = c.getColumnIndex(TBL_TW_BODY);
+				final int colTime = c.getColumnIndex(TBL_TW_TIME);
+				final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
 
-				long sid = c.getLong(colSid);
-				String name = c.getString(colName);
-				String body = c.getString(colBody);
-				long time = c.getLong(colTime);
-				String meta = c.getString(colMeta);
-				String avatar = c.getString(colAvatar);
-				ret = new Tweet(sid, name, body, time, avatar, meta);
+				final long sid = c.getLong(colSid);
+				final String name = c.getString(colName);
+				final String body = c.getString(colBody);
+				final long time = c.getLong(colTime);
+				final String avatar = c.getString(colAvatar);
+
+				List<Meta> metas = null;
+				try {
+					d = this.mDb.query(true, TBL_TM,
+							new String[] { TBL_TM_TYPE, TBL_TM_DATA },
+							TBL_TM_TWSID + "=?",
+							new String[] { String.valueOf(sid) },
+							null, null, null, null);
+
+					if (d != null && d.moveToFirst()) {
+						final int colType = d.getColumnIndex(TBL_TM_TYPE);
+						final int colData = d.getColumnIndex(TBL_TM_DATA);
+
+						metas = new ArrayList<Meta>();
+						do {
+							final int typeId = d.getInt(colType);
+							final String data = d.getString(colData);
+							metas.add(new Meta(MetaType.parseId(typeId), data));
+						}
+						while (d.moveToNext());
+					}
+				}
+				finally {
+					if (d != null) d.close();
+				}
+
+				ret = new Tweet(sid, name, body, time, avatar, metas);
 			}
 		}
 		finally {
@@ -253,7 +309,7 @@ public class DbAdapter implements DbInterface {
 	}
 
 	private void notifyTwListeners () {
-		for (Runnable r : this.twUpdateActions) {
+		for (final Runnable r : this.twUpdateActions) {
 			r.run();
 		}
 	}
@@ -291,7 +347,7 @@ public class DbAdapter implements DbInterface {
 
 		this.mDb.beginTransaction();
 		try {
-			ContentValues values = new ContentValues();
+			final ContentValues values = new ContentValues();
 			values.put(TBL_SC_COLID, columnId);
 			values.put(TBL_SC_ITEMID, state.itemId);
 			values.put(TBL_SC_TOP, state.top);
@@ -316,11 +372,11 @@ public class DbAdapter implements DbInterface {
 					null, null, null, null);
 
 			if (c != null && c.moveToFirst()) {
-				int colItemId = c.getColumnIndex(TBL_SC_ITEMID);
-				int colTop = c.getColumnIndex(TBL_SC_TOP);
+				final int colItemId = c.getColumnIndex(TBL_SC_ITEMID);
+				final int colTop = c.getColumnIndex(TBL_SC_TOP);
 
-				long itemId = c.getLong(colItemId);
-				int top = c.getInt(colTop);
+				final long itemId = c.getLong(colItemId);
+				final int top = c.getInt(colTop);
 				ret = new ScrollState(itemId, top);
 			}
 		}

@@ -8,8 +8,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.json.JSONException;
-
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -41,21 +39,16 @@ public final class PayloadUtils {
 	}
 
 	private static void convertMeta (final int columnId, final Tweet tweet, final Set<Payload> ret) {
-		try {
-			List<Meta> metas = tweet.parseMeta();
-			if (metas == null) return;
-			for (Meta meta : metas) {
-				Payload payload = metaToPayload(columnId, tweet, meta);
-				if (payload != null) {
-					ret.add(payload);
-				}
-				else {
-					LOG.e("Unknown meta type: %s", meta.getType());
-				}
+		List<Meta> metas = tweet.getMetas();
+		if (metas == null) return;
+		for (Meta meta : metas) {
+			Payload payload = metaToPayload(columnId, tweet, meta);
+			if (payload != null) {
+				ret.add(payload);
 			}
-		}
-		catch (JSONException e) {
-			LOG.e("Failed to parse tweet meta: %s", e.toString());
+			else {
+				LOG.e("Unknown meta type: %s", meta.getType());
+			}
 		}
 	}
 

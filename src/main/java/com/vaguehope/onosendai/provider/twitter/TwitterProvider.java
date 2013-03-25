@@ -22,7 +22,7 @@ import twitter4j.conf.ConfigurationBuilder;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
-import com.vaguehope.onosendai.model.MetaBuilder;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
@@ -105,7 +105,7 @@ public class TwitterProvider {
 		URLEntity[] urls = mergeArrays(s.getURLEntities(), s.getMediaEntities());
 		String text = expandUrls(s.getText(), urls);
 
-		MetaBuilder metaBuilder = new MetaBuilder();
+		List<Meta> metaBuilder = new ArrayList<Meta>();
 		addMedia(s, metaBuilder);
 		addHashtags(s, metaBuilder);
 		addMentions(s, metaBuilder);
@@ -149,27 +149,27 @@ public class TwitterProvider {
 		return expandedText;
 	}
 
-	private static void addMedia (final Status s, final MetaBuilder metaBuilder) {
+	private static void addMedia (final Status s, final List<Meta> metas) {
 		MediaEntity[] mes = s.getMediaEntities();
 		if (mes == null || mes.length < 1) return;
 		for (int i = 0; i < mes.length; i++) {
-			metaBuilder.add(MetaType.MEDIA, mes[i].getMediaURLHttps());
+			 metas.add(new Meta(MetaType.MEDIA, mes[i].getMediaURLHttps()));
 		}
 	}
 
-	private static void addHashtags (final Status s, final MetaBuilder metaBuilder) {
+	private static void addHashtags (final Status s, final List<Meta> metas) {
 		HashtagEntity[] tags = s.getHashtagEntities();
 		if (tags == null || tags.length < 1) return;
 		for (int i = 0; i < tags.length; i++) {
-			metaBuilder.add(MetaType.HASHTAG, tags[i].getText());
+			 metas.add(new Meta(MetaType.HASHTAG, tags[i].getText()));
 		}
 	}
 
-	private static void addMentions (final Status s, final MetaBuilder metaBuilder) {
+	private static void addMentions (final Status s, final List<Meta> metas) {
 		UserMentionEntity[] ums = s.getUserMentionEntities();
 		if (ums == null || ums.length < 1) return;
 		for (int i = 0; i < ums.length; i++) {
-			metaBuilder.add(MetaType.MENTION, ums[i].getScreenName());
+			 metas.add(new Meta(MetaType.MENTION, ums[i].getScreenName()));
 		}
 	}
 

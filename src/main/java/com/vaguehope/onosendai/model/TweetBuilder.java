@@ -7,6 +7,7 @@ public class TweetBuilder {
 	private String body;
 	private long unitTimeSeconds;
 	private String avatarUrl;
+	// TODO include metas?
 
 	public TweetBuilder () {
 		reset();
