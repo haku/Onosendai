@@ -8,6 +8,7 @@ import android.content.Intent;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.ui.PostActivity;
+import com.vaguehope.onosendai.util.ArrayHelper;
 import com.vaguehope.onosendai.util.EqualHelper;
 
 /**
@@ -26,10 +27,7 @@ public class MentionPayload extends Payload {
 	}
 
 	public MentionPayload (final int columnId, final Tweet ownerTweet, final String screenName) {
-		super(ownerTweet, PayloadType.MENTION);
-		this.columnId = columnId;
-		this.screenName = screenName;
-		this.alsoMentions = null;
+		this(columnId, ownerTweet, screenName, (String[]) null);
 	}
 
 	public MentionPayload (final int columnId, final Tweet ownerTweet, final String screenName, final String... alsoMentions) {
@@ -62,8 +60,16 @@ public class MentionPayload extends Payload {
 	public Intent toIntent (final Context context) {
 		final Intent intent = new Intent(context, PostActivity.class);
 		intent.putExtra(PostActivity.ARG_COLUMN_ID, this.columnId);
-		intent.putExtra(PostActivity.ARG_IN_REPLY_TO, getOwnerTweet().getId());
-		if (this.alsoMentions != null) intent.putExtra(PostActivity.ARG_ALSO_MENTIONS, this.alsoMentions);
+
+		if (this.screenName.equalsIgnoreCase(getOwnerTweet().getUsername())) {
+			intent.putExtra(PostActivity.ARG_IN_REPLY_TO, getOwnerTweet().getId());
+			if (this.alsoMentions != null) intent.putExtra(PostActivity.ARG_ALSO_MENTIONS, this.alsoMentions);
+		}
+		else {
+			final String[] mentions = ArrayHelper.joinArrays(String.class, new String[] { this.screenName }, this.alsoMentions);
+			intent.putExtra(PostActivity.ARG_ALSO_MENTIONS, mentions);
+		}
+
 		return intent;
 	}
 

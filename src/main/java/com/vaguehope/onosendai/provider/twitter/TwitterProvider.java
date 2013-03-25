@@ -13,6 +13,7 @@ import twitter4j.MediaEntity;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
+import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -40,28 +41,38 @@ public class TwitterProvider {
 
 	public void addAccount (final Account account) {
 		if (this.accounts.containsKey(account.id)) return;
-		TwitterFactory tf = makeTwitterFactory(account);
-		Twitter t = tf.getInstance();
-		this.accounts.putIfAbsent(account.id, t);
+		final TwitterFactory tf = makeTwitterFactory(account);
+		final Twitter t = tf.getInstance();
+		if (this.accounts.putIfAbsent(account.id, t) != null) {
+			t.shutdown();
+		}
 	}
 
 	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId) throws TwitterException {
-		Twitter t = this.accounts.get(account.id);
+		final Twitter t = this.accounts.get(account.id);
 		if (t == null) throw new IllegalStateException("Account not configured: '" + account.id + "'.");
 		return fetchTwitterFeed(t, feed, sinceId);
 	}
 
+	public void post (final Account account, final String body, final long inReplyTo) throws TwitterException {
+		final Twitter t = this.accounts.get(account.id);
+		if (t == null) throw new IllegalStateException("Account not configured: '" + account.id + "'.");
+		final StatusUpdate s = new StatusUpdate(body);
+		if (inReplyTo > 0) s.setInReplyToStatusId(inReplyTo);
+		t.updateStatus(s);
+	}
+
 	public void shutdown () {
-		Iterator<Twitter> itr = this.accounts.values().iterator();
+		final Iterator<Twitter> itr = this.accounts.values().iterator();
 		while (itr.hasNext()) {
-			Twitter t = itr.next();
+			final Twitter t = itr.next();
 			t.shutdown();
 			itr.remove();
 		}
 	}
 
 	private static TwitterFactory makeTwitterFactory (final Account account) {
-		ConfigurationBuilder cb = new ConfigurationBuilder()
+		final ConfigurationBuilder cb = new ConfigurationBuilder()
 				.setOAuthConsumerKey(account.consumerKey)
 				.setOAuthConsumerSecret(account.consumerSecret)
 				.setOAuthAccessToken(account.accessToken)
@@ -75,16 +86,16 @@ public class TwitterProvider {
 	 */
 
 	private static TweetList fetchTwitterFeed (final Twitter t, final TwitterFeed feed, final long sinceId) throws TwitterException {
-		List<Tweet> tweets = new ArrayList<Tweet>();
-		int minCount = feed.recommendedFetchCount();
-		int pageSize = Math.min(minCount, C.TWEET_FETCH_PAGE_SIZE);
+		final List<Tweet> tweets = new ArrayList<Tweet>();
+		final int minCount = feed.recommendedFetchCount();
+		final int pageSize = Math.min(minCount, C.TWEET_FETCH_PAGE_SIZE);
 		int page = 1; // First page is 1.
 		long minId = -1;
 		while (tweets.size() < minCount) {
-			Paging paging = new Paging(page, pageSize);
+			final Paging paging = new Paging(page, pageSize);
 			if (sinceId > 0) paging.setSinceId(sinceId);
 			if (minId > 0) paging.setMaxId(minId);
-			ResponseList<Status> timelinePage = feed.getTweets(t, paging);
+			final ResponseList<Status> timelinePage = feed.getTweets(t, paging);
 			LOG.i("Page %d of '%s' contains %d items.", page, feed.toString(), timelinePage.size());
 			if (timelinePage.size() < 1) break;
 			addTweetsToList(tweets, timelinePage);
@@ -96,16 +107,16 @@ public class TwitterProvider {
 	}
 
 	private static void addTweetsToList (final List<Tweet> list, final ResponseList<Status> tweets) {
-		for (Status status : tweets) {
+		for (final Status status : tweets) {
 			list.add(convertTweet(status));
 		}
 	}
 
 	private static Tweet convertTweet (final Status s) {
-		URLEntity[] urls = mergeArrays(s.getURLEntities(), s.getMediaEntities());
-		String text = expandUrls(s.getText(), urls);
+		final URLEntity[] urls = mergeArrays(s.getURLEntities(), s.getMediaEntities());
+		final String text = expandUrls(s.getText(), urls);
 
-		List<Meta> metaBuilder = new ArrayList<Meta>();
+		final List<Meta> metaBuilder = new ArrayList<Meta>();
 		addMedia(s, metaBuilder);
 		addHashtags(s, metaBuilder);
 		addMentions(s, metaBuilder);
@@ -120,12 +131,12 @@ public class TwitterProvider {
 
 	private static URLEntity[] mergeArrays (final URLEntity[]... urlss) {
 		int count = 0;
-		for (URLEntity[] urls : urlss) {
+		for (final URLEntity[] urls : urlss) {
 			count += urls.length;
 		}
-		URLEntity[] ret = new URLEntity[count];
+		final URLEntity[] ret = new URLEntity[count];
 		int x = 0;
-		for (URLEntity[] urls : urlss) {
+		for (final URLEntity[] urls : urlss) {
 			System.arraycopy(urls, 0, ret, x, urls.length);
 			x += urls.length;
 		}
@@ -144,13 +155,13 @@ public class TwitterProvider {
 					.append(url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL());
 		}
 		bld.append(text.substring(urls[urls.length - 1].getEnd()));
-		String expandedText = bld.toString();
+		final String expandedText = bld.toString();
 		LOG.d("Expanded '%s' --> '%s'.", text, expandedText);
 		return expandedText;
 	}
 
 	private static void addMedia (final Status s, final List<Meta> metas) {
-		MediaEntity[] mes = s.getMediaEntities();
+		final MediaEntity[] mes = s.getMediaEntities();
 		if (mes == null || mes.length < 1) return;
 		for (int i = 0; i < mes.length; i++) {
 			 metas.add(new Meta(MetaType.MEDIA, mes[i].getMediaURLHttps()));
@@ -158,7 +169,7 @@ public class TwitterProvider {
 	}
 
 	private static void addHashtags (final Status s, final List<Meta> metas) {
-		HashtagEntity[] tags = s.getHashtagEntities();
+		final HashtagEntity[] tags = s.getHashtagEntities();
 		if (tags == null || tags.length < 1) return;
 		for (int i = 0; i < tags.length; i++) {
 			 metas.add(new Meta(MetaType.HASHTAG, tags[i].getText()));
@@ -166,7 +177,7 @@ public class TwitterProvider {
 	}
 
 	private static void addMentions (final Status s, final List<Meta> metas) {
-		UserMentionEntity[] ums = s.getUserMentionEntities();
+		final UserMentionEntity[] ums = s.getUserMentionEntities();
 		if (ums == null || ums.length < 1) return;
 		for (int i = 0; i < ums.length; i++) {
 			 metas.add(new Meta(MetaType.MENTION, ums[i].getScreenName()));
@@ -175,7 +186,7 @@ public class TwitterProvider {
 
 	private static long minIdOf (final long statingMin, final ResponseList<Status> tweets) {
 		long min = statingMin;
-		for (Status status : tweets) {
+		for (final Status status : tweets) {
 			min = Math.min(min, status.getId());
 		}
 		return min;
