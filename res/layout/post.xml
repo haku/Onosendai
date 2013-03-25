@@ -35,8 +35,7 @@
 			android:padding="10dip"
 			android:inputType="textMultiLine"
 			android:gravity="top"
-			android:minLines="5"
-			android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi volutpat, purus non semper semper, ante quam tempor nulla, vel aliquet.">
+			android:minLines="5">
 			<requestFocus />
 		</EditText>
 
@@ -60,9 +59,8 @@
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_gravity="center"
-				android:padding="10dip"
-				/>
-			
+				android:padding="10dip" />
+
 			<Button
 				android:id="@+id/btnPost"
 				android:layout_width="match_parent"
