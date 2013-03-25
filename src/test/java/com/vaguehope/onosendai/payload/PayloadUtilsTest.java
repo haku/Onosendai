@@ -115,7 +115,7 @@ public class PayloadUtilsTest {
 		for (int i = 0; i < expectedUrls.length; i++) {
 			Payload payload = payloadList.getPayload(i);
 			assertEquals(PayloadType.LINK, payload.getType());
-			assertEquals(expectedUrls[i], ((LinkPayload) payload).getUrl());
+			assertEquals(expectedUrls[i], ((LinkPayload) payload).getTitle());
 		}
 	}
 
@@ -127,7 +127,7 @@ public class PayloadUtilsTest {
 		for (int i = 0; i < expectedTags.length; i++) {
 			Payload payload = payloadList.getPayload(i);
 			assertEquals(PayloadType.HASHTAG, payload.getType());
-			assertEquals(expectedTags[i], ((HashTagPayload) payload).getHashtag());
+			assertEquals(expectedTags[i], ((HashTagPayload) payload).getTitle());
 		}
 	}
 

@@ -21,10 +21,6 @@ public class LinkPayload extends Payload {
 		this.url = url;
 	}
 
-	public String getUrl () {
-		return this.url;
-	}
-
 	@Override
 	public String getTitle () {
 		return this.url;
