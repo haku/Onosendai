@@ -136,14 +136,22 @@ public class PayloadUtilsTest {
 		PayloadList payloadList = PayloadUtils.extractPayload(0, tweet);
 		payloadList = removeNotOfType(PayloadType.MENTION, payloadList);
 
-		List<String> expected = new ArrayList<String>(Arrays.asList(expectedMentions));
+		StringBuilder replyAllMention = new StringBuilder();
+		replyAllMention.append("@user");
+		for (String m : expectedMentions) {
+			replyAllMention.append(", ").append(m);
+		}
+
+		List<String> expected = new ArrayList<String>();
 		expected.add("@user");
+		expected.addAll(Arrays.asList(expectedMentions));
+		expected.add(replyAllMention.toString());
 
 		assertEquals(expected.size(), payloadList.size());
 		for (int i = 0; i < expected.size(); i++) {
 			Payload payload = payloadList.getPayload(i);
 			assertEquals(PayloadType.MENTION, payload.getType());
-			assertEquals(expected.get(i), ((MentionPayload) payload).getScreenName());
+			assertEquals(expected.get(i), ((MentionPayload) payload).getTitle());
 		}
 	}
 

@@ -54,13 +54,21 @@ public abstract class Payload {
 		return new RowView((TextView) view.findViewById(R.id.txtMain));
 	}
 
-	public static final Comparator<Payload> TYPE_TITLE_COMP = new Comparator<Payload>() {
+	@Override
+	public String toString () {
+		return new StringBuilder("Payload{")
+				.append(getType())
+				.append(",").append(getTitle())
+				.append("}").toString();
+	}
+
+	public static final Comparator<Payload> TYPE_COMP = new Comparator<Payload>() {
 		@Override
 		public int compare (final Payload lhs, final Payload rhs) {
 			int lo = lhs.getType().ordinal();
 			int ro = rhs.getType().ordinal();
 			if (lo != ro) return lo - ro;
-			return lhs.getTitle().compareTo(rhs.getTitle());
+			return 0;
 		}
 	};
 

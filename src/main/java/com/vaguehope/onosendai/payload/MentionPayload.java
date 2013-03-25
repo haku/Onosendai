@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.payload;
 
+import java.util.Arrays;
+
 import android.content.Context;
 import android.content.Intent;
 
@@ -8,28 +10,47 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.ui.PostActivity;
 import com.vaguehope.onosendai.util.EqualHelper;
 
+/**
+ * Note that usernames in here never contain the '@'.
+ */
 public class MentionPayload extends Payload {
 
 	private final int columnId;
 	private final String screenName;
+	private final String[] alsoMentions;
+
+	private String titleCache;
 
 	public MentionPayload (final int columnId, final Tweet ownerTweet, final Meta meta) {
-		this(columnId, ownerTweet, '@' + meta.getData());
+		this(columnId, ownerTweet, meta.getData());
 	}
 
 	public MentionPayload (final int columnId, final Tweet ownerTweet, final String screenName) {
 		super(ownerTweet, PayloadType.MENTION);
 		this.columnId = columnId;
 		this.screenName = screenName;
+		this.alsoMentions = null;
 	}
 
-	public String getScreenName () {
-		return this.screenName;
+	public MentionPayload (final int columnId, final Tweet ownerTweet, final String screenName, final String... alsoMentions) {
+		super(ownerTweet, PayloadType.MENTION);
+		this.columnId = columnId;
+		this.screenName = screenName;
+		this.alsoMentions = alsoMentions;
 	}
 
 	@Override
 	public String getTitle () {
-		return this.screenName;
+		if (this.titleCache == null) {
+			StringBuilder sb = new StringBuilder("@").append(this.screenName);
+			if (this.alsoMentions != null) {
+				for (String mention : this.alsoMentions) {
+					sb.append(", @").append(mention);
+				}
+			}
+			this.titleCache = sb.toString();
+		}
+		return this.titleCache;
 	}
 
 	@Override
@@ -42,12 +63,17 @@ public class MentionPayload extends Payload {
 		final Intent intent = new Intent(context, PostActivity.class);
 		intent.putExtra(PostActivity.ARG_COLUMN_ID, this.columnId);
 		intent.putExtra(PostActivity.ARG_IN_REPLY_TO, getOwnerTweet().getId());
+		if (this.alsoMentions != null) intent.putExtra(PostActivity.ARG_ALSO_MENTIONS, this.alsoMentions);
 		return intent;
 	}
 
 	@Override
 	public int hashCode () {
-		return this.screenName.hashCode();
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((this.screenName == null) ? 0 : this.screenName.hashCode());
+		result = prime * result + ((this.alsoMentions == null) ? 0 : this.alsoMentions.hashCode());
+		return result;
 	}
 
 	@Override
@@ -56,7 +82,8 @@ public class MentionPayload extends Payload {
 		if (o == this) return true;
 		if (!(o instanceof MentionPayload)) return false;
 		MentionPayload that = (MentionPayload) o;
-		return EqualHelper.equal(this.screenName, that.screenName);
+		return EqualHelper.equal(this.screenName, that.screenName)
+				&& Arrays.equals(this.alsoMentions, that.alsoMentions);
 	}
 
 }
