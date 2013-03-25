@@ -39,11 +39,13 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	public static final String ARG_COLUMN_ID = "column_id";
 	public static final String ARG_IN_REPLY_TO = "in_reply_to";
+	public static final String ARG_ALSO_MENTIONS = "also_mentions";
 
 	protected static final LogWrapper LOG = new LogWrapper("PA");
 
-	private long inReplyTo;
 	private int columnId;
+	private long inReplyTo;
+	private String[] alsoMentions;
 
 	private DbClient bndDb;
 	private HybridBitmapCache imageCache;
@@ -69,6 +71,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		final Bundle extras = getIntent().getExtras();
 		this.columnId = extras.getInt(ARG_COLUMN_ID, -1);
 		this.inReplyTo = extras.getLong(ARG_IN_REPLY_TO, -1);
+		this.alsoMentions = extras.getStringArray(ARG_ALSO_MENTIONS);
 		LOG.i("columnId=%d inReplyTo=%d", this.columnId, this.inReplyTo);
 
 		this.imageCache = new HybridBitmapCache(this, C.MAX_MEMORY_IMAGE_CACHE);
@@ -157,8 +160,20 @@ public class PostActivity extends Activity implements ImageLoader {
 		if (tweet.getAvatarUrl() != null) loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), (ImageView) view.findViewById(R.id.tweetDetailAvatar)));
 		((TextView) view.findViewById(R.id.tweetDetailName)).setText(tweet.getUsername());
 		((TextView) view.findViewById(R.id.tweetDetailDate)).setText(DateFormat.getDateTimeInstance().format(new Date(tweet.getTime() * 1000L)));
-		this.txtBody.setText("@" + tweet.getUsername() + " " + this.txtBody.getText());
+		initBody(tweet);
 		this.txtBody.setSelection(this.txtBody.getText().length());
+	}
+
+	private void initBody (final Tweet tweet) {
+		StringBuilder s = new StringBuilder();
+		s.append("@").append(tweet.getUsername());
+		if (this.alsoMentions != null) {
+			for (String mention : this.alsoMentions) {
+				s.append(" @").append(mention);
+			}
+		}
+		s.append(" ").append(this.txtBody.getText());
+		this.txtBody.setText(s.toString());
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

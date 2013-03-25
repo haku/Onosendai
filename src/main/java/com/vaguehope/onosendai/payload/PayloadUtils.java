@@ -31,12 +31,12 @@ public final class PayloadUtils {
 
 	public static PayloadList extractPayload (final int columnId, final Tweet tweet) {
 		Set<Payload> set = new LinkedHashSet<Payload>();
-		convertMeta(columnId, tweet, set);
 		extractUrls(tweet, set);
 		extractHashTags(tweet, set);
 		extractMentions(columnId, tweet, set);
+		convertMeta(columnId, tweet, set);
 		List<Payload> sorted = new ArrayList<Payload>(set);
-		Collections.sort(sorted, Payload.TYPE_TITLE_COMP);
+		Collections.sort(sorted, Payload.TYPE_COMP);
 		return new PayloadList(sorted);
 	}
 
@@ -94,14 +94,18 @@ public final class PayloadUtils {
 	}
 
 	private static void extractMentions (final int columnId, final Tweet tweet, final Set<Payload> set) {
-		set.add(new MentionPayload(columnId, tweet, '@' + tweet.getUsername()));
+		set.add(new MentionPayload(columnId, tweet, tweet.getUsername()));
+		List<String> allMentions = null;
 		String text = tweet.getBody();
 		if (text == null || text.isEmpty()) return;
 		Matcher m = MENTIONS_PATTERN.matcher(text);
 		while (m.find()) {
-			String g = m.group();
+			String g = m.group(1);
 			set.add(new MentionPayload(columnId, tweet, g));
+			if (allMentions == null) allMentions = new ArrayList<String>();
+			allMentions.add(g);
 		}
+		if (allMentions != null) set.add(new MentionPayload(columnId, tweet, tweet.getUsername(), allMentions.toArray(new String[allMentions.size()])));
 	}
 
 }
