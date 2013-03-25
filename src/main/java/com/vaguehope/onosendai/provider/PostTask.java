@@ -71,7 +71,7 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 			PendingIntent contentIntent = PendingIntent.getActivity(this.context, 0, this.req.getRecoveryIntent(), 0);
 			Notification n = new NotificationCompat.Builder(this.context)
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
-					.setContentTitle(String.format("Failed to post to %s.", this.req.getAccount().toHumanString()))
+					.setContentTitle(String.format("Tap to retry post to %s.", this.req.getAccount().toHumanString()))
 					.setContentText(res.getE().toString())
 					.setContentIntent(contentIntent)
 					.setAutoCancel(true)
