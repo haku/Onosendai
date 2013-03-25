@@ -7,6 +7,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -31,6 +32,8 @@ import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.provider.PostTask;
+import com.vaguehope.onosendai.provider.PostTask.PostRequest;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -40,9 +43,11 @@ public class PostActivity extends Activity implements ImageLoader {
 	public static final String ARG_COLUMN_ID = "column_id";
 	public static final String ARG_IN_REPLY_TO = "in_reply_to";
 	public static final String ARG_ALSO_MENTIONS = "also_mentions";
+	public static final String ARG_BODY = "body"; // If present mentions will not be prepended to body.
 
 	protected static final LogWrapper LOG = new LogWrapper("PA");
 
+	private Bundle intentExtras;
 	private int columnId;
 	private long inReplyTo;
 	private String[] alsoMentions;
@@ -50,6 +55,8 @@ public class PostActivity extends Activity implements ImageLoader {
 	private DbClient bndDb;
 	private HybridBitmapCache imageCache;
 
+	private Spinner spnAccount;
+	private AccountAdaptor accountAdaptor;
 	private EditText txtBody;
 	private TextView txtCharRemaining;
 
@@ -68,20 +75,20 @@ public class PostActivity extends Activity implements ImageLoader {
 			return;
 		}
 
-		final Bundle extras = getIntent().getExtras();
-		this.columnId = extras.getInt(ARG_COLUMN_ID, -1);
-		this.inReplyTo = extras.getLong(ARG_IN_REPLY_TO, -1);
-		this.alsoMentions = extras.getStringArray(ARG_ALSO_MENTIONS);
+		this.intentExtras = getIntent().getExtras();
+		this.columnId = this.intentExtras.getInt(ARG_COLUMN_ID, -1);
+		this.inReplyTo = this.intentExtras.getLong(ARG_IN_REPLY_TO, -1);
+		this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
 		LOG.i("columnId=%d inReplyTo=%d", this.columnId, this.inReplyTo);
 
-		this.imageCache = new HybridBitmapCache(this, C.MAX_MEMORY_IMAGE_CACHE);
+		this.imageCache = new HybridBitmapCache(getBaseContext(), C.MAX_MEMORY_IMAGE_CACHE);
 
-		final Spinner spnAccount = (Spinner) findViewById(R.id.spnAccount);
-		final AccountAdaptor accountAdaptor = new AccountAdaptor(this, conf);
-		spnAccount.setAdapter(accountAdaptor);
+		this.spnAccount = (Spinner) findViewById(R.id.spnAccount);
+		this.accountAdaptor = new AccountAdaptor(getBaseContext(), conf);
+		this.spnAccount.setAdapter(this.accountAdaptor);
 		final Column column = conf.getColumnById(this.columnId);
 		final Account account = conf.getAccount(column.accountId);
-		spnAccount.setSelection(accountAdaptor.getAccountPosition(account));
+		this.spnAccount.setSelection(this.accountAdaptor.getAccountPosition(account));
 
 		this.txtBody = (EditText) findViewById(R.id.txtBody);
 		this.txtCharRemaining = (TextView) findViewById(R.id.txtCharRemaining);
@@ -97,7 +104,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		((Button) findViewById(R.id.btnPost)).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick (final View v) {
-				Toast.makeText(PostActivity.this, "TODO: post", Toast.LENGTH_LONG).show();
+				submitPost();
 			}
 		});
 	}
@@ -151,29 +158,49 @@ public class PostActivity extends Activity implements ImageLoader {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	protected void showInReplyToTweetDetails () {
-		if (this.inReplyTo < 0) return;
-		final View view = findViewById(R.id.tweetReplyToDetails);
-		view.setVisibility(View.VISIBLE);
-		final Tweet tweet = getDb().getTweetDetails(this.columnId, this.inReplyTo);
-		if (tweet == null) return;
-		((TextView) view.findViewById(R.id.tweetDetailBody)).setText(tweet.getBody());
-		if (tweet.getAvatarUrl() != null) loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), (ImageView) view.findViewById(R.id.tweetDetailAvatar)));
-		((TextView) view.findViewById(R.id.tweetDetailName)).setText(tweet.getUsername());
-		((TextView) view.findViewById(R.id.tweetDetailDate)).setText(DateFormat.getDateTimeInstance().format(new Date(tweet.getTime() * 1000L)));
+		Tweet tweet = null;
+		if (this.inReplyTo > 0) {
+			final View view = findViewById(R.id.tweetReplyToDetails);
+			view.setVisibility(View.VISIBLE);
+			tweet = getDb().getTweetDetails(this.columnId, this.inReplyTo);
+			if (tweet != null) {
+				((TextView) view.findViewById(R.id.tweetDetailBody)).setText(tweet.getBody());
+				if (tweet.getAvatarUrl() != null) loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), (ImageView) view.findViewById(R.id.tweetDetailAvatar)));
+				((TextView) view.findViewById(R.id.tweetDetailName)).setText(tweet.getUsername());
+				((TextView) view.findViewById(R.id.tweetDetailDate)).setText(DateFormat.getDateTimeInstance().format(new Date(tweet.getTime() * 1000L)));
+			}
+		}
 		initBody(tweet);
 		this.txtBody.setSelection(this.txtBody.getText().length());
 	}
 
 	private void initBody (final Tweet tweet) {
-		StringBuilder s = new StringBuilder();
-		s.append("@").append(tweet.getUsername());
-		if (this.alsoMentions != null) {
-			for (String mention : this.alsoMentions) {
-				s.append(" @").append(mention);
-			}
+		final String intialBody = this.intentExtras.getString(ARG_BODY);
+		if (intialBody != null) {
+			this.txtBody.setText(intialBody);
 		}
-		s.append(" ").append(this.txtBody.getText());
-		this.txtBody.setText(s.toString());
+		else {
+			StringBuilder s = new StringBuilder();
+			if (tweet != null) s.append("@").append(tweet.getUsername());
+			if (this.alsoMentions != null) {
+				for (String mention : this.alsoMentions) {
+					s.append(" @").append(mention);
+				}
+			}
+			s.append(" ").append(this.txtBody.getText());
+			this.txtBody.setText(s.toString());
+		}
+
+	}
+
+	protected void submitPost () {
+		final Account account = this.accountAdaptor.getAccount(this.spnAccount.getSelectedItemPosition());
+		final String body = this.txtBody.getText().toString();
+		final Intent recoveryIntent = new Intent(getBaseContext(), PostActivity.class)
+				.putExtras(this.intentExtras)
+				.putExtra(ARG_BODY, body);
+		new PostTask(getBaseContext(), new PostRequest(account, body, this.inReplyTo, recoveryIntent)).execute();
+		finish();
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -190,6 +217,10 @@ public class PostActivity extends Activity implements ImageLoader {
 
 		public int getAccountPosition (final Account account) {
 			return this.accounts.indexOf(account);
+		}
+
+		public Account getAccount (final int position) {
+			return this.accounts.get(position);
 		}
 
 		@Override
