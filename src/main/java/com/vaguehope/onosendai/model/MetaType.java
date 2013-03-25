@@ -2,25 +2,31 @@ package com.vaguehope.onosendai.model;
 
 public enum MetaType {
 
-	MEDIA("M"),
-	HASHTAG("H"),
-	MENTION("N");
+	MEDIA(1),
+	HASHTAG(2),
+	MENTION(3);
 
-	private final String key;
+	private final int id;
 
-	private MetaType (final String key) {
-		this.key = key;
+	private MetaType (final int id) {
+		this.id = id;
 	}
 
-	public String getKey () {
-		return this.key;
+	public int getId () {
+		return this.id;
 	}
 
-	public static MetaType parseKey (final String key) {
-		for (MetaType m : values()) { // TODO if this list gets long this may be slow?
-			if (m.getKey().equals(key)) return m;
+	public static MetaType parseId (final int id) {
+		switch (id) {
+			case 1:
+				return MEDIA;
+			case 2:
+				return HASHTAG;
+			case 3:
+				return MENTION;
+			default:
+				return null;
 		}
-		return null;
 	}
 
 }
