@@ -23,10 +23,6 @@ public class HashTagPayload extends Payload {
 		this.hashtag = hashtag;
 	}
 
-	public String getHashtag () {
-		return this.hashtag;
-	}
-
 	@Override
 	public String getTitle () {
 		return this.hashtag;
