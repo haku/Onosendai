@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
 import android.content.Context;
@@ -161,7 +162,7 @@ public class PostActivity extends Activity implements ImageLoader {
 				((TextView) view.findViewById(R.id.tweetDetailBody)).setText(tweet.getBody());
 				if (tweet.getAvatarUrl() != null) loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), (ImageView) view.findViewById(R.id.tweetDetailAvatar)));
 				((TextView) view.findViewById(R.id.tweetDetailName)).setText(tweet.getUsername());
-				((TextView) view.findViewById(R.id.tweetDetailDate)).setText(DateFormat.getDateTimeInstance().format(new Date(tweet.getTime() * 1000L)));
+				((TextView) view.findViewById(R.id.tweetDetailDate)).setText(DateFormat.getDateTimeInstance().format(new Date(TimeUnit.SECONDS.toMillis(tweet.getTime()))));
 			}
 		}
 		initBody(tweet);

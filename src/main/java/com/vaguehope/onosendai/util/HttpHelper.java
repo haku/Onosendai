@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.client.HttpResponseException;
 
@@ -44,8 +45,8 @@ public final class HttpHelper {
 		URL url = new URL(sUrl);
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("GET");
-		connection.setConnectTimeout(HTTP_CONNECT_TIMEOUT_SECONDS * 1000);
-		connection.setReadTimeout(HTTP_READ_TIMEOUT_SECONDS * 1000);
+		connection.setConnectTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_CONNECT_TIMEOUT_SECONDS));
+		connection.setReadTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_READ_TIMEOUT_SECONDS));
 
 		InputStream is = null;
 		try {
