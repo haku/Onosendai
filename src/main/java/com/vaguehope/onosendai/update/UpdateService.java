@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.update;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,8 @@ import com.vaguehope.onosendai.util.LogWrapper;
 
 public class UpdateService extends IntentService {
 
+	public static final String ARG_COLUMN_ID = "column_id";
+
 	protected final LogWrapper log = new LogWrapper("US");
 	protected final CountDownLatch dbReadyLatch = new CountDownLatch(1);
 	private DbClient bndDb;
@@ -67,12 +70,13 @@ public class UpdateService extends IntentService {
 
 	@Override
 	protected void onHandleIntent (final Intent i) {
-		this.log.i("UpdateService invoked.");
-		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
+		final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
 		wl.acquire();
 		try {
-			doWork();
+			final int columnId = i.getExtras().getInt(ARG_COLUMN_ID, -1);
+			this.log.i("UpdateService invoked (column_id=%d).", columnId);
+			doWork(columnId);
 		}
 		finally {
 			wl.release();
@@ -97,7 +101,7 @@ public class UpdateService extends IntentService {
 		this.log.d("DB service rebound.");
 	}
 
-	private boolean waitForDbReady() {
+	private boolean waitForDbReady () {
 		boolean dbReady = false;
 		try {
 			dbReady = this.dbReadyLatch.await(3, TimeUnit.SECONDS);
@@ -111,16 +115,16 @@ public class UpdateService extends IntentService {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private void doWork () {
+	private void doWork (final int columnId) {
 		if (connectionPresent()) {
-			fetchColumns();
+			fetchColumns(columnId);
 		}
 		else {
 			this.log.i("No connection, all updating aborted.");
 		}
 	}
 
-	private void fetchColumns () {
+	private void fetchColumns (final int columnId) {
 		Config conf;
 		try {
 			conf = new Config();
@@ -136,17 +140,24 @@ public class UpdateService extends IntentService {
 
 		final ProviderMgr providerMgr = new ProviderMgr();
 		try {
-			fetchColumns(conf, providerMgr);
+			fetchColumns(conf, columnId, providerMgr);
 		}
 		finally {
 			providerMgr.shutdown();
 		}
 	}
 
-	private void fetchColumns (final Config conf, final ProviderMgr providerMgr) {
+	private void fetchColumns (final Config conf, final int columnId, final ProviderMgr providerMgr) {
 		final long startTime = System.nanoTime();
 
-		Collection<Column> columns = remoteNonFetchable(conf.getColumns());
+		Collection<Column> columns;
+		if (columnId >= 0) {
+			columns = Collections.singleton(conf.getColumnById(columnId));
+		}
+		else {
+			columns = remoteNonFetchable(conf.getColumns());
+		}
+
 		if (columns.size() >= C.MIN_COLUMS_TO_USE_THREADPOOL) {
 			fetchColumnsMultiThread(conf, providerMgr, columns);
 		}
