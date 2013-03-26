@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Alex Hutter
+ * Copyright 2013 Alex Hutter
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may
@@ -88,6 +88,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 //	        <id type="integer">113751352559691810</id>
 //	        <time type="datetime">2013-03-18T22:38:01+00:00</time>
 //	        <fromuser>username</fromuser>
+//	        <fromuseravatar>http://si0.twimg.com/profile_images/3078345345/a34345345634534e4372cb6ac6aff134_normal.jpeg</fromuseravatar>
 
 	@Override
 	public void startElement (final String uri, final String localName, final String qName, final Attributes attributes) throws SAXException {
@@ -104,19 +105,22 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			this.tweets.add(this.currentItem.build());
 		}
 		else if (this.stack.size() == 5) {
-			if (elementName.equals("id")) {
+			if ("id".equals(elementName)) {
 				long v = Long.parseLong(this.currentText.toString());
 				this.currentItem.id(v);
 			}
-			else if (elementName.equals("fromuser")) {
+			else if ("fromuser".equals(elementName)) {
 				this.currentItem.username(this.currentText.toString());
 			}
-			else if (elementName.equals("text")) {
+			else if ("text".equals(elementName)) {
 				this.currentItem.body(this.currentText.toString());
 			}
-			else if (elementName.equals("time")) {
+			else if ("time".equals(elementName)) {
 				long millis = this.dateFormat.parseMillis(this.currentText.toString());
 				this.currentItem.unitTimeSeconds(millis / 1000L);
+			}
+			else if ("fromuseravatar".equals(elementName)) {
+				this.currentItem.avatarUrl(this.currentText.toString());
 			}
 		}
 
