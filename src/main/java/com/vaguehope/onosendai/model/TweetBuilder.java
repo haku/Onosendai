@@ -2,7 +2,7 @@ package com.vaguehope.onosendai.model;
 
 public class TweetBuilder {
 
-	private long id;
+	private String id;
 	private String username;
 	private String body;
 	private long unitTimeSeconds;
@@ -14,14 +14,14 @@ public class TweetBuilder {
 	}
 
 	public final void reset () {
-		this.id = 0L;
+		this.id = null;
 		this.username = null;
 		this.body = null;
 		this.unitTimeSeconds = 0L;
 		this.avatarUrl = null;
 	}
 
-	public TweetBuilder id (final long v) {
+	public TweetBuilder id (final String v) {
 		this.id = v;
 		return this;
 	}

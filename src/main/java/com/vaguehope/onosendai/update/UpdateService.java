@@ -237,7 +237,7 @@ public class UpdateService extends IntentService {
 
 					long sinceId = -1;
 					List<Tweet> existingTweets = this.bndDb.getDb().getTweets(column.getId(), 1);
-					if (existingTweets.size() > 0) sinceId = existingTweets.get(existingTweets.size() - 1).getId();
+					if (existingTweets.size() > 0) sinceId = Long.parseLong(existingTweets.get(existingTweets.size() - 1).getSid());
 
 					TweetList tweets = twitterProvider.getTweets(feed, account, sinceId);
 					this.bndDb.getDb().storeTweets(column, tweets.getTweets());

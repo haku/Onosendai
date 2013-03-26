@@ -54,7 +54,7 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 		final TwitterProvider p = new TwitterProvider();
 		try {
 			p.addAccount(this.req.getAccount());
-			p.post(this.req.getAccount(), this.req.getBody(), this.req.getInReplyTo());
+			p.post(this.req.getAccount(), this.req.getBody(), Long.parseLong(this.req.getInReplyToSid()));
 			return new PostResult(this.req);
 		}
 		catch (TwitterException e) {
@@ -88,13 +88,13 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 
 		private final Account account;
 		private final String body;
-		private final long inReplyTo;
+		private final String inReplyToSid;
 		private final Intent recoveryIntent;
 
-		public PostRequest (final Account account, final String body, final long inReplyTo, final Intent recoveryIntent) {
+		public PostRequest (final Account account, final String body, final String inReplyToSid, final Intent recoveryIntent) {
 			this.account = account;
 			this.body = body;
-			this.inReplyTo = inReplyTo;
+			this.inReplyToSid = inReplyToSid;
 			this.recoveryIntent = recoveryIntent;
 		}
 
@@ -106,8 +106,8 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 			return this.body;
 		}
 
-		public long getInReplyTo () {
-			return this.inReplyTo;
+		public String getInReplyToSid () {
+			return this.inReplyToSid;
 		}
 
 		public Intent getRecoveryIntent () {

@@ -124,7 +124,7 @@ public class TwitterProvider {
 
 		// https://dev.twitter.com/docs/user-profile-images-and-banners
 
-		return new Tweet(s.getId(), s.getUser().getScreenName(), text,
+		return new Tweet(String.valueOf(s.getId()), s.getUser().getScreenName(), text,
 				TimeUnit.MILLISECONDS.toSeconds(s.getCreatedAt().getTime()),
 				s.getUser().getProfileImageURLHttps(),
 				metaBuilder);
