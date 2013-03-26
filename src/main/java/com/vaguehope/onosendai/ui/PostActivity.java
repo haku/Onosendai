@@ -122,11 +122,6 @@ public class PostActivity extends Activity implements ImageLoader {
 		resumeDb();
 	}
 
-	@Override
-	public void onPause () {
-		super.onPause();
-	}
-
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@Override
