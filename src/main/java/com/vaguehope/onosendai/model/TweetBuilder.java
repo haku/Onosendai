@@ -47,6 +47,11 @@ public class TweetBuilder {
 		return this;
 	}
 
+	public TweetBuilder bodyIfAbsent (final String v) {
+		if (this.body == null || this.body.isEmpty()) this.body = v;
+		return this;
+	}
+
 	public TweetBuilder unitTimeSeconds (final long v) {
 		this.unitTimeSeconds = v;
 		return this;

@@ -74,8 +74,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private final Stack<String> stack = new Stack<String>();
-	private final TweetBuilder currentItem = new TweetBuilder();
 	private StringBuilder currentText;
+	private final TweetBuilder currentItem = new TweetBuilder();
+	private String stashedLinktitle;
 
 	private final DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 
@@ -97,12 +98,18 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 		if (this.currentText == null || this.currentText.length() > 0) {
 			this.currentText = new StringBuilder();
 		}
+
+		final String elementName = !localName.isEmpty() ? localName : qName;
+		if (this.stack.size() == 4 && elementName.equals("content")) {
+			this.stashedLinktitle = null;
+		}
 	}
 
 	@Override
 	public void endElement (final String uri, final String localName, final String qName) throws SAXException {
 		final String elementName = !localName.isEmpty() ? localName : qName;
 		if (this.stack.size() == 4 && elementName.equals("content")) {
+			this.currentItem.bodyIfAbsent(this.stashedLinktitle);
 			this.tweets.add(this.currentItem.build());
 		}
 		else if (this.stack.size() == 5) {
@@ -127,6 +134,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			}
 			else if ("linkurl".equals(elementName)) {
 				this.currentItem.meta(MetaType.URL, this.currentText.toString());
+			}
+			else if ("linktitle".equals(elementName)) {
+				this.stashedLinktitle = this.currentText.toString();
 			}
 		}
 
