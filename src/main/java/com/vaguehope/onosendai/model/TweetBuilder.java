@@ -13,7 +13,7 @@ public class TweetBuilder {
 		reset();
 	}
 
-	public void reset () {
+	public final void reset () {
 		this.id = 0L;
 		this.username = null;
 		this.body = null;
