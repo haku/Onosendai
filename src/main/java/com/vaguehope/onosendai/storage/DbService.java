@@ -82,13 +82,13 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public void addTwUpdateListener (final Runnable action) {
-		this.dbAdaptor.addTwUpdateListener(action);
+	public void addTwUpdateListener (final TwUpdateListener listener) {
+		this.dbAdaptor.addTwUpdateListener(listener);
 	}
 
 	@Override
-	public void removeTwUpdateListener (final Runnable action) {
-		this.dbAdaptor.removeTwUpdateListener(action);
+	public void removeTwUpdateListener (final TwUpdateListener listener) {
+		this.dbAdaptor.removeTwUpdateListener(listener);
 	}
 
 	@Override

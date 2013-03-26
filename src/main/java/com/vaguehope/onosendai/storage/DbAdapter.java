@@ -31,7 +31,7 @@ public class DbAdapter implements DbInterface {
 	private DatabaseHelper mDbHelper;
 	private SQLiteDatabase mDb;
 
-	private final List<Runnable> twUpdateActions = new ArrayList<Runnable>();
+	private final List<TwUpdateListener> twUpdateListeners = new ArrayList<TwUpdateListener>();
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -191,7 +191,7 @@ public class DbAdapter implements DbInterface {
 			this.mDb.endTransaction();
 		}
 
-		notifyTwListeners(); // TODO include column id.
+		notifyTwListeners(column.getId());
 	}
 
 	@Override
@@ -200,13 +200,13 @@ public class DbAdapter implements DbInterface {
 		try {
 			this.mDb.delete(TBL_TW, TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?",
 					new String[] { String.valueOf(column.getId()), String.valueOf(tweet.getSid()) });
-			this.log.d("Deleted tweet %d from %s column %d.", tweet.getSid(), TBL_TW, column.getId());
+			this.log.d("Deleted tweet %s from %s column %d.", tweet.getSid(), TBL_TW, column.getId());
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
 			this.mDb.endTransaction();
 		}
-		notifyTwListeners(); // TODO include column id.
+		notifyTwListeners(column.getId());
 	}
 
 	@Override
@@ -319,20 +319,20 @@ public class DbAdapter implements DbInterface {
 		return ret;
 	}
 
-	private void notifyTwListeners () {
-		for (final Runnable r : this.twUpdateActions) {
-			r.run();
+	private void notifyTwListeners (final int columnId) {
+		for (final TwUpdateListener l : this.twUpdateListeners) {
+			l.columnChanged(columnId);
 		}
 	}
 
 	@Override
-	public void addTwUpdateListener (final Runnable action) {
-		this.twUpdateActions.add(action);
+	public void addTwUpdateListener (final TwUpdateListener listener) {
+		this.twUpdateListeners.add(listener);
 	}
 
 	@Override
-	public void removeTwUpdateListener (final Runnable action) {
-		this.twUpdateActions.remove(action);
+	public void removeTwUpdateListener (final TwUpdateListener listener) {
+		this.twUpdateListeners.remove(listener);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
