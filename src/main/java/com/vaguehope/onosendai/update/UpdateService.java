@@ -74,7 +74,7 @@ public class UpdateService extends IntentService {
 		final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
 		wl.acquire();
 		try {
-			final int columnId = i.getExtras().getInt(ARG_COLUMN_ID, -1);
+			final int columnId = i.getExtras() != null ? i.getExtras().getInt(ARG_COLUMN_ID, -1) : -1;
 			this.log.i("UpdateService invoked (column_id=%d).", columnId);
 			doWork(columnId);
 		}
