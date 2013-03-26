@@ -100,7 +100,7 @@ public final class PayloadUtils {
 			if (allMentions == null) allMentions = new ArrayList<String>();
 			allMentions.add(g);
 		}
-		if (allMentions != null) set.add(new MentionPayload(columnId, tweet, tweet.getUsername(), allMentions.toArray(new String[allMentions.size()])));
+		if (allMentions != null && tweet.getUsername() != null) set.add(new MentionPayload(columnId, tweet, tweet.getUsername(), allMentions.toArray(new String[allMentions.size()])));
 	}
 
 }
