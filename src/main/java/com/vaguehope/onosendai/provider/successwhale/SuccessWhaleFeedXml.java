@@ -106,8 +106,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 		}
 		else if (this.stack.size() == 5) {
 			if ("id".equals(elementName)) {
-				long v = Long.parseLong(this.currentText.toString());
-				this.currentItem.id(v);
+				this.currentItem.id(this.currentText.toString());
 			}
 			else if ("fromuser".equals(elementName)) {
 				this.currentItem.username(this.currentText.toString());

@@ -42,7 +42,7 @@ import com.vaguehope.onosendai.util.LogWrapper;
 public class PostActivity extends Activity implements ImageLoader {
 
 	public static final String ARG_COLUMN_ID = "column_id";
-	public static final String ARG_IN_REPLY_TO = "in_reply_to";
+	public static final String ARG_IN_REPLY_TO_SID = "in_reply_to_sid";
 	public static final String ARG_ALSO_MENTIONS = "also_mentions";
 	public static final String ARG_BODY = "body"; // If present mentions will not be prepended to body.
 
@@ -50,7 +50,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	private Bundle intentExtras;
 	private int columnId;
-	private long inReplyTo;
+	private String inReplyToSid;
 	private String[] alsoMentions;
 
 	private DbClient bndDb;
@@ -77,9 +77,9 @@ public class PostActivity extends Activity implements ImageLoader {
 
 		this.intentExtras = getIntent().getExtras();
 		this.columnId = this.intentExtras.getInt(ARG_COLUMN_ID, -1);
-		this.inReplyTo = this.intentExtras.getLong(ARG_IN_REPLY_TO, -1);
+		this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
 		this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
-		LOG.i("columnId=%d inReplyTo=%d", this.columnId, this.inReplyTo);
+		LOG.i("columnId=%d inReplyTo=%s", this.columnId, this.inReplyToSid);
 
 		this.imageCache = new HybridBitmapCache(getBaseContext(), C.MAX_MEMORY_IMAGE_CACHE);
 
@@ -154,10 +154,10 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	protected void showInReplyToTweetDetails () {
 		Tweet tweet = null;
-		if (this.inReplyTo > 0) {
+		if (this.inReplyToSid != null) {
 			final View view = findViewById(R.id.tweetReplyToDetails);
 			view.setVisibility(View.VISIBLE);
-			tweet = getDb().getTweetDetails(this.columnId, this.inReplyTo);
+			tweet = getDb().getTweetDetails(this.columnId, this.inReplyToSid);
 			if (tweet != null) {
 				((TextView) view.findViewById(R.id.tweetDetailBody)).setText(tweet.getBody());
 				if (tweet.getAvatarUrl() != null) loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), (ImageView) view.findViewById(R.id.tweetDetailAvatar)));
@@ -196,7 +196,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		final Intent recoveryIntent = new Intent(getBaseContext(), PostActivity.class)
 				.putExtras(this.intentExtras)
 				.putExtra(ARG_BODY, body);
-		new PostTask(getBaseContext(), new PostRequest(account, body, this.inReplyTo, recoveryIntent)).execute();
+		new PostTask(getBaseContext(), new PostRequest(account, body, this.inReplyToSid, recoveryIntent)).execute();
 		finish();
 	}
 

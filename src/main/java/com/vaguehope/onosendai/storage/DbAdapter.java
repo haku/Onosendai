@@ -21,7 +21,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 6;
+	private static final int DB_VERSION = 7;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -110,7 +110,7 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_TW_CREATE = "create table " + TBL_TW + " ("
 			+ TBL_TW_ID + " integer primary key autoincrement,"
 			+ TBL_TW_COLID + " integer,"
-			+ TBL_TW_SID + " integer,"
+			+ TBL_TW_SID + " text,"
 			+ TBL_TW_TIME + " integer,"
 			+ TBL_TW_NAME + " text,"
 			+ TBL_TW_BODY + " text,"
@@ -123,21 +123,21 @@ public class DbAdapter implements DbInterface {
 
 	private static final String TBL_TM = "tm";
 	private static final String TBL_TM_ID = "_id";
-	private static final String TBL_TM_TWSID = "twsid";
+	private static final String TBL_TM_TWID = "twid";
 	private static final String TBL_TM_TYPE = "type";
 	private static final String TBL_TM_DATA = "data";
 
 	private static final String TBL_TM_CREATE = "create table " + TBL_TM + " ("
 			+ TBL_TM_ID + " integer primary key autoincrement,"
-			+ TBL_TM_TWSID + " integer,"
+			+ TBL_TM_TWID + " integer,"
 			+ TBL_TM_TYPE + " integer,"
 			+ TBL_TM_DATA + " text,"
-			+ "FOREIGN KEY (" + TBL_TM_TWSID + ") REFERENCES " + TBL_TW + " (" + TBL_TW_SID + ") ON DELETE CASCADE,"
-			+ "UNIQUE(" + TBL_TM_TWSID + ", " + TBL_TM_TYPE + "," + TBL_TM_DATA + ") ON CONFLICT IGNORE"
+			+ "FOREIGN KEY (" + TBL_TM_TWID + ") REFERENCES " + TBL_TW + " (" + TBL_TW_ID + ") ON DELETE CASCADE,"
+			+ "UNIQUE(" + TBL_TM_TWID + ", " + TBL_TM_TYPE + "," + TBL_TM_DATA + ") ON CONFLICT IGNORE"
 			+ ");";
 
 	private static final String TBL_TM_INDEX = TBL_TM + "_idx";
-	private static final String TBL_TM_CREATE_INDEX = "CREATE INDEX " + TBL_TM_INDEX + " ON " + TBL_TM + "(" + TBL_TM_TWSID + ");";
+	private static final String TBL_TM_CREATE_INDEX = "CREATE INDEX " + TBL_TM_INDEX + " ON " + TBL_TM + "(" + TBL_TM_TWID + ");";
 
 	@Override
 	public void storeTweets (final Column column, final List<Tweet> tweets) {
@@ -164,18 +164,18 @@ public class DbAdapter implements DbInterface {
 			for (final Tweet tweet : tweets) {
 				values.clear();
 				values.put(TBL_TW_COLID, column.getId());
-				values.put(TBL_TW_SID, tweet.getId());
+				values.put(TBL_TW_SID, tweet.getSid());
 				values.put(TBL_TW_TIME, tweet.getTime());
 				values.put(TBL_TW_NAME, tweet.getUsername());
 				values.put(TBL_TW_BODY, tweet.getBody());
 				values.put(TBL_TW_AVATAR, tweet.getAvatarUrl());
-				this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+				final long uid = this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_IGNORE);
 
 				final List<Meta> metas = tweet.getMetas();
 				if (metas != null) {
 					for (final Meta meta : metas) {
 						values.clear();
-						values.put(TBL_TM_TWSID, tweet.getId());
+						values.put(TBL_TM_TWID, uid);
 						values.put(TBL_TM_TYPE, meta.getType().getId());
 						values.put(TBL_TM_DATA, meta.getData());
 						this.mDb.insertWithOnConflict(TBL_TM, null, values, SQLiteDatabase.CONFLICT_IGNORE);
@@ -196,8 +196,8 @@ public class DbAdapter implements DbInterface {
 		this.mDb.beginTransaction();
 		try {
 			this.mDb.delete(TBL_TW, TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?",
-					new String[] { String.valueOf(column.getId()), String.valueOf(tweet.getId()) });
-			this.log.d("Deleted tweet %d from %s column %d.", tweet.getId(), TBL_TW, column.getId());
+					new String[] { String.valueOf(column.getId()), String.valueOf(tweet.getSid()) });
+			this.log.d("Deleted tweet %d from %s column %d.", tweet.getSid(), TBL_TW, column.getId());
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
@@ -213,12 +213,13 @@ public class DbAdapter implements DbInterface {
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
+					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
 					TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) },
 					null, null,
 					TBL_TW_TIME + " desc", String.valueOf(numberOf));
 
 			if (c != null && c.moveToFirst()) {
+				final int colId = c.getColumnIndex(TBL_TW_ID);
 				final int colSid = c.getColumnIndex(TBL_TW_SID);
 				final int colName = c.getColumnIndex(TBL_TW_NAME);
 				final int colBody = c.getColumnIndex(TBL_TW_BODY);
@@ -227,12 +228,13 @@ public class DbAdapter implements DbInterface {
 
 				ret = new ArrayList<Tweet>();
 				do {
-					final long sid = c.getLong(colSid);
+					final long uid = c.getLong(colId);
+					final String sid = c.getString(colSid);
 					final String name = c.getString(colName);
 					final String body = c.getString(colBody);
 					final long time = c.getLong(colTime);
 					final String avatar = c.getString(colAvatar);
-					ret.add(new Tweet(sid, name, body, time, avatar));
+					ret.add(new Tweet(uid, sid, name, body, time, avatar, null));
 				}
 				while (c.moveToNext());
 			}
@@ -245,30 +247,32 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public Tweet getTweetDetails (final int columnId, final Tweet tweet) {
-		return getTweetDetails(columnId, tweet.getId());
+		return getTweetDetails(columnId, tweet.getSid());
 	}
 
 	@Override
-	public Tweet getTweetDetails (final int columnId, final long tweetId) {
+	public Tweet getTweetDetails (final int columnId, final String tweetSid) {
 		if (!checkDbOpen()) return null;
 		Tweet ret = null;
 		Cursor c = null;
 		Cursor d = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
+					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
 					TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?",
-					new String[] { String.valueOf(columnId), String.valueOf(tweetId) },
+					new String[] { String.valueOf(columnId), tweetSid },
 					null, null, null, null);
 
 			if (c != null && c.moveToFirst()) {
+				final int colId = c.getColumnIndex(TBL_TW_ID);
 				final int colSid = c.getColumnIndex(TBL_TW_SID);
 				final int colName = c.getColumnIndex(TBL_TW_NAME);
 				final int colBody = c.getColumnIndex(TBL_TW_BODY);
 				final int colTime = c.getColumnIndex(TBL_TW_TIME);
 				final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
 
-				final long sid = c.getLong(colSid);
+				final long uid = c.getLong(colId);
+				final String sid = c.getString(colSid);
 				final String name = c.getString(colName);
 				final String body = c.getString(colBody);
 				final long time = c.getLong(colTime);
@@ -278,8 +282,8 @@ public class DbAdapter implements DbInterface {
 				try {
 					d = this.mDb.query(true, TBL_TM,
 							new String[] { TBL_TM_TYPE, TBL_TM_DATA },
-							TBL_TM_TWSID + "=?",
-							new String[] { String.valueOf(sid) },
+							TBL_TM_TWID + "=?",
+							new String[] { String.valueOf(uid) },
 							null, null, null, null);
 
 					if (d != null && d.moveToFirst()) {
@@ -299,7 +303,7 @@ public class DbAdapter implements DbInterface {
 					if (d != null) d.close();
 				}
 
-				ret = new Tweet(sid, name, body, time, avatar, metas);
+				ret = new Tweet(uid, sid, name, body, time, avatar, metas);
 			}
 		}
 		finally {
