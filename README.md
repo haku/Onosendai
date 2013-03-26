@@ -16,7 +16,7 @@ Supported Services
 ------------------
 
 Currently only Twitter columns are supported.
-SuccessWhale intergration is in progress but currently incomplete.
+SuccessWhale integration is in progress but currently incomplete.
 
 Configuration
 -------------
@@ -26,6 +26,14 @@ of the external storage device, typically `/sdcard/deck.conf`.
 If this file does not exist it will created when the UI is launched.
 
 ### Example config
+
+**Note**: This is to show what possible.  It is not necessarily a good example of what you should put in your config.  Just saying.
+
+**Feed IDs**: These are used to separate data in the DB.
+The are arbitrary and do not have to be in order.
+If you remove a column it may be best not to reuse the ID as new content will be mixed on top of the old.
+
+**SuccessWhale feeds**: Refer to [SuccessWhale docs](https://github.com/ianrenton/successwhale-api/blob/master/docs/feed-get.md) for the format of the 'resource' field.
 
 ```JSON
 {
@@ -53,27 +61,39 @@ If this file does not exist it will created when the UI is launched.
       "resource": "timeline",
       "refresh": "15min"
     }, {
-      "id": 1,
+      "id": 2,
       "title": "About Me",
       "account": "t0",
       "resource": "mentions",
       "refresh": "15min"
     }, {
-      "id": 2,
+      "id": 1,
       "title": "My Tweets",
       "account": "t0",
       "resource": "me",
       "refresh": "15min"
     }, {
-      "id": 3,
+      "id": 4,
       "title": "My List",
       "account": "t0",
       "resource": "lists/mylist",
       "refresh": "15min"
     }, {
-      "id": 4,
-      "title": "reading list",
+      "id": 7,
+      "title": "Read Later",
       "resource": "later"
+    }, {
+      "id": 8,
+      "title": "Mentions and Me",
+      "account": "sw0",
+      "resource": "twitter/12345678/statuses/mentions:twitter/12345678/statuses/user_timeline",
+      "refresh": "15min"
+    }, {
+      "id": 9,
+      "title": "Facebook Home",
+      "account": "sw0",
+      "resource": "facebook/123456789/me/home",
+      "refresh": "15min"
     }
   ]
 }
@@ -81,11 +101,11 @@ If this file does not exist it will created when the UI is launched.
 
 ### Background refreshing
 
-Currently all lists will always background refresh on a 15 min time.
+Currently all lists will always background refresh on a 15 min time, regardless what the config says.
 
 License
 -------
-This source code is made avaiable under the Apache 2 licence.
+This source code is made available under the Apache 2 licence.
 This copy of the source code should also contain LICENCE and NOTICE files which contain the full licence terms copyright notices respectfully.
 The full licence can also be found here: http://www.apache.org/licenses/LICENSE-2.0
 
