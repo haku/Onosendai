@@ -89,7 +89,7 @@ public final class PayloadUtils {
 	}
 
 	private static void extractMentions (final int columnId, final Tweet tweet, final Set<Payload> set) {
-		set.add(new MentionPayload(columnId, tweet, tweet.getUsername()));
+		if (tweet.getUsername() != null) set.add(new MentionPayload(columnId, tweet, tweet.getUsername()));
 		List<String> allMentions = null;
 		String text = tweet.getBody();
 		if (text == null || text.isEmpty()) return;
