@@ -35,6 +35,7 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetBuilder;
 import com.vaguehope.onosendai.model.TweetList;
@@ -120,6 +121,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			}
 			else if ("fromuseravatar".equals(elementName)) {
 				this.currentItem.avatarUrl(this.currentText.toString());
+			}
+			else if ("linkurl".equals(elementName)) {
+				this.currentItem.meta(MetaType.URL, this.currentText.toString());
 			}
 		}
 

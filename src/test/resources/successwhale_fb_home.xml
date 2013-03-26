@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed>
+  <success type="boolean">true</success>
+  <request type="array">
+    <request>
+      <service>facebook</service>
+      <uid>532423349</uid>
+      <url>me/home</url>
+    </request>
+  </request>
+  <items type="array">
+    <item>
+      <service type="symbol">facebook</service>
+      <content>
+        <id>557897893_497789789789963</id>
+        <type>link</type>
+        <time type="datetime">2013-03-26T10:53:14+00:00</time>
+        <fromuserid>523423443</fromuserid>
+        <fromusername>Some User</fromusername>
+        <fromuseravatar>http://graph.facebook.com/523423443/picture</fromuseravatar>
+        <numcomments type="integer">0</numcomments>
+        <comments nil="true"/>
+        <numlikes type="integer">0</numlikes>
+        <text>Some User shared a link.</text>
+        <haslink type="boolean">true</haslink>
+        <linkurl>http://9gag.com/gag/6904527?ref=fb.s</linkurl>
+        <linktitle>If Disney did Game of Thrones</linktitle>
+      </content>
+    </item>
+    <item>
+      <service type="symbol">facebook</service>
+      <content>
+        <id>278978972_10789789781249126</id>
+        <type>link</type>
+        <time type="datetime">2013-03-26T10:36:38+00:00</time>
+        <fromuserid>632343425</fromuserid>
+        <fromusername>Another Person</fromusername>
+        <fromuseravatar>http://graph.facebook.com/632343425/picture</fromuseravatar>
+        <numcomments type="integer">2</numcomments>
+        <comments type="array">
+          <comment>
+            <id>278978972_10789789781249126_423425</id>
+            <from>
+              <name>Joe Blogs</name>
+              <id>523423285</id>
+            </from>
+            <message>The first comment on this post.</message>
+            <created-time>2013-03-26T11:06:15+0000</created-time>
+          </comment>
+          <comment>
+            <id>278978972_10789789781249126_413454</id>
+            <from>
+              <name>Another Person</name>
+              <id>632343425</id>
+            </from>
+            <message>An answer to the first comment.</message>
+            <created-time>2013-03-26T11:13:13+0000</created-time>
+          </comment>
+        </comments>
+        <numlikes type="integer">0</numlikes>
+        <text>The text of this post goes here.  Its really interesting.</text>
+        <haslink type="boolean">true</haslink>
+        <linkurl>http://exmaple.com/service/#cardid=10342,#hashid=ce83cd4637965c3e5d8ee056a3afdbaa,#cardcount=7</linkurl>
+        <linktitle>An Example of a Web Page</linktitle>
+      </content>
+    </item>
+    <item>
+      <service type="symbol">facebook</service>
+      <content>
+        <id>534234215_10923840922345316</id>
+        <type>link</type>
+        <time type="datetime">2013-03-26T04:01:08+00:00</time>
+        <fromuserid>542390285</fromuserid>
+        <fromusername>Jon Doe</fromusername>
+        <fromuseravatar>http://graph.facebook.com/542390285/picture</fromuseravatar>
+        <numcomments type="integer">0</numcomments>
+        <comments nil="true"/>
+        <numlikes type="integer">0</numlikes>
+        <text></text>
+        <haslink type="boolean">true</haslink>
+        <linkurl>http://apps.facebook.com/daily_photos_plus/y/the&amp;other&amp;args</linkurl>
+        <linktitle>A Link with a Page Title</linktitle>
+      </content>
+    </item>
+  </items>
+</feed>

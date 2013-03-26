@@ -1,5 +1,8 @@
 package com.vaguehope.onosendai.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TweetBuilder {
 
 	private String id;
@@ -7,7 +10,7 @@ public class TweetBuilder {
 	private String body;
 	private long unitTimeSeconds;
 	private String avatarUrl;
-	// TODO include metas?
+	private List<Meta> metas;
 
 	public TweetBuilder () {
 		reset();
@@ -19,6 +22,7 @@ public class TweetBuilder {
 		this.body = null;
 		this.unitTimeSeconds = 0L;
 		this.avatarUrl = null;
+		this.metas = null;
 	}
 
 	public TweetBuilder id (final String v) {
@@ -41,14 +45,23 @@ public class TweetBuilder {
 		return this;
 	}
 
-
 	public TweetBuilder avatarUrl (final String v) {
 		this.avatarUrl = v;
 		return this;
 	}
 
+	public TweetBuilder meta (final Meta v) {
+		if (this.metas == null) this.metas = new ArrayList<Meta>();
+		this.metas.add(v);
+		return this;
+	}
+
+	public TweetBuilder meta (final MetaType type, final String data) {
+		return meta(new Meta(type, data));
+	}
+
 	public Tweet build () {
-		Tweet t = new Tweet(this.id, this.username, this.body, this.unitTimeSeconds, this.avatarUrl);
+		Tweet t = new Tweet(this.id, this.username, this.body, this.unitTimeSeconds, this.avatarUrl, this.metas);
 		reset();
 		return t;
 	}

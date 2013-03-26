@@ -60,6 +60,8 @@ public final class PayloadUtils {
 				return new HashTagPayload(tweet, meta);
 			case MENTION:
 				return new MentionPayload(columnId, tweet, meta);
+			case URL:
+				return new LinkPayload(tweet, meta);
 			default:
 				return null;
 		}
