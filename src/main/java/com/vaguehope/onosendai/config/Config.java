@@ -118,12 +118,12 @@ public class Config {
 		List<Column> ret = new ArrayList<Column>();
 		for (int i = 0; i < columnsJson.length(); i++) {
 			JSONObject colJson = columnsJson.getJSONObject(i);
-			int index = colJson.getInt("id");
+			int id = colJson.getInt("id");
 			String title = colJson.getString("title");
 			String account = colJson.has("account") ? colJson.getString("account") : null;
 			String resource = colJson.getString("resource");
 			String refresh = colJson.has("refresh") ? colJson.getString("refresh") : null;
-			ret.add(new Column(index, title, account, resource, refresh));
+			ret.add(new Column(id, title, account, resource, refresh));
 		}
 		return Collections.unmodifiableList(ret);
 	}
