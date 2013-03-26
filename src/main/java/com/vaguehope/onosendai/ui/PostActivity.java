@@ -87,7 +87,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		this.accountAdaptor = new AccountAdaptor(getBaseContext(), conf);
 		this.spnAccount.setAdapter(this.accountAdaptor);
 		final Column column = conf.getColumnById(this.columnId);
-		final Account account = conf.getAccount(column.accountId);
+		final Account account = conf.getAccount(column.getAccountId());
 		this.spnAccount.setSelection(this.accountAdaptor.getAccountPosition(account));
 
 		this.txtBody = (EditText) findViewById(R.id.txtBody);
@@ -256,7 +256,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			}
 
 			Account account = this.accounts.get(position);
-			rowView.getMain().setText(String.format("%s (%s)", account.provider.toHumanString(), account.id));
+			rowView.getMain().setText(String.format("%s (%s)", account.getProvider().toHumanString(), account.getId()));
 
 			return view;
 		}

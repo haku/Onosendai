@@ -77,8 +77,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 			// getItem is called to instantiate the fragment for the given page.
 			Fragment fragment = new TweetListFragment();
 			Bundle args = new Bundle();
-			args.putInt(TweetListFragment.ARG_COLUMN_ID, col.id);
-			args.putString(TweetListFragment.ARG_COLUMN_TITLE, col.title);
+			args.putInt(TweetListFragment.ARG_COLUMN_ID, col.getId());
+			args.putString(TweetListFragment.ARG_COLUMN_TITLE, col.getTitle());
 			args.putBoolean(TweetListFragment.ARG_COLUMN_IS_LATER, InternalColumnType.LATER.matchesColumn(col));
 			fragment.setArguments(args);
 			return fragment;
@@ -91,7 +91,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 		@Override
 		public CharSequence getPageTitle (final int position) {
-			return this.conf.getColumnByPosition(position).title;
+			return this.conf.getColumnByPosition(position).getTitle();
 		}
 
 		@Override

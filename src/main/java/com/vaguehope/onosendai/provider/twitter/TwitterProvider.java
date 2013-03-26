@@ -40,23 +40,23 @@ public class TwitterProvider {
 	}
 
 	public void addAccount (final Account account) {
-		if (this.accounts.containsKey(account.id)) return;
+		if (this.accounts.containsKey(account.getId())) return;
 		final TwitterFactory tf = makeTwitterFactory(account);
 		final Twitter t = tf.getInstance();
-		if (this.accounts.putIfAbsent(account.id, t) != null) {
+		if (this.accounts.putIfAbsent(account.getId(), t) != null) {
 			t.shutdown();
 		}
 	}
 
 	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId) throws TwitterException {
-		final Twitter t = this.accounts.get(account.id);
-		if (t == null) throw new IllegalStateException("Account not configured: '" + account.id + "'.");
+		final Twitter t = this.accounts.get(account.getId());
+		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
 		return fetchTwitterFeed(t, feed, sinceId);
 	}
 
 	public void post (final Account account, final String body, final long inReplyTo) throws TwitterException {
-		final Twitter t = this.accounts.get(account.id);
-		if (t == null) throw new IllegalStateException("Account not configured: '" + account.id + "'.");
+		final Twitter t = this.accounts.get(account.getId());
+		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
 		final StatusUpdate s = new StatusUpdate(body);
 		if (inReplyTo > 0) s.setInReplyToStatusId(inReplyTo);
 		t.updateStatus(s);
@@ -73,10 +73,10 @@ public class TwitterProvider {
 
 	private static TwitterFactory makeTwitterFactory (final Account account) {
 		final ConfigurationBuilder cb = new ConfigurationBuilder()
-				.setOAuthConsumerKey(account.consumerKey)
-				.setOAuthConsumerSecret(account.consumerSecret)
-				.setOAuthAccessToken(account.accessToken)
-				.setOAuthAccessTokenSecret(account.accessSecret);
+				.setOAuthConsumerKey(account.getConsumerKey())
+				.setOAuthConsumerSecret(account.getConsumerSecret())
+				.setOAuthAccessToken(account.getAccessToken())
+				.setOAuthAccessTokenSecret(account.getAccessSecret());
 		return new TwitterFactory(cb.build());
 	}
 

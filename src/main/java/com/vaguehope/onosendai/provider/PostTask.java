@@ -42,7 +42,7 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 
 	@Override
 	protected PostResult doInBackground (final Void... params) {
-		switch (this.req.getAccount().provider) {
+		switch (this.req.getAccount().getProvider()) {
 			case TWITTER:
 				return postTwitter();
 			default:

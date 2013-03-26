@@ -12,15 +12,15 @@ public class SuccessWhaleFeed {
 	}
 
 	public String getSources () {
-		return this.column.resource;
+		return this.column.getResource();
 	}
 
 	@Override
 	public String toString () {
 		return new StringBuilder()
-				.append("SWFeed{c{").append(this.column.id)
-				.append(",").append(this.column.title)
-				.append(",").append(this.column.accountId)
+				.append("SWFeed{c{").append(this.column.getId())
+				.append(",").append(this.column.getTitle())
+				.append(",").append(this.column.getAccountId())
 				.append("}}").toString();
 	}
 
