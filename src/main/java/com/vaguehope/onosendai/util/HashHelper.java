@@ -29,7 +29,7 @@ public final class HashHelper {
 				return md;
 			}
 			catch (final NoSuchAlgorithmException e) {
-				throw new RuntimeException(e);
+				throw new IllegalStateException("JVM is missing MD5.", e);
 			}
 		}
 	};
