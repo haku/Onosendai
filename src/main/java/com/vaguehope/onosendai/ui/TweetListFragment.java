@@ -48,6 +48,7 @@ import com.vaguehope.onosendai.payload.PayloadListClickListener;
 import com.vaguehope.onosendai.payload.PayloadUtils;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
 import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.ListViewHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -65,7 +66,7 @@ public class TweetListFragment extends Fragment {
 	protected final LogWrapper log = new LogWrapper();
 	private final DateFormat dateFormat = DateFormat.getDateTimeInstance();
 
-	private int columnId;
+	private int columnId = -1;
 	private boolean isLaterColumn;
 	private RefreshUiHandler refreshUiHandler;
 	private ImageLoader imageLoader;
@@ -178,6 +179,12 @@ public class TweetListFragment extends Fragment {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	public int getColumnId () {
+		return this.columnId;
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	private void saveScroll () {
 		ScrollState newState = ListViewHelper.saveScrollState(this.tweetList);
 		if (newState != null) {
@@ -225,7 +232,7 @@ public class TweetListFragment extends Fragment {
 					 * (i.e., after it exits this thread). if we try to talk to
 					 * the DB service before then, it will NPE.
 					 */
-					getDb().addTwUpdateListener(getGuiUpdateRunnable());
+					getDb().addTwUpdateListener(getGuiUpdateListener());
 					restoreSavedScrollFromDb();
 					refreshUi();
 					TweetListFragment.this.log.d("DB service bound.");
@@ -233,7 +240,7 @@ public class TweetListFragment extends Fragment {
 			});
 		}
 		else { // because we stop listening in onPause(), we must resume if the user comes back.
-			this.bndDb.getDb().addTwUpdateListener(getGuiUpdateRunnable());
+			this.bndDb.getDb().addTwUpdateListener(getGuiUpdateListener());
 			restoreSavedScrollFromDb();
 			refreshUi();
 			this.log.d("DB service rebound.");
@@ -243,7 +250,7 @@ public class TweetListFragment extends Fragment {
 	private void suspendDb () {
 		// We might be pausing before the callback has come.
 		if (this.bndDb.getDb() != null) {
-			this.bndDb.getDb().removeTwUpdateListener(getGuiUpdateRunnable());
+			this.bndDb.getDb().removeTwUpdateListener(getGuiUpdateListener());
 		}
 		else {
 			// If we have not even had the callback yet, cancel it.
@@ -260,7 +267,7 @@ public class TweetListFragment extends Fragment {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	protected void showPost() {
+	protected void showPost () {
 		final Intent intent = new Intent(getActivity(), PostActivity.class);
 		intent.putExtra(PostActivity.ARG_COLUMN_ID, this.columnId);
 		startActivity(intent);
@@ -399,13 +406,14 @@ public class TweetListFragment extends Fragment {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	protected Runnable getGuiUpdateRunnable () {
-		return this.guiUpdateRunnable;
+	protected TwUpdateListener getGuiUpdateListener () {
+		return this.guiUpdateListener;
 	}
 
-	private final Runnable guiUpdateRunnable = new Runnable() {
+	private final TwUpdateListener guiUpdateListener = new TwUpdateListener() {
 		@Override
-		public void run () {
+		public void columnChanged (final int changeColumnId) {
+			if (changeColumnId != getColumnId()) return;
 			refreshUi();
 		}
 	};

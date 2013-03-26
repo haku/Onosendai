@@ -14,11 +14,14 @@ public interface DbInterface {
 	Tweet getTweetDetails(int columnId, Tweet tweet);
 	Tweet getTweetDetails(int columnId, String tweetSid);
 
-	// FIXME action should be told what changed.
-	void addTwUpdateListener (Runnable action);
-	void removeTwUpdateListener (Runnable action);
+	void addTwUpdateListener (TwUpdateListener listener);
+	void removeTwUpdateListener (TwUpdateListener listener);
 
 	void storeScroll(int columnId, ScrollState state);
 	ScrollState getScroll(int columnId);
+
+	interface TwUpdateListener {
+		void columnChanged(int columnId);
+	}
 
 }
