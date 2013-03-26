@@ -4,7 +4,8 @@ public enum MetaType {
 
 	MEDIA(1),
 	HASHTAG(2),
-	MENTION(3);
+	MENTION(3),
+	URL(4);
 
 	private final int id;
 
@@ -24,6 +25,8 @@ public enum MetaType {
 				return HASHTAG;
 			case 3:
 				return MENTION;
+			case 4:
+				return URL;
 			default:
 				return null;
 		}
