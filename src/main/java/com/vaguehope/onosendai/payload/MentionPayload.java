@@ -78,7 +78,7 @@ public class MentionPayload extends Payload {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((this.screenName == null) ? 0 : this.screenName.hashCode());
-		result = prime * result + ((this.alsoMentions == null) ? 0 : this.alsoMentions.hashCode());
+		result = prime * result + ((this.alsoMentions == null) ? 0 : Arrays.hashCode(this.alsoMentions));
 		return result;
 	}
 
