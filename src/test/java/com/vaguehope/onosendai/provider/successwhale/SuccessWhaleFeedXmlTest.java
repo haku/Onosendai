@@ -33,7 +33,7 @@ public class SuccessWhaleFeedXmlTest {
 	}
 
 	@Test
-	public void itParsesFacebookHomeFeed () throws Exception {
+	public void itParsesFacebookHomeFeedEntryWithUrl () throws Exception {
 		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(getClass().getResourceAsStream("/successwhale_fb_home.xml"));
 		TweetList tweets = feed.getTweets();
 		assertEquals(3, tweets.count());
@@ -49,8 +49,27 @@ public class SuccessWhaleFeedXmlTest {
 		Meta t0m0 = t0.getMetas().get(0);
 		assertEquals(MetaType.URL, t0m0.getType());
 		assertEquals("http://9gag.com/gag/6904527?ref=fb.s", t0m0.getData());
+	}
 
-		// TODO rest of fixture.
+	// TODO conversation entry.
+
+	@Test
+	public void itParsesFacebookHomeFeedEntryWithUrlAndNoText () throws Exception {
+		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(getClass().getResourceAsStream("/successwhale_fb_home.xml"));
+		TweetList tweets = feed.getTweets();
+		assertEquals(3, tweets.count());
+
+		Tweet t = tweets.getTweet(2);
+		assertEquals("A Link with a Page Title", t.getBody());
+		assertEquals("534234215_10923840922345316", t.getSid());
+		assertEquals(null, t.getUsername());
+		assertEquals("Jon Doe", t.getFullname());
+		assertEquals(1364270468L, t.getTime());
+
+		assertEquals(1, t.getMetas().size());
+		Meta m0 = t.getMetas().get(0);
+		assertEquals(MetaType.URL, m0.getType());
+		assertEquals("http://apps.facebook.com/daily_photos_plus/y/the&other&args", m0.getData());
 	}
 
 }
