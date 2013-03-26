@@ -28,23 +28,22 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 
 public final class FileHelper {
-//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private static final int COPY_BUFFER_LENGTH = 1024 * 4;
 
 	private FileHelper () {
 		throw new AssertionError();
 	}
-
-//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	/**
 	 * Returns null if file does not exist.
 	 */
 	public static String fileToString (final File file) throws IOException {
 		try {
-			FileInputStream stream = new FileInputStream(file);
+			final FileInputStream stream = new FileInputStream(file);
 			try {
-				FileChannel fc = stream.getChannel();
-				MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+				final FileChannel fc = stream.getChannel();
+				final MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
 				/* Instead of using default, pass in a decoder. */
 				return Charset.defaultCharset().decode(bb).toString();
 			}
@@ -52,16 +51,16 @@ public final class FileHelper {
 				stream.close();
 			}
 		}
-		catch (FileNotFoundException e) {
+		catch (final FileNotFoundException e) {
 			return null;
 		}
 	}
 
 	public static void resourceToFile(final String res, final File f) throws IOException {
-		byte[] arr = new byte[1024 * 4];
-		InputStream is = FileHelper.class.getResourceAsStream(res);
+		final byte[] arr = new byte[COPY_BUFFER_LENGTH];
+		final InputStream is = FileHelper.class.getResourceAsStream(res);
 		try {
-			OutputStream os = new FileOutputStream(f);
+			final OutputStream os = new FileOutputStream(f);
 			try {
 				int count;
 				while ((count = is.read(arr)) >= 0) {

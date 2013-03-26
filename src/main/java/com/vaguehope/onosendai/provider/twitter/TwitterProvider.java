@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -124,7 +125,7 @@ public class TwitterProvider {
 		// https://dev.twitter.com/docs/user-profile-images-and-banners
 
 		return new Tweet(s.getId(), s.getUser().getScreenName(), text,
-				s.getCreatedAt().getTime() / 1000L,
+				TimeUnit.MILLISECONDS.toSeconds(s.getCreatedAt().getTime()),
 				s.getUser().getProfileImageURLHttps(),
 				metaBuilder);
 	}
