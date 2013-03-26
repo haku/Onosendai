@@ -6,7 +6,11 @@
 			android:title="@string/menu_post" />
 
 		<item
-			android:id="@+id/mnuRefreshNow"
+			android:id="@+id/mnuRefreshColumnNow"
+			android:title="@string/menu_refresh_column" />
+
+		<item
+			android:id="@+id/mnuRefreshAllNow"
 			android:title="@string/menu_refresh_all" />
 
 	</group>

@@ -6,6 +6,7 @@
 
 	<string name="btn_menu">menu</string>
 	<string name="btn_jump_top">Top</string>
+	<string name="menu_refresh_column">Refresh Column</string>
 	<string name="menu_refresh_all">Refresh All</string>
 	<string name="menu_post">Post</string>
 	<string name="btn_tweet_close">Close</string>
