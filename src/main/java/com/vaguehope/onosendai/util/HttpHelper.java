@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Alex Hutter
+ * Copyright 2013 Alex Hutter
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may
@@ -25,7 +25,7 @@ import java.net.URL;
 
 import org.apache.http.client.HttpResponseException;
 
-public class HttpHelper {
+public final class HttpHelper {
 
 	public static final int HTTP_CONNECT_TIMEOUT_SECONDS = 20;
 	public static final int HTTP_READ_TIMEOUT_SECONDS = 60;
@@ -34,6 +34,10 @@ public class HttpHelper {
 
 		R handleStream (InputStream is, int contentLength) throws IOException, T;
 
+	}
+
+	private HttpHelper () {
+		throw new AssertionError();
 	}
 
 	public static <R, T extends Exception> R get (final String sUrl, final HttpStreamHandler<R, T> streamHandler) throws IOException, T {
