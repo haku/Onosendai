@@ -161,7 +161,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			if (tweet != null) {
 				((TextView) view.findViewById(R.id.tweetDetailBody)).setText(tweet.getBody());
 				if (tweet.getAvatarUrl() != null) loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), (ImageView) view.findViewById(R.id.tweetDetailAvatar)));
-				((TextView) view.findViewById(R.id.tweetDetailName)).setText(tweet.getUsername());
+				((TextView) view.findViewById(R.id.tweetDetailName)).setText(tweet.getFullname());
 				((TextView) view.findViewById(R.id.tweetDetailDate)).setText(DateFormat.getDateTimeInstance().format(new Date(TimeUnit.SECONDS.toMillis(tweet.getTime()))));
 			}
 		}

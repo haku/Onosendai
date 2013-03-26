@@ -317,7 +317,7 @@ public class TweetListFragment extends Fragment {
 		final Tweet tweet = getDb().getTweetDetails(this.columnId, listTweet);
 		this.txtTweetBody.setText(tweet.getBody());
 		if (tweet.getAvatarUrl() != null) this.imageLoader.loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), this.imgTweetAvatar));
-		this.txtTweetName.setText(tweet.getUsername());
+		this.txtTweetName.setText(tweet.getFullname());
 		this.txtTweetDate.setText(this.dateFormat.format(new Date(TimeUnit.SECONDS.toMillis(tweet.getTime()))));
 		this.lstTweetPayloadAdaptor.setInputData(PayloadUtils.extractPayload(this.columnId, tweet));
 		setReadLaterButton(tweet, this.isLaterColumn);

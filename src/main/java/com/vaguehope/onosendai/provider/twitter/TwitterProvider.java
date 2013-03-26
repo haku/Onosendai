@@ -124,7 +124,10 @@ public class TwitterProvider {
 
 		// https://dev.twitter.com/docs/user-profile-images-and-banners
 
-		return new Tweet(String.valueOf(s.getId()), s.getUser().getScreenName(), text,
+		return new Tweet(String.valueOf(s.getId()),
+				s.getUser().getScreenName(),
+				s.getUser().getName(),
+				text,
 				TimeUnit.MILLISECONDS.toSeconds(s.getCreatedAt().getTime()),
 				s.getUser().getProfileImageURLHttps(),
 				metaBuilder);
@@ -165,7 +168,7 @@ public class TwitterProvider {
 		final MediaEntity[] mes = s.getMediaEntities();
 		if (mes == null || mes.length < 1) return;
 		for (int i = 0; i < mes.length; i++) {
-			 metas.add(new Meta(MetaType.MEDIA, mes[i].getMediaURLHttps()));
+			metas.add(new Meta(MetaType.MEDIA, mes[i].getMediaURLHttps()));
 		}
 	}
 
@@ -173,7 +176,7 @@ public class TwitterProvider {
 		final HashtagEntity[] tags = s.getHashtagEntities();
 		if (tags == null || tags.length < 1) return;
 		for (int i = 0; i < tags.length; i++) {
-			 metas.add(new Meta(MetaType.HASHTAG, tags[i].getText()));
+			metas.add(new Meta(MetaType.HASHTAG, tags[i].getText()));
 		}
 	}
 
@@ -181,7 +184,7 @@ public class TwitterProvider {
 		final UserMentionEntity[] ums = s.getUserMentionEntities();
 		if (ums == null || ums.length < 1) return;
 		for (int i = 0; i < ums.length; i++) {
-			 metas.add(new Meta(MetaType.MENTION, ums[i].getScreenName()));
+			metas.add(new Meta(MetaType.MENTION, ums[i].getScreenName()));
 		}
 	}
 
