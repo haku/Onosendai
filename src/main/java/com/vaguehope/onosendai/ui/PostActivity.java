@@ -58,7 +58,6 @@ public class PostActivity extends Activity implements ImageLoader {
 	private Spinner spnAccount;
 	private AccountAdaptor accountAdaptor;
 	private EditText txtBody;
-	private TextView txtCharRemaining;
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -91,8 +90,8 @@ public class PostActivity extends Activity implements ImageLoader {
 		this.spnAccount.setSelection(this.accountAdaptor.getAccountPosition(account));
 
 		this.txtBody = (EditText) findViewById(R.id.txtBody);
-		this.txtCharRemaining = (TextView) findViewById(R.id.txtCharRemaining);
-		this.txtBody.addTextChangedListener(new TextCounterWatcher(this.txtCharRemaining, this.txtBody));
+		final TextView txtCharRemaining = (TextView) findViewById(R.id.txtCharRemaining);
+		this.txtBody.addTextChangedListener(new TextCounterWatcher(txtCharRemaining, this.txtBody));
 
 		((Button) findViewById(R.id.btnCancel)).setOnClickListener(new View.OnClickListener() {
 			@Override
