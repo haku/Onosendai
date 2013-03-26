@@ -22,7 +22,9 @@ public class HybridBitmapCache {
 	public HybridBitmapCache (final Context context, final int maxMemorySizeBytes) {
 		this.memCache = new MemoryBitmapCache<String>(maxMemorySizeBytes);
 		this.baseDir = new File(context.getCacheDir(), "images");
-		this.baseDir.mkdirs();
+		if (!this.baseDir.exists()) {
+			if (!this.baseDir.mkdirs()) throw new IllegalStateException("Failed to create cache directory: " + this.baseDir.getAbsolutePath());
+		}
 	}
 
 	public Bitmap quickGet (final String key) {
