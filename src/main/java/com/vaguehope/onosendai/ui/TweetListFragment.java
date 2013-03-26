@@ -436,8 +436,8 @@ public class TweetListFragment extends Fragment {
 			List<Tweet> tweets = db.getTweets(this.columnId, 200); // FIXME replace 200 with dynamic list.
 			saveScrollIfNotSaved();
 			this.adapter.setInputData(new TweetList(tweets));
-			restoreScroll();
 			this.log.d("Refreshed %d tweets.", tweets.size());
+			restoreScroll();
 		}
 		else {
 			this.log.w("Failed to refresh column as DB was not bound.");
