@@ -7,23 +7,25 @@ public class Tweet {
 	private final long uid;
 	private final String sid;
 	private final String username;
+	private final String fullname;
 	private final String body;
 	private final long time;
 	private final String avatarUrl;
 	private final List<Meta> metas;
 
-	Tweet (final String sid, final String username, final String body, final long unitTimeSeconds, final String avatarUrl) {
-		this(-1L, sid, username, body, unitTimeSeconds, avatarUrl, null);
+	Tweet (final String sid, final String username, final String fullname, final String body, final long unitTimeSeconds, final String avatarUrl) {
+		this(-1L, sid, username, fullname, body, unitTimeSeconds, avatarUrl, null);
 	}
 
-	public Tweet (final String sid, final String username, final String body, final long unitTimeSeconds, final String avatarUrl, final List<Meta> metas) {
-		this(-1L, sid, username, body, unitTimeSeconds, avatarUrl, metas);
+	public Tweet (final String sid, final String username, final String fullname, final String body, final long unitTimeSeconds, final String avatarUrl, final List<Meta> metas) {
+		this(-1L, sid, username, fullname, body, unitTimeSeconds, avatarUrl, metas);
 	}
 
-	public Tweet (final long uid, final String sid, final String username, final String body, final long unitTimeSeconds, final String avatarUrl, final List<Meta> metas) {
+	public Tweet (final long uid, final String sid, final String username, final String fullname, final String body, final long unitTimeSeconds, final String avatarUrl, final List<Meta> metas) {
 		this.uid = uid;
 		this.sid = sid;
 		this.username = username;
+		this.fullname = fullname;
 		this.body = body;
 		this.time = unitTimeSeconds;
 		this.avatarUrl = avatarUrl;
@@ -47,6 +49,10 @@ public class Tweet {
 
 	public String getUsername () {
 		return this.username;
+	}
+
+	public String getFullname () {
+		return this.fullname;
 	}
 
 	public String getBody () {

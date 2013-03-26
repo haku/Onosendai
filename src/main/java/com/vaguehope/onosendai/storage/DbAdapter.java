@@ -21,7 +21,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 7;
+	private static final int DB_VERSION = 8;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -103,7 +103,8 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_TW_COLID = "colid";
 	private static final String TBL_TW_SID = "sid";
 	private static final String TBL_TW_TIME = "time";
-	private static final String TBL_TW_NAME = "name";
+	private static final String TBL_TW_USERNAME = "uname";
+	private static final String TBL_TW_FULLNAME = "fname";
 	private static final String TBL_TW_BODY = "body";
 	private static final String TBL_TW_AVATAR = "avatar";
 
@@ -112,7 +113,8 @@ public class DbAdapter implements DbInterface {
 			+ TBL_TW_COLID + " integer,"
 			+ TBL_TW_SID + " text,"
 			+ TBL_TW_TIME + " integer,"
-			+ TBL_TW_NAME + " text,"
+			+ TBL_TW_USERNAME + " text,"
+			+ TBL_TW_FULLNAME + " text,"
 			+ TBL_TW_BODY + " text,"
 			+ TBL_TW_AVATAR + " text,"
 			+ "UNIQUE(" + TBL_TW_COLID + ", " + TBL_TW_SID + ") ON CONFLICT REPLACE"
@@ -166,7 +168,8 @@ public class DbAdapter implements DbInterface {
 				values.put(TBL_TW_COLID, column.getId());
 				values.put(TBL_TW_SID, tweet.getSid());
 				values.put(TBL_TW_TIME, tweet.getTime());
-				values.put(TBL_TW_NAME, tweet.getUsername());
+				values.put(TBL_TW_USERNAME, tweet.getUsername());
+				values.put(TBL_TW_FULLNAME, tweet.getFullname());
 				values.put(TBL_TW_BODY, tweet.getBody());
 				values.put(TBL_TW_AVATAR, tweet.getAvatarUrl());
 				final long uid = this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_IGNORE);
@@ -213,7 +216,7 @@ public class DbAdapter implements DbInterface {
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
+					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
 					TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) },
 					null, null,
 					TBL_TW_TIME + " desc", String.valueOf(numberOf));
@@ -221,7 +224,8 @@ public class DbAdapter implements DbInterface {
 			if (c != null && c.moveToFirst()) {
 				final int colId = c.getColumnIndex(TBL_TW_ID);
 				final int colSid = c.getColumnIndex(TBL_TW_SID);
-				final int colName = c.getColumnIndex(TBL_TW_NAME);
+				final int colUesrname = c.getColumnIndex(TBL_TW_USERNAME);
+				final int colFullname = c.getColumnIndex(TBL_TW_FULLNAME);
 				final int colBody = c.getColumnIndex(TBL_TW_BODY);
 				final int colTime = c.getColumnIndex(TBL_TW_TIME);
 				final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
@@ -230,11 +234,12 @@ public class DbAdapter implements DbInterface {
 				do {
 					final long uid = c.getLong(colId);
 					final String sid = c.getString(colSid);
-					final String name = c.getString(colName);
+					final String username = c.getString(colUesrname);
+					final String fullname = c.getString(colFullname);
 					final String body = c.getString(colBody);
 					final long time = c.getLong(colTime);
 					final String avatar = c.getString(colAvatar);
-					ret.add(new Tweet(uid, sid, name, body, time, avatar, null));
+					ret.add(new Tweet(uid, sid, username, fullname, body, time, avatar, null));
 				}
 				while (c.moveToNext());
 			}
@@ -258,7 +263,7 @@ public class DbAdapter implements DbInterface {
 		Cursor d = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_NAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
+					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
 					TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?",
 					new String[] { String.valueOf(columnId), tweetSid },
 					null, null, null, null);
@@ -266,14 +271,16 @@ public class DbAdapter implements DbInterface {
 			if (c != null && c.moveToFirst()) {
 				final int colId = c.getColumnIndex(TBL_TW_ID);
 				final int colSid = c.getColumnIndex(TBL_TW_SID);
-				final int colName = c.getColumnIndex(TBL_TW_NAME);
+				final int colUesrname = c.getColumnIndex(TBL_TW_USERNAME);
+				final int colFullname = c.getColumnIndex(TBL_TW_FULLNAME);
 				final int colBody = c.getColumnIndex(TBL_TW_BODY);
 				final int colTime = c.getColumnIndex(TBL_TW_TIME);
 				final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
 
 				final long uid = c.getLong(colId);
 				final String sid = c.getString(colSid);
-				final String name = c.getString(colName);
+				final String username = c.getString(colUesrname);
+				final String fullname = c.getString(colFullname);
 				final String body = c.getString(colBody);
 				final long time = c.getLong(colTime);
 				final String avatar = c.getString(colAvatar);
@@ -303,7 +310,7 @@ public class DbAdapter implements DbInterface {
 					if (d != null) d.close();
 				}
 
-				ret = new Tweet(uid, sid, name, body, time, avatar, metas);
+				ret = new Tweet(uid, sid, username, fullname, body, time, avatar, metas);
 			}
 		}
 		finally {

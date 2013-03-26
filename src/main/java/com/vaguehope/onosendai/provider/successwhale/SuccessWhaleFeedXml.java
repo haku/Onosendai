@@ -112,6 +112,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			else if ("fromuser".equals(elementName)) {
 				this.currentItem.username(this.currentText.toString());
 			}
+			else if ("fromusername".equals(elementName)) {
+				this.currentItem.fullname(this.currentText.toString());
+			}
 			else if ("text".equals(elementName)) {
 				this.currentItem.body(this.currentText.toString());
 			}

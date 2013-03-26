@@ -71,7 +71,7 @@ public class TweetListAdapter extends BaseAdapter {
 
 		Tweet item = this.listData.getTweet(position);
 		rowView.getTweet().setText(item.getBody());
-		rowView.getName().setText(item.getUsername());
+		rowView.getName().setText(item.getUsername() != null ? item.getUsername() : item.getFullname());
 
 		String avatarUrl = item.getAvatarUrl();
 		if (avatarUrl != null) {

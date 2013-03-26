@@ -42,7 +42,7 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals("Some User shared a link.", t0.getBody());
 		assertEquals("557897893_497789789789963", t0.getSid());
 		assertEquals(null, t0.getUsername());
-//		assertEquals("Some User", t0.getFullname()); // TODO
+		assertEquals("Some User", t0.getFullname());
 		assertEquals(1364295194L, t0.getTime());
 
 		assertEquals(1, t0.getMetas().size());
