@@ -44,18 +44,18 @@ public class ConfigTest {
 		assertEquals(2, as.size());
 
 		Account a = as.get("t0");
-		assertEquals(AccountProvider.TWITTER, a.provider);
-		assertEquals("?ckey?", a.consumerKey);
-		assertEquals("?csecret?", a.consumerSecret);
-		assertEquals("?atoken?", a.accessToken);
-		assertEquals("?asecret?", a.accessSecret);
+		assertEquals(AccountProvider.TWITTER, a.getProvider());
+		assertEquals("?ckey?", a.getConsumerKey());
+		assertEquals("?csecret?", a.getConsumerSecret());
+		assertEquals("?atoken?", a.getAccessToken());
+		assertEquals("?asecret?", a.getAccessSecret());
 
 		Account b = as.get("sw0");
-		assertEquals(AccountProvider.SUCCESSWHALE, b.provider);
-		assertEquals(null, b.consumerKey);
-		assertEquals(null, b.consumerSecret);
-		assertEquals("?username?", b.accessToken);
-		assertEquals("?password?", b.accessSecret);
+		assertEquals(AccountProvider.SUCCESSWHALE, b.getProvider());
+		assertEquals(null, b.getConsumerKey());
+		assertEquals(null, b.getConsumerSecret());
+		assertEquals("?username?", b.getAccessToken());
+		assertEquals("?password?", b.getAccessSecret());
 	}
 
 	@Test
@@ -66,25 +66,25 @@ public class ConfigTest {
 		assertEquals(3, cs.size());
 
 		Column c0 = cs.get(0);
-		assertEquals(0, c0.id);
-		assertEquals("main", c0.title);
-		assertEquals("t0", c0.accountId);
-		assertEquals("timeline", c0.resource);
-		assertEquals("15min", c0.refresh);
+		assertEquals(0, c0.getId());
+		assertEquals("main", c0.getTitle());
+		assertEquals("t0", c0.getAccountId());
+		assertEquals("timeline", c0.getResource());
+		assertEquals("15min", c0.getRefresh());
 
 		Column c1 = cs.get(1);
-		assertEquals(1, c1.id);
-		assertEquals("my list", c1.title);
-		assertEquals("t0", c1.accountId);
-		assertEquals("lists/mylist", c1.resource);
-		assertEquals("15min", c1.refresh);
+		assertEquals(1, c1.getId());
+		assertEquals("my list", c1.getTitle());
+		assertEquals("t0", c1.getAccountId());
+		assertEquals("lists/mylist", c1.getResource());
+		assertEquals("15min", c1.getRefresh());
 
 		Column c2 = cs.get(2);
-		assertEquals(2, c2.id);
-		assertEquals("reading list", c2.title);
-		assertEquals(null, c2.accountId);
-		assertEquals("later", c2.resource);
-		assertEquals(null, c2.refresh);
+		assertEquals(2, c2.getId());
+		assertEquals("reading list", c2.getTitle());
+		assertEquals(null, c2.getAccountId());
+		assertEquals("later", c2.getResource());
+		assertEquals(null, c2.getRefresh());
 	}
 
 	private String fixture (final String path) throws IOException {

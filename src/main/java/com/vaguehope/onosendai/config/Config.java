@@ -58,7 +58,7 @@ public class Config {
 
 	public Column getColumnById (final int columnId) {
 		for (Column col : this.feeds) {
-			if (columnId == col.id) return col;
+			if (columnId == col.getId()) return col;
 		}
 		return null;
 	}

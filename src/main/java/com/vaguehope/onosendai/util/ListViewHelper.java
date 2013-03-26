@@ -31,8 +31,8 @@ public final class ListViewHelper {
 		// NOTE if this seems unreliable try wrapping setSelection*() calls in lv.post(...);
 		ListAdapter adapter = lv.getAdapter();
 		for (int i = 0; i < adapter.getCount(); i++) {
-			if (adapter.getItemId(i) == state.itemId) {
-				lv.setSelectionFromTop(i, state.top);
+			if (adapter.getItemId(i) == state.getItemId()) {
+				lv.setSelectionFromTop(i, state.getTop());
 				return;
 			}
 		}
@@ -51,8 +51,8 @@ public final class ListViewHelper {
 
 	public static void toBundle (final ScrollState state, final Bundle bundle) {
 		if (state == null || bundle == null) return;
-		bundle.putLong(ListViewHelper.KEY_ITEM_ID, state.itemId);
-		bundle.putInt(ListViewHelper.KEY_TOP, state.top);
+		bundle.putLong(ListViewHelper.KEY_ITEM_ID, state.getItemId());
+		bundle.putInt(ListViewHelper.KEY_TOP, state.getTop());
 	}
 
 }

@@ -70,15 +70,15 @@ public class TweetListAdapter extends BaseAdapter {
 		}
 
 		Tweet item = this.listData.getTweet(position);
-		rowView.tweet.setText(item.getBody());
-		rowView.name.setText(item.getUsername());
+		rowView.getTweet().setText(item.getBody());
+		rowView.getName().setText(item.getUsername());
 
 		String avatarUrl = item.getAvatarUrl();
 		if (avatarUrl != null) {
-			this.imageLoader.loadImage(new ImageLoadRequest(avatarUrl, rowView.avatar));
+			this.imageLoader.loadImage(new ImageLoadRequest(avatarUrl, rowView.getAvatar()));
 		}
 		else {
-			rowView.avatar.setImageResource(R.drawable.question_blue);
+			rowView.getAvatar().setImageResource(R.drawable.question_blue);
 		}
 
 		return view;
@@ -86,14 +86,26 @@ public class TweetListAdapter extends BaseAdapter {
 
 	private static class RowView {
 
-		public final ImageView avatar;
-		public final TextView tweet;
-		public final TextView name;
+		private final ImageView avatar;
+		private final TextView tweet;
+		private final TextView name;
 
 		public RowView (final ImageView avatar, final TextView tweet, final TextView name) {
 			this.avatar = avatar;
 			this.tweet = tweet;
 			this.name = name;
+		}
+
+		public ImageView getAvatar () {
+			return this.avatar;
+		}
+
+		public TextView getTweet () {
+			return this.tweet;
+		}
+
+		public TextView getName () {
+			return this.name;
 		}
 
 	}

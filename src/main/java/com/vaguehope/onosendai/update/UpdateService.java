@@ -161,7 +161,7 @@ public class UpdateService extends IntentService {
 	private static Collection<Column> remoteNonFetchable (final Collection<Column> columns) {
 		List<Column> ret = new ArrayList<Column>();
 		for (Column column : columns) {
-			if (column.accountId != null) ret.add(column);
+			if (column.getAccountId() != null) ret.add(column);
 		}
 		return ret;
 	}
@@ -186,10 +186,10 @@ public class UpdateService extends IntentService {
 					job.getValue().get();
 				}
 				catch (InterruptedException e) {
-					this.log.w("Error fetching column '%s': %s %s", job.getKey().title, e.getClass().getName(), e.toString());
+					this.log.w("Error fetching column '%s': %s %s", job.getKey().getTitle(), e.getClass().getName(), e.toString());
 				}
 				catch (ExecutionException e) {
-					this.log.w("Error fetching column '%s': %s %s", job.getKey().title, e.getClass().getName(), e.toString());
+					this.log.w("Error fetching column '%s': %s %s", job.getKey().getTitle(), e.getClass().getName(), e.toString());
 				}
 			}
 		}
@@ -222,28 +222,28 @@ public class UpdateService extends IntentService {
 
 	public void fetchColumn (final Config conf, final Column column, final ProviderMgr providerMgr) {
 		final long startTime = System.nanoTime();
-		final Account account = conf.getAccount(column.accountId);
+		final Account account = conf.getAccount(column.getAccountId());
 		if (account == null) {
-			this.log.e("Unknown acountId: '%s'.", column.accountId);
+			this.log.e("Unknown acountId: '%s'.", column.getAccountId());
 			return;
 		}
-		switch (account.provider) {
+		switch (account.getProvider()) {
 			case TWITTER:
 				try {
 					final TwitterProvider twitterProvider = providerMgr.getTwitterProvider();
 					twitterProvider.addAccount(account);
-					TwitterFeed feed = TwitterFeeds.parse(column.resource);
+					TwitterFeed feed = TwitterFeeds.parse(column.getResource());
 					if (!waitForDbReady()) return;
 
 					long sinceId = -1;
-					List<Tweet> existingTweets = this.bndDb.getDb().getTweets(column.id, 1);
+					List<Tweet> existingTweets = this.bndDb.getDb().getTweets(column.getId(), 1);
 					if (existingTweets.size() > 0) sinceId = existingTweets.get(existingTweets.size() - 1).getId();
 
 					TweetList tweets = twitterProvider.getTweets(feed, account, sinceId);
 					this.bndDb.getDb().storeTweets(column, tweets.getTweets());
 
 					long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.title, durationMillis);
+					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
 				}
 				catch (TwitterException e) {
 					this.log.w("Failed to fetch from Twitter: %s", e.toString());
@@ -260,14 +260,14 @@ public class UpdateService extends IntentService {
 					this.bndDb.getDb().storeTweets(column, tweets.getTweets());
 
 					long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.title, durationMillis);
+					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
 				}
 				catch (SuccessWhaleException e) {
 					this.log.w("Failed to fetch from SuccessWhale: %s", e.toString());
 				}
 				break;
 			default:
-				this.log.e("Unknown account type: %s", account.provider);
+				this.log.e("Unknown account type: %s", account.getProvider());
 		}
 	}
 

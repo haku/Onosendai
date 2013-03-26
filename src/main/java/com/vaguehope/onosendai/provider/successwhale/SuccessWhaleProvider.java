@@ -17,14 +17,14 @@ public class SuccessWhaleProvider {
 	}
 
 	public void addAccount (final Account account) {
-		if (this.accounts.containsKey(account.id)) return;
+		if (this.accounts.containsKey(account.getId())) return;
 		SuccessWhale s = new SuccessWhale(account, this.httpClientFactory);
-		this.accounts.putIfAbsent(account.id, s);
+		this.accounts.putIfAbsent(account.getId(), s);
 	}
 
 	public TweetList getTweets (final SuccessWhaleFeed feed, final Account account) throws SuccessWhaleException {
-		SuccessWhale sw = this.accounts.get(account.id);
-		if (sw == null) throw new IllegalStateException("Account not configured: '" + account.id + "'.");
+		SuccessWhale sw = this.accounts.get(account.getId());
+		if (sw == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
 		return fetchSuccessWhaleFeed(sw, feed);
 	}
 

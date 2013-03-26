@@ -3,8 +3,8 @@ package com.vaguehope.onosendai.model;
 
 public class ScrollState {
 
-	public final long itemId;
-	public final int top;
+	private final long itemId;
+	private final int top;
 
 	public ScrollState (final long itemId, final int top) {
 		this.itemId = itemId;
@@ -14,10 +14,18 @@ public class ScrollState {
 	@Override
 	public String toString () {
 		return new StringBuilder()
-				.append("SaveScrollState{").append(this.itemId)
-				.append(',').append(this.top)
+				.append("SaveScrollState{").append(this.getItemId())
+				.append(',').append(this.getTop())
 				.append('}')
 				.toString();
+	}
+
+	public long getItemId () {
+		return this.itemId;
+	}
+
+	public int getTop () {
+		return this.top;
 	}
 
 }

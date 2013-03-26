@@ -149,9 +149,9 @@ public class DbAdapter implements DbInterface {
 							" WHERE " + TBL_TW_COLID + "=?" +
 							" ORDER BY " + TBL_TW_TIME +
 							" DESC LIMIT " + C.DATA_TW_MAX_COL_ENTRIES + ")",
-					new String[] { String.valueOf(column.id), String.valueOf(column.id) });
+					new String[] { String.valueOf(column.getId()), String.valueOf(column.getId()) });
 
-			this.log.d("Deleted %d rows from %s column %d.", n, TBL_TW, column.id);
+			this.log.d("Deleted %d rows from %s column %d.", n, TBL_TW, column.getId());
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
@@ -163,7 +163,7 @@ public class DbAdapter implements DbInterface {
 			final ContentValues values = new ContentValues();
 			for (final Tweet tweet : tweets) {
 				values.clear();
-				values.put(TBL_TW_COLID, column.id);
+				values.put(TBL_TW_COLID, column.getId());
 				values.put(TBL_TW_SID, tweet.getId());
 				values.put(TBL_TW_TIME, tweet.getTime());
 				values.put(TBL_TW_NAME, tweet.getUsername());
@@ -196,8 +196,8 @@ public class DbAdapter implements DbInterface {
 		this.mDb.beginTransaction();
 		try {
 			this.mDb.delete(TBL_TW, TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?",
-					new String[] { String.valueOf(column.id), String.valueOf(tweet.getId()) });
-			this.log.d("Deleted tweet %d from %s column %d.", tweet.getId(), TBL_TW, column.id);
+					new String[] { String.valueOf(column.getId()), String.valueOf(tweet.getId()) });
+			this.log.d("Deleted tweet %d from %s column %d.", tweet.getId(), TBL_TW, column.getId());
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
@@ -349,8 +349,8 @@ public class DbAdapter implements DbInterface {
 		try {
 			final ContentValues values = new ContentValues();
 			values.put(TBL_SC_COLID, columnId);
-			values.put(TBL_SC_ITEMID, state.itemId);
-			values.put(TBL_SC_TOP, state.top);
+			values.put(TBL_SC_ITEMID, state.getItemId());
+			values.put(TBL_SC_TOP, state.getTop());
 			this.mDb.insertWithOnConflict(TBL_SC, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 			this.mDb.setTransactionSuccessful();
 		}

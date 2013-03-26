@@ -4,11 +4,11 @@ import com.vaguehope.onosendai.util.EqualHelper;
 
 public class Column {
 
-	public final int id;
-	public final String title;
-	public final String accountId;
-	public final String resource;
-	public final String refresh;
+	private final int id;
+	private final String title;
+	private final String accountId;
+	private final String resource;
+	private final String refresh;
 
 	public Column (final int id, final String title, final String accountId, final String resource, final String refresh) {
 		this.id = id;
@@ -22,11 +22,11 @@ public class Column {
 	public int hashCode () {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((this.accountId == null) ? 0 : this.accountId.hashCode());
-		result = prime * result + this.id;
-		result = prime * result + ((this.refresh == null) ? 0 : this.refresh.hashCode());
-		result = prime * result + ((this.resource == null) ? 0 : this.resource.hashCode());
-		result = prime * result + ((this.title == null) ? 0 : this.title.hashCode());
+		result = prime * result + ((this.getAccountId() == null) ? 0 : this.getAccountId().hashCode());
+		result = prime * result + this.getId();
+		result = prime * result + ((this.getRefresh() == null) ? 0 : this.getRefresh().hashCode());
+		result = prime * result + ((this.getResource() == null) ? 0 : this.getResource().hashCode());
+		result = prime * result + ((this.getTitle() == null) ? 0 : this.getTitle().hashCode());
 		return result;
 	}
 
@@ -36,23 +36,43 @@ public class Column {
 		if (o == this) return true;
 		if (!(o instanceof Column)) return false;
 		Column that = (Column) o;
-		return EqualHelper.equal(this.id, that.id) &&
-				EqualHelper.equal(this.title, that.title) &&
-				EqualHelper.equal(this.accountId, that.accountId) &&
-				EqualHelper.equal(this.resource, that.resource) &&
-				EqualHelper.equal(this.refresh, that.refresh);
+		return EqualHelper.equal(this.getId(), that.getId()) &&
+				EqualHelper.equal(this.getTitle(), that.getTitle()) &&
+				EqualHelper.equal(this.getAccountId(), that.getAccountId()) &&
+				EqualHelper.equal(this.getResource(), that.getResource()) &&
+				EqualHelper.equal(this.getRefresh(), that.getRefresh());
 	}
 
 	@Override
 	public String toString () {
 		StringBuilder s = new StringBuilder();
-		s.append("Column{").append(this.id)
-				.append(",").append(this.title)
-				.append(",").append(this.accountId)
-				.append(",").append(this.resource)
-				.append(",").append(this.refresh)
+		s.append("Column{").append(this.getId())
+				.append(",").append(this.getTitle())
+				.append(",").append(this.getAccountId())
+				.append(",").append(this.getResource())
+				.append(",").append(this.getRefresh())
 				.append("}");
 		return s.toString();
+	}
+
+	public int getId () {
+		return this.id;
+	}
+
+	public String getTitle () {
+		return this.title;
+	}
+
+	public String getAccountId () {
+		return this.accountId;
+	}
+
+	public String getResource () {
+		return this.resource;
+	}
+
+	public String getRefresh () {
+		return this.refresh;
 	}
 
 }

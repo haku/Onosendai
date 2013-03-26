@@ -47,8 +47,8 @@ public class SuccessWhale {
 	 * FIXME lock against multiple calls.
 	 */
 	public void authenticate () throws SuccessWhaleException {
-		final String username = this.account.accessToken;
-		final String password = this.account.accessSecret;
+		final String username = this.account.getAccessToken();
+		final String password = this.account.getAccessSecret();
 		try {
 			HttpPost post = new HttpPost(BASE_URL + API_AUTH);
 			List<NameValuePair> params = new ArrayList<NameValuePair>(2);
@@ -72,7 +72,7 @@ public class SuccessWhale {
 					}
 				}
 			});
-			this.log.i("Authenticated username='%s' userid='%s'.", username, this.auth.userid);
+			this.log.i("Authenticated username='%s' userid='%s'.", username, this.auth.getUserid());
 		}
 		catch (IOException e) {
 			throw new SuccessWhaleException("Auth failed for user '" + username + "': " + e.toString(), e);
@@ -84,8 +84,8 @@ public class SuccessWhale {
 		try {
 			StringBuilder url = new StringBuilder();
 			url.append(BASE_URL).append(API_FEED).append("?")
-					.append("sw_uid=").append(this.auth.userid)
-					.append("&secret=").append(this.auth.secret)
+					.append("sw_uid=").append(this.auth.getUserid())
+					.append("&secret=").append(this.auth.getSecret())
 					.append("&sources=").append(URLEncoder.encode(feed.getSources(), "UTF-8"));
 			return this.httpClientFactory.getHttpClient().execute(new HttpGet(url.toString()), new ResponseHandler<TweetList>() {
 				@Override
@@ -121,12 +121,20 @@ public class SuccessWhale {
 
 	private static class SuccessWhaleAuth {
 
-		public final String userid;
-		public final String secret;
+		private final String userid;
+		private final String secret;
 
 		public SuccessWhaleAuth (final String userid, final String secret) {
 			this.userid = userid;
 			this.secret = secret;
+		}
+
+		public String getUserid () {
+			return this.userid;
+		}
+
+		public String getSecret () {
+			return this.secret;
 		}
 
 	}
