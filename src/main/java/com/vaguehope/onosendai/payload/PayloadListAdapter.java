@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.images.ImageLoadRequest;
+import com.vaguehope.onosendai.images.ImageLoadRequest.ImageLoadListener;
 import com.vaguehope.onosendai.images.ImageLoader;
 
 public class PayloadListAdapter extends BaseAdapter {
@@ -74,10 +75,10 @@ public class PayloadListAdapter extends BaseAdapter {
 			rowView = (RowView) view.getTag();
 		}
 
-		rowView.getMain().setText(item.getTitle());
+		rowView.setText(item.getTitle());
 		if (item.getType() == PayloadType.MEDIA) {
 			MediaPayload media = (MediaPayload) item;
-			this.imageLoader.loadImage(new ImageLoadRequest(media.getUrl(), rowView.getImage()));
+			this.imageLoader.loadImage(new ImageLoadRequest(media.getUrl(), rowView.getImage(), new CaptionRemover(rowView)));
 		}
 
 		return view;
@@ -97,12 +98,33 @@ public class PayloadListAdapter extends BaseAdapter {
 			this.image = image;
 		}
 
-		public TextView getMain () {
-			return this.main;
+		public void setText (final String text) {
+			if (this.main == null) return;
+			this.main.setText(text);
+			this.main.setVisibility(View.VISIBLE);
+		}
+
+		public void hideText () {
+			this.main.setVisibility(View.GONE);
 		}
 
 		public ImageView getImage () {
 			return this.image;
+		}
+
+	}
+
+	private static class CaptionRemover implements ImageLoadListener {
+
+		private final RowView rowView;
+
+		public CaptionRemover (final RowView rowView) {
+			this.rowView = rowView;
+		}
+
+		@Override
+		public void imageLoaded (final ImageLoadRequest req) {
+			this.rowView.hideText();
 		}
 
 	}
