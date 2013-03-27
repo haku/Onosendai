@@ -1,6 +1,9 @@
 package com.vaguehope.onosendai.model;
 
+import java.util.Arrays;
 import java.util.List;
+
+import com.vaguehope.onosendai.util.EqualHelper;
 
 public class Tweet {
 
@@ -33,8 +36,8 @@ public class Tweet {
 	}
 
 	/**
-	 * Local unique ID provided by the DB.
-	 * May be -1L for objects not served from DB.
+	 * Local unique ID provided by the DB. May be -1L for objects not served
+	 * from DB.
 	 */
 	public long getUid () {
 		return this.uid;
@@ -67,8 +70,39 @@ public class Tweet {
 		return this.avatarUrl;
 	}
 
-	public List<Meta> getMetas() {
+	public List<Meta> getMetas () {
 		return this.metas;
+	}
+
+	public Meta getFirstMetaOfType (final MetaType type) {
+		if (this.metas == null) return null;
+		for (Meta meta : this.metas) {
+			if (type == meta.getType()) return meta;
+		}
+		return null;
+	}
+
+	@Override
+	public int hashCode () {
+		return Arrays.hashCode(new Object[] {
+				this.uid, this.sid, this.username, this.fullname,
+				this.body, this.time, this.avatarUrl, this.metas });
+	}
+
+	@Override
+	public boolean equals (final Object o) {
+		if (o == null) return false;
+		if (o == this) return true;
+		if (!(o instanceof Tweet)) return false;
+		Tweet that = (Tweet) o;
+		return this.uid == that.uid
+				&& EqualHelper.equal(this.sid, that.sid)
+				&& EqualHelper.equal(this.username, that.username)
+				&& EqualHelper.equal(this.fullname, that.fullname)
+				&& EqualHelper.equal(this.body, that.body)
+				&& this.time == that.time
+				&& EqualHelper.equal(this.avatarUrl, that.avatarUrl)
+				&& EqualHelper.equal(this.metas, that.metas);
 	}
 
 }
