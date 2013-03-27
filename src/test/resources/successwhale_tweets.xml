@@ -18,28 +18,38 @@
         <inreplytostatusid type="integer">313783459384590224</inreplytostatusid>
         <inreplytouserid type="integer">13453457</inreplytouserid>
       </content>
-      <actions>
-      </actions>
     </item>
     <item>
       <service type="symbol">twitter</service>
       <content>
-        <text>The second tweets message.</text>
-        <id type="integer">313434534579697409</id>
-        <time type="datetime">2013-03-17T23:31:00+00:00</time>
+        <text>DreamWorks tops compute-cycle record with 'The Croods' http://t.co/zG68KbAFDX</text>
+        <id type="integer">339045390394853920</id>
+        <time type="datetime">2013-03-27T08:58:12+00:00</time>
         <fromuser>some_other_user</fromuser>
         <fromusername>Just another user</fromusername>
-        <fromuseravatar>http://si0.twimg.com/profile_images/19393922/informal_profile_small2_normal.jpg</fromuseravatar>
-        <isreply type="boolean">true</isreply>
+        <fromuseravatar>http://si0.twimg.com/profile_images/0983453383/e987609785a770b7ceeb476525435a1f_normal.jpeg</fromuseravatar>
+        <isreply type="boolean">false</isreply>
         <isretweet type="boolean">false</isretweet>
         <numfavourited nil="true"/>
         <numretweeted type="integer">0</numretweeted>
         <numreplied nil="true"/>
-        <inreplytostatusid type="integer">313437897890484096</inreplytostatusid>
-        <inreplytouserid type="integer">12326017</inreplytouserid>
+        <inreplytostatusid nil="true"/>
+        <inreplytouserid nil="true"/>
+        <links type="array">
+          <link>
+            <url>http://t.co/zG68KbAFDX</url>
+            <expanded-url>http://www.computerworld.com/s/article/9237880/DreamWorks_tops_compute_cycle_record_with_The_Croods_</expanded-url>
+            <title>computerworld.com/s/article/9237…</title>
+            <media>http://pbs.twimg.com/media/SDFLKsdflkjdfmG.jpg</media>
+            <indices type="array">
+              <index type="integer">55</index>
+              <index type="integer">77</index>
+            </indices>
+          </link>
+        </links>
+        <usernames type="array"/>
+        <hashtags type="array"/>
       </content>
-      <actions>
-      </actions>
     </item>
   </items>
 </feed>
