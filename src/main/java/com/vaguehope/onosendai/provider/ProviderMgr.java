@@ -22,8 +22,12 @@ public class ProviderMgr {
 	}
 
 	public void shutdown () {
-		this.twitterProvider.shutdown();
-		this.successWhaleProvider.shutdown();
+		try {
+			this.twitterProvider.shutdown();
+		}
+		finally {
+			this.successWhaleProvider.shutdown();
+		}
 	}
 
 }
