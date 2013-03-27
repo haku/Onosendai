@@ -8,9 +8,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.images.ImageLoadRequest;
+import com.vaguehope.onosendai.images.ImageLoadRequest.ImageLoadListener;
+import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
-import com.vaguehope.onosendai.payload.PayloadListAdapter.RowView;
 import com.vaguehope.onosendai.util.EqualHelper;
 
 public class MediaPayload extends Payload {
@@ -47,15 +49,20 @@ public class MediaPayload extends Payload {
 		return i;
 	}
 
-
 	@Override
 	public PayloadLayout getLayout () {
 		return PayloadLayout.TEXT_IMAGE;
 	}
 
 	@Override
-	public RowView makeRowView (final View view) {
-		return new RowView((TextView) view.findViewById(R.id.txtMain), (ImageView) view.findViewById(R.id.imgMain));
+	public PayloadRowView makeRowView (final View view) {
+		return new PayloadRowView((TextView) view.findViewById(R.id.txtMain), (ImageView) view.findViewById(R.id.imgMain));
+	}
+
+	@Override
+	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader) {
+		super.applyTo(rowView, imageLoader);
+		imageLoader.loadImage(new ImageLoadRequest(getUrl(), rowView.getImage(), new CaptionRemover(rowView)));
 	}
 
 	@Override
@@ -70,6 +77,21 @@ public class MediaPayload extends Payload {
 		if (!(o instanceof MediaPayload)) return false;
 		MediaPayload that = (MediaPayload) o;
 		return EqualHelper.equal(this.url, that.url);
+	}
+
+	private static class CaptionRemover implements ImageLoadListener {
+
+		private final PayloadRowView rowView;
+
+		public CaptionRemover (final PayloadRowView rowView) {
+			this.rowView = rowView;
+		}
+
+		@Override
+		public void imageLoaded (final ImageLoadRequest req) {
+			this.rowView.hideText();
+		}
+
 	}
 
 }

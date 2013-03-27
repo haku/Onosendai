@@ -5,6 +5,7 @@ public enum PayloadType {
 	MEDIA,
 	LINK,
 	HASHTAG,
-	MENTION;
+	MENTION,
+	INREPLYTO;
 
 }

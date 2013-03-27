@@ -5,11 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.vaguehope.onosendai.images.ImageLoadRequest;
-import com.vaguehope.onosendai.images.ImageLoadRequest.ImageLoadListener;
 import com.vaguehope.onosendai.images.ImageLoader;
 
 public class PayloadListAdapter extends BaseAdapter {
@@ -26,6 +22,11 @@ public class PayloadListAdapter extends BaseAdapter {
 
 	public void setInputData (final PayloadList data) {
 		this.listData = data;
+		notifyDataSetChanged();
+	}
+
+	public void addItem (final Payload payload) {
+		this.listData.addItem(payload);
 		notifyDataSetChanged();
 	}
 
@@ -65,68 +66,17 @@ public class PayloadListAdapter extends BaseAdapter {
 		final Payload item = this.listData.getPayload(position);
 
 		View view = convertView;
-		RowView rowView;
+		PayloadRowView rowView;
 		if (view == null) {
 			view = this.layoutInflater.inflate(item.getLayout().getLayout(), null);
 			rowView = item.makeRowView(view);
 			view.setTag(rowView);
 		}
 		else {
-			rowView = (RowView) view.getTag();
+			rowView = (PayloadRowView) view.getTag();
 		}
-
-		rowView.setText(item.getTitle());
-		if (item.getType() == PayloadType.MEDIA) {
-			MediaPayload media = (MediaPayload) item;
-			this.imageLoader.loadImage(new ImageLoadRequest(media.getUrl(), rowView.getImage(), new CaptionRemover(rowView)));
-		}
-
+		item.applyTo(rowView, this.imageLoader);
 		return view;
-	}
-
-	static class RowView {
-
-		private final TextView main;
-		private final ImageView image;
-
-		public RowView (final TextView main) {
-			this(main, null);
-		}
-
-		public RowView (final TextView main, final ImageView image) {
-			this.main = main;
-			this.image = image;
-		}
-
-		public void setText (final String text) {
-			if (this.main == null) return;
-			this.main.setText(text);
-			this.main.setVisibility(View.VISIBLE);
-		}
-
-		public void hideText () {
-			this.main.setVisibility(View.GONE);
-		}
-
-		public ImageView getImage () {
-			return this.image;
-		}
-
-	}
-
-	private static class CaptionRemover implements ImageLoadListener {
-
-		private final RowView rowView;
-
-		public CaptionRemover (final RowView rowView) {
-			this.rowView = rowView;
-		}
-
-		@Override
-		public void imageLoaded (final ImageLoadRequest req) {
-			this.rowView.hideText();
-		}
-
 	}
 
 }

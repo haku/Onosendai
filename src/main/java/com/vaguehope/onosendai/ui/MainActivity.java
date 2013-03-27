@@ -17,10 +17,13 @@ import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
+import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.update.AlarmReceiver;
 
 public class MainActivity extends FragmentActivity implements ImageLoader {
 
+	private Config conf;
+	private ProviderMgr providerMgr;
 	private HybridBitmapCache imageCache;
 
 	@Override
@@ -28,9 +31,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		Config conf = null;
 		try {
-			conf = new Config();
+			this.conf = new Config();
 		}
 		catch (Exception e) {
 			Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
@@ -38,12 +40,13 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 			return;
 		}
 
-		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
-
+		this.providerMgr = new ProviderMgr();
 		this.imageCache = new HybridBitmapCache(this, C.MAX_MEMORY_IMAGE_CACHE);
 
+		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
+
 		// If this becomes too memory intensive, switch to android.support.v4.app.FragmentStatePagerAdapter.
-		SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), conf, columnWidth);
+		SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), this.conf, columnWidth);
 		((ViewPager) findViewById(R.id.pager)).setAdapter(sectionsPagerAdapter);
 
 		AlarmReceiver.configureAlarm(this); // FIXME be more smart about this?
@@ -51,8 +54,17 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 	@Override
 	protected void onDestroy () {
+		if (this.providerMgr != null) this.providerMgr.shutdown();
 		if (this.imageCache != null) this.imageCache.clean();
 		super.onDestroy();
+	}
+
+	Config getConf () {
+		return this.conf;
+	}
+
+	ProviderMgr getProviderMgr () {
+		return this.providerMgr;
 	}
 
 	@Override
