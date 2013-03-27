@@ -76,21 +76,12 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	private final Stack<String> stack = new Stack<String>();
 	private StringBuilder currentText;
 	private final TweetBuilder currentItem = new TweetBuilder();
-	private String stashedLinktitle;
+	private String stashedFirstLinkTitle;
+	private String stashedLinkUrl;
+	private String stashedLinkExpandedUrl;
+	private String stashedLinkTitle;
 
 	private final DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
-
-//	<feed>
-//	  <success type="boolean">true</success>
-//	  <items type="array">
-//	    <item>
-//	      <service type="symbol">twitter</service>
-//	      <content>
-//	        <text>a tweet</text>
-//	        <id type="integer">113751352559691810</id>
-//	        <time type="datetime">2013-03-18T22:38:01+00:00</time>
-//	        <fromuser>username</fromuser>
-//	        <fromuseravatar>http://si0.twimg.com/profile_images/3078345345/a34345345634534e4372cb6ac6aff134_normal.jpeg</fromuseravatar>
 
 	@Override
 	public void startElement (final String uri, final String localName, final String qName, final Attributes attributes) throws SAXException {
@@ -98,19 +89,15 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 		if (this.currentText == null || this.currentText.length() > 0) {
 			this.currentText = new StringBuilder();
 		}
-
-		final String elementName = !localName.isEmpty() ? localName : qName;
-		if (this.stack.size() == 4 && elementName.equals("content")) {
-			this.stashedLinktitle = null;
-		}
 	}
 
 	@Override
 	public void endElement (final String uri, final String localName, final String qName) throws SAXException {
 		final String elementName = !localName.isEmpty() ? localName : qName;
 		if (this.stack.size() == 4 && elementName.equals("content")) {
-			this.currentItem.bodyIfAbsent(this.stashedLinktitle);
+			this.currentItem.bodyIfAbsent(this.stashedFirstLinkTitle);
 			this.tweets.add(this.currentItem.build());
+			this.stashedFirstLinkTitle = null;
 		}
 		else if (this.stack.size() == 5) {
 			if ("id".equals(elementName)) {
@@ -132,11 +119,31 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			else if ("fromuseravatar".equals(elementName)) {
 				this.currentItem.avatarUrl(this.currentText.toString());
 			}
-			else if ("linkurl".equals(elementName)) {
-				this.currentItem.meta(MetaType.URL, this.currentText.toString());
+		}
+		else if (this.stack.size() == 6 && "link".equals(elementName)) {
+			if(this.stashedLinkExpandedUrl != null) {
+				this.currentItem.meta(MetaType.URL, this.stashedLinkExpandedUrl);
 			}
-			else if ("linktitle".equals(elementName)) {
-				this.stashedLinktitle = this.currentText.toString();
+			else if (this.stashedLinkUrl != null) {
+				this.currentItem.meta(MetaType.URL, this.stashedLinkUrl);
+			}
+			this.stashedLinkUrl = null;
+			this.stashedLinkExpandedUrl = null;
+			this.stashedLinkTitle = null;
+		}
+		else if (this.stack.size() == 7) {
+			if ("url".equals(elementName)) {
+				this.stashedLinkUrl = this.currentText.toString();
+			}
+			else if ("expanded-url".equals(elementName)) {
+				this.stashedLinkExpandedUrl = this.currentText.toString();
+			}
+			else if ("title".equals(elementName)) {
+				this.stashedLinkTitle = this.currentText.toString();
+				if (this.stashedFirstLinkTitle == null) this.stashedFirstLinkTitle = this.stashedLinkTitle;
+			}
+			else if ("preview".equals(elementName) || "media".equals(elementName)) {
+				this.currentItem.meta(MetaType.MEDIA, this.currentText.toString());
 			}
 		}
 

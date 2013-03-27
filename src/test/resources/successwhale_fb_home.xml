@@ -22,9 +22,13 @@
         <comments nil="true"/>
         <numlikes type="integer">0</numlikes>
         <text>Some User shared a link.</text>
-        <haslink type="boolean">true</haslink>
-        <linkurl>http://9gag.com/gag/6904527?ref=fb.s</linkurl>
-        <linktitle>If Disney did Game of Thrones</linktitle>
+         <links type="array">
+          <link>
+            <url>http://m.bbc.co.uk/news/world-asia-21950139</url>
+            <title>North Korea warns South president</title>
+            <preview>https://s-platform.ak.fbcdn.net/www/app_full_proxy.php?app=350685531728&amp;v=1&amp;size=z&amp;cksum=1e87fdc3550bd207da99c7d631a82ae0&amp;src=http%3A%2F%2Fnews.bbcimg.co.uk%2Fmedia%2Fimages%2F66629000%2Fjpg%2F_66629196_66629188.jpg</preview>
+          </link>
+        </links>
       </content>
     </item>
     <item>
@@ -59,9 +63,12 @@
         </comments>
         <numlikes type="integer">0</numlikes>
         <text>The text of this post goes here.  Its really interesting.</text>
-        <haslink type="boolean">true</haslink>
-        <linkurl>http://exmaple.com/service/#cardid=10342,#hashid=ce83cd4637965c3e5d8ee056a3afdbaa,#cardcount=7</linkurl>
-        <linktitle>An Example of a Web Page</linktitle>
+        <links type="array">
+          <link>
+            <url>http://exmaple.com/service/#cardid=10342,#hashid=ce83cd4637965c3e5d8ee056a3afdbaa,#cardcount=7</url>
+            <title>An Example of a Web Page</title>
+          </link>
+        </links>
       </content>
     </item>
     <item>
@@ -77,9 +84,12 @@
         <comments nil="true"/>
         <numlikes type="integer">0</numlikes>
         <text></text>
-        <haslink type="boolean">true</haslink>
-        <linkurl>http://apps.facebook.com/daily_photos_plus/y/the&amp;other&amp;args</linkurl>
-        <linktitle>A Link with a Page Title</linktitle>
+        <links type="array">
+          <link>
+            <url>http://apps.facebook.com/daily_photos_plus/y/the&amp;other&amp;args</url>
+            <title>A Link with a Page Title</title>
+          </link>
+        </links>
       </content>
     </item>
   </items>
