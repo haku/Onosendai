@@ -3,7 +3,6 @@ package com.vaguehope.onosendai.images;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 
-import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.images.ImageFetcherTask.ImageFetchResult;
 import com.vaguehope.onosendai.util.HttpHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -39,12 +38,11 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 	@Override
 	protected void onPostExecute (final ImageFetchResult result) {
 		if (result.isSuccess()) {
-			result.getRequest().getImageView().setImageBitmap(result.getBmp());
-			result.getRequest().notifyListener();
+			result.getRequest().setImageBitmap(result.getBmp());
 		}
 		else {
 			LOG.w("Failed to fetch image '%s': %s", result.getRequest().getUrl(), result.getE().toString());
-			result.getRequest().getImageView().setImageResource(R.drawable.exclamation_red);
+			result.getRequest().setImageUnavailable();
 		}
 	}
 

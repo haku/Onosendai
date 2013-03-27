@@ -1,6 +1,9 @@
 package com.vaguehope.onosendai.images;
 
+import android.graphics.Bitmap;
 import android.widget.ImageView;
+
+import com.vaguehope.onosendai.R;
 
 public class ImageLoadRequest {
 
@@ -24,16 +27,23 @@ public class ImageLoadRequest {
 		return this.url;
 	}
 
-	public ImageView getImageView () {
-		return this.imageView;
+	public void setImagePending () {
+		this.imageView.setImageResource(R.drawable.question_blue);
 	}
 
-	public void notifyListener() {
-		if (this.listener == null) return;
-		this.listener.imageLoaded(this);
+	public void setImageUnavailable () {
+		this.imageView.setImageResource(R.drawable.exclamation_red);
+	}
+
+	public void setImageBitmap (final Bitmap bmp) {
+		this.imageView.setImageBitmap(bmp);
+		if (this.listener != null) this.listener.imageLoaded(this);
 	}
 
 	public interface ImageLoadListener {
+		/**
+		 * Called only after the image has been successfully loaded.
+		 */
 		void imageLoaded (ImageLoadRequest req);
 	}
 
