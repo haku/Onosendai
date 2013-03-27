@@ -8,8 +8,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.model.Tweet;
-import com.vaguehope.onosendai.payload.PayloadListAdapter.RowView;
 
 public abstract class Payload {
 
@@ -50,8 +50,16 @@ public abstract class Payload {
 		return PayloadLayout.TEXT_ONLY;
 	}
 
-	public RowView makeRowView (final View view) {
-		return new RowView((TextView) view.findViewById(R.id.txtMain));
+	public PayloadRowView makeRowView (final View view) {
+		return new PayloadRowView((TextView) view.findViewById(R.id.txtMain));
+	}
+
+	/**
+	 * This method may be overridden.
+	 * @param imageLoader
+	 */
+	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader) {
+		rowView.setText(getTitle());
 	}
 
 	@Override

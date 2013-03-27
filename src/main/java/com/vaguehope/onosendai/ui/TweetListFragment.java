@@ -1,14 +1,11 @@
 package com.vaguehope.onosendai.ui;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.DateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import org.json.JSONException;
 
 import android.content.Context;
 import android.content.Intent;
@@ -31,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
@@ -43,9 +41,11 @@ import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.model.TweetListAdapter;
+import com.vaguehope.onosendai.payload.InReplyToLoaderTask;
 import com.vaguehope.onosendai.payload.PayloadListAdapter;
 import com.vaguehope.onosendai.payload.PayloadListClickListener;
 import com.vaguehope.onosendai.payload.PayloadUtils;
+import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
@@ -68,8 +68,10 @@ public class TweetListFragment extends Fragment {
 
 	private int columnId = -1;
 	private boolean isLaterColumn;
-	private RefreshUiHandler refreshUiHandler;
+	private Config conf;
+	private ProviderMgr providerMgr;
 	private ImageLoader imageLoader;
+	private RefreshUiHandler refreshUiHandler;
 
 	private SidebarLayout sidebar;
 	private ListView tweetList;
@@ -98,6 +100,9 @@ public class TweetListFragment extends Fragment {
 		this.log.setPrefix("C" + this.columnId);
 		this.log.d("onCreateView()");
 
+		final MainActivity mainActivity = (MainActivity) getActivity();
+		this.conf = mainActivity.getConf();
+		this.providerMgr = mainActivity.getProviderMgr();
 		this.imageLoader = ImageLoaderUtils.fromActivity(getActivity());
 
 		/*
@@ -181,6 +186,10 @@ public class TweetListFragment extends Fragment {
 
 	public int getColumnId () {
 		return this.columnId;
+	}
+
+	Config getConf () {
+		return this.conf;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -337,8 +346,15 @@ public class TweetListFragment extends Fragment {
 		this.txtTweetName.setText(tweet.getFullname());
 		this.txtTweetDate.setText(this.dateFormat.format(new Date(TimeUnit.SECONDS.toMillis(tweet.getTime()))));
 		this.lstTweetPayloadAdaptor.setInputData(PayloadUtils.extractPayload(this.columnId, tweet));
+		lookForInReplyTos(tweet);
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
+	}
+
+	public void lookForInReplyTos (final Tweet tweet) {
+		Column column = this.conf.getColumnById(this.columnId);
+		Account account = this.conf.getAccount(column.getAccountId());
+		new InReplyToLoaderTask(account, column, this.providerMgr, getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
 	}
 
 	protected void setReadLaterButton (final Tweet tweet, final boolean laterColumn) {
@@ -362,29 +378,20 @@ public class TweetListFragment extends Fragment {
 
 		@Override
 		public void onClick (final View v) {
-			try {
-				Config conf = new Config();
-				Column col = conf.findInternalColumn(InternalColumnType.LATER);
-				if (col != null) {
-					if (this.isLaterColumn) {
-						this.tweetListFragment.getDb().deleteTweet(col, this.tweet);
-						Toast.makeText(this.context, "Removed.", Toast.LENGTH_SHORT).show();
-					}
-					else {
-						this.tweetListFragment.getDb().storeTweets(col, Collections.singletonList(this.tweet));
-						Toast.makeText(this.context, "Saved for later.", Toast.LENGTH_SHORT).show();
-					}
-					this.tweetListFragment.setReadLaterButton(this.tweet, !this.isLaterColumn);
+			Column col = this.tweetListFragment.getConf().findInternalColumn(InternalColumnType.LATER);
+			if (col != null) {
+				if (this.isLaterColumn) {
+					this.tweetListFragment.getDb().deleteTweet(col, this.tweet);
+					Toast.makeText(this.context, "Removed.", Toast.LENGTH_SHORT).show();
 				}
 				else {
-					Toast.makeText(this.context, "Read later column not configured.", Toast.LENGTH_SHORT).show();
+					this.tweetListFragment.getDb().storeTweets(col, Collections.singletonList(this.tweet));
+					Toast.makeText(this.context, "Saved for later.", Toast.LENGTH_SHORT).show();
 				}
+				this.tweetListFragment.setReadLaterButton(this.tweet, !this.isLaterColumn);
 			}
-			catch (IOException e) {
-				Toast.makeText(this.context, e.toString(), Toast.LENGTH_LONG).show();
-			}
-			catch (JSONException e) {
-				Toast.makeText(this.context, e.toString(), Toast.LENGTH_LONG).show();
+			else {
+				Toast.makeText(this.context, "Read later column not configured.", Toast.LENGTH_SHORT).show();
 			}
 		}
 	}

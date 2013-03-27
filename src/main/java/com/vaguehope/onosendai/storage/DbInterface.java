@@ -13,6 +13,7 @@ public interface DbInterface {
 	List<Tweet> getTweets(int columnId, int numberOf);
 	Tweet getTweetDetails(int columnId, Tweet tweet);
 	Tweet getTweetDetails(int columnId, String tweetSid);
+	Tweet getTweetDetails(String tweetSid);
 
 	void addTwUpdateListener (TwUpdateListener listener);
 	void removeTwUpdateListener (TwUpdateListener listener);

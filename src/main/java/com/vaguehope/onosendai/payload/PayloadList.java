@@ -1,6 +1,6 @@
 package com.vaguehope.onosendai.payload;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PayloadList {
@@ -8,7 +8,11 @@ public class PayloadList {
 	private final List<Payload> payloads;
 
 	public PayloadList (final List<Payload> payloads) {
-		this.payloads = Collections.unmodifiableList(payloads);
+		this.payloads = new ArrayList<Payload>(payloads);
+	}
+
+	void addItem(final Payload payload) {
+		this.payloads.add(payload);
 	}
 
 	public int size () {

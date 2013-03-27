@@ -49,18 +49,11 @@ public class TwitterProvider {
 		}
 	}
 
-	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId) throws TwitterException {
+	private Twitter getAccount (final Account account) {
 		final Twitter t = this.accounts.get(account.getId());
-		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
-		return fetchTwitterFeed(t, feed, sinceId);
-	}
-
-	public void post (final Account account, final String body, final long inReplyTo) throws TwitterException {
-		final Twitter t = this.accounts.get(account.getId());
-		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
-		final StatusUpdate s = new StatusUpdate(body);
-		if (inReplyTo > 0) s.setInReplyToStatusId(inReplyTo);
-		t.updateStatus(s);
+		if (t != null) return t;
+		addAccount(account);
+		return this.accounts.get(account.getId());
 	}
 
 	public void shutdown () {
@@ -70,6 +63,26 @@ public class TwitterProvider {
 			t.shutdown();
 			itr.remove();
 		}
+	}
+
+	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId) throws TwitterException {
+		final Twitter t = getAccount(account);
+		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
+		return fetchTwitterFeed(t, feed, sinceId);
+	}
+
+	public Tweet getTweet (final Account account, final long id) throws TwitterException {
+		final Twitter t = getAccount(account);
+		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
+		return convertTweet(t.showStatus(id));
+	}
+
+	public void post (final Account account, final String body, final long inReplyTo) throws TwitterException {
+		final Twitter t = getAccount(account);
+		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
+		final StatusUpdate s = new StatusUpdate(body);
+		if (inReplyTo > 0) s.setInReplyToStatusId(inReplyTo);
+		t.updateStatus(s);
 	}
 
 	private static TwitterFactory makeTwitterFactory (final Account account) {
@@ -118,6 +131,7 @@ public class TwitterProvider {
 		final String text = expandUrls(s.getText(), urls);
 
 		final List<Meta> metaBuilder = new ArrayList<Meta>();
+		if (s.getInReplyToStatusId() > 0) metaBuilder.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getInReplyToStatusId())));
 		addMedia(s, metaBuilder);
 		addHashtags(s, metaBuilder);
 		addMentions(s, metaBuilder);

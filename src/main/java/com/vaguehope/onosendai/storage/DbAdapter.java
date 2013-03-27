@@ -256,16 +256,31 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public Tweet getTweetDetails (final String tweetSid) {
+		return getTweetDetails(Integer.MIN_VALUE, tweetSid);
+	}
+
+	@Override
 	public Tweet getTweetDetails (final int columnId, final String tweetSid) {
 		if (!checkDbOpen()) return null;
 		Tweet ret = null;
 		Cursor c = null;
 		Cursor d = null;
 		try {
+			String selection;
+			String[] selectionArgs;
+			if (columnId > Integer.MIN_VALUE) {
+				selection = TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?";
+				selectionArgs = new String[] { String.valueOf(columnId), tweetSid };
+			}
+			else {
+				selection = TBL_TW_SID + "=?";
+				selectionArgs = new String[] { tweetSid };
+			}
+
 			c = this.mDb.query(true, TBL_TW,
 					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
-					TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?",
-					new String[] { String.valueOf(columnId), tweetSid },
+					selection, selectionArgs,
 					null, null, null, null);
 
 			if (c != null && c.moveToFirst()) {
