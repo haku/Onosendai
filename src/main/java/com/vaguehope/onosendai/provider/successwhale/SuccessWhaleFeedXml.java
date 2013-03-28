@@ -119,6 +119,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			else if ("fromuseravatar".equals(elementName)) {
 				this.currentItem.avatarUrl(this.currentText.toString());
 			}
+			else if ("inreplytostatusid".equals(elementName) && this.currentText.length() > 0) {
+				this.currentItem.meta(MetaType.INREPLYTO, this.currentText.toString());
+			}
 		}
 		else if (this.stack.size() == 6 && "link".equals(elementName)) {
 			if(this.stashedLinkExpandedUrl != null) {
@@ -142,7 +145,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.stashedLinkTitle = this.currentText.toString();
 				if (this.stashedFirstLinkTitle == null) this.stashedFirstLinkTitle = this.stashedLinkTitle;
 			}
-			else if ("preview".equals(elementName) || "media".equals(elementName)) {
+			else if ("preview".equals(elementName) || "media".equals(elementName)) { // TODO awaiting SW fix to make same.
 				this.currentItem.meta(MetaType.MEDIA, this.currentText.toString());
 			}
 		}
