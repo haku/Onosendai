@@ -69,7 +69,11 @@ public class TweetBuilder {
 	}
 
 	public TweetBuilder meta (final MetaType type, final String data) {
-		return meta(new Meta(type, data));
+		return meta(type, data, null);
+	}
+
+	public TweetBuilder meta (final MetaType type, final String data, final String title) {
+		return meta(new Meta(type, data, title));
 	}
 
 	public Tweet build () {

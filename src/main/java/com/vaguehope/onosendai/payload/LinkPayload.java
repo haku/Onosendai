@@ -3,7 +3,11 @@ package com.vaguehope.onosendai.payload;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.view.View;
+import android.widget.TextView;
 
+import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.EqualHelper;
@@ -11,19 +15,29 @@ import com.vaguehope.onosendai.util.EqualHelper;
 public class LinkPayload extends Payload {
 
 	private final String url;
+	private final String title;
 
 	public LinkPayload (final Tweet ownerTweet, final Meta meta) {
-		this(ownerTweet, meta.getData());
+		this(ownerTweet, meta.getData(), meta.getTitle());
 	}
 
 	public LinkPayload (final Tweet ownerTweet, final String url) {
+		this(ownerTweet, url, null);
+	}
+
+	public LinkPayload (final Tweet ownerTweet, final String url, final String title) {
 		super(ownerTweet, PayloadType.LINK);
 		this.url = url;
+		this.title = title != null ? title : url;
+	}
+
+	private boolean hasSubtext () {
+		return !this.title.equals(this.url);
 	}
 
 	@Override
 	public String getTitle () {
-		return this.url;
+		return this.title;
 	}
 
 	@Override
@@ -39,10 +53,27 @@ public class LinkPayload extends Payload {
 	}
 
 	@Override
+	public PayloadLayout getLayout () {
+		if (hasSubtext()) return PayloadLayout.TEXT_SUBTEXT;
+		return super.getLayout();
+	}
+
+	@Override
+	public PayloadRowView makeRowView (final View view) {
+		if (hasSubtext()) return new PayloadRowView((TextView) view.findViewById(R.id.txtMain), (TextView) view.findViewById(R.id.txtSubtext));
+		return super.makeRowView(view);
+	}
+
+	@Override
+	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader) {
+		super.applyTo(rowView, imageLoader);
+		if (hasSubtext()) rowView.setSecondaryText(this.url);
+	}
+
+	@Override
 	public int hashCode () {
 		return this.url.hashCode();
 	}
-
 
 	@Override
 	public boolean equals (final Object o) {

@@ -29,10 +29,10 @@ public final class PayloadUtils {
 
 	public static PayloadList extractPayload (final int columnId, final Tweet tweet) {
 		Set<Payload> set = new LinkedHashSet<Payload>();
+		convertMeta(columnId, tweet, set);
 		extractUrls(tweet, set);
 		extractHashTags(tweet, set);
 		extractMentions(columnId, tweet, set);
-		convertMeta(columnId, tweet, set);
 		List<Payload> sorted = new ArrayList<Payload>(set);
 		Collections.sort(sorted, Payload.TYPE_COMP);
 		return new PayloadList(sorted);
@@ -43,12 +43,7 @@ public final class PayloadUtils {
 		if (metas == null) return;
 		for (Meta meta : metas) {
 			Payload payload = metaToPayload(columnId, tweet, meta);
-			if (payload != null) {
-				ret.add(payload);
-			}
-			else {
-				LOG.e("Unknown meta type: %s", meta.getType());
-			}
+			if (payload != null) ret.add(payload);
 		}
 	}
 
@@ -62,7 +57,10 @@ public final class PayloadUtils {
 				return new MentionPayload(columnId, tweet, meta);
 			case URL:
 				return new LinkPayload(tweet, meta);
+			case INREPLYTO:
+				return null;
 			default:
+				LOG.e("Unknown meta type: %s", meta.getType());
 				return null;
 		}
 	}

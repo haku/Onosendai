@@ -21,7 +21,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 8;
+	private static final int DB_VERSION = 9;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -54,13 +54,22 @@ public class DbAdapter implements DbInterface {
 
 		@Override
 		public void onUpgrade (final SQLiteDatabase db, final int oldVersion, final int newVersion) {
-			this.log.w("Upgrading database from version %d to %d, which will destroy all old data.", oldVersion, newVersion);
-			db.execSQL("DROP INDEX IF EXISTS " + TBL_TM_INDEX);
-			db.execSQL("DROP TABLE IF EXISTS " + TBL_TM);
-			db.execSQL("DROP INDEX IF EXISTS " + TBL_TW_INDEX);
-			db.execSQL("DROP TABLE IF EXISTS " + TBL_TW);
-			db.execSQL("DROP TABLE IF EXISTS " + TBL_SC);
-			onCreate(db);
+			if (oldVersion < 8) {
+				this.log.w("Upgrading database from version %d to %d, which will destroy all old data.", oldVersion, newVersion);
+				db.execSQL("DROP INDEX IF EXISTS " + TBL_TM_INDEX);
+				db.execSQL("DROP TABLE IF EXISTS " + TBL_TM);
+				db.execSQL("DROP INDEX IF EXISTS " + TBL_TW_INDEX);
+				db.execSQL("DROP TABLE IF EXISTS " + TBL_TW);
+				db.execSQL("DROP TABLE IF EXISTS " + TBL_SC);
+				onCreate(db);
+			}
+			else {
+				this.log.w("Upgrading database from version %d to %d...", oldVersion, newVersion);
+				if (oldVersion < 9) {
+					this.log.w("Adding column %s...", TBL_TM_TITLE);
+					db.execSQL("ALTER TABLE " + TBL_TM + " ADD COLUMN " + TBL_TM_TITLE + " text;");
+				}
+			}
 		}
 
 	}
@@ -128,14 +137,16 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_TM_TWID = "twid";
 	private static final String TBL_TM_TYPE = "type";
 	private static final String TBL_TM_DATA = "data";
+	private static final String TBL_TM_TITLE = "title";
 
 	private static final String TBL_TM_CREATE = "create table " + TBL_TM + " ("
 			+ TBL_TM_ID + " integer primary key autoincrement,"
 			+ TBL_TM_TWID + " integer,"
 			+ TBL_TM_TYPE + " integer,"
 			+ TBL_TM_DATA + " text,"
+			+ TBL_TM_TITLE + " text,"
 			+ "FOREIGN KEY (" + TBL_TM_TWID + ") REFERENCES " + TBL_TW + " (" + TBL_TW_ID + ") ON DELETE CASCADE,"
-			+ "UNIQUE(" + TBL_TM_TWID + ", " + TBL_TM_TYPE + "," + TBL_TM_DATA + ") ON CONFLICT IGNORE"
+			+ "UNIQUE(" + TBL_TM_TWID + ", " + TBL_TM_TYPE + "," + TBL_TM_DATA + "," + TBL_TM_TITLE + ") ON CONFLICT IGNORE"
 			+ ");";
 
 	private static final String TBL_TM_INDEX = TBL_TM + "_idx";
@@ -181,6 +192,7 @@ public class DbAdapter implements DbInterface {
 						values.put(TBL_TM_TWID, uid);
 						values.put(TBL_TM_TYPE, meta.getType().getId());
 						values.put(TBL_TM_DATA, meta.getData());
+						if (meta.getTitle() != null) values.put(TBL_TM_TITLE, meta.getTitle());
 						this.mDb.insertWithOnConflict(TBL_TM, null, values, SQLiteDatabase.CONFLICT_IGNORE);
 					}
 				}
@@ -303,7 +315,7 @@ public class DbAdapter implements DbInterface {
 				List<Meta> metas = null;
 				try {
 					d = this.mDb.query(true, TBL_TM,
-							new String[] { TBL_TM_TYPE, TBL_TM_DATA },
+							new String[] { TBL_TM_TYPE, TBL_TM_DATA, TBL_TM_TITLE },
 							TBL_TM_TWID + "=?",
 							new String[] { String.valueOf(uid) },
 							null, null, null, null);
@@ -311,12 +323,14 @@ public class DbAdapter implements DbInterface {
 					if (d != null && d.moveToFirst()) {
 						final int colType = d.getColumnIndex(TBL_TM_TYPE);
 						final int colData = d.getColumnIndex(TBL_TM_DATA);
+						final int colTitle = d.getColumnIndex(TBL_TM_TITLE);
 
 						metas = new ArrayList<Meta>();
 						do {
 							final int typeId = d.getInt(colType);
 							final String data = d.getString(colData);
-							metas.add(new Meta(MetaType.parseId(typeId), data));
+							final String title = d.getString(colTitle);
+							metas.add(new Meta(MetaType.parseId(typeId), data, title));
 						}
 						while (d.moveToNext());
 					}

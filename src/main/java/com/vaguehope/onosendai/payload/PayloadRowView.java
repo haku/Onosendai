@@ -11,11 +11,15 @@ class PayloadRowView {
 	private final ImageView image;
 
 	public PayloadRowView (final TextView main) {
-		this(main, null);
+		this(main, null, null);
 	}
 
 	public PayloadRowView (final TextView main, final ImageView image) {
 		this(main, image, null);
+	}
+
+	public PayloadRowView (final TextView main, final TextView secondary) {
+		this(main, null, secondary);
 	}
 
 	public PayloadRowView (final TextView main, final ImageView image, final TextView secondary) {
@@ -37,6 +41,11 @@ class PayloadRowView {
 	public void setSecondaryText(final String text) {
 		if (this.secondary == null) return;
 		this.secondary.setText(text);
+		this.secondary.setVisibility(View.VISIBLE);
+	}
+
+	public void hideSecondary () {
+		this.secondary.setVisibility(View.GONE);
 	}
 
 	public ImageView getImage () {
