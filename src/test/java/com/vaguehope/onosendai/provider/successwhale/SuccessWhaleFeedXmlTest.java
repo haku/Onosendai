@@ -12,10 +12,16 @@ import com.vaguehope.onosendai.model.TweetList;
 public class SuccessWhaleFeedXmlTest {
 
 	@Test
+	public void itParsesAllTweets () throws Exception {
+		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(getClass().getResourceAsStream("/successwhale_tweets.xml"));
+		TweetList tweets = feed.getTweets();
+		assertEquals(3, tweets.count());
+	}
+
+	@Test
 	public void itParsesASimpleTweets () throws Exception {
 		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(getClass().getResourceAsStream("/successwhale_tweets.xml"));
 		TweetList tweets = feed.getTweets();
-		assertEquals(2, tweets.count());
 
 		Tweet t = tweets.getTweet(0);
 		assertEquals("first tweets message", t.getBody());
@@ -35,7 +41,6 @@ public class SuccessWhaleFeedXmlTest {
 	public void itPareseATweetWithLinkAndPreview () throws Exception {
 		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(getClass().getResourceAsStream("/successwhale_tweets.xml"));
 		TweetList tweets = feed.getTweets();
-		assertEquals(2, tweets.count());
 
 		Tweet t = tweets.getTweet(1);
 		assertEquals("DreamWorks tops compute-cycle record with 'The Croods' http://t.co/zG68KbAFDX", t.getBody());
@@ -53,6 +58,15 @@ public class SuccessWhaleFeedXmlTest {
 		Meta m1 = t.getMetas().get(1);
 		assertEquals(MetaType.URL, m1.getType());
 		assertEquals("http://www.computerworld.com/s/article/9237880/DreamWorks_tops_compute_cycle_record_with_The_Croods_", m1.getData());
+	}
+
+	@Test
+	public void itParsesARetweet () throws Exception {
+		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(getClass().getResourceAsStream("/successwhale_tweets.xml"));
+		TweetList tweets = feed.getTweets();
+
+		Tweet t = tweets.getTweet(2);
+		// TODO
 	}
 
 	@Test
