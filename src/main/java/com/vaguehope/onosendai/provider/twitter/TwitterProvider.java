@@ -65,6 +65,9 @@ public class TwitterProvider {
 		}
 	}
 
+	/**
+	 * TODO use a call back to return tweets progressively.
+	 */
 	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId) throws TwitterException {
 		final Twitter t = getAccount(account);
 		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
@@ -113,7 +116,6 @@ public class TwitterProvider {
 			LOG.i("Page %d of '%s' contains %d items.", page, feed.toString(), timelinePage.size());
 			if (timelinePage.size() < 1) break;
 			addTweetsToList(tweets, timelinePage);
-			if (timelinePage.size() < pageSize) break;
 			minId = minIdOf(minId, timelinePage);
 			page++;
 		}
