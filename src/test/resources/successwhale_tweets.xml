@@ -40,10 +40,44 @@
             <url>http://t.co/zG68KbAFDX</url>
             <expanded-url>http://www.computerworld.com/s/article/9237880/DreamWorks_tops_compute_cycle_record_with_The_Croods_</expanded-url>
             <title>computerworld.com/s/article/9237…</title>
-            <media>http://pbs.twimg.com/media/SDFLKsdflkjdfmG.jpg</media>
+            <preview>http://pbs.twimg.com/media/SDFLKsdflkjdfmG.jpg</preview>
             <indices type="array">
               <index type="integer">55</index>
               <index type="integer">77</index>
+            </indices>
+          </link>
+        </links>
+        <usernames type="array"/>
+        <hashtags type="array"/>
+      </content>
+    </item>
+    <item>
+      <service type="symbol">twitter</service>
+      <content>
+        <id type="integer">312304957304950224</id>
+        <time type="datetime">2013-03-27T18:41:33+00:00</time>
+        <retweetedbyuser>johndoe</retweetedbyuser>
+        <retweetedbyusername>John Doe</retweetedbyusername>
+        <originalposttime type="datetime">2013-03-27T18:12:36+00:00</originalposttime>
+        <isretweet type="boolean">true</isretweet>
+        <text>This tweet will be retweeted. http://t.co/123654789F</text>
+        <fromuser>CoolUser</fromuser>
+        <fromusername>Cool User</fromusername>
+        <fromuseravatar>http://si0.twimg.com/profile_images/0923849826/TW-Profile_normal.jpg</fromuseravatar>
+        <isreply type="boolean">false</isreply>
+        <numfavourited nil="true"/>
+        <numretweeted type="integer">424</numretweeted>
+        <numreplied nil="true"/>
+        <inreplytostatusid nil="true"/>
+        <inreplytouserid nil="true"/>
+        <links type="array">
+          <link>
+            <url>http://t.co/123654789F</url>
+            <expanded-url>http://example.com/cool</expanded-url>
+            <title>Link Title Goes Here</title>
+            <indices type="array">
+              <index type="integer">26</index>
+              <index type="integer">48</index>
             </indices>
           </link>
         </links>
