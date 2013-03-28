@@ -82,9 +82,15 @@ public class PayloadUtilsTest {
 		testHashTagExtraction("#foo123 A tweet with a tag.", "#foo123");
 	}
 
-	@Ignore("Not sure how to support this one.")
 	@Test
 	public void itDoesNotExtractNonTags () throws Exception {
+		testHashTagExtraction("#", new String[] {});
+		testHashTagExtraction("something #", new String[] {});
+	}
+
+	@Ignore("Not sure how to support this one.")
+	@Test
+	public void itDoesNotExtractNonTagsHard () throws Exception {
 		testHashTagExtraction("On the #16 bus", new String[] {});
 		testHashTagExtraction("#0", new String[] {});
 	}
