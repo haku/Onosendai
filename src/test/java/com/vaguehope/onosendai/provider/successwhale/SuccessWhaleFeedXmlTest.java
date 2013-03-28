@@ -23,6 +23,12 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals("some_user_name", t.getUsername());
 		assertEquals(1363646281L, t.getTime());
 		assertEquals("http://si0.twimg.com/profile_images/2344890405/af462a16c498087e4372cb6ac6aff134_normal.jpeg", t.getAvatarUrl());
+
+		assertEquals(1, t.getMetas().size());
+
+		Meta m0 = t.getMetas().get(0);
+		assertEquals(MetaType.INREPLYTO, m0.getType());
+		assertEquals("313783459384590224", m0.getData());
 	}
 
 	@Test
