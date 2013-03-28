@@ -133,7 +133,12 @@ public class TwitterProvider {
 		final String text = expandUrls(s.getText(), urls);
 
 		final List<Meta> metaBuilder = new ArrayList<Meta>();
-		if (s.getInReplyToStatusId() > 0) metaBuilder.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getInReplyToStatusId())));
+		if (s.getInReplyToStatusId() > 0) {
+			metaBuilder.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getInReplyToStatusId())));
+		}
+		else if (s.isRetweet() && s.getRetweetedStatus().getId() > 0) {
+			metaBuilder.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getRetweetedStatus().getId())));
+		}
 		addMedia(s, metaBuilder);
 		addHashtags(s, metaBuilder);
 		addMentions(s, metaBuilder);
