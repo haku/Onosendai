@@ -58,6 +58,7 @@ public class SuccessWhaleFeedXmlTest {
 		Meta m1 = t.getMetas().get(1);
 		assertEquals(MetaType.URL, m1.getType());
 		assertEquals("http://www.computerworld.com/s/article/9237880/DreamWorks_tops_compute_cycle_record_with_The_Croods_", m1.getData());
+		assertEquals("computerworld.com/s/article/9237…", m1.getTitle());
 	}
 
 	@Test
@@ -66,7 +67,18 @@ public class SuccessWhaleFeedXmlTest {
 		TweetList tweets = feed.getTweets();
 
 		Tweet t = tweets.getTweet(2);
-		// TODO
+
+		assertEquals(2, t.getMetas().size());
+
+		Meta m0 = t.getMetas().get(0);
+		assertEquals(MetaType.MENTION, m0.getType());
+		assertEquals("johndoe", m0.getData());
+		assertEquals("RT by @johndoe", m0.getTitle());
+
+		Meta m1 = t.getMetas().get(1);
+		assertEquals(MetaType.URL, m1.getType());
+		assertEquals("http://example.com/cool", m1.getData());
+		assertEquals("Link Title Goes Here", m1.getTitle());
 	}
 
 	@Test
@@ -91,6 +103,7 @@ public class SuccessWhaleFeedXmlTest {
 		Meta m1 = t.getMetas().get(1);
 		assertEquals(MetaType.URL, m1.getType());
 		assertEquals("http://m.bbc.co.uk/news/world-asia-21950139", m1.getData());
+		assertEquals("North Korea warns South president", m1.getTitle());
 	}
 
 	// TODO conversation entry.
@@ -112,6 +125,7 @@ public class SuccessWhaleFeedXmlTest {
 		Meta m0 = t.getMetas().get(0);
 		assertEquals(MetaType.URL, m0.getType());
 		assertEquals("http://apps.facebook.com/daily_photos_plus/y/the&other&args", m0.getData());
+		assertEquals("A Link with a Page Title", m0.getTitle());
 	}
 
 }

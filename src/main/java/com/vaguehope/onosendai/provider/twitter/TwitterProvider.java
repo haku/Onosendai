@@ -129,19 +129,21 @@ public class TwitterProvider {
 	}
 
 	private static Tweet convertTweet (final Status s) {
-		final URLEntity[] urls = mergeArrays(s.getURLEntities(), s.getMediaEntities());
-		final String text = expandUrls(s.getText(), urls);
+		final List<Meta> metas = new ArrayList<Meta>();
 
-		final List<Meta> metaBuilder = new ArrayList<Meta>();
+		final URLEntity[] urls = mergeArrays(s.getURLEntities(), s.getMediaEntities());
+		final String text = expandUrls(s.getText(), urls, metas);
+
 		if (s.getInReplyToStatusId() > 0) {
-			metaBuilder.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getInReplyToStatusId())));
+			metas.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getInReplyToStatusId())));
 		}
 		else if (s.isRetweet() && s.getRetweetedStatus().getId() > 0) {
-			metaBuilder.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getRetweetedStatus().getId())));
+			metas.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getRetweetedStatus().getId())));
 		}
-		addMedia(s, metaBuilder);
-		addHashtags(s, metaBuilder);
-		addMentions(s, metaBuilder);
+
+		addMedia(s, metas);
+		addHashtags(s, metas);
+		addMentions(s, metas);
 
 		// https://dev.twitter.com/docs/user-profile-images-and-banners
 
@@ -151,7 +153,7 @@ public class TwitterProvider {
 				text,
 				TimeUnit.MILLISECONDS.toSeconds(s.getCreatedAt().getTime()),
 				s.getUser().getProfileImageURLHttps(),
-				metaBuilder);
+				metas);
 	}
 
 	private static URLEntity[] mergeArrays (final URLEntity[]... urlss) {
@@ -169,15 +171,16 @@ public class TwitterProvider {
 		return ret;
 	}
 
-	private static String expandUrls (final String text, final URLEntity[] urls) {
+	private static String expandUrls (final String text, final URLEntity[] urls, final List<Meta> metas) {
 		if (urls == null || urls.length < 1) return text;
 
 		final StringBuilder bld = new StringBuilder();
 		for (int i = 0; i < urls.length; i++) {
 			final URLEntity url = urls[i];
 			if (url.getStart() < 0 || url.getEnd() > text.length()) return text; // All bets are off.
-			bld.append(text.substring(i == 0 ? 0 : urls[i - 1].getEnd(), url.getStart()))
-					.append(url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL());
+			final String fullUrl = url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL();
+			bld.append(text.substring(i == 0 ? 0 : urls[i - 1].getEnd(), url.getStart())).append(fullUrl);
+			metas.add(new Meta(MetaType.URL, fullUrl, url.getDisplayURL()));
 		}
 		bld.append(text.substring(urls[urls.length - 1].getEnd()));
 		final String expandedText = bld.toString();

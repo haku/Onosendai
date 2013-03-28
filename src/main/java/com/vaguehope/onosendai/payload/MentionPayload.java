@@ -24,6 +24,7 @@ public class MentionPayload extends Payload {
 
 	public MentionPayload (final int columnId, final Tweet ownerTweet, final Meta meta) {
 		this(columnId, ownerTweet, meta.getData());
+		this.titleCache = meta.getTitle();
 	}
 
 	public MentionPayload (final int columnId, final Tweet ownerTweet, final String screenName) {

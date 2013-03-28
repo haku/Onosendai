@@ -122,13 +122,17 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			else if ("inreplytostatusid".equals(elementName) && this.currentText.length() > 0) {
 				this.currentItem.meta(MetaType.INREPLYTO, this.currentText.toString());
 			}
+			else if ("retweetedbyuser".equals(elementName)) {
+				final String v = this.currentText.toString();
+				this.currentItem.meta(MetaType.MENTION, v, String.format("RT by @%s", v));
+			}
 		}
 		else if (this.stack.size() == 6 && "link".equals(elementName)) {
 			if(this.stashedLinkExpandedUrl != null) {
-				this.currentItem.meta(MetaType.URL, this.stashedLinkExpandedUrl);
+				this.currentItem.meta(MetaType.URL, this.stashedLinkExpandedUrl, this.stashedLinkTitle);
 			}
 			else if (this.stashedLinkUrl != null) {
-				this.currentItem.meta(MetaType.URL, this.stashedLinkUrl);
+				this.currentItem.meta(MetaType.URL, this.stashedLinkUrl, this.stashedLinkTitle);
 			}
 			this.stashedLinkUrl = null;
 			this.stashedLinkExpandedUrl = null;
