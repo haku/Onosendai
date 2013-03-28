@@ -145,7 +145,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.stashedLinkTitle = this.currentText.toString();
 				if (this.stashedFirstLinkTitle == null) this.stashedFirstLinkTitle = this.stashedLinkTitle;
 			}
-			else if ("preview".equals(elementName) || "media".equals(elementName)) { // TODO awaiting SW fix to make same.
+			else if ("preview".equals(elementName)) {
 				this.currentItem.meta(MetaType.MEDIA, this.currentText.toString());
 			}
 		}
