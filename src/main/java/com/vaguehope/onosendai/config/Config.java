@@ -17,8 +17,11 @@ import android.os.Environment;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.util.FileHelper;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class Config {
+
+	private static final LogWrapper LOG = new LogWrapper("CFG");
 
 	private final Map<String, Account> accounts;
 	private final List<Column> feeds;
@@ -124,6 +127,7 @@ public class Config {
 			String resource = colJson.getString("resource");
 			String refreshRaw = colJson.has("refresh") ? colJson.getString("refresh") : null;
 			int refreshIntervalMins = TimeParser.parseDuration(refreshRaw);
+			if (refreshIntervalMins < 1 && account != null) LOG.w("Column '%s' has invalid refresh interval: '%s'.", title, refreshRaw);
 			ret.add(new Column(id, title, account, resource, refreshIntervalMins));
 		}
 		return Collections.unmodifiableList(ret);
