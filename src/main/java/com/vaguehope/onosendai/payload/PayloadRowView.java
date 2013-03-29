@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.payload;
 
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -9,6 +10,7 @@ class PayloadRowView {
 	private final TextView main;
 	private final TextView secondary;
 	private final ImageView image;
+	private final Button[] buttons;
 
 	public PayloadRowView (final TextView main) {
 		this(main, null, null);
@@ -26,6 +28,14 @@ class PayloadRowView {
 		this.main = main;
 		this.secondary = secondary;
 		this.image = image;
+		this.buttons = null;
+	}
+
+	public PayloadRowView (final Button[] buttons) {
+		this.main = null;
+		this.secondary = null;
+		this.image = null;
+		this.buttons = buttons;
 	}
 
 	public void setText (final String text) {
@@ -50,6 +60,10 @@ class PayloadRowView {
 
 	public ImageView getImage () {
 		return this.image;
+	}
+
+	public Button[] getButtons () {
+		return this.buttons;
 	}
 
 }
