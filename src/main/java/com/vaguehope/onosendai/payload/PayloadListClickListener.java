@@ -8,7 +8,11 @@ import android.widget.Toast;
 
 public class PayloadListClickListener implements OnItemClickListener {
 
-	public PayloadListClickListener () {}
+	private final PayloadClickListener clickListener;
+
+	public PayloadListClickListener (final PayloadClickListener clickListener) {
+		this.clickListener = clickListener;
+	}
 
 	@Override
 	public void onItemClick (final AdapterView<?> parent, final View view, final int position, final long id) {
@@ -17,9 +21,16 @@ public class PayloadListClickListener implements OnItemClickListener {
 		if (payload.intentable()) {
 			parent.getContext().startActivity(payload.toIntent(parent.getContext()));
 		}
-		else {
+		else if (!this.clickListener.payloadClicked(payload)) {
 			Toast.makeText(parent.getContext(), "Do not know how to show: " + payload.getTitle(), Toast.LENGTH_LONG).show();
 		}
+	}
+
+	public interface PayloadClickListener {
+		/**
+		 * Return true if handled.
+		 */
+		boolean payloadClicked(Payload payload);
 	}
 
 }

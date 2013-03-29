@@ -42,8 +42,12 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.model.TweetListAdapter;
 import com.vaguehope.onosendai.payload.InReplyToLoaderTask;
+import com.vaguehope.onosendai.payload.InReplyToPayload;
+import com.vaguehope.onosendai.payload.Payload;
 import com.vaguehope.onosendai.payload.PayloadListAdapter;
 import com.vaguehope.onosendai.payload.PayloadListClickListener;
+import com.vaguehope.onosendai.payload.PayloadListClickListener.PayloadClickListener;
+import com.vaguehope.onosendai.payload.PayloadType;
 import com.vaguehope.onosendai.payload.PayloadUtils;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
@@ -145,7 +149,7 @@ public class TweetListFragment extends Fragment {
 		lstTweetPayload.addHeaderView(inflater.inflate(R.layout.tweetdetail, null));
 		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), this.imageLoader);
 		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
-		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener());
+		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(this.payloadClickListener));
 		this.txtTweetBody = (TextView) rootView.findViewById(R.id.tweetDetailBody);
 		this.imgTweetAvatar = (ImageView) rootView.findViewById(R.id.tweetDetailAvatar);
 		this.txtTweetName = (TextView) rootView.findViewById(R.id.tweetDetailName);
@@ -337,8 +341,20 @@ public class TweetListFragment extends Fragment {
 		}
 	};
 
+	private final PayloadClickListener payloadClickListener = new PayloadClickListener() {
+		@Override
+		public boolean payloadClicked (final Payload payload) {
+			if (payload.getType() == PayloadType.INREPLYTO) {
+				showTweetDetails(((InReplyToPayload) payload).getInReplyToTweet());
+				return true;
+			}
+			return false;
+		}
+	};
+
 	protected void showTweetDetails (final Tweet listTweet) {
-		final Tweet tweet = getDb().getTweetDetails(this.columnId, listTweet);
+		final Tweet dbTweet = getDb().getTweetDetails(this.columnId, listTweet);
+		final Tweet tweet = dbTweet != null ? dbTweet : listTweet;
 		this.txtTweetBody.setText(tweet.getBody());
 		if (tweet.getAvatarUrl() != null) this.imageLoader.loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), this.imgTweetAvatar));
 		this.txtTweetName.setText(tweet.getFullname());
