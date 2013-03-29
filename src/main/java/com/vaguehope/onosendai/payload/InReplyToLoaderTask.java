@@ -21,6 +21,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, InReplyToPayload
 	private final ProviderMgr provMgr;
 	private final DbInterface db;
 	private final PayloadListAdapter payloadListAdapter;
+	private final Payload placeholderPayload;
 
 	public InReplyToLoaderTask (final Account account, final Column column, final ProviderMgr provMgr, final DbInterface db, final PayloadListAdapter payloadListAdapter) {
 		this.account = account;
@@ -28,6 +29,12 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, InReplyToPayload
 		this.provMgr = provMgr;
 		this.db = db;
 		this.payloadListAdapter = payloadListAdapter;
+		this.placeholderPayload = new PlaceholderPayload(null, "Fetching conversation...");
+	}
+
+	@Override
+	protected void onPreExecute () {
+		this.payloadListAdapter.addItem(this.placeholderPayload);
 	}
 
 	@Override
@@ -65,8 +72,11 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, InReplyToPayload
 
 	@Override
 	protected void onPostExecute (final InReplyToPayload inReplyToPayload) {
-		if (inReplyToPayload == null) return;
-		this.payloadListAdapter.addItem(inReplyToPayload);
+		if (inReplyToPayload == null) {
+			this.payloadListAdapter.removeItem(this.placeholderPayload);
+			return;
+		}
+		this.payloadListAdapter.replaceItem(this.placeholderPayload, inReplyToPayload);
 		new InReplyToLoaderTask(this.account, this.column, this.provMgr, this.db, this.payloadListAdapter).execute(inReplyToPayload.getInReplyToTweet());
 	}
 

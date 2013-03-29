@@ -15,6 +15,17 @@ public class PayloadList {
 		this.payloads.add(payload);
 	}
 
+	void replaceItem(final Payload find, final Payload with) {
+		for (int i = 0; i < this.payloads.size(); i ++) {
+			if (find.equals(this.payloads.get(i))) this.payloads.set(i, with);
+		}
+	}
+
+	void removeItem (final Payload payload) {
+		this.payloads.remove(payload);
+	}
+
+
 	public int size () {
 		return this.payloads.size();
 	}
