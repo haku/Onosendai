@@ -12,10 +12,12 @@ public class PayloadListAdapter extends BaseAdapter {
 
 	private final LayoutInflater layoutInflater;
 	private final ImageLoader imageLoader;
+	private final PayloadClickListener clickListener;
 
 	private PayloadList listData;
 
-	public PayloadListAdapter (final Context context, final ImageLoader imageLoader) {
+	public PayloadListAdapter (final Context context, final ImageLoader imageLoader, final PayloadClickListener clickListener) {
+		this.clickListener = clickListener;
 		this.layoutInflater = LayoutInflater.from(context);
 		this.imageLoader = imageLoader;
 	}
@@ -85,7 +87,7 @@ public class PayloadListAdapter extends BaseAdapter {
 		else {
 			rowView = (PayloadRowView) view.getTag();
 		}
-		item.applyTo(rowView, this.imageLoader);
+		item.applyTo(rowView, this.imageLoader, this.clickListener);
 		return view;
 	}
 

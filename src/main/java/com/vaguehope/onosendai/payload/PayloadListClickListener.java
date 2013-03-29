@@ -26,11 +26,4 @@ public class PayloadListClickListener implements OnItemClickListener {
 		}
 	}
 
-	public interface PayloadClickListener {
-		/**
-		 * Return true if handled.
-		 */
-		boolean payloadClicked(Payload payload);
-	}
-
 }

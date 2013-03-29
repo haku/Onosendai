@@ -65,8 +65,8 @@ public class LinkPayload extends Payload {
 	}
 
 	@Override
-	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader) {
-		super.applyTo(rowView, imageLoader);
+	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final PayloadClickListener clickListener) {
+		super.applyTo(rowView, imageLoader, clickListener);
 		if (hasSubtext()) rowView.setSecondaryText(this.url);
 	}
 

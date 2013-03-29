@@ -33,6 +33,7 @@ public final class PayloadUtils {
 		extractUrls(tweet, set);
 		extractHashTags(tweet, set);
 		extractMentions(columnId, tweet, set);
+		set.add(new SharePayload(tweet)); // FIXME check if this is appropriate.
 		List<Payload> sorted = new ArrayList<Payload>(set);
 		Collections.sort(sorted, Payload.TYPE_COMP);
 		return new PayloadList(sorted);

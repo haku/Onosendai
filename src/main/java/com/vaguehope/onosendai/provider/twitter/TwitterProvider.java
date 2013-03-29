@@ -88,6 +88,12 @@ public class TwitterProvider {
 		t.updateStatus(s);
 	}
 
+	public void rt (final Account account, final long id) throws TwitterException {
+		final Twitter t = getAccount(account);
+		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
+		t.retweetStatus(id);
+	}
+
 	private static TwitterFactory makeTwitterFactory (final Account account) {
 		final ConfigurationBuilder cb = new ConfigurationBuilder()
 				.setOAuthConsumerKey(account.getConsumerKey())

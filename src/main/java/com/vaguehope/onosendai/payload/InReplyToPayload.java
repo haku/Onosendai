@@ -42,7 +42,7 @@ public class InReplyToPayload extends Payload {
 	}
 
 	@Override
-	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader) {
+	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final PayloadClickListener clickListener) {
 		rowView.setText(this.inReplyToTweet.getBody());
 		rowView.setSecondaryText(this.inReplyToTweet.getUsername() != null ? this.inReplyToTweet.getUsername() : this.inReplyToTweet.getFullname());
 

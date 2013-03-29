@@ -7,7 +7,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -44,12 +46,14 @@ import com.vaguehope.onosendai.model.TweetListAdapter;
 import com.vaguehope.onosendai.payload.InReplyToLoaderTask;
 import com.vaguehope.onosendai.payload.InReplyToPayload;
 import com.vaguehope.onosendai.payload.Payload;
+import com.vaguehope.onosendai.payload.PayloadClickListener;
 import com.vaguehope.onosendai.payload.PayloadListAdapter;
 import com.vaguehope.onosendai.payload.PayloadListClickListener;
-import com.vaguehope.onosendai.payload.PayloadListClickListener.PayloadClickListener;
 import com.vaguehope.onosendai.payload.PayloadType;
 import com.vaguehope.onosendai.payload.PayloadUtils;
 import com.vaguehope.onosendai.provider.ProviderMgr;
+import com.vaguehope.onosendai.provider.RtTask;
+import com.vaguehope.onosendai.provider.RtTask.RtRequest;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
@@ -147,7 +151,7 @@ public class TweetListFragment extends Fragment {
 
 		ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
 		lstTweetPayload.addHeaderView(inflater.inflate(R.layout.tweetdetail, null));
-		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), this.imageLoader);
+		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), this.imageLoader, this.payloadClickListener);
 		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
 		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(this.payloadClickListener));
 		this.txtTweetBody = (TextView) rootView.findViewById(R.id.tweetDetailBody);
@@ -194,6 +198,11 @@ public class TweetListFragment extends Fragment {
 
 	Config getConf () {
 		return this.conf;
+	}
+
+	private Account getColumnAccount () {
+		final Column column = this.conf.getColumnById(this.columnId);
+		return this.conf.getAccount(column.getAccountId());
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -280,12 +289,6 @@ public class TweetListFragment extends Fragment {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	protected void showPost () {
-		final Intent intent = new Intent(getActivity(), PostActivity.class);
-		intent.putExtra(PostActivity.ARG_COLUMN_ID, this.columnId);
-		startActivity(intent);
-	}
-
 	protected void scheduleRefresh (final boolean all) {
 		final Intent intent = new Intent(getActivity(), UpdateService.class);
 		intent.putExtra(UpdateService.ARG_IS_MANUAL, true);
@@ -342,6 +345,7 @@ public class TweetListFragment extends Fragment {
 	};
 
 	private final PayloadClickListener payloadClickListener = new PayloadClickListener() {
+
 		@Override
 		public boolean payloadClicked (final Payload payload) {
 			if (payload.getType() == PayloadType.INREPLYTO) {
@@ -350,6 +354,22 @@ public class TweetListFragment extends Fragment {
 			}
 			return false;
 		}
+
+		@Override
+		public void subviewClicked (final Payload payload, final int index) {
+			if (payload.getType() == PayloadType.SHARE) {
+				switch (index) {
+					case 0:
+						askRt(payload.getOwnerTweet());
+						break;
+					case 1:
+						showPost(payload.getOwnerTweet());
+						break;
+					default:
+				}
+			}
+		}
+
 	};
 
 	protected void showTweetDetails (final Tweet listTweet) {
@@ -366,14 +386,53 @@ public class TweetListFragment extends Fragment {
 	}
 
 	public void lookForInReplyTos (final Tweet tweet) {
-		Column column = this.conf.getColumnById(this.columnId);
-		Account account = this.conf.getAccount(column.getAccountId());
+		final Column column = this.conf.getColumnById(this.columnId);
+		final Account account = this.conf.getAccount(column.getAccountId());
 		new InReplyToLoaderTask(account, column, this.providerMgr, getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
 	}
 
 	protected void setReadLaterButton (final Tweet tweet, final boolean laterColumn) {
 		this.btnDetailsLater.setText(laterColumn ? R.string.btn_tweet_read : R.string.btn_tweet_later);
 		this.btnDetailsLater.setOnClickListener(new DetailsLaterClickListener(this, tweet, laterColumn));
+	}
+
+	protected void showPost () {
+		showPost(null);
+	}
+
+	protected void showPost (final Tweet tweetToQuote) {
+		final Intent intent = new Intent(getActivity(), PostActivity.class)
+				.putExtra(PostActivity.ARG_COLUMN_ID, this.columnId);
+		if (tweetToQuote != null) {
+			intent.putExtra(PostActivity.ARG_BODY,
+					String.format("RT @%s %s", tweetToQuote.getUsername(), tweetToQuote.getBody()));
+		}
+		startActivity(intent);
+	}
+
+	protected void askRt (final Tweet tweet) {
+		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
+		dlgBld.setMessage(String.format("RT @%s ?", tweet.getUsername()));
+
+		dlgBld.setPositiveButton("RT", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int which) {
+				doRt(tweet);
+			}
+		});
+
+		dlgBld.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(final DialogInterface dialog, final int whichButton) {
+				dialog.cancel();
+			}
+		});
+
+		dlgBld.show();
+	}
+
+	protected void doRt(final Tweet tweet) {
+		new RtTask(getActivity(), new RtRequest(getColumnAccount(), tweet)).execute();
 	}
 
 	private static class DetailsLaterClickListener implements OnClickListener {

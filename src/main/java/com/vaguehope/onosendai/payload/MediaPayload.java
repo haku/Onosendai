@@ -60,8 +60,8 @@ public class MediaPayload extends Payload {
 	}
 
 	@Override
-	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader) {
-		super.applyTo(rowView, imageLoader);
+	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final PayloadClickListener clickListener) {
+		super.applyTo(rowView, imageLoader, clickListener);
 		imageLoader.loadImage(new ImageLoadRequest(getUrl(), rowView.getImage(), new CaptionRemover(rowView)));
 	}
 

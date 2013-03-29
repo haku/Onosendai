@@ -7,7 +7,8 @@ public enum PayloadLayout {
 	TEXT_ONLY(0, R.layout.payloadlistrow),
 	TEXT_SUBTEXT(1, R.layout.payloadsubtextlistrow),
 	TEXT_IMAGE(2, R.layout.payloadmedialistrow),
-	TWEET(3, R.layout.tweetlistrow);
+	TWEET(3, R.layout.tweetlistrow),
+	SHARE(4, R.layout.payloadsharerow);
 
 	private final int index;
 	private final int layout;
