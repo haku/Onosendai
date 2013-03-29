@@ -17,6 +17,13 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content" />
 
+		<LinearLayout
+			android:id="@+id/llSubAccounts"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			android:visibility="gone" />
+
 		<include
 			android:id="@+id/tweetReplyToDetails"
 			android:layout_width="match_parent"

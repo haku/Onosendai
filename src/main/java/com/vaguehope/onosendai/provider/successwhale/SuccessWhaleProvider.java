@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.provider.successwhale;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -22,10 +23,23 @@ public class SuccessWhaleProvider {
 		this.accounts.putIfAbsent(account.getId(), s);
 	}
 
+	private SuccessWhale getAccount (final Account account) {
+		final SuccessWhale a = this.accounts.get(account.getId());
+		if (a != null) return a;
+		addAccount(account);
+		return this.accounts.get(account.getId());
+	}
+
 	public TweetList getTweets (final SuccessWhaleFeed feed, final Account account) throws SuccessWhaleException {
-		SuccessWhale sw = this.accounts.get(account.getId());
+		SuccessWhale sw = getAccount(account);
 		if (sw == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
 		return fetchSuccessWhaleFeed(sw, feed);
+	}
+
+	public List<PostToAccount> getPostToAccounts (final Account account) throws SuccessWhaleException {
+		SuccessWhale sw = getAccount(account);
+		if (sw == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
+		return sw.getPostToAccounts();
 	}
 
 	public void shutdown () {
