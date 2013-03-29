@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -33,6 +34,7 @@ public class SuccessWhale {
 	private static final String API_AUTH = "/v3/authenticate.json";
 	private static final String API_FEED = "/v3/feed.xml";
 	private static final String API_POSTTOACCOUNTS = "/v3/posttoaccounts.xml";
+	private static final String API_ITEM = "/v3/item";
 
 	private final LogWrapper log = new LogWrapper("SW");
 	private final Account account;
@@ -94,6 +96,32 @@ public class SuccessWhale {
 		}
 	}
 
+	public void post (final Set<PostToAccount> postToAccounts, final String body, final String inReplyToSid) throws SuccessWhaleException {
+		ensureAuthenticated();
+		try {
+			final HttpPost post = new HttpPost(BASE_URL + API_ITEM);
+			final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+			params.add(new BasicNameValuePair("sw_uid", this.auth.getUserid()));
+			params.add(new BasicNameValuePair("secret", this.auth.getSecret()));
+			params.add(new BasicNameValuePair("text", body));
+
+			StringBuilder accounts = new StringBuilder();
+			for (PostToAccount pta : postToAccounts) {
+				if (accounts.length() > 0) accounts.append(":");
+				accounts.append(pta.getService()).append("/").append(pta.getUid());
+			}
+			params.add(new BasicNameValuePair("accounts", accounts.toString()));
+
+			// TODO inReplyId
+
+			post.setEntity(new UrlEncodedFormEntity(params));
+			this.httpClientFactory.getHttpClient().execute(post, new PostHandler());
+		}
+		catch (final IOException e) {
+			throw new SuccessWhaleException(e.toString(), e);
+		}
+	}
+
 	private String makeAuthedUrl (final String api, final String... params) {
 		StringBuilder u = new StringBuilder().append(BASE_URL).append(api).append("?")
 				.append("sw_uid=").append(this.auth.getUserid())
@@ -108,7 +136,7 @@ public class SuccessWhale {
 
 	static void checkReponseCode (final StatusLine statusLine, final int code) throws IOException {
 		if (statusLine.getStatusCode() != code) {
-			throw new IOException("Server returned " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase());
+			throw new IOException("HTTP " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase());
 		}
 	}
 
@@ -164,6 +192,18 @@ public class SuccessWhale {
 			catch (final SAXException e) {
 				throw new IOException("Failed to parse response: " + e.toString(), e);
 			}
+		}
+
+	}
+
+	private class PostHandler implements ResponseHandler<Void> {
+
+		public PostHandler () {}
+
+		@Override
+		public Void handleResponse (final HttpResponse response) throws IOException {
+			checkReponseCode(response.getStatusLine(), 200);
+			return null;
 		}
 
 	}

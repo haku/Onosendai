@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.provider;
 
-import twitter4j.TwitterException;
+import java.util.Set;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -12,9 +13,14 @@ import android.support.v4.app.NotificationCompat;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.PostTask.PostResult;
+import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class PostTask extends AsyncTask<Void, Void, PostResult> {
+
+	private static final LogWrapper LOG = new LogWrapper("PT");
 
 	private final Context context;
 	private final PostRequest req;
@@ -45,6 +51,8 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 		switch (this.req.getAccount().getProvider()) {
 			case TWITTER:
 				return postTwitter();
+			case SUCCESSWHALE:
+				return postSuccessWhale();
 			default:
 				return new PostResult(this.req, new UnsupportedOperationException("Do not know how to post to account type: " + this.req.getAccount().toHumanString()));
 		}
@@ -53,11 +61,10 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 	private PostResult postTwitter () {
 		final TwitterProvider p = new TwitterProvider();
 		try {
-			p.addAccount(this.req.getAccount());
 			p.post(this.req.getAccount(), this.req.getBody(), Long.parseLong(this.req.getInReplyToSid()));
 			return new PostResult(this.req);
 		}
-		catch (TwitterException e) {
+		catch (Exception e) { // NOSONAR need to report all errors.
 			return new PostResult(this.req, e);
 		}
 		finally {
@@ -65,17 +72,33 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 		}
 	}
 
+	private PostResult postSuccessWhale() {
+		final SuccessWhaleProvider s = new SuccessWhaleProvider();
+		try {
+			s.post(this.req.getAccount(), this.req.getPostToAccounts(), this.req.getBody(), this.req.getInReplyToSid());
+			return new PostResult(this.req);
+		}
+		catch (Exception e) { // NOSONAR need to report all errors.
+			return new PostResult(this.req, e);
+		}
+		finally {
+			s.shutdown();
+		}
+	}
+
 	@Override
 	protected void onPostExecute (final PostResult res) {
 		if (!res.isSuccess()) {
+			LOG.w("Post failed: %s", res.getE());
 			PendingIntent contentIntent = PendingIntent.getActivity(this.context, 0, this.req.getRecoveryIntent(), 0);
 			Notification n = new NotificationCompat.Builder(this.context)
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
 					.setContentTitle(String.format("Tap to retry post to %s.", this.req.getAccount().toHumanString()))
-					.setContentText(res.getE().toString())
+					.setContentText(res.getE().getMessage())
 					.setContentIntent(contentIntent)
 					.setAutoCancel(true)
 					.setUsesChronometer(false)
+					.setWhen(System.currentTimeMillis())
 					.build();
 			this.notificationMgr.notify(this.notificationId, n);
 		}
@@ -87,12 +110,14 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 	public static class PostRequest {
 
 		private final Account account;
+		private final Set<PostToAccount> postToAccounts;
 		private final String body;
 		private final String inReplyToSid;
 		private final Intent recoveryIntent;
 
-		public PostRequest (final Account account, final String body, final String inReplyToSid, final Intent recoveryIntent) {
+		public PostRequest (final Account account, final Set<PostToAccount> postToAccounts, final String body, final String inReplyToSid, final Intent recoveryIntent) {
 			this.account = account;
+			this.postToAccounts = postToAccounts;
 			this.body = body;
 			this.inReplyToSid = inReplyToSid;
 			this.recoveryIntent = recoveryIntent;
@@ -100,6 +125,10 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 
 		public Account getAccount () {
 			return this.account;
+		}
+
+		public Set<PostToAccount> getPostToAccounts () {
+			return this.postToAccounts;
 		}
 
 		public String getBody () {

@@ -2,7 +2,12 @@ package com.vaguehope.onosendai.ui;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
@@ -12,6 +17,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -64,6 +70,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	protected AccountAdaptor accountAdaptor;
 	private Spinner spnAccount;
 	private EditText txtBody;
+	private final Map<PostToAccount, Boolean> enabledPostToAccounts = new HashMap<PostToAccount, Boolean>();
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -202,7 +209,8 @@ public class PostActivity extends Activity implements ImageLoader {
 		final Intent recoveryIntent = new Intent(getBaseContext(), PostActivity.class)
 				.putExtras(this.intentExtras)
 				.putExtra(ARG_BODY, body);
-		new PostTask(getBaseContext(), new PostRequest(account, body, this.inReplyToSid, recoveryIntent)).execute();
+		// TODO save enabled sub-accounts.
+		new PostTask(getBaseContext(), new PostRequest(account, getEnabledPostToAccounts(), body, this.inReplyToSid, recoveryIntent)).execute();
 		finish();
 	}
 
@@ -219,14 +227,20 @@ public class PostActivity extends Activity implements ImageLoader {
 	protected void accountSelected (final Account account) {
 		ViewGroup llSubAccounts = (ViewGroup) findViewById(R.id.llSubAccounts);
 		switch (account.getProvider()) {
-			case TWITTER:
-				llSubAccounts.setVisibility(View.GONE);
-				break;
 			case SUCCESSWHALE:
-				new SwPostToAccountLoaderTask(llSubAccounts).execute(account);
+				new SwPostToAccountLoaderTask(llSubAccounts, this.enabledPostToAccounts).execute(account);
 				break;
 			default:
+				llSubAccounts.setVisibility(View.GONE);
 		}
+	}
+
+	private Set<PostToAccount> getEnabledPostToAccounts() {
+		Set<PostToAccount> ret = new HashSet<PostToAccount>();
+		for (Entry<PostToAccount, Boolean> e : this.enabledPostToAccounts.entrySet()) {
+			if (e.getValue()) ret.add(e.getKey());
+		}
+		return ret;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -235,13 +249,16 @@ public class PostActivity extends Activity implements ImageLoader {
 	private static class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderResult> {
 
 		private final ViewGroup llSubAccounts;
+		private final Map<PostToAccount, Boolean> enabledSubAccounts;
 
-		public SwPostToAccountLoaderTask (final ViewGroup llSubAccounts) {
+		public SwPostToAccountLoaderTask (final ViewGroup llSubAccounts, final Map<PostToAccount, Boolean> enabledSubAccounts) {
 			this.llSubAccounts = llSubAccounts;
+			this.enabledSubAccounts = enabledSubAccounts;
 		}
 
 		@Override
 		protected void onPreExecute () {
+			this.enabledSubAccounts.clear();
 			this.llSubAccounts.removeAllViews();
 			final ProgressBar progressBar = new ProgressBar(this.llSubAccounts.getContext());
 			progressBar.setIndeterminate(true);
@@ -270,13 +287,15 @@ public class PostActivity extends Activity implements ImageLoader {
 		protected void onPostExecute (final AccountLoaderResult result) {
 			this.llSubAccounts.removeAllViews();
 			if (result.isSuccess()) {
-				for (PostToAccount pta : result.getAccounts()) {
+				for (final PostToAccount pta : result.getAccounts()) {
 					final View view = View.inflate(this.llSubAccounts.getContext(), R.layout.subaccountitem, null);
 					final ToggleButton btnEnableAccount = (ToggleButton) view.findViewById(R.id.btnEnableAccount);
 					final String displayName = pta.getDisplayName();
 					btnEnableAccount.setTextOn(displayName);
 					btnEnableAccount.setTextOff(displayName);
 					btnEnableAccount.setChecked(pta.isEnabled());
+					this.enabledSubAccounts.put(pta, pta.isEnabled());
+					btnEnableAccount.setOnClickListener(new SubAccountToggleListener(pta, this.enabledSubAccounts));
 					this.llSubAccounts.addView(view);
 				}
 			}
@@ -284,6 +303,23 @@ public class PostActivity extends Activity implements ImageLoader {
 				Toast.makeText(this.llSubAccounts.getContext(),
 						"Failed to fetch sub accounts: " + result.getE().toString(),
 						Toast.LENGTH_LONG).show();
+			}
+		}
+
+		private static class SubAccountToggleListener implements OnClickListener {
+
+			private final PostToAccount pta;
+			private final Map<PostToAccount, Boolean> enabledSubAccounts;
+
+			public SubAccountToggleListener (final PostToAccount pta, final Map<PostToAccount, Boolean> enabledSubAccounts) {
+				this.pta = pta;
+				this.enabledSubAccounts = enabledSubAccounts;
+			}
+
+			@Override
+			public void onClick (final View v) {
+				ToggleButton btn = (ToggleButton) v;
+				this.enabledSubAccounts.put(this.pta, btn.isChecked());
 			}
 		}
 
