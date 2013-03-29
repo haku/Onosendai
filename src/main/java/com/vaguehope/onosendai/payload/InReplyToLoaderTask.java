@@ -52,19 +52,21 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, InReplyToPayload
 		inReplyToTweet = this.db.getTweetDetails(inReplyToSid);
 		if (inReplyToTweet != null) return new InReplyToPayload(startingTweet, inReplyToTweet);
 
-		try {
-			switch (this.account.getProvider()) {
-				case TWITTER:
-					inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(this.account, Long.parseLong(inReplyToSid));
-					// TODO cache the tweet we just specifically fetched?
-					if (inReplyToTweet != null) return new InReplyToPayload(startingTweet, inReplyToTweet);
-				default:
-					// TODO fetch via other provider types?
+		if (this.account != null) {
+			try {
+				switch (this.account.getProvider()) {
+					case TWITTER:
+						inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(this.account, Long.parseLong(inReplyToSid));
+						// TODO cache the tweet we just specifically fetched?
+						if (inReplyToTweet != null) return new InReplyToPayload(startingTweet, inReplyToTweet);
+					default:
+						// TODO fetch via other provider types?
+				}
 			}
-		}
-		catch (TwitterException e) {
-			LOG.w("Failed to retrieve tweet %s: %s", inReplyToSid, e.toString());
-			return null;
+			catch (TwitterException e) {
+				LOG.w("Failed to retrieve tweet %s: %s", inReplyToSid, e.toString());
+				return null;
+			}
 		}
 
 		return null;
