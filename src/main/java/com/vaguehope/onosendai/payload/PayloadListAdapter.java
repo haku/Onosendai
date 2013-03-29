@@ -25,13 +25,23 @@ public class PayloadListAdapter extends BaseAdapter {
 		notifyDataSetChanged();
 	}
 
-	public void addItem (final Payload payload) {
+	public PayloadList getInputData () {
+		return this.listData;
+	}
+
+	void addItem (final Payload payload) {
 		this.listData.addItem(payload);
 		notifyDataSetChanged();
 	}
 
-	public PayloadList getInputData () {
-		return this.listData;
+	void replaceItem(final Payload find, final Payload with) {
+		this.listData.replaceItem(find, with);
+		notifyDataSetChanged();
+	}
+
+	void removeItem(final Payload payload) {
+		this.listData.removeItem(payload);
+		notifyDataSetChanged();
 	}
 
 	@Override
