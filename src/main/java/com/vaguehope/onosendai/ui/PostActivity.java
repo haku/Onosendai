@@ -1,21 +1,15 @@
 package com.vaguehope.onosendai.ui;
 
 import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -26,6 +20,7 @@ import android.widget.Toast;
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.config.AccountAdaptor;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.images.HybridBitmapCache;
@@ -201,76 +196,6 @@ public class PostActivity extends Activity implements ImageLoader {
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	private static class AccountAdaptor extends BaseAdapter {
-
-		private final LayoutInflater layoutInflater;
-		private final List<Account> accounts;
-
-		public AccountAdaptor (final Context context, final Config conf) {
-			this.layoutInflater = LayoutInflater.from(context);
-			this.accounts = new ArrayList<Account>(conf.getAccounts().values());
-		}
-
-		public int getAccountPosition (final Account account) {
-			return this.accounts.indexOf(account);
-		}
-
-		public Account getAccount (final int position) {
-			return this.accounts.get(position);
-		}
-
-		@Override
-		public int getCount () {
-			return this.accounts.size();
-		}
-
-		@Override
-		public Object getItem (final int position) {
-			return this.accounts.get(position);
-		}
-
-		@Override
-		public long getItemId (final int position) {
-			return position;
-		}
-
-		@Override
-		public View getView (final int position, final View convertView, final ViewGroup parent) {
-			View view = convertView;
-			RowView rowView;
-			if (view == null) {
-				view = this.layoutInflater.inflate(R.layout.accountlistrow, null);
-				rowView = new RowView(
-						(TextView) view.findViewById(R.id.txtMain)
-						);
-				view.setTag(rowView);
-			}
-			else {
-				rowView = (RowView) view.getTag();
-			}
-
-			Account account = this.accounts.get(position);
-			rowView.getMain().setText(String.format("%s (%s)", account.getProvider().toHumanString(), account.getId()));
-
-			return view;
-		}
-
-		private static class RowView {
-
-			private final TextView main;
-
-			public RowView (final TextView main) {
-				this.main = main;
-			}
-
-			public TextView getMain () {
-				return this.main;
-			}
-
-		}
-
-	}
 
 	private static class TextCounterWatcher implements TextWatcher {
 
