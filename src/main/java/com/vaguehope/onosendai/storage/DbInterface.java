@@ -21,6 +21,9 @@ public interface DbInterface {
 	void storeScroll(int columnId, ScrollState state);
 	ScrollState getScroll(int columnId);
 
+	void storeValue(String key, String value);
+	String getValue(String key);
+
 	interface TwUpdateListener {
 		void columnChanged(int columnId);
 	}

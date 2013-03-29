@@ -3,7 +3,7 @@ package com.vaguehope.onosendai.update;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,13 +42,17 @@ import com.vaguehope.onosendai.provider.twitter.TwitterFeed;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeeds;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbClient;
+import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class UpdateService extends IntentService {
 
 	public static final String ARG_COLUMN_ID = "column_id";
+	public static final String ARG_IS_MANUAL = "is_manual";
 
-	protected final LogWrapper log = new LogWrapper("US");
+	private static final String KEY_PREFIX_COL_LAST_REFRESH_TIME = "COL_LAST_REFRESH_TIME_";
+	protected static final LogWrapper LOG = new LogWrapper("US");
+
 	protected final CountDownLatch dbReadyLatch = new CountDownLatch(1);
 	private DbClient bndDb;
 
@@ -75,8 +79,9 @@ public class UpdateService extends IntentService {
 		wl.acquire();
 		try {
 			final int columnId = i.getExtras() != null ? i.getExtras().getInt(ARG_COLUMN_ID, -1) : -1;
-			this.log.i("UpdateService invoked (column_id=%d).", columnId);
-			doWork(columnId);
+			final boolean manual = i.getExtras() != null ? i.getExtras().getBoolean(ARG_IS_MANUAL) : false;
+			LOG.i("UpdateService invoked (column_id=%d, is_manual=%b).", columnId, manual);
+			doWork(columnId, manual);
 		}
 		finally {
 			wl.release();
@@ -86,19 +91,19 @@ public class UpdateService extends IntentService {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void connectDb () {
-		this.log.d("Binding DB service...");
-		this.bndDb = new DbClient(getApplicationContext(), this.log.getPrefix(), new Runnable() {
+		LOG.d("Binding DB service...");
+		this.bndDb = new DbClient(getApplicationContext(), LOG.getPrefix(), new Runnable() {
 			@Override
 			public void run () {
 				UpdateService.this.dbReadyLatch.countDown();
-				UpdateService.this.log.d("DB service bound.");
+				LOG.d("DB service bound.");
 			}
 		});
 	}
 
 	private void disconnectDb () {
 		this.bndDb.dispose();
-		this.log.d("DB service rebound.");
+		LOG.d("DB service rebound.");
 	}
 
 	private boolean waitForDbReady () {
@@ -108,55 +113,73 @@ public class UpdateService extends IntentService {
 		}
 		catch (InterruptedException e) {/**/}
 		if (!dbReady) {
-			this.log.e("Not updateing: Time out waiting for DB service to connect.");
+			LOG.e("Not updateing: Time out waiting for DB service to connect.");
 		}
 		return dbReady;
 	}
 
+	protected DbInterface getDb () {
+		final DbClient d = this.bndDb;
+		if (d == null) return null;
+		return d.getDb();
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private void doWork (final int columnId) {
+	private void doWork (final int columnId, final boolean manual) {
 		if (connectionPresent()) {
-			fetchColumns(columnId);
+			fetchColumns(columnId, manual);
 		}
 		else {
-			this.log.i("No connection, all updating aborted.");
+			LOG.i("No connection, all updating aborted.");
 		}
 	}
 
-	private void fetchColumns (final int columnId) {
+	private void fetchColumns (final int columnId, final boolean manual) {
 		Config conf;
 		try {
 			conf = new Config();
 		}
 		catch (IOException e) {
-			this.log.w("Can not update: %s", e.toString());
+			LOG.w("Can not update: %s", e.toString());
 			return;
 		}
 		catch (JSONException e) {
-			this.log.w("Can not update: %s", e.toString());
+			LOG.w("Can not update: %s", e.toString());
 			return;
 		}
 
 		final ProviderMgr providerMgr = new ProviderMgr();
 		try {
-			fetchColumns(conf, columnId, providerMgr);
+			fetchColumns(conf, columnId, manual, providerMgr);
 		}
 		finally {
 			providerMgr.shutdown();
 		}
 	}
 
-	private void fetchColumns (final Config conf, final int columnId, final ProviderMgr providerMgr) {
+	private void fetchColumns (final Config conf, final int columnId, final boolean manual, final ProviderMgr providerMgr) {
 		final long startTime = System.nanoTime();
 
-		Collection<Column> columns;
+		final Collection<Column> columns = new ArrayList<Column>();
 		if (columnId >= 0) {
-			columns = Collections.singleton(conf.getColumnById(columnId));
+			columns.add(conf.getColumnById(columnId));
 		}
 		else {
-			columns = remoteNonFetchable(conf.getColumns());
+			columns.addAll(removeNotFetchable(conf.getColumns()));
 		}
+
+		if (!manual) {
+			if (!waitForDbReady()) return;
+			removeNotDue(columns);
+		}
+		// For now treating the configured interval as an 'attempt rate' not 'success rate' so write update time now.
+		final long now = System.currentTimeMillis();
+		for (final Column column : columns) {
+			getDb().storeValue(KEY_PREFIX_COL_LAST_REFRESH_TIME + column.getId(), String.valueOf(now));
+		}
+
+		LOG.i("Updating columns: %s.", Column.titles(columns));
 
 		if (columns.size() >= C.MIN_COLUMS_TO_USE_THREADPOOL) {
 			fetchColumnsMultiThread(conf, providerMgr, columns);
@@ -166,15 +189,28 @@ public class UpdateService extends IntentService {
 		}
 
 		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-		this.log.i("Fetched %d columns in %d millis.", columns.size(), durationMillis);
+		LOG.i("Fetched %d columns in %d millis.", columns.size(), durationMillis);
 	}
 
-	private static Collection<Column> remoteNonFetchable (final Collection<Column> columns) {
+	private static Collection<Column> removeNotFetchable (final Collection<Column> columns) {
 		List<Column> ret = new ArrayList<Column>();
 		for (Column column : columns) {
 			if (column.getAccountId() != null) ret.add(column);
 		}
 		return ret;
+	}
+
+	private void removeNotDue (final Collection<Column> columns) {
+		final Iterator<Column> colItr = columns.iterator();
+		final long now = System.currentTimeMillis();
+		while (colItr.hasNext()) {
+			final Column column = colItr.next();
+			final String lastTimeRaw = getDb().getValue(KEY_PREFIX_COL_LAST_REFRESH_TIME + column.getId());
+			if (lastTimeRaw == null) continue;
+			final long lastTime = Long.parseLong(lastTimeRaw);
+			if (lastTime <= 0L) continue;
+			if (now - lastTime < TimeUnit.MINUTES.toMillis(column.getRefreshIntervalMins())) colItr.remove();
+		}
 	}
 
 	private void fetchColumnsSingleThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns) {
@@ -185,7 +221,7 @@ public class UpdateService extends IntentService {
 
 	private void fetchColumnsMultiThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns) {
 		int poolSize = Math.min(columns.size(), C.MAX_THREAD_POOL_SIZE);
-		this.log.i("Using thread pool size %d for %d columns.", poolSize, columns.size());
+		LOG.i("Using thread pool size %d for %d columns.", poolSize, columns.size());
 		ExecutorService ex = Executors.newFixedThreadPool(poolSize);
 		try {
 			Map<Column, Future<Void>> jobs = new LinkedHashMap<Column, Future<Void>>();
@@ -197,10 +233,10 @@ public class UpdateService extends IntentService {
 					job.getValue().get();
 				}
 				catch (InterruptedException e) {
-					this.log.w("Error fetching column '%s': %s %s", job.getKey().getTitle(), e.getClass().getName(), e.toString());
+					LOG.w("Error fetching column '%s': %s %s", job.getKey().getTitle(), e.getClass().getName(), e.toString());
 				}
 				catch (ExecutionException e) {
-					this.log.w("Error fetching column '%s': %s %s", job.getKey().getTitle(), e.getClass().getName(), e.toString());
+					LOG.w("Error fetching column '%s': %s %s", job.getKey().getTitle(), e.getClass().getName(), e.toString());
 				}
 			}
 		}
@@ -235,7 +271,7 @@ public class UpdateService extends IntentService {
 		final long startTime = System.nanoTime();
 		final Account account = conf.getAccount(column.getAccountId());
 		if (account == null) {
-			this.log.e("Unknown acountId: '%s'.", column.getAccountId());
+			LOG.e("Unknown acountId: '%s'.", column.getAccountId());
 			return;
 		}
 		switch (account.getProvider()) {
@@ -247,17 +283,17 @@ public class UpdateService extends IntentService {
 					if (!waitForDbReady()) return;
 
 					long sinceId = -1;
-					List<Tweet> existingTweets = this.bndDb.getDb().getTweets(column.getId(), 1);
+					List<Tweet> existingTweets = getDb().getTweets(column.getId(), 1);
 					if (existingTweets.size() > 0) sinceId = Long.parseLong(existingTweets.get(existingTweets.size() - 1).getSid());
 
 					TweetList tweets = twitterProvider.getTweets(feed, account, sinceId);
-					this.bndDb.getDb().storeTweets(column, tweets.getTweets());
+					getDb().storeTweets(column, tweets.getTweets());
 
 					long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
+					LOG.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
 				}
 				catch (TwitterException e) {
-					this.log.w("Failed to fetch from Twitter: %s", e.toString());
+					LOG.w("Failed to fetch from Twitter: %s", e.toString());
 				}
 				break;
 			case SUCCESSWHALE:
@@ -268,17 +304,17 @@ public class UpdateService extends IntentService {
 					if (!waitForDbReady()) return;
 
 					TweetList tweets = successWhaleProvider.getTweets(feed, account);
-					this.bndDb.getDb().storeTweets(column, tweets.getTweets());
+					getDb().storeTweets(column, tweets.getTweets());
 
 					long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-					this.log.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
+					LOG.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
 				}
 				catch (SuccessWhaleException e) {
-					this.log.w("Failed to fetch from SuccessWhale: %s", e.toString());
+					LOG.w("Failed to fetch from SuccessWhale: %s", e.toString());
 				}
 				break;
 			default:
-				this.log.e("Unknown account type: %s", account.getProvider());
+				LOG.e("Unknown account type: %s", account.getProvider());
 		}
 	}
 
