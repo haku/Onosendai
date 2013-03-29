@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -31,6 +32,7 @@ public class SuccessWhale {
 	private static final String BASE_URL = "https://api.successwhale.com:443";
 	private static final String API_AUTH = "/v3/authenticate.json";
 	private static final String API_FEED = "/v3/feed.xml";
+	private static final String API_POSTTOACCOUNTS = "/v3/posttoaccounts.xml";
 
 	private final LogWrapper log = new LogWrapper("SW");
 	private final Account account;
@@ -63,7 +65,7 @@ public class SuccessWhale {
 			params.add(new BasicNameValuePair("username", username));
 			params.add(new BasicNameValuePair("password", password));
 			post.setEntity(new UrlEncodedFormEntity(params));
-			this.auth = this.httpClientFactory.getHttpClient().execute(post, new SuccessWhaleAuthHandler());
+			this.auth = this.httpClientFactory.getHttpClient().execute(post, new AuthHandler());
 			this.log.i("Authenticated username='%s' userid='%s'.", username, this.auth.getUserid());
 		}
 		catch (final IOException e) {
@@ -74,16 +76,34 @@ public class SuccessWhale {
 	public TweetList getFeed (final SuccessWhaleFeed feed) throws SuccessWhaleException {
 		ensureAuthenticated();
 		try {
-			final StringBuilder url = new StringBuilder();
-			url.append(BASE_URL).append(API_FEED).append("?")
-					.append("sw_uid=").append(this.auth.getUserid())
-					.append("&secret=").append(this.auth.getSecret())
-					.append("&sources=").append(URLEncoder.encode(feed.getSources(), "UTF-8"));
-			return this.httpClientFactory.getHttpClient().execute(new HttpGet(url.toString()), new SuccessWhaleFeedHandler());
+			String url = makeAuthedUrl(API_FEED, "&sources=", URLEncoder.encode(feed.getSources(), "UTF-8"));
+			return this.httpClientFactory.getHttpClient().execute(new HttpGet(url), new FeedHandler());
 		}
 		catch (final IOException e) {
 			throw new SuccessWhaleException("Failed to fetch feed '" + feed.toString() + "': " + e.toString(), e); // FIXME does feed have good toString()?
 		}
+	}
+
+	public List<PostToAccount> getPostToAccounts () throws SuccessWhaleException {
+		ensureAuthenticated();
+		try {
+			return this.httpClientFactory.getHttpClient().execute(new HttpGet(makeAuthedUrl(API_POSTTOACCOUNTS)), new PostToAccountsHandler());
+		}
+		catch (final IOException e) {
+			throw new SuccessWhaleException("Failed to fetch post to accounts: " + e.toString(), e);
+		}
+	}
+
+	private String makeAuthedUrl (final String api, final String... params) {
+		StringBuilder u = new StringBuilder().append(BASE_URL).append(api).append("?")
+				.append("sw_uid=").append(this.auth.getUserid())
+				.append("&secret=").append(this.auth.getSecret());
+		if (params != null) {
+			for (String param : params) {
+				u.append(param);
+			}
+		}
+		return u.toString();
 	}
 
 	static void checkReponseCode (final StatusLine statusLine, final int code) throws IOException {
@@ -92,9 +112,9 @@ public class SuccessWhale {
 		}
 	}
 
-	private class SuccessWhaleAuthHandler implements ResponseHandler<SuccessWhaleAuth> {
+	private class AuthHandler implements ResponseHandler<SuccessWhaleAuth> {
 
-		public SuccessWhaleAuthHandler () {}
+		public AuthHandler () {}
 
 		@Override
 		public SuccessWhaleAuth handleResponse (final HttpResponse response) throws IOException {
@@ -114,9 +134,26 @@ public class SuccessWhale {
 
 	}
 
-	private class SuccessWhaleFeedHandler implements ResponseHandler<TweetList> {
+	private class PostToAccountsHandler implements ResponseHandler<List<PostToAccount>> {
 
-		public SuccessWhaleFeedHandler () {}
+		public PostToAccountsHandler () {}
+
+		@Override
+		public List<PostToAccount> handleResponse (final HttpResponse response) throws ClientProtocolException, IOException {
+			checkReponseCode(response.getStatusLine(), 200);
+			try {
+				return new PostToAccountsXml(response.getEntity().getContent()).getAccounts();
+			}
+			catch (final SAXException e) {
+				throw new IOException("Failed to parse response: " + e.toString(), e);
+			}
+		}
+
+	}
+
+	private class FeedHandler implements ResponseHandler<TweetList> {
+
+		public FeedHandler () {}
 
 		@Override
 		public TweetList handleResponse (final HttpResponse response) throws IOException {
