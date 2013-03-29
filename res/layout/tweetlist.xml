@@ -71,7 +71,6 @@
 				android:layout_height="40dip"
 				android:textSize="16sp"
 				android:layout_weight="1"
-				android:textColor="@android:color/primary_text_dark"
 				style="?android:attr/buttonBarButtonStyle" />
 
 			<Button
