@@ -21,7 +21,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 9;
+	private static final int DB_VERSION = 10;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -50,6 +50,8 @@ public class DbAdapter implements DbInterface {
 			db.execSQL(TBL_TM_CREATE);
 			db.execSQL(TBL_TM_CREATE_INDEX);
 			db.execSQL(TBL_SC_CREATE);
+			db.execSQL(TBL_KV_CREATE);
+			db.execSQL(TBL_KV_CREATE_INDEX);
 		}
 
 		@Override
@@ -68,6 +70,12 @@ public class DbAdapter implements DbInterface {
 				if (oldVersion < 9) {
 					this.log.w("Adding column %s...", TBL_TM_TITLE);
 					db.execSQL("ALTER TABLE " + TBL_TM + " ADD COLUMN " + TBL_TM_TITLE + " text;");
+				}
+				if (oldVersion < 10) {
+					this.log.w("Creating table %s...", TBL_KV);
+					db.execSQL(TBL_KV_CREATE);
+					this.log.w("Creating index %s...", TBL_KV_INDEX);
+					db.execSQL(TBL_KV_CREATE_INDEX);
 				}
 			}
 		}
@@ -425,6 +433,62 @@ public class DbAdapter implements DbInterface {
 		}
 
 		this.log.d("Read scroll for col %d: %s", columnId, ret);
+		return ret;
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private static final String TBL_KV = "kv";
+	private static final String TBL_KV_ID = "_id";
+	private static final String TBL_KV_KEY = "key";
+	private static final String TBL_KV_VAL = "val";
+
+	private static final String TBL_KV_CREATE = "create table " + TBL_KV + " ("
+			+ TBL_KV_ID + " integer primary key autoincrement,"
+			+ TBL_KV_KEY + " text,"
+			+ TBL_KV_VAL + " text,"
+			+ "UNIQUE(" + TBL_KV_KEY + ") ON CONFLICT REPLACE" +
+			");";
+
+	private static final String TBL_KV_INDEX = TBL_KV + "_idx";
+	private static final String TBL_KV_CREATE_INDEX = "CREATE INDEX " + TBL_KV_INDEX + " ON " + TBL_KV + "(" + TBL_KV_KEY + ");";
+
+	@Override
+	public void storeValue (final String key, final String value) {
+		this.mDb.beginTransaction();
+		try {
+			final ContentValues values = new ContentValues();
+			values.put(TBL_KV_KEY, key);
+			values.put(TBL_KV_VAL, value);
+			this.mDb.insertWithOnConflict(TBL_KV, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+		this.log.d("Stored KV: '%s' = '%s'.", key, value);
+	}
+
+	@Override
+	public String getValue (final String key) {
+		if (!checkDbOpen()) return null;
+		String ret = null;
+		Cursor c = null;
+		try {
+			c = this.mDb.query(true, TBL_KV,
+					new String[] { TBL_KV_VAL },
+					TBL_KV_KEY + "=?", new String[] { key },
+					null, null, null, null);
+
+			if (c != null && c.moveToFirst()) {
+				final int colVal = c.getColumnIndex(TBL_KV_VAL);
+				ret = c.getString(colVal);
+			}
+		}
+		finally {
+			if (c != null) c.close();
+		}
+		this.log.d("Read KV: '%s' = '%s'.", key, ret);
 		return ret;
 	}
 

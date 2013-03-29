@@ -106,5 +106,15 @@ public class DbService extends Service implements DbInterface {
 		return this.dbAdaptor.getScroll(columnId);
 	}
 
+	@Override
+	public String getValue (final String key) {
+		return this.dbAdaptor.getValue(key);
+	}
+
+	@Override
+	public void storeValue (final String key, final String value) {
+		this.dbAdaptor.storeValue(key, value);
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }

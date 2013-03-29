@@ -122,8 +122,9 @@ public class Config {
 			String title = colJson.getString("title");
 			String account = colJson.has("account") ? colJson.getString("account") : null;
 			String resource = colJson.getString("resource");
-			String refresh = colJson.has("refresh") ? colJson.getString("refresh") : null;
-			ret.add(new Column(id, title, account, resource, refresh));
+			String refreshRaw = colJson.has("refresh") ? colJson.getString("refresh") : null;
+			int refreshIntervalMins = TimeParser.parseDuration(refreshRaw);
+			ret.add(new Column(id, title, account, resource, refreshIntervalMins));
 		}
 		return Collections.unmodifiableList(ret);
 	}

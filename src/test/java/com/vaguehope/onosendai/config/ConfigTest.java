@@ -70,21 +70,21 @@ public class ConfigTest {
 		assertEquals("main", c0.getTitle());
 		assertEquals("t0", c0.getAccountId());
 		assertEquals("timeline", c0.getResource());
-		assertEquals("15min", c0.getRefresh());
+		assertEquals(15, c0.getRefreshIntervalMins());
 
 		Column c1 = cs.get(1);
 		assertEquals(1, c1.getId());
 		assertEquals("my list", c1.getTitle());
 		assertEquals("t0", c1.getAccountId());
 		assertEquals("lists/mylist", c1.getResource());
-		assertEquals("15min", c1.getRefresh());
+		assertEquals(15, c1.getRefreshIntervalMins());
 
 		Column c2 = cs.get(2);
 		assertEquals(2, c2.getId());
 		assertEquals("reading list", c2.getTitle());
 		assertEquals(null, c2.getAccountId());
 		assertEquals("later", c2.getResource());
-		assertEquals(null, c2.getRefresh());
+		assertEquals(0, c2.getRefreshIntervalMins());
 	}
 
 	private String fixture (final String path) throws IOException {

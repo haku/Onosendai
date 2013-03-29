@@ -1,29 +1,27 @@
-Onosendai - A better deck
+Onosendai - A Better Deck
 =========================
 
-A multi-column Twitter client with a focus on list support.
+A multi-column Twitter client.
 
 Features
 --------
 
-* Background tweet fetching (currently fixed 15 min interval).
-* Home timeline, mentions, personal timeline, and lists can all be columns.
+* Timelines, mentions, and lists can all be columns.
 * Read Later column: any tweet can be saved locally for reading later.
+* Background feed fetching and caching.
 * Configured via JSON file on the file system.
-* Currently can only read, not write (its a work in progress).
 
 Supported Services
 ------------------
 
-Currently only Twitter columns are supported.
-SuccessWhale integration is in progress but currently incomplete.
+* Twitter columns are supported directly (bring your own API key).
+* Twitter and Facebook columns via [SuccessWhale](successwhale.com) (work in progress).
 
 Configuration
 -------------
 
-All configuration is stored in `deck.conf` file that lives in the root
-of the external storage device, typically `/sdcard/deck.conf`.
-If this file does not exist it will created when the UI is launched.
+All configuration is stored in `deck.conf` file that lives in the root of the external storage device, typically `/sdcard/deck.conf`.
+If this file does not exist a template will be created for you to edit when the UI is launched.
 
 ### Example config
 
@@ -59,7 +57,7 @@ If you remove a column it may be best not to reuse the ID as new content will be
       "title": "My World",
       "account": "t0",
       "resource": "timeline",
-      "refresh": "15min"
+      "refresh": "30min"
     }, {
       "id": 2,
       "title": "About Me",
@@ -71,7 +69,7 @@ If you remove a column it may be best not to reuse the ID as new content will be
       "title": "My Tweets",
       "account": "t0",
       "resource": "me",
-      "refresh": "15min"
+      "refresh": "1hour"
     }, {
       "id": 4,
       "title": "My List",
@@ -93,7 +91,7 @@ If you remove a column it may be best not to reuse the ID as new content will be
       "title": "Facebook Home",
       "account": "sw0",
       "resource": "facebook/123456789/me/home",
-      "refresh": "15min"
+      "refresh": "30min"
     }
   ]
 }
@@ -101,7 +99,9 @@ If you remove a column it may be best not to reuse the ID as new content will be
 
 ### Background refreshing
 
-Currently all lists will always background refresh on a 15 min time, regardless what the config says.
+The background refresh service will check approximately every 15 minutes for columns that need refreshing.
+Keep this in mind when choosing refresh times.  The following are examples of valid values:
+`15min`, `30mins`, `1hour`, `3hours`, `2hour30mins`.
 
 License
 -------

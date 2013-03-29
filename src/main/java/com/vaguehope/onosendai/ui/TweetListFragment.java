@@ -282,16 +282,14 @@ public class TweetListFragment extends Fragment {
 		startActivity(intent);
 	}
 
-	protected void scheduleRefreshAll () {
-		getActivity().startService(new Intent(getActivity(), UpdateService.class));
-		Toast.makeText(getActivity(), "Refresh all columns requested.", Toast.LENGTH_SHORT).show();
-	}
-
-	protected void scheduleRefreshColumn () {
+	protected void scheduleRefresh (final boolean all) {
 		final Intent intent = new Intent(getActivity(), UpdateService.class);
-		intent.putExtra(UpdateService.ARG_COLUMN_ID, this.columnId);
+		intent.putExtra(UpdateService.ARG_IS_MANUAL, true);
+		if (!all) intent.putExtra(UpdateService.ARG_COLUMN_ID, this.columnId);
 		getActivity().startService(intent);
-		Toast.makeText(getActivity(), "Refresh column requested.", Toast.LENGTH_SHORT).show();
+
+		final String msg = all ? "Refresh all columns requested." : "Refresh column requested.";
+		Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -321,10 +319,10 @@ public class TweetListFragment extends Fragment {
 					showPost();
 					return true;
 				case R.id.mnuRefreshColumnNow:
-					scheduleRefreshColumn();
+					scheduleRefresh(false);
 					return true;
 				case R.id.mnuRefreshAllNow:
-					scheduleRefreshAll();
+					scheduleRefresh(true);
 					return true;
 				default:
 					return false;
