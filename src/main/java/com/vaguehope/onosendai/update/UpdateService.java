@@ -176,6 +176,7 @@ public class UpdateService extends IntentService {
 		// For now treating the configured interval as an 'attempt rate' not 'success rate' so write update time now.
 		final long now = System.currentTimeMillis();
 		for (final Column column : columns) {
+			if (!waitForDbReady()) return;
 			getDb().storeValue(KEY_PREFIX_COL_LAST_REFRESH_TIME + column.getId(), String.valueOf(now));
 		}
 
