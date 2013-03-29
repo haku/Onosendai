@@ -1,5 +1,9 @@
 package com.vaguehope.onosendai.provider.successwhale;
 
+import java.util.Arrays;
+
+import com.vaguehope.onosendai.util.EqualHelper;
+
 public class PostToAccount {
 
 	private final String service;
@@ -35,6 +39,32 @@ public class PostToAccount {
 		if (this.uid != null && !this.uid.isEmpty()) return this.uid;
 		if (this.service != null && !this.service.isEmpty()) return this.service;
 		return "(unknown)";
+	}
+
+	@Override
+	public String toString () {
+		return new StringBuilder("PostToAccount{").append(this.service)
+				.append(",").append(this.username)
+				.append(",").append(this.uid)
+				.append(",").append(this.enabled)
+				.append("}").toString();
+	}
+
+	@Override
+	public int hashCode () {
+		return Arrays.hashCode(new Object[] { this.service, this.username, this.uid, this.enabled });
+	}
+
+	@Override
+	public boolean equals (final Object o) {
+		if (o == null) return false;
+		if (o == this) return true;
+		if (!(o instanceof PostToAccount)) return false;
+		PostToAccount that = (PostToAccount) o;
+		return EqualHelper.equal(this.service, that.service)
+				&& EqualHelper.equal(this.username, that.username)
+				&& EqualHelper.equal(this.uid, that.uid)
+				&& this.enabled == that.enabled;
 	}
 
 }
