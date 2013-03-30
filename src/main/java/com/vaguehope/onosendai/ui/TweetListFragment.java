@@ -165,7 +165,7 @@ public class TweetListFragment extends Fragment {
 
 	@Override
 	public void onDestroy () {
-		this.bndDb.dispose();
+		if (this.bndDb != null) this.bndDb.dispose();
 		super.onDestroy();
 	}
 
