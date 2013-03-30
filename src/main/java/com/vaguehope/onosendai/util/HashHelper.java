@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.util;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -12,8 +13,17 @@ public final class HashHelper {
 
 	public static BigInteger md5String (final String s) {
 		final MessageDigest md = MD_MD5_FACTORY.get();
-		md.update(s.getBytes(), 0, s.length());
+		md.update(getBytes(s), 0, s.length());
 		return new BigInteger(1, md.digest());
+	}
+
+	private static byte[] getBytes (final String s) {
+		try {
+			return s.getBytes("UTF-8");
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new IllegalStateException(e.getMessage(), e);
+		}
 	}
 
 	/**
