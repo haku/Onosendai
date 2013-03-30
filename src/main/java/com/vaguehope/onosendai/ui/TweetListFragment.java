@@ -58,7 +58,6 @@ import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
 import com.vaguehope.onosendai.update.UpdateService;
-import com.vaguehope.onosendai.util.ListViewHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 /**
@@ -119,7 +118,7 @@ public class TweetListFragment extends Fragment {
 		 * perfectly good stated stored in member var.
 		 */
 		if (this.scrollState == null) {
-			this.scrollState = ListViewHelper.fromBundle(savedInstanceState);
+			this.scrollState = ScrollState.fromBundle(savedInstanceState);
 		}
 
 		final View rootView = inflater.inflate(R.layout.tweetlist, container, false);
@@ -187,7 +186,7 @@ public class TweetListFragment extends Fragment {
 	@Override
 	public void onSaveInstanceState (final Bundle outState) {
 		super.onSaveInstanceState(outState);
-		ListViewHelper.toBundle(this.scrollState, outState);
+		if (this.scrollState != null) this.scrollState.addToBundle(outState);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -216,7 +215,7 @@ public class TweetListFragment extends Fragment {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void saveScroll () {
-		ScrollState newState = ListViewHelper.saveScrollState(this.tweetList);
+		final ScrollState newState = ScrollState.from(this.tweetList);
 		if (newState != null) {
 			this.scrollState = newState;
 			this.log.d("Saved scroll: %s", this.scrollState);
@@ -230,7 +229,7 @@ public class TweetListFragment extends Fragment {
 
 	private void restoreScroll () {
 		if (this.scrollState == null) return;
-		ListViewHelper.restoreScrollState(this.tweetList, this.scrollState);
+		this.scrollState.applyTo(this.tweetList);
 		this.log.d("Restored scroll: %s", this.scrollState);
 		this.scrollState = null;
 	}
@@ -431,7 +430,7 @@ public class TweetListFragment extends Fragment {
 
 		dlgBld.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 			@Override
-			public void onClick(final DialogInterface dialog, final int whichButton) {
+			public void onClick (final DialogInterface dialog, final int whichButton) {
 				dialog.cancel();
 			}
 		});
@@ -439,7 +438,7 @@ public class TweetListFragment extends Fragment {
 		dlgBld.show();
 	}
 
-	protected void doRt(final Tweet tweet) {
+	protected void doRt (final Tweet tweet) {
 		new RtTask(getActivity(), new RtRequest(getColumnAccount(), tweet)).execute();
 	}
 
