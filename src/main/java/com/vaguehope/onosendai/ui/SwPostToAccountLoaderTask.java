@@ -124,6 +124,7 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderRe
 
 		@Override
 		public void onClick (final View v) {
+			if (!(v instanceof ToggleButton)) return;
 			ToggleButton btn = (ToggleButton) v;
 			this.enabledSubAccounts.put(this.pta, btn.isChecked());
 		}
