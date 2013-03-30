@@ -26,10 +26,9 @@ public class SharePayload extends Payload {
 
 	@Override
 	public PayloadRowView makeRowView (final View view) {
-		return new PayloadRowView(new Button[] {
+		return new PayloadRowView(
 				(Button) view.findViewById(R.id.btnShareRt),
-				(Button) view.findViewById(R.id.btnShareQuote)
-		});
+				(Button) view.findViewById(R.id.btnShareQuote));
 	}
 
 	@Override
