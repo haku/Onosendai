@@ -24,11 +24,11 @@ public enum MetaType {
 				return MEDIA;
 			case 2:
 				return HASHTAG;
-			case 3:
+			case 3: // NOSONAR 3 is not magical.
 				return MENTION;
-			case 4:
+			case 4: // NOSONAR 4 is not magical.
 				return URL;
-			case 5:
+			case 5: // NOSONAR 5 is not magical.
 				return INREPLYTO;
 			default:
 				return null;

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ResponseHandler;
@@ -145,7 +146,7 @@ public class SuccessWhale {
 
 		@Override
 		public SuccessWhaleAuth handleResponse (final HttpResponse response) throws IOException {
-			checkReponseCode(response.getStatusLine(), 200);
+			checkReponseCode(response.getStatusLine(), HttpStatus.SC_OK);
 			try {
 				final String authRespRaw = EntityUtils.toString(response.getEntity());
 				final JSONObject authResp = (JSONObject) new JSONTokener(authRespRaw).nextValue();
@@ -167,7 +168,7 @@ public class SuccessWhale {
 
 		@Override
 		public List<PostToAccount> handleResponse (final HttpResponse response) throws IOException {
-			checkReponseCode(response.getStatusLine(), 200);
+			checkReponseCode(response.getStatusLine(), HttpStatus.SC_OK);
 			try {
 				return new PostToAccountsXml(response.getEntity().getContent()).getAccounts();
 			}
@@ -184,7 +185,7 @@ public class SuccessWhale {
 
 		@Override
 		public TweetList handleResponse (final HttpResponse response) throws IOException {
-			checkReponseCode(response.getStatusLine(), 200);
+			checkReponseCode(response.getStatusLine(), HttpStatus.SC_OK);
 			try {
 				return new SuccessWhaleFeedXml(response.getEntity().getContent()).getTweets();
 			}
@@ -201,7 +202,7 @@ public class SuccessWhale {
 
 		@Override
 		public Void handleResponse (final HttpResponse response) throws IOException {
-			checkReponseCode(response.getStatusLine(), 200);
+			checkReponseCode(response.getStatusLine(), HttpStatus.SC_OK);
 			return null;
 		}
 

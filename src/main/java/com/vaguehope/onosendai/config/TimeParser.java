@@ -5,6 +5,8 @@ import java.util.regex.Pattern;
 
 public final class TimeParser {
 
+	private static final int MINUTES_IN_HOUR = 60;
+
 	private TimeParser () {
 		throw new AssertionError();
 	}
@@ -22,7 +24,7 @@ public final class TimeParser {
 		if (m.matches()) {
 			int hours = parseInt(m.group(1));
 			int mins = parseInt(m.group(2));
-			return (hours * 60) + mins;
+			return (hours * MINUTES_IN_HOUR) + mins;
 		}
 		return -1;
 	}

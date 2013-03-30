@@ -51,7 +51,7 @@ public final class HttpHelper {
 		InputStream is = null;
 		try {
 			int responseCode = connection.getResponseCode();
-			if (responseCode >= 400) {
+			if (responseCode >= 400) { // NOSONAR 400 is not a magic number.  Its HTTP spec.
 				throw new HttpResponseException(responseCode, streamToString(connection.getErrorStream()));
 			}
 

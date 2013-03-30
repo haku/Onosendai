@@ -16,6 +16,8 @@ import com.vaguehope.onosendai.util.IoHelper;
 
 public class HybridBitmapCache {
 
+	private static final int BASE_HEX = 16;
+
 	private final MemoryBitmapCache<String> memCache;
 	private final File baseDir;
 
@@ -52,7 +54,7 @@ public class HybridBitmapCache {
 	}
 
 	protected File keyToFile (final String key) {
-		return new File(this.baseDir, HashHelper.md5String(key).toString(16));
+		return new File(this.baseDir, HashHelper.md5String(key).toString(BASE_HEX));
 	}
 
 	private static class DiscCacheHandler implements HttpStreamHandler<Bitmap, RuntimeException> {

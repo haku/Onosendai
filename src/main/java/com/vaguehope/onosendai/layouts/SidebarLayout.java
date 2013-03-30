@@ -34,6 +34,7 @@ import com.vaguehope.onosendai.R;
 public class SidebarLayout extends ViewGroup {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	private static final int DEFAULT_SIDEBAR_WIDTH = 150;
 	private static final int SLIDE_DURATION = 200; // 0.2 seconds?
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -51,7 +52,7 @@ public class SidebarLayout extends ViewGroup {
 
 	private boolean sidebarOpen;
 	private boolean pressed = false;
-	private int sidebarWidth = 150; // assign default value. It will be overwrite in onMeasure by Layout XML resource.
+	private int sidebarWidth = DEFAULT_SIDEBAR_WIDTH; // assign default value. It will be overwrite in onMeasure by Layout XML resource.
 	private Animation animation;
 	private OpenListener openListener;
 	private CloseListener closeListener;
