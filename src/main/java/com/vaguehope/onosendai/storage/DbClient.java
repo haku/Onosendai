@@ -10,13 +10,11 @@ import com.vaguehope.onosendai.util.LogWrapper;
 
 public class DbClient {
 
-	protected final LogWrapper log = new LogWrapper();
-
+	private final LogWrapper log = new LogWrapper();
 	private final Context context;
-	protected Runnable dbIsReady = null;
-	protected DbInterface mBoundDbService;
+	private Runnable dbIsReady = null;
+	private DbInterface boundDbService;
 	private boolean boundToService = false;
-
 
 	public DbClient (final Context context, final String name) {
 		this(context, name, null);
@@ -49,18 +47,28 @@ public class DbClient {
 	}
 
 	public DbInterface getDb () {
-		return this.mBoundDbService;
+		return this.boundDbService;
+	}
+
+	protected LogWrapper getLog () {
+		return this.log;
+	}
+
+	protected void callDbReadyListener () {
+		if (this.dbIsReady != null) this.dbIsReady.run();
+	}
+
+	protected void setBoundDbService (final DbInterface boundDbService) {
+		this.boundDbService = boundDbService;
 	}
 
 	private final ServiceConnection mDbServiceConnection = new ServiceConnection() {
 
 		@Override
 		public void onServiceConnected (final ComponentName className, final IBinder service) {
-			DbClient.this.mBoundDbService = ((DbService.LocalBinder) service).getService();
-			if (DbClient.this.mBoundDbService == null) {
-				DbClient.this.log.e("Got service call back, but mBoundDbService==null.  Expect more error messags!");
-			}
-			if (DbClient.this.dbIsReady != null) DbClient.this.dbIsReady.run();
+			setBoundDbService(((DbService.LocalBinder) service).getService());
+			if (getDb() == null) getLog().e("Got service call back, but mBoundDbService==null.  Expect more error messags!");
+			callDbReadyListener();
 		}
 
 		@Override
@@ -69,9 +77,8 @@ public class DbClient {
 			// unexpectedly disconnected -- that is, its process crashed.
 			// Because it is running in our same process, we should never
 			// see this happen.
-
-			DbClient.this.mBoundDbService = null;
-			DbClient.this.log.w("DbService unexpectadly disconnected.");
+			setBoundDbService(null);
+			getLog().w("DbService unexpectadly disconnected.");
 		}
 
 	};
@@ -84,7 +91,7 @@ public class DbClient {
 	}
 
 	private void unbindDbService () {
-		if (this.boundToService && this.mBoundDbService != null) {
+		if (this.boundToService && this.boundDbService != null) {
 			try {
 				this.context.unbindService(this.mDbServiceConnection);
 			}
@@ -92,7 +99,7 @@ public class DbClient {
 				this.log.e("Exception caught in unbindDbService().", e);
 			}
 		}
-		this.mBoundDbService = null;
+		this.boundDbService = null;
 	}
 
 }
