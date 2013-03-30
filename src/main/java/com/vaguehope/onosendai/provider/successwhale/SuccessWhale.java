@@ -140,7 +140,7 @@ public class SuccessWhale {
 		}
 	}
 
-	private class AuthHandler implements ResponseHandler<SuccessWhaleAuth> {
+	private static class AuthHandler implements ResponseHandler<SuccessWhaleAuth> {
 
 		public AuthHandler () {}
 
@@ -162,7 +162,7 @@ public class SuccessWhale {
 
 	}
 
-	private class PostToAccountsHandler implements ResponseHandler<List<PostToAccount>> {
+	private static class PostToAccountsHandler implements ResponseHandler<List<PostToAccount>> {
 
 		public PostToAccountsHandler () {}
 
@@ -179,7 +179,7 @@ public class SuccessWhale {
 
 	}
 
-	private class FeedHandler implements ResponseHandler<TweetList> {
+	private static class FeedHandler implements ResponseHandler<TweetList> {
 
 		public FeedHandler () {}
 
@@ -196,7 +196,7 @@ public class SuccessWhale {
 
 	}
 
-	private class PostHandler implements ResponseHandler<Void> {
+	private static class PostHandler implements ResponseHandler<Void> {
 
 		public PostHandler () {}
 
