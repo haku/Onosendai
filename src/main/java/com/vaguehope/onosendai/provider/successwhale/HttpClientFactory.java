@@ -80,7 +80,7 @@ public class HttpClientFactory {
 	}
 
 	private static void addHttpSchema (final ClientConnectionManager conman) {
-		Scheme scheme = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80);
+		Scheme scheme = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80); // NOSONAR 80 is not a magic number.  Its HTTP specification.
 		conman.getSchemeRegistry().register(scheme);
 	}
 
@@ -88,7 +88,7 @@ public class HttpClientFactory {
 		KeyStore truststore = loadKeyStore(tsPath, password);
 		SSLSocketFactory sf = new SSLSocketFactory(truststore);
 		sf.setHostnameVerifier(new AliasingVerifier(HOST_ALIASES));
-		Scheme scheme = new Scheme("https", sf, 443);
+		Scheme scheme = new Scheme("https", sf, 443); // NOSONAR 443 is not a magic number.  Its HTTPS specification.
 		connMan.getSchemeRegistry().register(scheme);
 	}
 

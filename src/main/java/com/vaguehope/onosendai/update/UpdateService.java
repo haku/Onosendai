@@ -50,6 +50,8 @@ public class UpdateService extends IntentService {
 	public static final String ARG_COLUMN_ID = "column_id";
 	public static final String ARG_IS_MANUAL = "is_manual";
 
+	private static final int DB_CONNECT_TIMEOUT_SECONDS = 3;
+
 	private static final String KEY_PREFIX_COL_LAST_REFRESH_TIME = "COL_LAST_REFRESH_TIME_";
 	protected static final LogWrapper LOG = new LogWrapper("US");
 
@@ -110,7 +112,7 @@ public class UpdateService extends IntentService {
 	private boolean waitForDbReady () {
 		boolean dbReady = false;
 		try {
-			dbReady = this.dbReadyLatch.await(3, TimeUnit.SECONDS);
+			dbReady = this.dbReadyLatch.await(DB_CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 		}
 		catch (InterruptedException e) {/**/}
 		if (!dbReady) {

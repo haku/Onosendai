@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -114,7 +115,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			}
 			else if ("time".equals(elementName)) {
 				long millis = this.dateFormat.parseMillis(this.currentText.toString());
-				this.currentItem.unitTimeSeconds(millis / 1000L);
+				this.currentItem.unitTimeSeconds(TimeUnit.MILLISECONDS.toSeconds(millis));
 			}
 			else if ("fromuseravatar".equals(elementName)) {
 				this.currentItem.avatarUrl(this.currentText.toString());
