@@ -17,6 +17,12 @@ Supported Services
 * Twitter columns are supported directly (bring your own API key).
 * Twitter and Facebook columns via [SuccessWhale](successwhale.com) (work in progress).
 
+Download
+--------
+
+Currently there are no stable releases of Onosendai.
+Recent snapshot builds can be downloaded from http://karasu.vaguehope.com/onosendai.
+
 Configuration
 -------------
 
