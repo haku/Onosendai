@@ -9,7 +9,6 @@ import java.util.Set;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -167,7 +166,7 @@ public class SuccessWhale {
 		public PostToAccountsHandler () {}
 
 		@Override
-		public List<PostToAccount> handleResponse (final HttpResponse response) throws ClientProtocolException, IOException {
+		public List<PostToAccount> handleResponse (final HttpResponse response) throws IOException {
 			checkReponseCode(response.getStatusLine(), 200);
 			try {
 				return new PostToAccountsXml(response.getEntity().getContent()).getAccounts();
