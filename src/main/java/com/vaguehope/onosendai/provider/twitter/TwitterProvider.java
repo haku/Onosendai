@@ -69,29 +69,21 @@ public class TwitterProvider {
 	 * TODO use a call back to return tweets progressively.
 	 */
 	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId) throws TwitterException {
-		final Twitter t = getAccount(account);
-		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
-		return fetchTwitterFeed(t, feed, sinceId);
+		return fetchTwitterFeed(getAccount(account), feed, sinceId);
 	}
 
 	public Tweet getTweet (final Account account, final long id) throws TwitterException {
-		final Twitter t = getAccount(account);
-		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
-		return convertTweet(t.showStatus(id));
+		return convertTweet(getAccount(account).showStatus(id));
 	}
 
 	public void post (final Account account, final String body, final long inReplyTo) throws TwitterException {
-		final Twitter t = getAccount(account);
-		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
 		final StatusUpdate s = new StatusUpdate(body);
 		if (inReplyTo > 0) s.setInReplyToStatusId(inReplyTo);
-		t.updateStatus(s);
+		getAccount(account).updateStatus(s);
 	}
 
 	public void rt (final Account account, final long id) throws TwitterException {
-		final Twitter t = getAccount(account);
-		if (t == null) throw new IllegalStateException("Account not configured: '" + account.getId() + "'.");
-		t.retweetStatus(id);
+		getAccount(account).retweetStatus(id);
 	}
 
 	private static TwitterFactory makeTwitterFactory (final Account account) {
