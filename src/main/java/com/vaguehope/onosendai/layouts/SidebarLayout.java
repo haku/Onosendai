@@ -35,6 +35,7 @@ public class SidebarLayout extends ViewGroup {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final int DEFAULT_SIDEBAR_WIDTH = 150;
+	private static final float SIDEBAR_MAX_WIDTH = 0.9f; // The max width of side bar is 90% of Parent.
 	private static final int SLIDE_DURATION = 200; // 0.2 seconds?
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -181,10 +182,9 @@ public class SidebarLayout extends ViewGroup {
 
 	@Override
 	protected void measureChild (final View child, final int parentWSpec, final int parentHSpec) {
-		// The max width of side bar is 90% of Parent.
 		if (child == this.getSidebarView()) {
 			int mode = MeasureSpec.getMode(parentWSpec);
-			int width = (int) (getMeasuredWidth() * 0.9);
+			int width = (int) (getMeasuredWidth() * SIDEBAR_MAX_WIDTH);
 			super.measureChild(child, MeasureSpec.makeMeasureSpec(width, mode), parentHSpec);
 		}
 		else {
