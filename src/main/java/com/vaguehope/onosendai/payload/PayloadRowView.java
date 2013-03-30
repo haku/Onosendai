@@ -31,7 +31,7 @@ class PayloadRowView {
 		this.buttons = null;
 	}
 
-	public PayloadRowView (final Button[] buttons) {
+	public PayloadRowView (final Button... buttons) {
 		this.main = null;
 		this.secondary = null;
 		this.image = null;
