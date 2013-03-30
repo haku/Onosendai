@@ -71,7 +71,7 @@ public class TweetListFragment extends Fragment {
 	static final String ARG_COLUMN_TITLE = "column_title";
 	static final String ARG_COLUMN_IS_LATER = "column_is_later";
 
-	protected final LogWrapper log = new LogWrapper();
+	private final LogWrapper log = new LogWrapper();
 	private final DateFormat dateFormat = DateFormat.getDateTimeInstance();
 
 	private int columnId = -1;
@@ -92,7 +92,7 @@ public class TweetListFragment extends Fragment {
 	private Button btnDetailsLater;
 
 	private ScrollState scrollState;
-	protected TweetListAdapter adapter;
+	private TweetListAdapter adapter;
 	private DbClient bndDb;
 
 	@Override
@@ -192,17 +192,25 @@ public class TweetListFragment extends Fragment {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	protected LogWrapper getLog () {
+		return this.log;
+	}
+
 	public int getColumnId () {
 		return this.columnId;
 	}
 
-	Config getConf () {
+	protected Config getConf () {
 		return this.conf;
 	}
 
 	private Account getColumnAccount () {
 		final Column column = this.conf.getColumnById(this.columnId);
 		return this.conf.getAccount(column.getAccountId());
+	}
+
+	protected TweetListAdapter getAdapter () {
+		return this.adapter;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -257,7 +265,7 @@ public class TweetListFragment extends Fragment {
 					getDb().addTwUpdateListener(getGuiUpdateListener());
 					restoreSavedScrollFromDb();
 					refreshUi();
-					TweetListFragment.this.log.d("DB service bound.");
+					getLog().d("DB service bound.");
 				}
 			});
 		}
@@ -340,7 +348,7 @@ public class TweetListFragment extends Fragment {
 	private final OnItemClickListener tweetItemClickedListener = new OnItemClickListener() {
 		@Override
 		public void onItemClick (final AdapterView<?> parent, final View view, final int position, final long id) {
-			showTweetDetails(TweetListFragment.this.adapter.getInputData().getTweet(position));
+			showTweetDetails(getAdapter().getInputData().getTweet(position));
 		}
 	};
 

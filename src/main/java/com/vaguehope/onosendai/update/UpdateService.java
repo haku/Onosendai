@@ -53,7 +53,7 @@ public class UpdateService extends IntentService {
 	private static final String KEY_PREFIX_COL_LAST_REFRESH_TIME = "COL_LAST_REFRESH_TIME_";
 	protected static final LogWrapper LOG = new LogWrapper("US");
 
-	protected final CountDownLatch dbReadyLatch = new CountDownLatch(1);
+	private final CountDownLatch dbReadyLatch = new CountDownLatch(1);
 	private DbClient bndDb;
 
 	public UpdateService () {
@@ -92,10 +92,11 @@ public class UpdateService extends IntentService {
 
 	private void connectDb () {
 		LOG.d("Binding DB service...");
+		final CountDownLatch latch = this.dbReadyLatch;
 		this.bndDb = new DbClient(getApplicationContext(), LOG.getPrefix(), new Runnable() {
 			@Override
 			public void run () {
-				UpdateService.this.dbReadyLatch.countDown();
+				latch.countDown();
 				LOG.d("DB service bound.");
 			}
 		});

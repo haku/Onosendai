@@ -60,7 +60,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	private DbClient bndDb;
 	private HybridBitmapCache imageCache;
 
-	protected AccountAdaptor accountAdaptor;
+	private AccountAdaptor accountAdaptor;
 	private Spinner spnAccount;
 	private EditText txtBody;
 	private final Map<PostToAccount, Boolean> enabledPostToAccounts = new HashMap<PostToAccount, Boolean>();
@@ -158,6 +158,20 @@ public class PostActivity extends Activity implements ImageLoader {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	protected AccountAdaptor getAccountAdaptor () {
+		return this.accountAdaptor;
+	}
+
+	private Set<PostToAccount> getEnabledPostToAccounts() {
+		Set<PostToAccount> ret = new HashSet<PostToAccount>();
+		for (Entry<PostToAccount, Boolean> e : this.enabledPostToAccounts.entrySet()) {
+			if (e.getValue()) ret.add(e.getKey());
+		}
+		return ret;
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	protected void showInReplyToTweetDetails () {
 		Tweet tweet = null;
 		if (this.inReplyToSid != null) {
@@ -210,7 +224,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	private final OnItemSelectedListener accountOnItemSelectedListener = new OnItemSelectedListener() {
 		@Override
 		public void onItemSelected (final AdapterView<?> parent, final View view, final int position, final long id) {
-			accountSelected(PostActivity.this.accountAdaptor.getAccount(position));
+			accountSelected(getAccountAdaptor().getAccount(position));
 		}
 
 		@Override
@@ -226,14 +240,6 @@ public class PostActivity extends Activity implements ImageLoader {
 			default:
 				llSubAccounts.setVisibility(View.GONE);
 		}
-	}
-
-	private Set<PostToAccount> getEnabledPostToAccounts() {
-		Set<PostToAccount> ret = new HashSet<PostToAccount>();
-		for (Entry<PostToAccount, Boolean> e : this.enabledPostToAccounts.entrySet()) {
-			if (e.getValue()) ret.add(e.getKey());
-		}
-		return ret;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
