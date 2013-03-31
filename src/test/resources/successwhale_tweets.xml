@@ -2,7 +2,8 @@
   <success type="boolean">true</success>
   <items type="array">
     <item>
-      <service type="symbol">twitter</service>
+      <service>twitter</service>
+      <fetchedforuserid>09823422</fetchedforuserid>
       <content>
         <text>first tweets message</text>
         <id type="integer">313781345934852800</id>
@@ -20,7 +21,8 @@
       </content>
     </item>
     <item>
-      <service type="symbol">twitter</service>
+      <service>twitter</service>
+      <fetchedforuserid>09823422</fetchedforuserid>
       <content>
         <text>DreamWorks tops compute-cycle record with 'The Croods' http://t.co/zG68KbAFDX</text>
         <id type="integer">339045390394853920</id>
@@ -52,7 +54,8 @@
       </content>
     </item>
     <item>
-      <service type="symbol">twitter</service>
+      <service>twitter</service>
+      <fetchedforuserid>09823422</fetchedforuserid>
       <content>
         <id type="integer">312304957304950224</id>
         <time type="datetime">2013-03-27T18:41:33+00:00</time>

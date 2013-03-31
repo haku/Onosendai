@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.provider;
 
+import android.os.AsyncTask;
+
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 
@@ -26,8 +28,26 @@ public class ProviderMgr {
 			this.twitterProvider.shutdown();
 		}
 		finally {
-			this.successWhaleProvider.shutdown();
+			new SwShutdowner().execute(this.successWhaleProvider);
 		}
+	}
+
+	/**
+	 * Calling shutdown on UI thread triggers android.os.NetworkOnMainThreadException.  lolz.
+	 */
+	private static class SwShutdowner extends AsyncTask<SuccessWhaleProvider, Void, Void> {
+
+		public SwShutdowner () {}
+
+		@Override
+		protected Void doInBackground (final SuccessWhaleProvider... sws) {
+			if (sws == null) return null;
+			for (SuccessWhaleProvider sw : sws) {
+				sw.shutdown();
+			}
+			return null;
+		}
+
 	}
 
 }

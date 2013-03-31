@@ -33,6 +33,7 @@ public class SuccessWhale {
 	private static final String BASE_URL = "https://api.successwhale.com:443";
 	private static final String API_AUTH = "/v3/authenticate.json";
 	private static final String API_FEED = "/v3/feed.xml";
+	private static final String API_THREAD = "/v3/thread.xml";
 	private static final String API_POSTTOACCOUNTS = "/v3/posttoaccounts.xml";
 	private static final String API_ITEM = "/v3/item";
 
@@ -83,6 +84,17 @@ public class SuccessWhale {
 		}
 		catch (final IOException e) {
 			throw new SuccessWhaleException("Failed to fetch feed '" + feed.toString() + "': " + e.toString(), e); // FIXME does feed have good toString()?
+		}
+	}
+
+	public TweetList getThread(final String serviceType, final String serviceSid, final String forSid) throws SuccessWhaleException {
+		ensureAuthenticated();
+		try {
+			String url = makeAuthedUrl(API_THREAD, "&service=", serviceType, "&uid=" + serviceSid, "&postid=", forSid);
+			return this.httpClientFactory.getHttpClient().execute(new HttpGet(url), new FeedHandler());
+		}
+		catch (final IOException e) {
+			throw new SuccessWhaleException("Failed to fetch thread for sid='" + forSid + "': " + e.toString(), e); // FIXME does feed have good toString()?
 		}
 	}
 
