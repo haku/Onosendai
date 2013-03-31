@@ -35,6 +35,19 @@ public class SuccessWhaleProvider {
 		return fetchSuccessWhaleFeed(getAccount(account), feed);
 	}
 
+	/**
+	 *
+	 * @param serviceTypeAndUid
+	 *            colon separated, e.g. twitter:1234567890
+	 */
+	public TweetList getThread (final Account account, final String serviceTypeAndUid, final String forSid) throws SuccessWhaleException {
+		final int x = serviceTypeAndUid.indexOf(':');
+		if (x < 0) throw new IllegalArgumentException("serviceTypeAndUid must contain a colon: '" + serviceTypeAndUid + "'");
+		final String type = serviceTypeAndUid.substring(0, x);
+		final String uid = serviceTypeAndUid.substring(x + 1);
+		return getAccount(account).getThread(type, uid, forSid);
+	}
+
 	public List<PostToAccount> getPostToAccounts (final Account account) throws SuccessWhaleException {
 		return getAccount(account).getPostToAccounts();
 	}

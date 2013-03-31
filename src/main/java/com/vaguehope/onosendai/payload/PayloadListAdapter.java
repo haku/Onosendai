@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.payload;
 
+import java.util.List;
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +40,11 @@ public class PayloadListAdapter extends BaseAdapter {
 
 	void replaceItem(final Payload find, final Payload with) {
 		this.listData.replaceItem(find, with);
+		notifyDataSetChanged();
+	}
+
+	void replaceItem(final Payload find, final List<? extends Payload> withs) {
+		this.listData.replaceItem(find, withs);
 		notifyDataSetChanged();
 	}
 

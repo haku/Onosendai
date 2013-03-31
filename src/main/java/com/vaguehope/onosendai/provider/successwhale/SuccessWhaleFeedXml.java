@@ -81,6 +81,8 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	private String stashedLinkUrl;
 	private String stashedLinkExpandedUrl;
 	private String stashedLinkTitle;
+	private String stashedFetchedForUserid;
+	private String stashedService;
 
 	private final DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 
@@ -95,10 +97,21 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	@Override
 	public void endElement (final String uri, final String localName, final String qName) throws SAXException {
 		final String elementName = !localName.isEmpty() ? localName : qName;
-		if (this.stack.size() == 4 && elementName.equals("content")) {
+		if (this.stack.size() == 3 && elementName.equals("item")) {
 			this.currentItem.bodyIfAbsent(this.stashedFirstLinkTitle);
+			this.currentItem.meta(MetaType.SERVICE, String.format("%s:%s", this.stashedService, this.stashedFetchedForUserid));
 			this.tweets.add(this.currentItem.build());
 			this.stashedFirstLinkTitle = null;
+			this.stashedFetchedForUserid = null;
+			this.stashedService = null;
+		}
+		else if (this.stack.size() == 4) {
+			if ("fetchedforuserid".equals(elementName)) {
+				this.stashedFetchedForUserid = this.currentText.toString();
+			}
+			else if ("service".equals(elementName)) {
+				this.stashedService = this.currentText.toString();
+			}
 		}
 		else if (this.stack.size() == 5) {
 			if ("id".equals(elementName)) {

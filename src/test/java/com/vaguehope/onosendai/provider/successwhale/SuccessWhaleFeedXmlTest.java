@@ -30,11 +30,15 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals(1363646281L, t.getTime());
 		assertEquals("http://si0.twimg.com/profile_images/2344890405/af462a16c498087e4372cb6ac6aff134_normal.jpeg", t.getAvatarUrl());
 
-		assertEquals(1, t.getMetas().size());
+		assertEquals(2, t.getMetas().size());
 
 		Meta m0 = t.getMetas().get(0);
 		assertEquals(MetaType.INREPLYTO, m0.getType());
 		assertEquals("313783459384590224", m0.getData());
+
+		Meta m1 = t.getMetas().get(1);
+		assertEquals(MetaType.SERVICE, m1.getType());
+		assertEquals("twitter:09823422", m1.getData());
 	}
 
 	@Test
@@ -49,7 +53,7 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals(1364374692L, t.getTime());
 		assertEquals("http://si0.twimg.com/profile_images/0983453383/e987609785a770b7ceeb476525435a1f_normal.jpeg", t.getAvatarUrl());
 
-		assertEquals(2, t.getMetas().size());
+		assertEquals(3, t.getMetas().size());
 
 		Meta m0 = t.getMetas().get(0);
 		assertEquals(MetaType.MEDIA, m0.getType());
@@ -59,6 +63,10 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals(MetaType.URL, m1.getType());
 		assertEquals("http://www.computerworld.com/s/article/9237880/DreamWorks_tops_compute_cycle_record_with_The_Croods_", m1.getData());
 		assertEquals("computerworld.com/s/article/9237…", m1.getTitle());
+
+		Meta m2 = t.getMetas().get(2);
+		assertEquals(MetaType.SERVICE, m2.getType());
+		assertEquals("twitter:09823422", m2.getData());
 	}
 
 	@Test
@@ -68,7 +76,7 @@ public class SuccessWhaleFeedXmlTest {
 
 		Tweet t = tweets.getTweet(2);
 
-		assertEquals(2, t.getMetas().size());
+		assertEquals(3, t.getMetas().size());
 
 		Meta m0 = t.getMetas().get(0);
 		assertEquals(MetaType.MENTION, m0.getType());
@@ -79,6 +87,10 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals(MetaType.URL, m1.getType());
 		assertEquals("http://example.com/cool", m1.getData());
 		assertEquals("Link Title Goes Here", m1.getTitle());
+
+		Meta m2 = t.getMetas().get(2);
+		assertEquals(MetaType.SERVICE, m2.getType());
+		assertEquals("twitter:09823422", m2.getData());
 	}
 
 	@Test
@@ -94,7 +106,7 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals("Some User", t.getFullname());
 		assertEquals(1364295194L, t.getTime());
 
-		assertEquals(2, t.getMetas().size());
+		assertEquals(3, t.getMetas().size());
 
 		Meta m0 = t.getMetas().get(0);
 		assertEquals(MetaType.MEDIA, m0.getType());
@@ -104,6 +116,10 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals(MetaType.URL, m1.getType());
 		assertEquals("http://m.bbc.co.uk/news/world-asia-21950139", m1.getData());
 		assertEquals("North Korea warns South president", m1.getTitle());
+
+		Meta m2 = t.getMetas().get(2);
+		assertEquals(MetaType.SERVICE, m2.getType());
+		assertEquals("facebook:532423349", m2.getData());
 	}
 
 	// TODO conversation entry.
@@ -121,11 +137,16 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals("Jon Doe", t.getFullname());
 		assertEquals(1364270468L, t.getTime());
 
-		assertEquals(1, t.getMetas().size());
+		assertEquals(2, t.getMetas().size());
+
 		Meta m0 = t.getMetas().get(0);
 		assertEquals(MetaType.URL, m0.getType());
 		assertEquals("http://apps.facebook.com/daily_photos_plus/y/the&other&args", m0.getData());
 		assertEquals("A Link with a Page Title", m0.getTitle());
+
+		Meta m1 = t.getMetas().get(1);
+		assertEquals(MetaType.SERVICE, m1.getType());
+		assertEquals("facebook:532423349", m1.getData());
 	}
 
 }

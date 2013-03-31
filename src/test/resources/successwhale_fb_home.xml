@@ -10,7 +10,8 @@
   </request>
   <items type="array">
     <item>
-      <service type="symbol">facebook</service>
+      <service>facebook</service>
+      <fetchedforuserid>532423349</fetchedforuserid>
       <content>
         <id>557897893_497789789789963</id>
         <type>link</type>
@@ -32,7 +33,8 @@
       </content>
     </item>
     <item>
-      <service type="symbol">facebook</service>
+      <service>facebook</service>
+      <fetchedforuserid>532423349</fetchedforuserid>
       <content>
         <id>278978972_10789789781249126</id>
         <type>link</type>
@@ -72,7 +74,8 @@
       </content>
     </item>
     <item>
-      <service type="symbol">facebook</service>
+      <service>facebook</service>
+      <fetchedforuserid>532423349</fetchedforuserid>
       <content>
         <id>534234215_10923840922345316</id>
         <type>link</type>

@@ -6,7 +6,8 @@ public enum MetaType {
 	HASHTAG(2),
 	MENTION(3),
 	URL(4),
-	INREPLYTO(5);
+	INREPLYTO(5),
+	SERVICE(6);
 
 	private final int id;
 
@@ -30,6 +31,8 @@ public enum MetaType {
 				return URL;
 			case 5: // NOSONAR 5 is not magical.
 				return INREPLYTO;
+			case 6: // NOSONAR 6 is not magical.
+				return SERVICE;
 			default:
 				return null;
 		}
