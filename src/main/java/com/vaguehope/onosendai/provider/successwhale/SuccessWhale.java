@@ -112,7 +112,9 @@ public class SuccessWhale {
 			}
 			params.add(new BasicNameValuePair("accounts", accounts.toString()));
 
-			// TODO inReplyId
+			if (inReplyToSid != null && !inReplyToSid.isEmpty()) {
+				params.add(new BasicNameValuePair("in_reply_to_id", inReplyToSid));
+			}
 
 			post.setEntity(new UrlEncodedFormEntity(params));
 			this.httpClientFactory.getHttpClient().execute(post, new PostHandler());
