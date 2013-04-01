@@ -16,6 +16,7 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider.ServiceRef;
 import com.vaguehope.onosendai.ui.SwPostToAccountLoaderTask.AccountLoaderResult;
 
 class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderResult> {
@@ -59,13 +60,21 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderRe
 	protected void onPostExecute (final AccountLoaderResult result) {
 		this.llSubAccounts.removeAllViews();
 		if (result.isSuccess()) {
+			final ServiceRef svc = SuccessWhaleProvider.parseServiceMeta(String.valueOf(this.llSubAccounts.getTag()));
 			for (final PostToAccount pta : result.getAccounts()) {
 				final View view = View.inflate(this.llSubAccounts.getContext(), R.layout.subaccountitem, null);
 				final ToggleButton btnEnableAccount = (ToggleButton) view.findViewById(R.id.btnEnableAccount);
 				final String displayName = pta.getDisplayName();
 				btnEnableAccount.setTextOn(displayName);
 				btnEnableAccount.setTextOff(displayName);
-				btnEnableAccount.setChecked(pta.isEnabled());
+
+				if (svc != null) {
+					btnEnableAccount.setChecked(svc.matchesPostToAccount(pta));
+				}
+				else {
+					btnEnableAccount.setChecked(pta.isEnabled());
+				}
+
 				this.enabledSubAccounts.put(pta, pta.isEnabled());
 				btnEnableAccount.setOnClickListener(new SubAccountToggleListener(pta, this.enabledSubAccounts));
 				this.llSubAccounts.addView(view);

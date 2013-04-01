@@ -99,7 +99,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 		final String elementName = !localName.isEmpty() ? localName : qName;
 		if (this.stack.size() == 3 && elementName.equals("item")) {
 			this.currentItem.bodyIfAbsent(this.stashedFirstLinkTitle);
-			this.currentItem.meta(MetaType.SERVICE, String.format("%s:%s", this.stashedService, this.stashedFetchedForUserid));
+			this.currentItem.meta(MetaType.SERVICE, SuccessWhaleProvider.createServiceMeta(this.stashedService, this.stashedFetchedForUserid));
 			this.tweets.add(this.currentItem.build());
 			this.stashedFirstLinkTitle = null;
 			this.stashedFetchedForUserid = null;

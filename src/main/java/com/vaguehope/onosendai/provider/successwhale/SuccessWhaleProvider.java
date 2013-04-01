@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.util.EqualHelper;
 
 public class SuccessWhaleProvider {
 
@@ -63,6 +64,46 @@ public class SuccessWhaleProvider {
 	private static TweetList fetchSuccessWhaleFeed (final SuccessWhale sw, final SuccessWhaleFeed feed) throws SuccessWhaleException {
 		// TODO paging, etc.
 		return sw.getFeed(feed);
+	}
+
+	public static String createServiceMeta (final String serviceType, final String serviceUid) {
+		return String.format("%s:%s", serviceType, serviceUid);
+	}
+
+	public static ServiceRef parseServiceMeta(final String meta) {
+		if (meta == null) return null;
+		final int x = meta.indexOf(':');
+		if (x >= 0) {
+			final String type = meta.substring(0, x);
+			final String uid = meta.substring(x + 1);
+			return new ServiceRef(type, uid);
+		}
+		return null;
+	}
+
+	public static class ServiceRef {
+
+		private final String type;
+		private final String uid;
+
+		public ServiceRef (final String type, final String uid) {
+			this.type = type;
+			this.uid = uid;
+		}
+
+		public String getType () {
+			return this.type;
+		}
+
+		public String getUid () {
+			return this.uid;
+		}
+
+		public boolean matchesPostToAccount (final PostToAccount pta) {
+			if (pta == null) return false;
+			return EqualHelper.equal(pta.getService(), this.type) && EqualHelper.equal(pta.getUid(), this.uid);
+		}
+
 	}
 
 }
