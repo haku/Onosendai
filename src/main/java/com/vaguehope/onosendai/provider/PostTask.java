@@ -61,7 +61,7 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 	private PostResult postTwitter () {
 		final TwitterProvider p = new TwitterProvider();
 		try {
-			p.post(this.req.getAccount(), this.req.getBody(), Long.parseLong(this.req.getInReplyToSid()));
+			p.post(this.req.getAccount(), this.req.getBody(), this.req.getInReplyToSidLong());
 			return new PostResult(this.req);
 		}
 		catch (Exception e) { // NOSONAR need to report all errors.
@@ -137,6 +137,11 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 
 		public String getInReplyToSid () {
 			return this.inReplyToSid;
+		}
+
+		public long getInReplyToSidLong () {
+			if (this.inReplyToSid == null || this.inReplyToSid.isEmpty()) return -1;
+			return Long.parseLong(this.inReplyToSid);
 		}
 
 		public Intent getRecoveryIntent () {
