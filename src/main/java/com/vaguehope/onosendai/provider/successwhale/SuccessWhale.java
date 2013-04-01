@@ -22,6 +22,7 @@ import org.json.JSONTokener;
 import org.xml.sax.SAXException;
 
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -91,7 +92,8 @@ public class SuccessWhale {
 		ensureAuthenticated();
 		try {
 			String url = makeAuthedUrl(API_THREAD, "&service=", serviceType, "&uid=" + serviceSid, "&postid=", forSid);
-			return this.httpClientFactory.getHttpClient().execute(new HttpGet(url), new FeedHandler());
+			final TweetList thread = this.httpClientFactory.getHttpClient().execute(new HttpGet(url), new FeedHandler());
+			return removeItem(thread, forSid);
 		}
 		catch (final IOException e) {
 			throw new SuccessWhaleException("Failed to fetch thread for sid='" + forSid + "': " + e.toString(), e); // FIXME does feed have good toString()?
@@ -152,6 +154,18 @@ public class SuccessWhale {
 		if (statusLine.getStatusCode() != code) {
 			throw new IOException("HTTP " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase());
 		}
+	}
+
+	private static TweetList removeItem (final TweetList thread, final String sid) {
+		if (thread.count() < 1 || sid == null) return thread;
+		for (Tweet t : thread.getTweets()) {
+			if (sid.equals(t.getSid())) {
+				final List<Tweet> newList = new ArrayList<Tweet>(thread.getTweets());
+				newList.remove(t);
+				return new TweetList(newList);
+			}
+		}
+		return thread;
 	}
 
 	private static class AuthHandler implements ResponseHandler<SuccessWhaleAuth> {

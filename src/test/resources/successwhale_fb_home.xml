@@ -43,26 +43,6 @@
         <fromusername>Another Person</fromusername>
         <fromuseravatar>http://graph.facebook.com/632343425/picture</fromuseravatar>
         <numcomments type="integer">2</numcomments>
-        <comments type="array">
-          <comment>
-            <id>278978972_10789789781249126_423425</id>
-            <from>
-              <name>Joe Blogs</name>
-              <id>523423285</id>
-            </from>
-            <message>The first comment on this post.</message>
-            <created-time>2013-03-26T11:06:15+0000</created-time>
-          </comment>
-          <comment>
-            <id>278978972_10789789781249126_413454</id>
-            <from>
-              <name>Another Person</name>
-              <id>632343425</id>
-            </from>
-            <message>An answer to the first comment.</message>
-            <created-time>2013-03-26T11:13:13+0000</created-time>
-          </comment>
-        </comments>
         <numlikes type="integer">0</numlikes>
         <text>The text of this post goes here.  Its really interesting.</text>
         <links type="array">

@@ -50,7 +50,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, List<InReplyToPa
 		final Tweet startingTweet = params[0];
 
 		final Meta inReplyToMeta = startingTweet.getFirstMetaOfType(MetaType.INREPLYTO);
-		if (inReplyToMeta == null) return null;
+		if (inReplyToMeta == null) return fetchComments(startingTweet);
 		final String inReplyToSid = inReplyToMeta.getData();
 
 		final List<InReplyToPayload> fromCache = fetchFromCache(startingTweet, inReplyToSid);
@@ -61,7 +61,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, List<InReplyToPa
 		return null;
 	}
 
-	public List<InReplyToPayload> fetchFromCache (final Tweet startingTweet, final String inReplyToSid) {
+	private List<InReplyToPayload> fetchFromCache (final Tweet startingTweet, final String inReplyToSid) {
 		Tweet inReplyToTweet = this.db.getTweetDetails(this.column.getId(), inReplyToSid);
 		if (inReplyToTweet != null) return Collections.singletonList(new InReplyToPayload(startingTweet, inReplyToTweet));
 
@@ -71,7 +71,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, List<InReplyToPa
 		return null;
 	}
 
-	public List<InReplyToPayload> fetchFromService (final Tweet startingTweet, final String inReplyToSid) {
+	private List<InReplyToPayload> fetchFromService (final Tweet startingTweet, final String inReplyToSid) {
 		try {
 			// TODO cache the tweets we specifically fetch?
 			switch (this.account.getProvider()) {
@@ -82,7 +82,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, List<InReplyToPa
 				case SUCCESSWHALE:
 					final Meta serviceMeta = startingTweet.getFirstMetaOfType(MetaType.SERVICE);
 					if (serviceMeta != null) {
-						final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(this.account, serviceMeta.getData(), inReplyToSid);
+						final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(this.account, serviceMeta.getData(), startingTweet.getSid());
 						if (thread != null && thread.count() > 0) return tweetListToReplyPayloads(startingTweet, thread);
 					}
 					break;
@@ -94,6 +94,21 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, List<InReplyToPa
 		}
 		catch (SuccessWhaleException e) {
 			LOG.w("Failed to retrieve thrad %s: %s", inReplyToSid, e.toString());
+		}
+		return null;
+	}
+
+	private List<InReplyToPayload> fetchComments (final Tweet startingTweet) {
+		// Hack because FB items are not immutable and must always be checked for comments.
+		final Meta serviceMeta = startingTweet.getFirstMetaOfType(MetaType.SERVICE);
+		if (serviceMeta != null && serviceMeta.getData().startsWith("facebook")) {
+			try {
+				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(this.account, serviceMeta.getData(), startingTweet.getSid());
+				if (thread != null && thread.count() > 0) return tweetListToReplyPayloads(startingTweet, thread);
+			}
+			catch (SuccessWhaleException e) {
+				LOG.w("Failed to retrieve thrad %s: %s", startingTweet.getSid(), e.toString());
+			}
 		}
 		return null;
 	}

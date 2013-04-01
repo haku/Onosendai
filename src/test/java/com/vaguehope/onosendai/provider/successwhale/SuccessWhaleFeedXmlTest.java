@@ -149,4 +149,25 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals("facebook:532423349", m1.getData());
 	}
 
+	@Test
+	public void itParsesFacebookCommentsThreadInsteadOfPost () throws Exception {
+		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(getClass().getResourceAsStream("/successwhale_fb_comments.xml"));
+		TweetList tweets = feed.getTweets();
+		assertEquals(2, tweets.count());
+
+		Tweet t = tweets.getTweet(0);
+		assertEquals("The first comment.", t.getBody());
+		assertEquals("523049849_10152161726966490_26840788", t.getSid());
+		assertEquals(null, t.getUsername());
+		assertEquals("The commenter", t.getFullname());
+		assertEquals(1364767585L, t.getTime());
+
+		Tweet t1 = tweets.getTweet(1);
+		assertEquals("The second comment.", t1.getBody());
+		assertEquals("523049849_10152161726966490_26841688", t1.getSid());
+		assertEquals(null, t1.getUsername());
+		assertEquals("The Poster", t1.getFullname());
+		assertEquals(1364774559L, t1.getTime());
+	}
+
 }
