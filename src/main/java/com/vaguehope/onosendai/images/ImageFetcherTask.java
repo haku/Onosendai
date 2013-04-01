@@ -38,11 +38,11 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 	@Override
 	protected void onPostExecute (final ImageFetchResult result) {
 		if (result.isSuccess()) {
-			result.getRequest().setImageBitmap(result.getBmp());
+			result.getRequest().setImageBitmap(result.getRequest().getUrl(), result.getBmp());
 		}
 		else {
 			LOG.w("Failed to fetch image '%s': %s", result.getRequest().getUrl(), result.getE().toString());
-			result.getRequest().setImageUnavailable();
+			result.getRequest().setImageUnavailable(result.getRequest().getUrl());
 		}
 	}
 
