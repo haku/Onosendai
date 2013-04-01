@@ -94,7 +94,10 @@ public class Tweet {
 		if (o == null) return false;
 		if (o == this) return true;
 		if (!(o instanceof Tweet)) return false;
-		Tweet that = (Tweet) o;
+		return equalToTweet((Tweet) o);
+	}
+
+	private boolean equalToTweet (final Tweet that) {
 		return this.uid == that.uid
 				&& EqualHelper.equal(this.sid, that.sid)
 				&& EqualHelper.equal(this.username, that.username)
