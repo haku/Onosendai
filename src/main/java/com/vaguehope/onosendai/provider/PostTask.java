@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.provider;
 
 import java.util.Set;
 
+import twitter4j.TwitterException;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -94,7 +95,7 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 			Notification n = new NotificationCompat.Builder(this.context)
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
 					.setContentTitle(String.format("Tap to retry post to %s.", this.req.getAccount().toHumanString()))
-					.setContentText(res.getE().getMessage())
+					.setContentText(res.getEmsg())
 					.setContentIntent(contentIntent)
 					.setAutoCancel(true)
 					.setUsesChronometer(false)
@@ -178,6 +179,14 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 
 		public Exception getE () {
 			return this.e;
+		}
+
+		public String getEmsg() {
+			if (this.e instanceof TwitterException) {
+				final TwitterException te = (TwitterException) this.e;
+				return String.format("%s %s", te.getErrorCode(), te.getErrorMessage());
+			}
+			return this.e.getMessage();
 		}
 
 	}
