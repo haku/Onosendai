@@ -20,7 +20,7 @@ public final class ImageLoaderUtils {
 			req.setImageBitmap(bmp);
 		}
 		else {
-			req.setImagePending();
+			req.setImagePending(req.getUrl());
 			// TODO if this becomes multi-threaded, need to lock in each unique URL to avoid duplicate downloads.
 			new ImageFetcherTask(cache).execute(req);
 		}

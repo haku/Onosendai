@@ -27,15 +27,24 @@ public class ImageLoadRequest {
 		return this.url;
 	}
 
-	public void setImagePending () {
+	public void setImagePending (final String forUrl) {
 		this.imageView.setImageResource(R.drawable.question_blue);
+		this.imageView.setTag(forUrl);
 	}
 
-	public void setImageUnavailable () {
+	public void setImageUnavailable (final String url) {
+		if (!url.equals(this.imageView.getTag())) return;
 		this.imageView.setImageResource(R.drawable.exclamation_red);
 	}
 
 	public void setImageBitmap (final Bitmap bmp) {
+		this.imageView.setImageBitmap(bmp);
+		this.imageView.setTag(null);
+		if (this.listener != null) this.listener.imageLoaded(this);
+	}
+
+	public void setImageBitmap (final String url, final Bitmap bmp) {
+		if (!url.equals(this.imageView.getTag())) return;
 		this.imageView.setImageBitmap(bmp);
 		if (this.listener != null) this.listener.imageLoaded(this);
 	}
