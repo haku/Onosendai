@@ -77,6 +77,8 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	private final Stack<String> stack = new Stack<String>();
 	private StringBuilder currentText;
 	private final TweetBuilder currentItem = new TweetBuilder();
+	private final TweetBuilder currentComment = new TweetBuilder();
+	private boolean addThisItem = true;
 	private String stashedFirstLinkTitle;
 	private String stashedLinkUrl;
 	private String stashedLinkExpandedUrl;
@@ -98,12 +100,15 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	public void endElement (final String uri, final String localName, final String qName) throws SAXException {
 		final String elementName = !localName.isEmpty() ? localName : qName;
 		if (this.stack.size() == 3 && elementName.equals("item")) {
-			this.currentItem.bodyIfAbsent(this.stashedFirstLinkTitle);
-			this.currentItem.meta(MetaType.SERVICE, SuccessWhaleProvider.createServiceMeta(this.stashedService, this.stashedFetchedForUserid));
-			this.tweets.add(this.currentItem.build());
+			if (this.addThisItem) {
+				this.currentItem.bodyIfAbsent(this.stashedFirstLinkTitle);
+				this.currentItem.meta(MetaType.SERVICE, SuccessWhaleProvider.createServiceMeta(this.stashedService, this.stashedFetchedForUserid));
+				this.tweets.add(this.currentItem.build());
+			}
 			this.stashedFirstLinkTitle = null;
 			this.stashedFetchedForUserid = null;
 			this.stashedService = null;
+			this.addThisItem = true;
 		}
 		else if (this.stack.size() == 4) {
 			if ("fetchedforuserid".equals(elementName)) {
@@ -127,7 +132,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.currentItem.body(this.currentText.toString());
 			}
 			else if ("time".equals(elementName)) {
-				long millis = this.dateFormat.parseMillis(this.currentText.toString());
+				final long millis = this.dateFormat.parseMillis(this.currentText.toString());
 				this.currentItem.unitTimeSeconds(TimeUnit.MILLISECONDS.toSeconds(millis));
 			}
 			else if ("fromuseravatar".equals(elementName)) {
@@ -141,16 +146,22 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.currentItem.meta(MetaType.MENTION, v, String.format("RT by @%s", v));
 			}
 		}
-		else if (this.stack.size() == 6 && "link".equals(elementName)) {
-			if(this.stashedLinkExpandedUrl != null) {
-				this.currentItem.meta(MetaType.URL, this.stashedLinkExpandedUrl, this.stashedLinkTitle);
+		else if (this.stack.size() == 6) {
+			if ("link".equals(elementName)) {
+				if (this.stashedLinkExpandedUrl != null) {
+					this.currentItem.meta(MetaType.URL, this.stashedLinkExpandedUrl, this.stashedLinkTitle);
+				}
+				else if (this.stashedLinkUrl != null) {
+					this.currentItem.meta(MetaType.URL, this.stashedLinkUrl, this.stashedLinkTitle);
+				}
+				this.stashedLinkUrl = null;
+				this.stashedLinkExpandedUrl = null;
+				this.stashedLinkTitle = null;
 			}
-			else if (this.stashedLinkUrl != null) {
-				this.currentItem.meta(MetaType.URL, this.stashedLinkUrl, this.stashedLinkTitle);
+			else if ("comment".equals(elementName)) {
+				this.tweets.add(this.currentComment.build());
+				this.addThisItem = false;
 			}
-			this.stashedLinkUrl = null;
-			this.stashedLinkExpandedUrl = null;
-			this.stashedLinkTitle = null;
 		}
 		else if (this.stack.size() == 7) {
 			if ("url".equals(elementName)) {
@@ -165,6 +176,21 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			}
 			else if ("preview".equals(elementName)) {
 				this.currentItem.meta(MetaType.MEDIA, this.currentText.toString());
+			}
+			else if ("id".equals(elementName)) {
+				this.currentComment.id(this.currentText.toString());
+			}
+			else if ("message".equals(elementName)) {
+				this.currentComment.body(this.currentText.toString());
+			}
+			else if ("created-time".equals(elementName)) {
+				final long millis = this.dateFormat.parseMillis(this.currentText.toString());
+				this.currentComment.unitTimeSeconds(TimeUnit.MILLISECONDS.toSeconds(millis));
+			}
+		}
+		else if (this.stack.size() == 8) {
+			if ("name".equals(elementName)) {
+				this.currentComment.fullname(this.currentText.toString());
 			}
 		}
 

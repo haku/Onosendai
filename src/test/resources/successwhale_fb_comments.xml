@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thread>
+  <success type="boolean">true</success>
+  <items type="array">
+    <item>
+      <service>facebook</service>
+      <fetchedforuserid>239043989</fetchedforuserid>
+      <content>
+        <id>523049849_10098234098116490</id>
+        <type>status</type>
+        <time type="datetime">2013-03-31T22:45:14+01:00</time>
+        <fromuserid>523049849</fromuserid>
+        <fromusername>The Poster</fromusername>
+        <fromuseravatar>http://graph.facebook.com/523049849/picture</fromuseravatar>
+        <numcomments type="integer">2</numcomments>
+        <numlikes type="integer">0</numlikes>
+        <text>The post.</text>
+        <links type="array"/>
+        <comments type="array">
+          <comment>
+            <id>523049849_10152161726966490_26840788</id>
+            <from>
+              <name>The commenter</name>
+              <id>100000239935226</id>
+            </from>
+            <message>The first comment.</message>
+            <created-time>2013-03-31T22:06:25+0000</created-time>
+          </comment>
+          <comment>
+            <id>523049849_10152161726966490_26841688</id>
+            <from>
+              <name>The Poster</name>
+              <id>523049849</id>
+            </from>
+            <message>The second comment.</message>
+            <created-time>2013-04-01T00:02:39+0000</created-time>
+          </comment>
+        </comments>
+      </content>
+    </item>
+  </items>
+</thread>
