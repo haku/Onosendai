@@ -53,40 +53,48 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, List<InReplyToPa
 		if (inReplyToMeta == null) return null;
 		final String inReplyToSid = inReplyToMeta.getData();
 
+		final List<InReplyToPayload> fromCache = fetchFromCache(startingTweet, inReplyToSid);
+		if (fromCache != null) return fromCache;
+
+		if (this.account != null) return fetchFromService(startingTweet, inReplyToSid);
+
+		return null;
+	}
+
+	public List<InReplyToPayload> fetchFromCache (final Tweet startingTweet, final String inReplyToSid) {
 		Tweet inReplyToTweet = this.db.getTweetDetails(this.column.getId(), inReplyToSid);
 		if (inReplyToTweet != null) return Collections.singletonList(new InReplyToPayload(startingTweet, inReplyToTweet));
 
 		inReplyToTweet = this.db.getTweetDetails(inReplyToSid);
 		if (inReplyToTweet != null) return Collections.singletonList(new InReplyToPayload(startingTweet, inReplyToTweet));
 
-		if (this.account != null) {
-			try {
-				// TODO cache the tweets we specifically fetch?
-				switch (this.account.getProvider()) {
-					case TWITTER:
-						inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(this.account, Long.parseLong(inReplyToSid));
-						if (inReplyToTweet != null) return Collections.singletonList(new InReplyToPayload(startingTweet, inReplyToTweet));
-						break;
-					case SUCCESSWHALE:
-						final Meta serviceMeta = startingTweet.getFirstMetaOfType(MetaType.SERVICE);
-						if (serviceMeta != null) {
-							final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(this.account, serviceMeta.getData(), inReplyToSid);
-							if (thread != null && thread.count() > 0) return tweetListToReplyPayloads(startingTweet, thread);
-						}
-						break;
-					default:
-				}
-			}
-			catch (TwitterException e) {
-				LOG.w("Failed to retrieve tweet %s: %s", inReplyToSid, e.toString());
-				return null;
-			}
-			catch (SuccessWhaleException e) {
-				LOG.w("Failed to retrieve thrad %s: %s", inReplyToSid, e.toString());
-				return null;
+		return null;
+	}
+
+	public List<InReplyToPayload> fetchFromService (final Tweet startingTweet, final String inReplyToSid) {
+		try {
+			// TODO cache the tweets we specifically fetch?
+			switch (this.account.getProvider()) {
+				case TWITTER:
+					final Tweet inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(this.account, Long.parseLong(inReplyToSid));
+					if (inReplyToTweet != null) return Collections.singletonList(new InReplyToPayload(startingTweet, inReplyToTweet));
+					break;
+				case SUCCESSWHALE:
+					final Meta serviceMeta = startingTweet.getFirstMetaOfType(MetaType.SERVICE);
+					if (serviceMeta != null) {
+						final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(this.account, serviceMeta.getData(), inReplyToSid);
+						if (thread != null && thread.count() > 0) return tweetListToReplyPayloads(startingTweet, thread);
+					}
+					break;
+				default:
 			}
 		}
-
+		catch (TwitterException e) {
+			LOG.w("Failed to retrieve tweet %s: %s", inReplyToSid, e.toString());
+		}
+		catch (SuccessWhaleException e) {
+			LOG.w("Failed to retrieve thrad %s: %s", inReplyToSid, e.toString());
+		}
 		return null;
 	}
 
