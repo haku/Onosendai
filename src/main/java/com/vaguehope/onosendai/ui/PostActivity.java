@@ -35,6 +35,8 @@ import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
+import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.PostTask;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
@@ -62,6 +64,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	private AccountAdaptor accountAdaptor;
 	private Spinner spnAccount;
+	private ViewGroup llSubAccounts;
 	private EditText txtBody;
 	private final Map<PostToAccount, Boolean> enabledPostToAccounts = new HashMap<PostToAccount, Boolean>();
 
@@ -95,6 +98,8 @@ public class PostActivity extends Activity implements ImageLoader {
 		final Account account = conf.getAccount(column.getAccountId());
 		this.spnAccount.setSelection(this.accountAdaptor.getAccountPosition(account));
 		this.spnAccount.setOnItemSelectedListener(this.accountOnItemSelectedListener);
+
+		this.llSubAccounts = (ViewGroup) findViewById(R.id.llSubAccounts);
 
 		this.txtBody = (EditText) findViewById(R.id.txtBody);
 		final TextView txtCharRemaining = (TextView) findViewById(R.id.txtCharRemaining);
@@ -179,6 +184,9 @@ public class PostActivity extends Activity implements ImageLoader {
 			view.setVisibility(View.VISIBLE);
 			tweet = getDb().getTweetDetails(this.columnId, this.inReplyToSid);
 			if (tweet != null) {
+				final Meta serviceMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
+				if (serviceMeta != null) this.llSubAccounts.setTag(serviceMeta.getData()); // FIXME going via the tag is a bit cryptic.
+
 				((TextView) view.findViewById(R.id.tweetDetailBody)).setText(tweet.getBody());
 				if (tweet.getAvatarUrl() != null) loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), (ImageView) view.findViewById(R.id.tweetDetailAvatar)));
 				((TextView) view.findViewById(R.id.tweetDetailName)).setText(tweet.getFullname());
@@ -232,13 +240,12 @@ public class PostActivity extends Activity implements ImageLoader {
 	};
 
 	protected void accountSelected (final Account account) {
-		final ViewGroup llSubAccounts = (ViewGroup) findViewById(R.id.llSubAccounts);
 		switch (account.getProvider()) {
 			case SUCCESSWHALE:
-				new SwPostToAccountLoaderTask(llSubAccounts, this.enabledPostToAccounts).execute(account);
+				new SwPostToAccountLoaderTask(this.llSubAccounts, this.enabledPostToAccounts).execute(account);
 				break;
 			default:
-				llSubAccounts.setVisibility(View.GONE);
+				this.llSubAccounts.setVisibility(View.GONE);
 		}
 	}
 
