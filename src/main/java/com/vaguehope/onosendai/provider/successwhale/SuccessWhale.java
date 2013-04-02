@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ResponseHandler;
@@ -88,7 +87,7 @@ public class SuccessWhale {
 		}
 	}
 
-	public TweetList getThread(final String serviceType, final String serviceSid, final String forSid) throws SuccessWhaleException {
+	public TweetList getThread (final String serviceType, final String serviceSid, final String forSid) throws SuccessWhaleException {
 		ensureAuthenticated();
 		try {
 			String url = makeAuthedUrl(API_THREAD, "&service=", serviceType, "&uid=" + serviceSid, "&postid=", forSid);
@@ -150,9 +149,10 @@ public class SuccessWhale {
 		return u.toString();
 	}
 
-	static void checkReponseCode (final StatusLine statusLine, final int code) throws IOException {
-		if (statusLine.getStatusCode() != code) {
-			throw new IOException("HTTP " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase());
+	static void checkReponseCode (final StatusLine statusLine) throws IOException {
+		final int code = statusLine.getStatusCode();
+		if (code < 200 || code >= 300) {
+			throw new IOException("HTTP " + code + ": " + statusLine.getReasonPhrase());
 		}
 	}
 
@@ -174,7 +174,7 @@ public class SuccessWhale {
 
 		@Override
 		public SuccessWhaleAuth handleResponse (final HttpResponse response) throws IOException {
-			checkReponseCode(response.getStatusLine(), HttpStatus.SC_OK);
+			checkReponseCode(response.getStatusLine());
 			try {
 				final String authRespRaw = EntityUtils.toString(response.getEntity());
 				final JSONObject authResp = (JSONObject) new JSONTokener(authRespRaw).nextValue();
@@ -196,7 +196,7 @@ public class SuccessWhale {
 
 		@Override
 		public List<PostToAccount> handleResponse (final HttpResponse response) throws IOException {
-			checkReponseCode(response.getStatusLine(), HttpStatus.SC_OK);
+			checkReponseCode(response.getStatusLine());
 			try {
 				return new PostToAccountsXml(response.getEntity().getContent()).getAccounts();
 			}
@@ -213,7 +213,7 @@ public class SuccessWhale {
 
 		@Override
 		public TweetList handleResponse (final HttpResponse response) throws IOException {
-			checkReponseCode(response.getStatusLine(), HttpStatus.SC_OK);
+			checkReponseCode(response.getStatusLine());
 			try {
 				return new SuccessWhaleFeedXml(response.getEntity().getContent()).getTweets();
 			}
@@ -230,7 +230,7 @@ public class SuccessWhale {
 
 		@Override
 		public Void handleResponse (final HttpResponse response) throws IOException {
-			checkReponseCode(response.getStatusLine(), HttpStatus.SC_OK);
+			checkReponseCode(response.getStatusLine());
 			return null;
 		}
 
