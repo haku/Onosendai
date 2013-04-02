@@ -30,7 +30,7 @@ import com.vaguehope.onosendai.util.LogWrapper;
  */
 public class SuccessWhale {
 
-	private static final String BASE_URL = "https://api.successwhale.com:443";
+	private static final String BASE_URL = "https://successwhale-api.herokuapp.com:443";
 	private static final String API_AUTH = "/v3/authenticate.json";
 	private static final String API_FEED = "/v3/feed.xml";
 	private static final String API_THREAD = "/v3/thread.xml";
