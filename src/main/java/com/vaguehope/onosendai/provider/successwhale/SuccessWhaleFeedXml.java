@@ -36,6 +36,7 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetBuilder;
@@ -43,11 +44,13 @@ import com.vaguehope.onosendai.model.TweetList;
 
 public class SuccessWhaleFeedXml implements ContentHandler {
 
+	private final Account account;
 	private final List<Tweet> tweets = new LinkedList<Tweet>();
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	public SuccessWhaleFeedXml (final InputStream dataIs) throws SAXException {
+	public SuccessWhaleFeedXml (final Account account, final InputStream dataIs) throws SAXException {
+		this.account = account;
 		SAXParserFactory spf = SAXParserFactory.newInstance();
 		SAXParser sp;
 		try {
@@ -102,6 +105,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 		if (this.stack.size() == 3 && elementName.equals("item")) {
 			if (this.addThisItem) {
 				this.currentItem.bodyIfAbsent(this.stashedFirstLinkTitle);
+				this.currentItem.meta(MetaType.ACCOUNT, this.account.getId());
 				this.currentItem.meta(MetaType.SERVICE, SuccessWhaleProvider.createServiceMeta(this.stashedService, this.stashedFetchedForUserid));
 				this.tweets.add(this.currentItem.build());
 			}

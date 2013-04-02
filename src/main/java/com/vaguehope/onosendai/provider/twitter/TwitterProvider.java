@@ -49,7 +49,7 @@ public class TwitterProvider {
 		}
 	}
 
-	private Twitter getAccount (final Account account) {
+	private Twitter getTwitter (final Account account) {
 		final Twitter t = this.accounts.get(account.getId());
 		if (t != null) return t;
 		addAccount(account);
@@ -69,21 +69,21 @@ public class TwitterProvider {
 	 * TODO use a call back to return tweets progressively.
 	 */
 	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId) throws TwitterException {
-		return fetchTwitterFeed(getAccount(account), feed, sinceId);
+		return fetchTwitterFeed(account, feed, sinceId);
 	}
 
 	public Tweet getTweet (final Account account, final long id) throws TwitterException {
-		return convertTweet(getAccount(account).showStatus(id));
+		return convertTweet(account, getTwitter(account).showStatus(id));
 	}
 
 	public void post (final Account account, final String body, final long inReplyTo) throws TwitterException {
 		final StatusUpdate s = new StatusUpdate(body);
 		if (inReplyTo > 0) s.setInReplyToStatusId(inReplyTo);
-		getAccount(account).updateStatus(s);
+		getTwitter(account).updateStatus(s);
 	}
 
 	public void rt (final Account account, final long id) throws TwitterException {
-		getAccount(account).retweetStatus(id);
+		getTwitter(account).retweetStatus(id);
 	}
 
 	private static TwitterFactory makeTwitterFactory (final Account account) {
@@ -100,7 +100,8 @@ public class TwitterProvider {
 	 * http://twitter4j.org/en/code-examples.html
 	 */
 
-	private static TweetList fetchTwitterFeed (final Twitter t, final TwitterFeed feed, final long sinceId) throws TwitterException {
+	private TweetList fetchTwitterFeed (final Account account, final TwitterFeed feed, final long sinceId) throws TwitterException {
+		final Twitter t = getTwitter(account);
 		final List<Tweet> tweets = new ArrayList<Tweet>();
 		final int minCount = feed.recommendedFetchCount();
 		final int pageSize = Math.min(minCount, C.TWEET_FETCH_PAGE_SIZE);
@@ -113,21 +114,22 @@ public class TwitterProvider {
 			final ResponseList<Status> timelinePage = feed.getTweets(t, paging);
 			LOG.i("Page %d of '%s' contains %d items.", page, feed.toString(), timelinePage.size());
 			if (timelinePage.size() < 1) break;
-			addTweetsToList(tweets, timelinePage);
+			addTweetsToList(tweets, account, timelinePage);
 			minId = minIdOf(minId, timelinePage);
 			page++;
 		}
 		return new TweetList(tweets);
 	}
 
-	private static void addTweetsToList (final List<Tweet> list, final ResponseList<Status> tweets) {
+	private static void addTweetsToList (final List<Tweet> list, final Account account, final ResponseList<Status> tweets) {
 		for (final Status status : tweets) {
-			list.add(convertTweet(status));
+			list.add(convertTweet(account, status));
 		}
 	}
 
-	private static Tweet convertTweet (final Status s) {
+	private static Tweet convertTweet (final Account account, final Status s) {
 		final List<Meta> metas = new ArrayList<Meta>();
+		metas.add(new Meta(MetaType.ACCOUNT, account.getId()));
 
 		final URLEntity[] urls = mergeArrays(s.getURLEntities(), s.getMediaEntities());
 		final String text = expandUrls(s.getText(), urls, metas);

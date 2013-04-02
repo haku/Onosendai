@@ -393,9 +393,7 @@ public class TweetListFragment extends Fragment {
 	}
 
 	public void lookForInReplyTos (final Tweet tweet) {
-		final Column column = this.conf.getColumnById(this.columnId);
-		final Account account = this.conf.getAccount(column.getAccountId());
-		new InReplyToLoaderTask(account, column, this.providerMgr, getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
+		new InReplyToLoaderTask(getConf(), this.providerMgr, getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
 	}
 
 	protected void setReadLaterButton (final Tweet tweet, final boolean laterColumn) {
@@ -458,7 +456,7 @@ public class TweetListFragment extends Fragment {
 
 		@Override
 		public void onClick (final View v) {
-			Column col = this.tweetListFragment.getConf().findInternalColumn(InternalColumnType.LATER);
+			final Column col = this.tweetListFragment.getConf().findInternalColumn(InternalColumnType.LATER);
 			if (col != null) {
 				if (this.isLaterColumn) {
 					this.tweetListFragment.getDb().deleteTweet(col, this.tweet);

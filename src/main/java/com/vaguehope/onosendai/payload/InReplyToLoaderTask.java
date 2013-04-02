@@ -8,31 +8,29 @@ import twitter4j.TwitterException;
 import android.os.AsyncTask;
 
 import com.vaguehope.onosendai.config.Account;
-import com.vaguehope.onosendai.config.AccountProvider;
-import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.payload.InReplyToLoaderTask.ReplyLoaderResult;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, List<InReplyToPayload>> {
+public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResult> {
 
 	private static final LogWrapper LOG = new LogWrapper("RL");
 
-	private final Account account;
-	private final Column column;
+	private final Config conf;
 	private final ProviderMgr provMgr;
 	private final DbInterface db;
 	private final PayloadListAdapter payloadListAdapter;
 	private final Payload placeholderPayload;
 
-	public InReplyToLoaderTask (final Account account, final Column column, final ProviderMgr provMgr, final DbInterface db, final PayloadListAdapter payloadListAdapter) {
-		this.account = account;
-		this.column = column;
+	public InReplyToLoaderTask (final Config conf, final ProviderMgr provMgr, final DbInterface db, final PayloadListAdapter payloadListAdapter) {
+		this.conf = conf;
 		this.provMgr = provMgr;
 		this.db = db;
 		this.payloadListAdapter = payloadListAdapter;
@@ -45,66 +43,88 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, List<InReplyToPa
 	}
 
 	@Override
-	protected List<InReplyToPayload> doInBackground (final Tweet... params) {
+	protected ReplyLoaderResult doInBackground (final Tweet... params) {
 		if (params.length != 1) throw new IllegalArgumentException("Only one param per task.");
 		final Tweet startingTweet = params[0];
 
-		final Meta inReplyToMeta = startingTweet.getFirstMetaOfType(MetaType.INREPLYTO);
-		if (inReplyToMeta == null) return fetchComments(startingTweet);
-		final String inReplyToSid = inReplyToMeta.getData();
-
-		final List<InReplyToPayload> fromCache = fetchFromCache(startingTweet, inReplyToSid);
-		if (fromCache != null) return fromCache;
-
-		if (this.account != null) return fetchFromService(startingTweet, inReplyToSid);
-
-		return null;
-	}
-
-	private List<InReplyToPayload> fetchFromCache (final Tweet startingTweet, final String inReplyToSid) {
-		Tweet inReplyToTweet = this.db.getTweetDetails(this.column.getId(), inReplyToSid);
-		if (inReplyToTweet != null) return Collections.singletonList(new InReplyToPayload(startingTweet, inReplyToTweet));
-
-		inReplyToTweet = this.db.getTweetDetails(inReplyToSid);
-		if (inReplyToTweet != null) return Collections.singletonList(new InReplyToPayload(startingTweet, inReplyToTweet));
-
-		return null;
-	}
-
-	private List<InReplyToPayload> fetchFromService (final Tweet startingTweet, final String inReplyToSid) {
-		try {
-			// TODO cache the tweets we specifically fetch?
-			switch (this.account.getProvider()) {
-				case TWITTER:
-					final Tweet inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(this.account, Long.parseLong(inReplyToSid));
-					if (inReplyToTweet != null) return Collections.singletonList(new InReplyToPayload(startingTweet, inReplyToTweet));
-					break;
-				case SUCCESSWHALE:
-					final Meta serviceMeta = startingTweet.getFirstMetaOfType(MetaType.SERVICE);
-					if (serviceMeta != null) {
-						final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(this.account, serviceMeta.getData(), startingTweet.getSid());
-						if (thread != null && thread.count() > 0) return tweetListToReplyPayloads(startingTweet, thread);
-					}
-					break;
-				default:
+		final Meta accountMeta = startingTweet.getFirstMetaOfType(MetaType.ACCOUNT);
+		if (accountMeta != null) {
+			final Account account = this.conf.getAccount(accountMeta.getData());
+			if (account != null) {
+				switch (account.getProvider()) {
+					case TWITTER:
+						return twitter(account, startingTweet);
+					case SUCCESSWHALE:
+						return successWhale(account, startingTweet);
+					default:
+				}
 			}
 		}
+		return generic(startingTweet);
+	}
+
+	private ReplyLoaderResult twitter (final Account account, final Tweet startingTweet) {
+		final Meta inReplyToMeta = startingTweet.getFirstMetaOfType(MetaType.INREPLYTO);
+		if (inReplyToMeta == null) return null;
+
+		final ReplyLoaderResult fromCache = fetchFromCache(startingTweet, inReplyToMeta.getData());
+		if (fromCache != null) return fromCache;
+
+		try {
+			final Tweet inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(account, Long.parseLong(inReplyToMeta.getData()));
+			if (inReplyToTweet != null) return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
+		}
 		catch (TwitterException e) {
-			LOG.w("Failed to retrieve tweet %s: %s", inReplyToSid, e.toString());
+			LOG.w("Failed to retrieve tweet %s: %s", inReplyToMeta.getData(), e.toString());
 		}
-		catch (SuccessWhaleException e) {
-			LOG.w("Failed to retrieve thrad %s: %s", inReplyToSid, e.toString());
-		}
+
 		return null;
 	}
 
-	private List<InReplyToPayload> fetchComments (final Tweet startingTweet) {
+	private ReplyLoaderResult successWhale (final Account account, final Tweet startingTweet) {
+		final Meta inReplyToMeta = startingTweet.getFirstMetaOfType(MetaType.INREPLYTO);
+		if (inReplyToMeta == null) return fetchComments(account, startingTweet);
+
+		final ReplyLoaderResult fromCache = fetchFromCache(startingTweet, inReplyToMeta.getData());
+		if (fromCache != null) return fromCache;
+
+		final Meta serviceMeta = startingTweet.getFirstMetaOfType(MetaType.SERVICE);
+		if (serviceMeta != null) {
+			try {
+				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
+				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
+			}
+			catch (SuccessWhaleException e) {
+				LOG.w("Failed to retrieve thread %s: %s", inReplyToMeta.getData(), e.toString());
+			}
+		}
+
+		return null;
+	}
+
+	private ReplyLoaderResult generic (final Tweet startingTweet) {
+		final Meta inReplyToMeta = startingTweet.getFirstMetaOfType(MetaType.INREPLYTO);
+		if (inReplyToMeta == null) return null;
+
+		final ReplyLoaderResult fromCache = fetchFromCache(startingTweet, inReplyToMeta.getData());
+		if (fromCache != null) return fromCache;
+
+		return null;
+	}
+
+	private ReplyLoaderResult fetchFromCache (final Tweet startingTweet, final String inReplyToSid) {
+		final Tweet inReplyToTweet = this.db.getTweetDetails(inReplyToSid);
+		if (inReplyToTweet != null) return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
+		return null;
+	}
+
+	private ReplyLoaderResult fetchComments (final Account account, final Tweet startingTweet) {
 		// Hack because FB items are not immutable and must always be checked for comments.
 		final Meta serviceMeta = startingTweet.getFirstMetaOfType(MetaType.SERVICE);
-		if (serviceMeta != null && serviceMeta.getData().startsWith("facebook")) {
+		if (serviceMeta != null && serviceMeta.getData().startsWith("facebook")) { // FIXME I do not like having this string here.
 			try {
-				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(this.account, serviceMeta.getData(), startingTweet.getSid());
-				if (thread != null && thread.count() > 0) return tweetListToReplyPayloads(startingTweet, thread);
+				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
+				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
 			}
 			catch (SuccessWhaleException e) {
 				LOG.w("Failed to retrieve thrad %s: %s", startingTweet.getSid(), e.toString());
@@ -113,30 +133,59 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, List<InReplyToPa
 		return null;
 	}
 
-	@Override
-	protected void onPostExecute (final List<InReplyToPayload> inReplyToPayloads) {
-		if (inReplyToPayloads == null || inReplyToPayloads.size() < 1) {
-			this.payloadListAdapter.removeItem(this.placeholderPayload);
-			return;
-		}
-		else if (inReplyToPayloads.size() == 1) {
-			final InReplyToPayload inReplyToPayload = inReplyToPayloads.get(0);
-			this.payloadListAdapter.replaceItem(this.placeholderPayload, inReplyToPayload);
-			if (this.account.getProvider() == AccountProvider.TWITTER) {
-				new InReplyToLoaderTask(this.account, this.column, this.provMgr, this.db, this.payloadListAdapter).execute(inReplyToPayload.getInReplyToTweet());
-			}
-		}
-		else {
-			this.payloadListAdapter.replaceItem(this.placeholderPayload, inReplyToPayloads);
-		}
-	}
-
 	private static List<InReplyToPayload> tweetListToReplyPayloads (final Tweet startingTweet, final TweetList thread) {
 		List<InReplyToPayload> ret = new ArrayList<InReplyToPayload>();
 		for (Tweet tweet : thread.getTweets()) {
 			ret.add(new InReplyToPayload(startingTweet, tweet));
 		}
 		return ret;
+	}
+
+	@Override
+	protected void onPostExecute (final ReplyLoaderResult result) {
+		if (result == null || !result.hasResults()) {
+			this.payloadListAdapter.removeItem(this.placeholderPayload);
+			return;
+		}
+		this.payloadListAdapter.replaceItem(this.placeholderPayload, result.getPayloads());
+		if (result.checkAgain()) {
+			new InReplyToLoaderTask(this.conf, this.provMgr, this.db, this.payloadListAdapter).execute(result.getFirstTweet());
+		}
+	}
+
+	protected static class ReplyLoaderResult {
+
+		private final List<InReplyToPayload> payloads;
+		private final boolean checkAgain;
+
+		public ReplyLoaderResult (final InReplyToPayload inReplyToPayload, final boolean checkAgain) {
+			this(Collections.singletonList(inReplyToPayload), checkAgain);
+		}
+
+		public ReplyLoaderResult (final List<InReplyToPayload> inReplyToPayloads, final boolean checkAgain) {
+			this.payloads = inReplyToPayloads;
+			this.checkAgain = checkAgain;
+		}
+
+		public boolean hasResults () {
+			return this.payloads != null && this.payloads.size() > 0;
+		}
+
+		public List<InReplyToPayload> getPayloads () {
+			return this.payloads;
+		}
+
+		public Tweet getFirstTweet () {
+			if (this.payloads == null || this.payloads.size() < 1) return null;
+			final InReplyToPayload payload = this.payloads.get(0);
+			if (payload == null) return null;
+			return payload.getInReplyToTweet();
+		}
+
+		public boolean checkAgain () {
+			return this.checkAgain;
+		}
+
 	}
 
 }
