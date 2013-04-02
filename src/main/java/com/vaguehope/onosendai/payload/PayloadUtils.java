@@ -59,6 +59,8 @@ public final class PayloadUtils {
 			case URL:
 				return new LinkPayload(tweet, meta);
 			case INREPLYTO:
+			case SERVICE:
+			case ACCOUNT:
 				return null;
 			default:
 				LOG.e("Unknown meta type: %s", meta.getType());
