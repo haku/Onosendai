@@ -16,10 +16,6 @@ public class Tweet {
 	private final String avatarUrl;
 	private final List<Meta> metas;
 
-	Tweet (final String sid, final String username, final String fullname, final String body, final long unitTimeSeconds, final String avatarUrl) {
-		this(-1L, sid, username, fullname, body, unitTimeSeconds, avatarUrl, null);
-	}
-
 	public Tweet (final String sid, final String username, final String fullname, final String body, final long unitTimeSeconds, final String avatarUrl, final List<Meta> metas) {
 		this(-1L, sid, username, fullname, body, unitTimeSeconds, avatarUrl, metas);
 	}

@@ -80,7 +80,7 @@ public class SuccessWhale {
 		ensureAuthenticated();
 		try {
 			String url = makeAuthedUrl(API_FEED, "&sources=", URLEncoder.encode(feed.getSources(), "UTF-8"));
-			return this.httpClientFactory.getHttpClient().execute(new HttpGet(url), new FeedHandler());
+			return this.httpClientFactory.getHttpClient().execute(new HttpGet(url), new FeedHandler(this.account));
 		}
 		catch (final IOException e) {
 			throw new SuccessWhaleException("Failed to fetch feed '" + feed.toString() + "': " + e.toString(), e); // FIXME does feed have good toString()?
@@ -91,7 +91,7 @@ public class SuccessWhale {
 		ensureAuthenticated();
 		try {
 			String url = makeAuthedUrl(API_THREAD, "&service=", serviceType, "&uid=" + serviceSid, "&postid=", forSid);
-			final TweetList thread = this.httpClientFactory.getHttpClient().execute(new HttpGet(url), new FeedHandler());
+			final TweetList thread = this.httpClientFactory.getHttpClient().execute(new HttpGet(url), new FeedHandler(this.account));
 			return removeItem(thread, forSid);
 		}
 		catch (final IOException e) {
@@ -209,13 +209,17 @@ public class SuccessWhale {
 
 	private static class FeedHandler implements ResponseHandler<TweetList> {
 
-		public FeedHandler () {}
+		private final Account account;
+
+		public FeedHandler (final Account account) {
+			this.account = account;
+		}
 
 		@Override
 		public TweetList handleResponse (final HttpResponse response) throws IOException {
 			checkReponseCode(response.getStatusLine());
 			try {
-				return new SuccessWhaleFeedXml(response.getEntity().getContent()).getTweets();
+				return new SuccessWhaleFeedXml(this.account, response.getEntity().getContent()).getTweets();
 			}
 			catch (final SAXException e) {
 				throw new IOException("Failed to parse response: " + e.toString(), e);
