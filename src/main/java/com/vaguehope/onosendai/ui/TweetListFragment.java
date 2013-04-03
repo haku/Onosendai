@@ -416,13 +416,14 @@ public class TweetListFragment extends Fragment {
 	}
 
 	protected void askRt (final Tweet tweet) {
+		final Account account = getColumnAccount();
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
-		dlgBld.setMessage(String.format("RT @%s ?", tweet.getUsername()));
+		dlgBld.setMessage(String.format("RT @%s via %s ?", tweet.getUsername(), account.getId()));
 
 		dlgBld.setPositiveButton("RT", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
-				doRt(tweet);
+				doRt(account, tweet);
 			}
 		});
 
@@ -436,8 +437,8 @@ public class TweetListFragment extends Fragment {
 		dlgBld.show();
 	}
 
-	protected void doRt (final Tweet tweet) {
-		new RtTask(getActivity(), new RtRequest(getColumnAccount(), tweet)).execute();
+	protected void doRt (final Account account, final Tweet tweet) {
+		new RtTask(getActivity(), new RtRequest(account, tweet)).execute();
 	}
 
 	private static class DetailsLaterClickListener implements OnClickListener {
