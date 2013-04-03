@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.util.EqualHelper;
 
 public class SuccessWhaleProvider {
@@ -83,15 +84,17 @@ public class SuccessWhaleProvider {
 
 	public static class ServiceRef {
 
-		private final String type;
+		private final String rawType;
 		private final String uid;
+		private NetworkType type;
 
-		public ServiceRef (final String type, final String uid) {
-			this.type = type;
+		public ServiceRef (final String rawRype, final String uid) {
+			this.rawType = rawRype;
 			this.uid = uid;
 		}
 
-		public String getType () {
+		public  NetworkType getType () {
+			if (this.type == null) this.type = NetworkType.parse(this.rawType);
 			return this.type;
 		}
 
@@ -101,7 +104,7 @@ public class SuccessWhaleProvider {
 
 		public boolean matchesPostToAccount (final PostToAccount pta) {
 			if (pta == null) return false;
-			return EqualHelper.equal(pta.getService(), this.type) && EqualHelper.equal(pta.getUid(), this.uid);
+			return EqualHelper.equal(pta.getService(), this.rawType) && EqualHelper.equal(pta.getUid(), this.uid);
 		}
 
 	}

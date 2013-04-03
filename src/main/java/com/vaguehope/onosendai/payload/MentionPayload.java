@@ -5,6 +5,7 @@ import java.util.Arrays;
 import android.content.Context;
 import android.content.Intent;
 
+import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.ui.PostActivity;
@@ -16,24 +17,24 @@ import com.vaguehope.onosendai.util.EqualHelper;
  */
 public class MentionPayload extends Payload {
 
-	private final int columnId;
+	private final Account account;
 	private final String screenName;
 	private final String[] alsoMentions;
 
 	private String titleCache;
 
-	public MentionPayload (final int columnId, final Tweet ownerTweet, final Meta meta) {
-		this(columnId, ownerTweet, meta.getData());
+	public MentionPayload (final Account account, final Tweet ownerTweet, final Meta meta) {
+		this(account, ownerTweet, meta.getData());
 		this.titleCache = meta.getTitle();
 	}
 
-	public MentionPayload (final int columnId, final Tweet ownerTweet, final String screenName) {
-		this(columnId, ownerTweet, screenName, (String[]) null);
+	public MentionPayload (final Account account, final Tweet ownerTweet, final String screenName) {
+		this(account, ownerTweet, screenName, (String[]) null);
 	}
 
-	public MentionPayload (final int columnId, final Tweet ownerTweet, final String screenName, final String... alsoMentions) {
+	public MentionPayload (final Account account, final Tweet ownerTweet, final String screenName, final String... alsoMentions) {
 		super(ownerTweet, PayloadType.MENTION);
-		this.columnId = columnId;
+		this.account = account;
 		this.screenName = screenName;
 		this.alsoMentions = alsoMentions;
 	}
@@ -60,7 +61,7 @@ public class MentionPayload extends Payload {
 	@Override
 	public Intent toIntent (final Context context) {
 		final Intent intent = new Intent(context, PostActivity.class);
-		intent.putExtra(PostActivity.ARG_COLUMN_ID, this.columnId);
+		intent.putExtra(PostActivity.ARG_ACCOUNT_ID, this.account.getId());
 
 		if (this.screenName.equalsIgnoreCase(getOwnerTweet().getUsername())) {
 			intent.putExtra(PostActivity.ARG_IN_REPLY_TO_SID, getOwnerTweet().getSid());

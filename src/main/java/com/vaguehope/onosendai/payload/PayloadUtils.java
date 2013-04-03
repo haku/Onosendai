@@ -8,8 +8,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.provider.NetworkType;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider.ServiceRef;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public final class PayloadUtils {
@@ -27,35 +33,59 @@ public final class PayloadUtils {
 		throw new AssertionError();
 	}
 
-	public static PayloadList extractPayload (final int columnId, final Tweet tweet) {
-		Set<Payload> set = new LinkedHashSet<Payload>();
-		convertMeta(columnId, tweet, set);
+	public static PayloadList extractPayload (final Config conf, final Tweet tweet) {
+		final Meta accountMeta = tweet.getFirstMetaOfType(MetaType.ACCOUNT);
+		final Account account = accountMeta != null ? conf.getAccount(accountMeta.getData()) : null;
+
+		final Set<Payload> set = new LinkedHashSet<Payload>();
+		if (account != null) convertMeta(account, tweet, set);
 		extractUrls(tweet, set);
 		extractHashTags(tweet, set);
-		extractMentions(columnId, tweet, set);
-		set.add(new SharePayload(tweet)); // FIXME check if this is appropriate.
+		if (account != null) {
+			extractMentions(account, tweet, set);
+			addShareOptions(account, tweet, set);
+		}
+
 		List<Payload> sorted = new ArrayList<Payload>(set);
 		Collections.sort(sorted, Payload.TYPE_COMP);
 		return new PayloadList(sorted);
 	}
 
-	private static void convertMeta (final int columnId, final Tweet tweet, final Set<Payload> ret) {
+	private static void addShareOptions (final Account account, final Tweet tweet, final Set<Payload> set) {
+		if (account.getProvider() == null) return;
+		switch (account.getProvider()) {
+			case TWITTER:
+				set.add(new SharePayload(tweet, NetworkType.TWITTER));
+				break;
+			case SUCCESSWHALE:
+				final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
+				final ServiceRef serviceRef = svcMeta != null ? SuccessWhaleProvider.parseServiceMeta(svcMeta.getData()) : null;
+				final NetworkType networkType = serviceRef != null ? serviceRef.getType() : null;
+				set.add(new SharePayload(tweet, networkType));
+				break;
+			default:
+				set.add(new SharePayload(tweet));
+				break;
+		}
+	}
+
+	private static void convertMeta (final Account account, final Tweet tweet, final Set<Payload> ret) {
 		List<Meta> metas = tweet.getMetas();
 		if (metas == null) return;
 		for (Meta meta : metas) {
-			Payload payload = metaToPayload(columnId, tweet, meta);
+			Payload payload = metaToPayload(account, tweet, meta);
 			if (payload != null) ret.add(payload);
 		}
 	}
 
-	private static Payload metaToPayload (final int columnId, final Tweet tweet, final Meta meta) {
+	private static Payload metaToPayload (final Account account, final Tweet tweet, final Meta meta) {
 		switch (meta.getType()) {
 			case MEDIA:
 				return new MediaPayload(tweet, meta);
 			case HASHTAG:
 				return new HashTagPayload(tweet, meta);
 			case MENTION:
-				return new MentionPayload(columnId, tweet, meta);
+				return new MentionPayload(account, tweet, meta);
 			case URL:
 				return new LinkPayload(tweet, meta);
 			case INREPLYTO:
@@ -89,19 +119,19 @@ public final class PayloadUtils {
 		}
 	}
 
-	private static void extractMentions (final int columnId, final Tweet tweet, final Set<Payload> set) {
-		if (tweet.getUsername() != null) set.add(new MentionPayload(columnId, tweet, tweet.getUsername()));
+	private static void extractMentions (final Account account, final Tweet tweet, final Set<Payload> set) {
+		if (tweet.getUsername() != null) set.add(new MentionPayload(account, tweet, tweet.getUsername()));
 		List<String> allMentions = null;
 		String text = tweet.getBody();
 		if (text == null || text.isEmpty()) return;
 		Matcher m = MENTIONS_PATTERN.matcher(text);
 		while (m.find()) {
 			String g = m.group(1);
-			set.add(new MentionPayload(columnId, tweet, g));
+			set.add(new MentionPayload(account, tweet, g));
 			if (allMentions == null) allMentions = new ArrayList<String>();
 			allMentions.add(g);
 		}
-		if (allMentions != null && tweet.getUsername() != null) set.add(new MentionPayload(columnId, tweet, tweet.getUsername(), allMentions.toArray(new String[allMentions.size()])));
+		if (allMentions != null && tweet.getUsername() != null) set.add(new MentionPayload(account, tweet, tweet.getUsername(), allMentions.toArray(new String[allMentions.size()])));
 	}
 
 }
