@@ -36,6 +36,7 @@ public class SuccessWhale {
 	private static final String API_THREAD = "/v3/thread.xml";
 	private static final String API_POSTTOACCOUNTS = "/v3/posttoaccounts.xml";
 	private static final String API_ITEM = "/v3/item";
+	private static final String API_ACTION = "/v3/action";
 
 	private final LogWrapper log = new LogWrapper("SW");
 	private final Account account;
@@ -130,7 +131,27 @@ public class SuccessWhale {
 			}
 
 			post.setEntity(new UrlEncodedFormEntity(params));
-			this.httpClientFactory.getHttpClient().execute(post, new PostHandler());
+			this.httpClientFactory.getHttpClient().execute(post, new CheckStatusOnlyHandler());
+		}
+		catch (final IOException e) {
+			throw new SuccessWhaleException(e.toString(), e);
+		}
+	}
+
+	public void itemAction(final ServiceRef svc, final String itemSid, final ItemAction itemAction) throws SuccessWhaleException {
+		ensureAuthenticated();
+		try {
+			final HttpPost post = new HttpPost(BASE_URL + API_ACTION);
+			final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+			params.add(new BasicNameValuePair("sw_uid", this.auth.getUserid()));
+			params.add(new BasicNameValuePair("secret", this.auth.getSecret()));
+			params.add(new BasicNameValuePair("service", svc.getRawType()));
+			params.add(new BasicNameValuePair("uid", svc.getUid()));
+			params.add(new BasicNameValuePair("postid", itemSid));
+			params.add(new BasicNameValuePair("action", itemAction.getAction()));
+
+			post.setEntity(new UrlEncodedFormEntity(params));
+			this.httpClientFactory.getHttpClient().execute(post, new CheckStatusOnlyHandler());
 		}
 		catch (final IOException e) {
 			throw new SuccessWhaleException(e.toString(), e);
@@ -228,9 +249,9 @@ public class SuccessWhale {
 
 	}
 
-	private static class PostHandler implements ResponseHandler<Void> {
+	private static class CheckStatusOnlyHandler implements ResponseHandler<Void> {
 
-		public PostHandler () {}
+		public CheckStatusOnlyHandler () {}
 
 		@Override
 		public Void handleResponse (final HttpResponse response) throws IOException {

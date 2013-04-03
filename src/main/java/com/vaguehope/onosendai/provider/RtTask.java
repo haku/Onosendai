@@ -9,11 +9,20 @@ import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.RtTask.RtResult;
+import com.vaguehope.onosendai.provider.successwhale.ItemAction;
+import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class RtTask extends AsyncTask<Void, Void, RtResult> {
+
+	private static final LogWrapper LOG = new LogWrapper("RT");
 
 	private final Context context;
 	private final RtRequest req;
@@ -41,9 +50,12 @@ public class RtTask extends AsyncTask<Void, Void, RtResult> {
 
 	@Override
 	protected RtResult doInBackground (final Void... params) {
+		LOG.i("RTing: %s", this.req);
 		switch (this.req.getAccount().getProvider()) {
 			case TWITTER:
 				return rtViaTwitter();
+			case SUCCESSWHALE:
+				return rtViaSuccessWhale();
 			default:
 				return new RtResult(this.req, new UnsupportedOperationException("Do not know how to RT via account type: " + this.req.getAccount().toHumanString()));
 		}
@@ -63,15 +75,51 @@ public class RtTask extends AsyncTask<Void, Void, RtResult> {
 		}
 	}
 
+	private RtResult rtViaSuccessWhale () {
+		final SuccessWhaleProvider p = new SuccessWhaleProvider();
+		try {
+			final Meta svcMeta = this.req.getTweet().getFirstMetaOfType(MetaType.SERVICE);
+			if(svcMeta != null) {
+				final ServiceRef svc = SuccessWhaleProvider.parseServiceMeta(svcMeta.getData());
+				if (svc != null) {
+					final NetworkType networkType = svc.getType();
+					if (networkType != null) {
+						switch (networkType) {
+							case TWITTER:
+								p.itemAction(this.req.getAccount(), svc, this.req.getTweet().getSid(), ItemAction.RETWEET);
+								return new RtResult(this.req);
+							case FACEBOOK:
+								p.itemAction(this.req.getAccount(), svc, this.req.getTweet().getSid(), ItemAction.LIKE);
+								return new RtResult(this.req);
+							default:
+								return new RtResult(this.req, new SuccessWhaleException("Unknown network type: " + networkType));
+						}
+					}
+					return new RtResult(this.req, new SuccessWhaleException("Service metadata missing network type: " + svc));
+				}
+				return new RtResult(this.req, new SuccessWhaleException("Invalid service metadata: " + svcMeta.getData()));
+			}
+			return new RtResult(this.req, new SuccessWhaleException("Service metadata missing from message."));
+		}
+		catch (SuccessWhaleException e) {
+			return new RtResult(this.req, e);
+		}
+		finally {
+			p.shutdown();
+		}
+	}
+
 	@Override
 	protected void onPostExecute (final RtResult res) {
 		if (!res.isSuccess()) {
+			LOG.w("RT failed: %s", res.getE());
 			Notification n = new NotificationCompat.Builder(this.context)
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
 					.setContentTitle(String.format("Failed to RT via %s.", this.req.getAccount().toHumanString()))
-					.setContentText(res.getE().toString())
+					.setContentText(res.getEmsg())
 					.setAutoCancel(true)
 					.setUsesChronometer(false)
+					.setWhen(System.currentTimeMillis())
 					.build();
 			this.notificationMgr.notify(this.notificationId, n);
 		}
@@ -96,6 +144,14 @@ public class RtTask extends AsyncTask<Void, Void, RtResult> {
 
 		public Tweet getTweet () {
 			return this.tweet;
+		}
+
+		@Override
+		public String toString () {
+			return new StringBuilder()
+					.append("RtRequest{").append(this.account)
+					.append(",").append(this.tweet)
+					.append("}").toString();
 		}
 
 	}
@@ -128,6 +184,10 @@ public class RtTask extends AsyncTask<Void, Void, RtResult> {
 
 		public Exception getE () {
 			return this.e;
+		}
+
+		public String getEmsg() {
+			return TaskUtils.getEmsg(this.e);
 		}
 
 	}
