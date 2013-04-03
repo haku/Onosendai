@@ -14,8 +14,8 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.NetworkType;
+import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider.ServiceRef;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public final class PayloadUtils {

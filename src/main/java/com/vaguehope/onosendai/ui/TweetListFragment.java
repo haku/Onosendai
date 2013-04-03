@@ -418,7 +418,7 @@ public class TweetListFragment extends Fragment {
 	protected void askRt (final Tweet tweet) {
 		final Account account = getColumnAccount();
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
-		dlgBld.setMessage(String.format("RT @%s via %s ?", tweet.getUsername(), account.getId()));
+		dlgBld.setMessage(String.format("RT / Like via %s?", account.toHumanString()));
 
 		dlgBld.setPositiveButton("RT", new DialogInterface.OnClickListener() {
 			@Override

@@ -2,7 +2,6 @@ package com.vaguehope.onosendai.provider;
 
 import java.util.Set;
 
-import twitter4j.TwitterException;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -49,6 +48,7 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 
 	@Override
 	protected PostResult doInBackground (final Void... params) {
+		LOG.i("Posting: %s", this.req);
 		switch (this.req.getAccount().getProvider()) {
 			case TWITTER:
 				return postTwitter();
@@ -149,6 +149,15 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 			return this.recoveryIntent;
 		}
 
+		@Override
+		public String toString () {
+			return new StringBuilder()
+					.append("PostRequest{").append(this.account)
+					.append(",").append(this.postToAccounts)
+					.append(",").append(this.inReplyToSid)
+					.append("}").toString();
+		}
+
 	}
 
 	protected static class PostResult {
@@ -182,11 +191,7 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 		}
 
 		public String getEmsg() {
-			if (this.e instanceof TwitterException) {
-				final TwitterException te = (TwitterException) this.e;
-				return String.format("%s %s", te.getErrorCode(), te.getErrorMessage());
-			}
-			return this.e.getMessage();
+			return TaskUtils.getEmsg(this.e);
 		}
 
 	}

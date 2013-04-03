@@ -14,9 +14,9 @@ import android.widget.ToggleButton;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
+import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider.ServiceRef;
 import com.vaguehope.onosendai.ui.SwPostToAccountLoaderTask.AccountLoaderResult;
 
 class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderResult> {
@@ -68,14 +68,16 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderRe
 				btnEnableAccount.setTextOn(displayName);
 				btnEnableAccount.setTextOff(displayName);
 
+				boolean checked;
 				if (svc != null) {
-					btnEnableAccount.setChecked(svc.matchesPostToAccount(pta));
+					checked = svc.matchesPostToAccount(pta);
 				}
 				else {
-					btnEnableAccount.setChecked(pta.isEnabled());
+					checked = pta.isEnabled();
 				}
+				btnEnableAccount.setChecked(checked);
+				this.enabledSubAccounts.put(pta, checked);
 
-				this.enabledSubAccounts.put(pta, pta.isEnabled());
 				btnEnableAccount.setOnClickListener(new SubAccountToggleListener(pta, this.enabledSubAccounts));
 				this.llSubAccounts.addView(view);
 			}
