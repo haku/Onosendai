@@ -6,6 +6,7 @@ public enum PayloadType {
 	LINK,
 	HASHTAG,
 	MENTION,
+	COMMENT,
 	SHARE,
 	INREPLYTO,
 	PLACEHOLDER;
