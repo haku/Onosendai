@@ -386,7 +386,7 @@ public class TweetListFragment extends Fragment {
 		if (tweet.getAvatarUrl() != null) this.imageLoader.loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), this.imgTweetAvatar));
 		this.txtTweetName.setText(tweet.getFullname());
 		this.txtTweetDate.setText(this.dateFormat.format(new Date(TimeUnit.SECONDS.toMillis(tweet.getTime()))));
-		this.lstTweetPayloadAdaptor.setInputData(PayloadUtils.extractPayload(this.columnId, tweet));
+		this.lstTweetPayloadAdaptor.setInputData(PayloadUtils.extractPayload(getConf(), tweet));
 		lookForInReplyTos(tweet);
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
@@ -407,7 +407,7 @@ public class TweetListFragment extends Fragment {
 
 	protected void showPost (final Tweet tweetToQuote) {
 		final Intent intent = new Intent(getActivity(), PostActivity.class)
-				.putExtra(PostActivity.ARG_COLUMN_ID, this.columnId);
+				.putExtra(PostActivity.ARG_ACCOUNT_ID, getColumnAccount().getId());
 		if (tweetToQuote != null) {
 			intent.putExtra(PostActivity.ARG_BODY,
 					String.format("RT @%s %s", tweetToQuote.getUsername(), tweetToQuote.getBody()));

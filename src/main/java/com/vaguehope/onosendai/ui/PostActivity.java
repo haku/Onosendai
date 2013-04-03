@@ -29,7 +29,6 @@ import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountAdaptor;
-import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
@@ -47,7 +46,7 @@ import com.vaguehope.onosendai.util.LogWrapper;
 
 public class PostActivity extends Activity implements ImageLoader {
 
-	public static final String ARG_COLUMN_ID = "column_id";
+	public static final String ARG_ACCOUNT_ID = "account_id";
 	public static final String ARG_IN_REPLY_TO_SID = "in_reply_to_sid";
 	public static final String ARG_ALSO_MENTIONS = "also_mentions";
 	public static final String ARG_BODY = "body"; // If present mentions will not be prepended to body.
@@ -55,7 +54,6 @@ public class PostActivity extends Activity implements ImageLoader {
 	protected static final LogWrapper LOG = new LogWrapper("PA");
 
 	private Bundle intentExtras;
-	private int columnId;
 	private String inReplyToSid;
 	private String[] alsoMentions;
 
@@ -84,18 +82,17 @@ public class PostActivity extends Activity implements ImageLoader {
 		}
 
 		this.intentExtras = getIntent().getExtras();
-		this.columnId = this.intentExtras.getInt(ARG_COLUMN_ID, -1);
+		final String accountId = this.intentExtras.getString(ARG_ACCOUNT_ID);
 		this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
 		this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
-		LOG.i("columnId=%d inReplyTo=%s", this.columnId, this.inReplyToSid);
+		LOG.i("accountId=%s inReplyTo=%s", accountId, this.inReplyToSid);
 
 		this.imageCache = new HybridBitmapCache(getBaseContext(), C.MAX_MEMORY_IMAGE_CACHE);
 
 		this.spnAccount = (Spinner) findViewById(R.id.spnAccount);
 		this.accountAdaptor = new AccountAdaptor(getBaseContext(), conf);
 		this.spnAccount.setAdapter(this.accountAdaptor);
-		final Column column = conf.getColumnById(this.columnId);
-		final Account account = conf.getAccount(column.getAccountId());
+		final Account account = conf.getAccount(accountId);
 		this.spnAccount.setSelection(this.accountAdaptor.getAccountPosition(account));
 		this.spnAccount.setOnItemSelectedListener(this.accountOnItemSelectedListener);
 
@@ -182,7 +179,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		if (this.inReplyToSid != null) {
 			final View view = findViewById(R.id.tweetReplyToDetails);
 			view.setVisibility(View.VISIBLE);
-			tweet = getDb().getTweetDetails(this.columnId, this.inReplyToSid);
+			tweet = getDb().getTweetDetails(this.inReplyToSid);
 			if (tweet != null) {
 				final Meta serviceMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
 				if (serviceMeta != null) this.llSubAccounts.setTag(serviceMeta.getData()); // FIXME going via the tag is a bit cryptic.

@@ -16,6 +16,7 @@
 	<string name="btn_tweet_read">Read</string>
 	
 	<string name="btn_share_rt">RT</string>
+	<string name="btn_share_like">Like</string>
 	<string name="btn_share_quote">Quote</string>
 
 	<string name="btn_post_cancel">Cancel</string>
