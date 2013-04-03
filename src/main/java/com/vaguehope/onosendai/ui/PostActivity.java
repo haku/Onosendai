@@ -201,7 +201,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		}
 		else {
 			StringBuilder s = new StringBuilder();
-			if (tweet != null) s.append("@").append(tweet.getUsername());
+			if (tweet != null && tweet.getUsername() != null) s.append("@").append(tweet.getUsername());
 			if (this.alsoMentions != null) {
 				for (String mention : this.alsoMentions) {
 					s.append(" @").append(mention);
