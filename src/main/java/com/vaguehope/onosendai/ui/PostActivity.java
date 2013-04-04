@@ -140,8 +140,8 @@ public class PostActivity extends Activity implements ImageLoader {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void resumeDb () {
-		LOG.d("Binding DB service...");
 		if (this.bndDb == null) {
+			LOG.d("Binding DB service...");
 			this.bndDb = new DbClient(this, LOG.getPrefix(), new Runnable() {
 				@Override
 				public void run () {
@@ -222,7 +222,7 @@ public class PostActivity extends Activity implements ImageLoader {
 				.putExtras(this.intentExtras)
 				.putExtra(ARG_BODY, body);
 		// TODO save enabled sub-accounts.
-		new PostTask(getBaseContext(), new PostRequest(account, getEnabledPostToAccounts(), body, this.inReplyToSid, recoveryIntent)).execute();
+		new PostTask(getApplicationContext(), new PostRequest(account, getEnabledPostToAccounts(), body, this.inReplyToSid, recoveryIntent)).execute();
 		finish();
 	}
 
@@ -239,7 +239,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	protected void accountSelected (final Account account) {
 		switch (account.getProvider()) {
 			case SUCCESSWHALE:
-				new SwPostToAccountLoaderTask(this.llSubAccounts, this.enabledPostToAccounts).execute(account);
+				new SwPostToAccountLoaderTask(getDb(), this.llSubAccounts, this.enabledPostToAccounts).execute(account);
 				break;
 			default:
 				this.llSubAccounts.setVisibility(View.GONE);

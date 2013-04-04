@@ -9,6 +9,7 @@ import java.util.Set;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -23,6 +24,7 @@ import org.xml.sax.SAXException;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.storage.KvStore;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 /**
@@ -38,23 +40,77 @@ public class SuccessWhale {
 	private static final String API_ITEM = "/v3/item";
 	private static final String API_ACTION = "/v3/action";
 
+	private static final String SUCCESS_WHALE_AUTH_UID_PREFIX = "SUCCESS_WHALE_AUTH_UID_";
+	private static final String SUCCESS_WHALE_AUTH_SECRET_PREFIX = "SUCCESS_WHALE_AUTH_SECRET_";
+
 	private final LogWrapper log = new LogWrapper("SW");
+	private final KvStore kvStore;
 	private final Account account;
 	private final HttpClientFactory httpClientFactory;
 
 	private SuccessWhaleAuth auth;
 
-	public SuccessWhale (final Account account, final HttpClientFactory httpClientFactory) {
+	public SuccessWhale (final KvStore kvStore, final Account account, final HttpClientFactory httpClientFactory) {
+		this.kvStore = kvStore;
 		this.account = account;
 		this.httpClientFactory = httpClientFactory;
 	}
 
-	private boolean authenticated () {
-		return this.auth != null;
+	private HttpClient getHttpClient () throws SuccessWhaleException {
+		return this.httpClientFactory.getHttpClient();
 	}
 
-	private void ensureAuthenticated () throws SuccessWhaleException {
-		if (!authenticated()) authenticate();
+	Account getAccount () {
+		return this.account;
+	}
+
+	private interface SwCall<T> {
+		T invoke (HttpClient client) throws SuccessWhaleException, IOException;
+
+		String describeFailure (Exception e);
+	}
+
+	private <T> T authenticated (final SwCall<T> call) throws SuccessWhaleException {
+		if (this.auth == null) readAuthFromKvStore();
+		if (this.auth == null) authenticate();
+		try {
+			try {
+				return call.invoke(getHttpClient());
+			}
+			catch (NotAuthorizedException e) {
+				this.log.i("Stored auth details rejected, reauthenticating.");
+				this.auth = null;
+				writeAuthToKvStore();
+				authenticate();
+				return call.invoke(getHttpClient());
+			}
+		}
+		catch (IOException e) {
+			throw new SuccessWhaleException(call.describeFailure(e), e);
+		}
+	}
+
+	private void readAuthFromKvStore () {
+		final String uid = this.kvStore.getValue(SUCCESS_WHALE_AUTH_UID_PREFIX + getAccount().getId());
+		final String secret = this.kvStore.getValue(SUCCESS_WHALE_AUTH_SECRET_PREFIX + getAccount().getId());
+		if (uid != null && !uid.isEmpty() && secret != null && !secret.isEmpty()) {
+			this.auth = new SuccessWhaleAuth(uid, secret);
+		}
+	}
+
+	private void writeAuthToKvStore () {
+		this.kvStore.storeValue(SUCCESS_WHALE_AUTH_UID_PREFIX + getAccount().getId(), this.auth != null ? this.auth.getUserid() : null);
+		this.kvStore.storeValue(SUCCESS_WHALE_AUTH_SECRET_PREFIX + getAccount().getId(), this.auth != null ? this.auth.getSecret() : null);
+	}
+
+	static void checkReponseCode (final StatusLine statusLine) throws IOException {
+		final int code = statusLine.getStatusCode();
+		if (code == 401) {
+			throw new NotAuthorizedException();
+		}
+		else if (code < 200 || code >= 300) {
+			throw new IOException("HTTP " + code + ": " + statusLine.getReasonPhrase());
+		}
 	}
 
 	/**
@@ -69,8 +125,9 @@ public class SuccessWhale {
 			params.add(new BasicNameValuePair("username", username));
 			params.add(new BasicNameValuePair("password", password));
 			post.setEntity(new UrlEncodedFormEntity(params));
-			this.auth = this.httpClientFactory.getHttpClient().execute(post, new AuthHandler());
+			this.auth = getHttpClient().execute(post, new AuthHandler());
 			this.log.i("Authenticated username='%s' userid='%s'.", username, this.auth.getUserid());
+			writeAuthToKvStore();
 		}
 		catch (final IOException e) {
 			throw new SuccessWhaleException("Auth failed for user '" + username + "': " + e.toString(), e);
@@ -78,87 +135,107 @@ public class SuccessWhale {
 	}
 
 	public TweetList getFeed (final SuccessWhaleFeed feed) throws SuccessWhaleException {
-		ensureAuthenticated();
-		try {
-			String url = makeAuthedUrl(API_FEED, "&sources=", URLEncoder.encode(feed.getSources(), "UTF-8"));
-			return this.httpClientFactory.getHttpClient().execute(new HttpGet(url), new FeedHandler(this.account));
-		}
-		catch (final IOException e) {
-			throw new SuccessWhaleException("Failed to fetch feed '" + feed.toString() + "': " + e.toString(), e); // FIXME does feed have good toString()?
-		}
+		return authenticated(new SwCall<TweetList>() {
+			@Override
+			public TweetList invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+				String url = makeAuthedUrl(API_FEED, "&sources=", URLEncoder.encode(feed.getSources(), "UTF-8"));
+				return client.execute(new HttpGet(url), new FeedHandler(getAccount()));
+			}
+
+			@Override
+			public String describeFailure (final Exception e) {
+				return "Failed to fetch feed '" + feed.toString() + "': " + e.toString(); // FIXME does feed have good toString()?
+			}
+		});
 	}
 
 	public TweetList getThread (final String serviceType, final String serviceSid, final String forSid) throws SuccessWhaleException {
-		ensureAuthenticated();
-		try {
-			String url = makeAuthedUrl(API_THREAD, "&service=", serviceType, "&uid=" + serviceSid, "&postid=", forSid);
-			final TweetList thread = this.httpClientFactory.getHttpClient().execute(new HttpGet(url), new FeedHandler(this.account));
-			return removeItem(thread, forSid);
-		}
-		catch (final IOException e) {
-			throw new SuccessWhaleException("Failed to fetch thread for sid='" + forSid + "': " + e.toString(), e); // FIXME does feed have good toString()?
-		}
+		return authenticated(new SwCall<TweetList>() {
+			@Override
+			public TweetList invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+				String url = makeAuthedUrl(API_THREAD, "&service=", serviceType, "&uid=" + serviceSid, "&postid=", forSid);
+				final TweetList thread = client.execute(new HttpGet(url), new FeedHandler(getAccount()));
+				return removeItem(thread, forSid);
+			}
+
+			@Override
+			public String describeFailure (final Exception e) {
+				return "Failed to fetch thread for sid='" + forSid + "': " + e.toString(); // FIXME does feed have good toString()?
+			}
+		});
 	}
 
 	public List<PostToAccount> getPostToAccounts () throws SuccessWhaleException {
-		ensureAuthenticated();
-		try {
-			return this.httpClientFactory.getHttpClient().execute(new HttpGet(makeAuthedUrl(API_POSTTOACCOUNTS)), new PostToAccountsHandler());
-		}
-		catch (final IOException e) {
-			throw new SuccessWhaleException("Failed to fetch post to accounts: " + e.toString(), e);
-		}
+		return authenticated(new SwCall<List<PostToAccount>>() {
+			@Override
+			public List<PostToAccount> invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+				return client.execute(new HttpGet(makeAuthedUrl(API_POSTTOACCOUNTS)), new PostToAccountsHandler());
+			}
+
+			@Override
+			public String describeFailure (final Exception e) {
+				return "Failed to fetch post to accounts: " + e.toString();
+			}
+		});
 	}
 
 	public void post (final Set<PostToAccount> postToAccounts, final String body, final String inReplyToSid) throws SuccessWhaleException {
-		ensureAuthenticated();
-		try {
-			final HttpPost post = new HttpPost(BASE_URL + API_ITEM);
-			final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
-			params.add(new BasicNameValuePair("sw_uid", this.auth.getUserid()));
-			params.add(new BasicNameValuePair("secret", this.auth.getSecret()));
-			params.add(new BasicNameValuePair("text", body));
+		authenticated(new SwCall<Void>() {
+			@Override
+			public Void invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+				final HttpPost post = new HttpPost(BASE_URL + API_ITEM);
+				final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+				addAuthParams(params);
+				params.add(new BasicNameValuePair("text", body));
 
-			StringBuilder accounts = new StringBuilder();
-			for (PostToAccount pta : postToAccounts) {
-				if (accounts.length() > 0) accounts.append(":");
-				accounts.append(pta.getService()).append("/").append(pta.getUid());
+				StringBuilder accounts = new StringBuilder();
+				for (PostToAccount pta : postToAccounts) {
+					if (accounts.length() > 0) accounts.append(":");
+					accounts.append(pta.getService()).append("/").append(pta.getUid());
+				}
+				params.add(new BasicNameValuePair("accounts", accounts.toString()));
+
+				if (inReplyToSid != null && !inReplyToSid.isEmpty()) {
+					params.add(new BasicNameValuePair("in_reply_to_id", inReplyToSid));
+				}
+
+				post.setEntity(new UrlEncodedFormEntity(params));
+				client.execute(post, new CheckStatusOnlyHandler());
+				return null;
 			}
-			params.add(new BasicNameValuePair("accounts", accounts.toString()));
 
-			if (inReplyToSid != null && !inReplyToSid.isEmpty()) {
-				params.add(new BasicNameValuePair("in_reply_to_id", inReplyToSid));
+			@Override
+			public String describeFailure (final Exception e) {
+				return e.toString();
 			}
-
-			post.setEntity(new UrlEncodedFormEntity(params));
-			this.httpClientFactory.getHttpClient().execute(post, new CheckStatusOnlyHandler());
-		}
-		catch (final IOException e) {
-			throw new SuccessWhaleException(e.toString(), e);
-		}
+		});
 	}
 
-	public void itemAction(final ServiceRef svc, final String itemSid, final ItemAction itemAction) throws SuccessWhaleException {
-		ensureAuthenticated();
-		try {
-			final HttpPost post = new HttpPost(BASE_URL + API_ACTION);
-			final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
-			params.add(new BasicNameValuePair("sw_uid", this.auth.getUserid()));
-			params.add(new BasicNameValuePair("secret", this.auth.getSecret()));
-			params.add(new BasicNameValuePair("service", svc.getRawType()));
-			params.add(new BasicNameValuePair("uid", svc.getUid()));
-			params.add(new BasicNameValuePair("postid", itemSid));
-			params.add(new BasicNameValuePair("action", itemAction.getAction()));
+	public void itemAction (final ServiceRef svc, final String itemSid, final ItemAction itemAction) throws SuccessWhaleException {
+		authenticated(new SwCall<Void>() {
+			@Override
+			public Void invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+				final HttpPost post = new HttpPost(BASE_URL + API_ACTION);
+				final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+				addAuthParams(params);
+				params.add(new BasicNameValuePair("service", svc.getRawType()));
+				params.add(new BasicNameValuePair("uid", svc.getUid()));
+				params.add(new BasicNameValuePair("postid", itemSid));
+				params.add(new BasicNameValuePair("action", itemAction.getAction()));
 
-			post.setEntity(new UrlEncodedFormEntity(params));
-			this.httpClientFactory.getHttpClient().execute(post, new CheckStatusOnlyHandler());
-		}
-		catch (final IOException e) {
-			throw new SuccessWhaleException(e.toString(), e);
-		}
+				post.setEntity(new UrlEncodedFormEntity(params));
+				client.execute(post, new CheckStatusOnlyHandler());
+				return null;
+			}
+
+			@Override
+			public String describeFailure (final Exception e) {
+				return e.toString();
+			}
+		});
 	}
 
-	private String makeAuthedUrl (final String api, final String... params) {
+	String makeAuthedUrl (final String api, final String... params) {
 		StringBuilder u = new StringBuilder().append(BASE_URL).append(api).append("?")
 				.append("sw_uid=").append(this.auth.getUserid())
 				.append("&secret=").append(this.auth.getSecret());
@@ -170,14 +247,12 @@ public class SuccessWhale {
 		return u.toString();
 	}
 
-	static void checkReponseCode (final StatusLine statusLine) throws IOException {
-		final int code = statusLine.getStatusCode();
-		if (code < 200 || code >= 300) {
-			throw new IOException("HTTP " + code + ": " + statusLine.getReasonPhrase());
-		}
+	void addAuthParams (final List<NameValuePair> params) {
+		params.add(new BasicNameValuePair("sw_uid", this.auth.getUserid()));
+		params.add(new BasicNameValuePair("secret", this.auth.getSecret()));
 	}
 
-	private static TweetList removeItem (final TweetList thread, final String sid) {
+	static TweetList removeItem (final TweetList thread, final String sid) {
 		if (thread.count() < 1 || sid == null) return thread;
 		for (Tweet t : thread.getTweets()) {
 			if (sid.equals(t.getSid())) {

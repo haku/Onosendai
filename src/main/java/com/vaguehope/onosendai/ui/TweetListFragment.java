@@ -76,7 +76,6 @@ public class TweetListFragment extends Fragment {
 	private int columnId = -1;
 	private boolean isLaterColumn;
 	private Config conf;
-	private ProviderMgr providerMgr;
 	private ImageLoader imageLoader;
 	private RefreshUiHandler refreshUiHandler;
 
@@ -107,9 +106,7 @@ public class TweetListFragment extends Fragment {
 		this.log.setPrefix("C" + this.columnId);
 		this.log.d("onCreateView()");
 
-		final MainActivity mainActivity = (MainActivity) getActivity();
-		this.conf = mainActivity.getConf();
-		this.providerMgr = mainActivity.getProviderMgr();
+		this.conf = ((MainActivity) getActivity()).getConf();
 		this.imageLoader = ImageLoaderUtils.fromActivity(getActivity());
 
 		/*
@@ -212,6 +209,10 @@ public class TweetListFragment extends Fragment {
 		return this.adapter;
 	}
 
+	private ProviderMgr getProviderMgr() {
+		return ((MainActivity) getActivity()).getProviderMgr();
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void saveScroll () {
@@ -250,8 +251,8 @@ public class TweetListFragment extends Fragment {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void resumeDb () {
-		this.log.d("Binding DB service...");
 		if (this.bndDb == null) {
+			this.log.d("Binding DB service...");
 			this.bndDb = new DbClient(getActivity(), this.log.getPrefix(), new Runnable() {
 				@Override
 				public void run () {
@@ -393,7 +394,7 @@ public class TweetListFragment extends Fragment {
 	}
 
 	public void lookForInReplyTos (final Tweet tweet) {
-		new InReplyToLoaderTask(getConf(), this.providerMgr, getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
+		new InReplyToLoaderTask(getConf(), getProviderMgr(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
 	}
 
 	protected void setReadLaterButton (final Tweet tweet, final boolean laterColumn) {
@@ -438,7 +439,7 @@ public class TweetListFragment extends Fragment {
 	}
 
 	protected void doRt (final Account account, final Tweet tweet) {
-		new RtTask(getActivity(), new RtRequest(account, tweet)).execute();
+		new RtTask(getActivity().getApplicationContext(), new RtRequest(account, tweet)).execute();
 	}
 
 	private static class DetailsLaterClickListener implements OnClickListener {

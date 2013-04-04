@@ -1,5 +1,8 @@
 package com.vaguehope.onosendai.ui;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -18,9 +21,14 @@ import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.provider.ProviderMgr;
+import com.vaguehope.onosendai.storage.DbClient;
+import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.update.AlarmReceiver;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class MainActivity extends FragmentActivity implements ImageLoader {
+
+	private static final LogWrapper LOG = new LogWrapper("MA");
 
 	private Config conf;
 	private ProviderMgr providerMgr;
@@ -40,7 +48,6 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 			return;
 		}
 
-		this.providerMgr = new ProviderMgr();
 		this.imageCache = new HybridBitmapCache(this, C.MAX_MEMORY_IMAGE_CACHE);
 
 		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
@@ -53,24 +60,81 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 	}
 
 	@Override
+	public void onResume () {
+		super.onResume();
+		resumeDb();
+	}
+
+	@Override
 	protected void onDestroy () {
 		if (this.providerMgr != null) this.providerMgr.shutdown();
 		if (this.imageCache != null) this.imageCache.clean();
+		disposeDb();
 		super.onDestroy();
 	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private final CountDownLatch dbReadyLatch = new CountDownLatch(1);
+	private DbClient bndDb;
+
+	private void resumeDb () {
+		if (this.bndDb == null) {
+			LOG.d("Binding DB service...");
+			final CountDownLatch latch = this.dbReadyLatch;
+			final LogWrapper log = LOG;
+			this.bndDb = new DbClient(this, LOG.getPrefix(), new Runnable() {
+				@Override
+				public void run () {
+					latch.countDown();
+					log.d("DB service bound.");
+					setProviderMgr(new ProviderMgr(getDb()));
+				}
+			});
+		}
+	}
+
+	private void disposeDb () {
+		if (this.bndDb != null) this.bndDb.dispose();
+	}
+
+	private boolean waitForDbReady () {
+		boolean dbReady = false;
+		try {
+			dbReady = this.dbReadyLatch.await(C.DB_CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+		}
+		catch (InterruptedException e) {/**/}
+		if (!dbReady) LOG.e("Not updateing: Time out waiting for DB service to connect.");
+		return dbReady;
+	}
+
+	protected DbInterface getDb () {
+		final DbClient d = this.bndDb;
+		if (d == null) return null;
+		return d.getDb();
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	Config getConf () {
 		return this.conf;
 	}
 
 	ProviderMgr getProviderMgr () {
+		if (!waitForDbReady()) throw new IllegalStateException("DB not bound.");
 		return this.providerMgr;
+	}
+
+	void setProviderMgr (final ProviderMgr providerMgr) {
+		this.providerMgr = providerMgr;
 	}
 
 	@Override
 	public void loadImage (final ImageLoadRequest req) {
 		ImageLoaderUtils.loadImage(this.imageCache, req);
 	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static class SectionsPagerAdapter extends FragmentPagerAdapter {
 

@@ -7,7 +7,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
@@ -16,9 +15,11 @@ import com.vaguehope.onosendai.provider.PostTask.PostResult;
 import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
+import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
+import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-public class PostTask extends AsyncTask<Void, Void, PostResult> {
+public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 
 	private static final LogWrapper LOG = new LogWrapper("PT");
 
@@ -29,9 +30,15 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 	private NotificationManager notificationMgr;
 
 	public PostTask (final Context context, final PostRequest req) {
+		super(context);
 		this.context = context;
 		this.req = req;
 		this.notificationId = (int) System.currentTimeMillis(); // Probably unique.
+	}
+
+	@Override
+	protected LogWrapper getLog () {
+		return LOG;
 	}
 
 	@Override
@@ -47,13 +54,13 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 	}
 
 	@Override
-	protected PostResult doInBackground (final Void... params) {
+	protected PostResult doInBackgroundWithDb (final DbInterface db, final Void... params) {
 		LOG.i("Posting: %s", this.req);
 		switch (this.req.getAccount().getProvider()) {
 			case TWITTER:
 				return postTwitter();
 			case SUCCESSWHALE:
-				return postSuccessWhale();
+				return postSuccessWhale(db);
 			default:
 				return new PostResult(this.req, new UnsupportedOperationException("Do not know how to post to account type: " + this.req.getAccount().toHumanString()));
 		}
@@ -73,8 +80,8 @@ public class PostTask extends AsyncTask<Void, Void, PostResult> {
 		}
 	}
 
-	private PostResult postSuccessWhale() {
-		final SuccessWhaleProvider s = new SuccessWhaleProvider();
+	private PostResult postSuccessWhale(final DbInterface db) {
+		final SuccessWhaleProvider s = new SuccessWhaleProvider(db);
 		try {
 			s.post(this.req.getAccount(), this.req.getPostToAccounts(), this.req.getBody(), this.req.getInReplyToSid());
 			return new PostResult(this.req);

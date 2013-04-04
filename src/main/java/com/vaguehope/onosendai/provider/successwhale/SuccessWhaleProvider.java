@@ -7,20 +7,23 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.storage.KvStore;
 
 public class SuccessWhaleProvider {
 
+	private final KvStore kvStore;
 	private final ConcurrentMap<String, SuccessWhale> accounts;
 	private final HttpClientFactory httpClientFactory;
 
-	public SuccessWhaleProvider () {
+	public SuccessWhaleProvider (final KvStore kvStore) {
+		this.kvStore = kvStore;
 		this.accounts = new ConcurrentHashMap<String, SuccessWhale>();
 		this.httpClientFactory = new HttpClientFactory();
 	}
 
 	public void addAccount (final Account account) {
 		if (this.accounts.containsKey(account.getId())) return;
-		SuccessWhale s = new SuccessWhale(account, this.httpClientFactory);
+		SuccessWhale s = new SuccessWhale(this.kvStore, account, this.httpClientFactory);
 		this.accounts.putIfAbsent(account.getId(), s);
 	}
 

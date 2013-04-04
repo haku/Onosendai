@@ -50,8 +50,6 @@ public class UpdateService extends IntentService {
 	public static final String ARG_COLUMN_ID = "column_id";
 	public static final String ARG_IS_MANUAL = "is_manual";
 
-	private static final int DB_CONNECT_TIMEOUT_SECONDS = 3;
-
 	private static final String KEY_PREFIX_COL_LAST_REFRESH_TIME = "COL_LAST_REFRESH_TIME_";
 	protected static final LogWrapper LOG = new LogWrapper("US");
 
@@ -112,12 +110,10 @@ public class UpdateService extends IntentService {
 	private boolean waitForDbReady () {
 		boolean dbReady = false;
 		try {
-			dbReady = this.dbReadyLatch.await(DB_CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+			dbReady = this.dbReadyLatch.await(C.DB_CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 		}
 		catch (InterruptedException e) {/**/}
-		if (!dbReady) {
-			LOG.e("Not updateing: Time out waiting for DB service to connect.");
-		}
+		if (!dbReady) LOG.e("Not updateing: Time out waiting for DB service to connect.");
 		return dbReady;
 	}
 
@@ -152,7 +148,8 @@ public class UpdateService extends IntentService {
 			return;
 		}
 
-		final ProviderMgr providerMgr = new ProviderMgr();
+		if (!waitForDbReady()) return;
+		final ProviderMgr providerMgr = new ProviderMgr(getDb());
 		try {
 			fetchColumns(conf, columnId, manual, providerMgr);
 		}
@@ -172,14 +169,10 @@ public class UpdateService extends IntentService {
 			columns.addAll(removeNotFetchable(conf.getColumns()));
 		}
 
-		if (!manual) {
-			if (!waitForDbReady()) return;
-			removeNotDue(columns);
-		}
+		if (!manual) removeNotDue(columns);
 		// For now treating the configured interval as an 'attempt rate' not 'success rate' so write update time now.
 		final long now = System.currentTimeMillis();
 		for (final Column column : columns) {
-			if (!waitForDbReady()) return;
 			getDb().storeValue(KEY_PREFIX_COL_LAST_REFRESH_TIME + column.getId(), String.valueOf(now));
 		}
 
@@ -284,7 +277,6 @@ public class UpdateService extends IntentService {
 					final TwitterProvider twitterProvider = providerMgr.getTwitterProvider();
 					twitterProvider.addAccount(account);
 					TwitterFeed feed = TwitterFeeds.parse(column.getResource());
-					if (!waitForDbReady()) return;
 
 					long sinceId = -1;
 					List<Tweet> existingTweets = getDb().getTweets(column.getId(), 1);
@@ -305,7 +297,6 @@ public class UpdateService extends IntentService {
 					final SuccessWhaleProvider successWhaleProvider = providerMgr.getSuccessWhaleProvider();
 					successWhaleProvider.addAccount(account);
 					SuccessWhaleFeed feed = new SuccessWhaleFeed(column);
-					if (!waitForDbReady()) return;
 
 					TweetList tweets = successWhaleProvider.getTweets(feed, account);
 					getDb().storeTweets(column, tweets.getTweets());

@@ -466,7 +466,12 @@ public class DbAdapter implements DbInterface {
 		finally {
 			this.mDb.endTransaction();
 		}
-		this.log.d("Stored KV: '%s' = '%s'.", key, value);
+		if (value == null) {
+			this.log.d("Stored KV: '%s' = null.", key);
+		}
+		else {
+			this.log.d("Stored KV: '%s' = '%s'.", key, value);
+		}
 	}
 
 	@Override
@@ -488,7 +493,12 @@ public class DbAdapter implements DbInterface {
 		finally {
 			if (c != null) c.close();
 		}
-		this.log.d("Read KV: '%s' = '%s'.", key, ret);
+		if (ret == null) {
+			this.log.d("Read KV: '%s' = null.", key);
+		}
+		else {
+			this.log.d("Read KV: '%s' = '%s'.", key, ret);
+		}
 		return ret;
 	}
 
