@@ -127,7 +127,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
 			}
 			catch (SuccessWhaleException e) {
-				LOG.w("Failed to retrieve thrad %s: %s", startingTweet.getSid(), e.toString());
+				LOG.w("Failed to retrieve thread %s: %s", startingTweet.getSid(), e.toString());
 			}
 		}
 		return null;
