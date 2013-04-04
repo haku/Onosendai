@@ -4,7 +4,6 @@ import twitter4j.TwitterException;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
@@ -18,9 +17,11 @@ import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
+import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
+import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-public class RtTask extends AsyncTask<Void, Void, RtResult> {
+public class RtTask extends DbBindingAsyncTask<Void, Void, RtResult> {
 
 	private static final LogWrapper LOG = new LogWrapper("RT");
 
@@ -31,9 +32,15 @@ public class RtTask extends AsyncTask<Void, Void, RtResult> {
 	private NotificationManager notificationMgr;
 
 	public RtTask (final Context context, final RtRequest req) {
+		super(context);
 		this.context = context;
 		this.req = req;
 		this.notificationId = (int) System.currentTimeMillis(); // Probably unique.
+	}
+
+	@Override
+	protected LogWrapper getLog () {
+		return LOG;
 	}
 
 	@Override
@@ -49,13 +56,13 @@ public class RtTask extends AsyncTask<Void, Void, RtResult> {
 	}
 
 	@Override
-	protected RtResult doInBackground (final Void... params) {
+	protected RtResult doInBackgroundWithDb (final DbInterface db, final Void... params) {
 		LOG.i("RTing: %s", this.req);
 		switch (this.req.getAccount().getProvider()) {
 			case TWITTER:
 				return rtViaTwitter();
 			case SUCCESSWHALE:
-				return rtViaSuccessWhale();
+				return rtViaSuccessWhale(db);
 			default:
 				return new RtResult(this.req, new UnsupportedOperationException("Do not know how to RT via account type: " + this.req.getAccount().toHumanString()));
 		}
@@ -75,8 +82,8 @@ public class RtTask extends AsyncTask<Void, Void, RtResult> {
 		}
 	}
 
-	private RtResult rtViaSuccessWhale () {
-		final SuccessWhaleProvider p = new SuccessWhaleProvider();
+	private RtResult rtViaSuccessWhale (final DbInterface db) {
+		final SuccessWhaleProvider p = new SuccessWhaleProvider(db);
 		try {
 			final Meta svcMeta = this.req.getTweet().getFirstMetaOfType(MetaType.SERVICE);
 			if(svcMeta != null) {

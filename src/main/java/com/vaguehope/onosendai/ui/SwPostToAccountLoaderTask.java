@@ -17,14 +17,18 @@ import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
 import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
+import com.vaguehope.onosendai.storage.KvStore;
 import com.vaguehope.onosendai.ui.SwPostToAccountLoaderTask.AccountLoaderResult;
 
 class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderResult> {
 
+	private final KvStore kvStore;
 	private final ViewGroup llSubAccounts;
 	private final Map<PostToAccount, Boolean> enabledSubAccounts;
 
-	public SwPostToAccountLoaderTask (final ViewGroup llSubAccounts, final Map<PostToAccount, Boolean> enabledSubAccounts) {
+	public SwPostToAccountLoaderTask (final KvStore kvStore, final ViewGroup llSubAccounts, final Map<PostToAccount, Boolean> enabledSubAccounts) {
+		super();
+		this.kvStore = kvStore;
 		this.llSubAccounts = llSubAccounts;
 		this.enabledSubAccounts = enabledSubAccounts;
 	}
@@ -44,7 +48,7 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderRe
 		if (params.length != 1) throw new IllegalArgumentException("Only one account per task.");
 		final Account account = params[0];
 
-		SuccessWhaleProvider swProv = new SuccessWhaleProvider();
+		SuccessWhaleProvider swProv = new SuccessWhaleProvider(this.kvStore);
 		try {
 			return new AccountLoaderResult(swProv.getPostToAccounts(account));
 		}

@@ -4,10 +4,10 @@ package com.vaguehope.onosendai;
 public interface C {
 
 	String TAG = "onosendai";
-
 	String CONFIG_FILE_NAME = "deck.conf";
 
 	int MAX_MEMORY_IMAGE_CACHE = 20 * 1024 * 1024;
+	int DB_CONNECT_TIMEOUT_SECONDS = 5;
 
 	int TWEET_FETCH_PAGE_SIZE = 20;
 	int TWITTER_TIMELINE_MAX_FETCH = TWEET_FETCH_PAGE_SIZE * 5;
