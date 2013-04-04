@@ -79,6 +79,14 @@ public class Tweet {
 	}
 
 	@Override
+	public String toString () {
+		return new StringBuilder()
+				.append("Tweet{").append(this.uid)
+				.append(",").append(this.sid)
+				.append("}").toString();
+	}
+
+	@Override
 	public int hashCode () {
 		return Arrays.hashCode(new Object[] {
 				this.uid, this.sid, this.username, this.fullname,
