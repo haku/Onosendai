@@ -28,6 +28,7 @@ public class DbClient {
 	}
 
 	public void dispose () {
+		clearReadyListener();
 		unbindDbService();
 	}
 
