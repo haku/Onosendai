@@ -14,6 +14,7 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 	private final HybridBitmapCache cache;
 
 	public ImageFetcherTask (final HybridBitmapCache cache) {
+		super();
 		this.cache = cache;
 	}
 
