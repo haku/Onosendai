@@ -30,6 +30,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 	private final Payload placeholderPayload;
 
 	public InReplyToLoaderTask (final Config conf, final ProviderMgr provMgr, final DbInterface db, final PayloadListAdapter payloadListAdapter) {
+		super();
 		this.conf = conf;
 		this.provMgr = provMgr;
 		this.db = db;
