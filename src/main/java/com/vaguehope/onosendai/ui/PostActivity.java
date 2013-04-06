@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
@@ -42,6 +43,7 @@ import com.vaguehope.onosendai.provider.PostTask.PostRequest;
 import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class PostActivity extends Activity implements ImageLoader {
@@ -59,6 +61,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	private DbClient bndDb;
 	private HybridBitmapCache imageCache;
+	private ExecutorService exec;
 
 	private AccountAdaptor accountAdaptor;
 	private Spinner spnAccount;
@@ -88,6 +91,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		LOG.i("accountId=%s inReplyTo=%s", accountId, this.inReplyToSid);
 
 		this.imageCache = new HybridBitmapCache(getBaseContext(), C.MAX_MEMORY_IMAGE_CACHE);
+		this.exec = ExecUtils.newBoundedCachedThreadPool(C.IMAGE_LOADER_MAX_THREADS);
 
 		this.spnAccount = (Spinner) findViewById(R.id.spnAccount);
 		this.accountAdaptor = new AccountAdaptor(getBaseContext(), conf);
@@ -120,6 +124,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	@Override
 	public void onDestroy () {
 		if (this.imageCache != null) this.imageCache.clean();
+		if (this.exec != null) this.exec.shutdown();
 		this.bndDb.dispose();
 		super.onDestroy();
 	}
@@ -134,7 +139,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	@Override
 	public void loadImage (final ImageLoadRequest req) {
-		ImageLoaderUtils.loadImage(this.imageCache, req);
+		ImageLoaderUtils.loadImage(this.imageCache, req, this.exec);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -239,7 +244,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	protected void accountSelected (final Account account) {
 		switch (account.getProvider()) {
 			case SUCCESSWHALE:
-				new SwPostToAccountLoaderTask(getDb(), this.llSubAccounts, this.enabledPostToAccounts).execute(account);
+				new SwPostToAccountLoaderTask(getDb(), this.llSubAccounts, this.enabledPostToAccounts).executeOnExecutor(this.exec, account);
 				break;
 			default:
 				this.llSubAccounts.setVisibility(View.GONE);
