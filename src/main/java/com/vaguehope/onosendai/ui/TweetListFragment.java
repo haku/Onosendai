@@ -39,6 +39,7 @@ import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.layouts.SidebarLayout;
 import com.vaguehope.onosendai.layouts.SidebarLayout.SidebarListener;
+import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
@@ -417,7 +418,12 @@ public class TweetListFragment extends Fragment {
 	}
 
 	protected void askRt (final Tweet tweet) {
-		final Account account = getColumnAccount();
+		final Account account = MetaUtils.accountFromMeta(tweet, this.conf);
+		if (account == null) {
+			Toast.makeText(getActivity(), "Can not find this tweet's account metadata.", Toast.LENGTH_LONG).show();
+			return;
+		}
+
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
 		dlgBld.setMessage(String.format("RT / Like via %s?", account.toHumanString()));
 
