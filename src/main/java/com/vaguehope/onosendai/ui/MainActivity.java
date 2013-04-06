@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.ui;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import android.os.Bundle;
@@ -24,6 +25,7 @@ import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.update.AlarmReceiver;
+import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class MainActivity extends FragmentActivity implements ImageLoader {
@@ -33,6 +35,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 	private Config conf;
 	private ProviderMgr providerMgr;
 	private HybridBitmapCache imageCache;
+	private ExecutorService imageExec;
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -49,6 +52,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		}
 
 		this.imageCache = new HybridBitmapCache(this, C.MAX_MEMORY_IMAGE_CACHE);
+		this.imageExec = ExecUtils.newBoundedCachedThreadPool(C.MAX_IMAGE_LOADER_THREADS);
 
 		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
 
@@ -69,6 +73,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 	protected void onDestroy () {
 		if (this.providerMgr != null) this.providerMgr.shutdown();
 		if (this.imageCache != null) this.imageCache.clean();
+		if (this.imageExec != null) this.imageExec.shutdown();
 		disposeDb();
 		super.onDestroy();
 	}
@@ -131,7 +136,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 	@Override
 	public void loadImage (final ImageLoadRequest req) {
-		ImageLoaderUtils.loadImage(this.imageCache, req);
+		ImageLoaderUtils.loadImage(this.imageCache, req, this.imageExec);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -150,9 +155,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		@Override
 		public Fragment getItem (final int position) {
 			final Column col = this.conf.getColumns().get(position);
-			// getItem is called to instantiate the fragment for the given page.
-			Fragment fragment = new TweetListFragment();
-			Bundle args = new Bundle();
+			final Fragment fragment = new TweetListFragment();
+			final Bundle args = new Bundle();
 			args.putInt(TweetListFragment.ARG_COLUMN_ID, col.getId());
 			args.putString(TweetListFragment.ARG_COLUMN_TITLE, col.getTitle());
 			args.putBoolean(TweetListFragment.ARG_COLUMN_IS_LATER, InternalColumnType.LATER.matchesColumn(col));
