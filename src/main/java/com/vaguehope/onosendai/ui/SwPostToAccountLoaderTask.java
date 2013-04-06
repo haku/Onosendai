@@ -13,14 +13,18 @@ import android.widget.ToggleButton;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.provider.TaskUtils;
 import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
 import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.storage.KvStore;
 import com.vaguehope.onosendai.ui.SwPostToAccountLoaderTask.AccountLoaderResult;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderResult> {
+
+	private static final LogWrapper LOG = new LogWrapper("AL");
 
 	private final KvStore kvStore;
 	private final ViewGroup llSubAccounts;
@@ -87,8 +91,9 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderRe
 			}
 		}
 		else {
+			LOG.w("Failed to fetch SW post to accounts: %s", result.getE());
 			Toast.makeText(this.llSubAccounts.getContext(),
-					"Failed to fetch sub accounts: " + result.getE().toString(),
+					"Failed to fetch sub accounts: " + result.getEmsg(),
 					Toast.LENGTH_LONG).show();
 		}
 	}
@@ -123,6 +128,10 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderRe
 
 		public Exception getE () {
 			return this.e;
+		}
+
+		public String getEmsg() {
+			return TaskUtils.getEmsg(this.e);
 		}
 
 	}
