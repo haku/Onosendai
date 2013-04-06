@@ -178,7 +178,7 @@ public class UpdateService extends IntentService {
 
 		LOG.i("Updating columns: %s.", Column.titles(columns));
 
-		if (columns.size() >= C.MIN_COLUMS_TO_USE_THREADPOOL) {
+		if (columns.size() >= C.UPDATER_MIN_COLUMS_TO_USE_THREADPOOL) {
 			fetchColumnsMultiThread(conf, providerMgr, columns);
 		}
 		else {
@@ -217,7 +217,7 @@ public class UpdateService extends IntentService {
 	}
 
 	private void fetchColumnsMultiThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns) {
-		int poolSize = Math.min(columns.size(), C.MAX_THREAD_POOL_SIZE);
+		int poolSize = Math.min(columns.size(), C.UPDATER_MAX_THREADS);
 		LOG.i("Using thread pool size %d for %d columns.", poolSize, columns.size());
 		ExecutorService ex = Executors.newFixedThreadPool(poolSize);
 		try {
