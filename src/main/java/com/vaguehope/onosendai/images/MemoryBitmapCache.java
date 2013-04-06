@@ -11,7 +11,7 @@ public class MemoryBitmapCache<K> extends LruCache<K, Bitmap> {
 
 	@Override
 	protected int sizeOf (final K key, final Bitmap value) {
-		return value.getByteCount();
+		return value.getRowBytes() * value.getHeight(); // Backwards compatible equivalent of getByteCount().
 	}
 
 	@Override
