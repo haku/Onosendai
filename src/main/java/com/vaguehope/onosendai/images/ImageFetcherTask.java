@@ -21,7 +21,8 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 	@Override
 	protected ImageFetchResult doInBackground (final ImageLoadRequest... reqs) {
 		if (reqs.length != 1) throw new IllegalArgumentException("Only one request per task.");
-		ImageLoadRequest req = reqs[0];
+		final ImageLoadRequest req = reqs[0];
+		if (!req.isRequired()) return null;
 		try {
 			final String url = req.getUrl();
 			Bitmap bmp = this.cache.get(url);
@@ -38,12 +39,13 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 
 	@Override
 	protected void onPostExecute (final ImageFetchResult result) {
+		if (result == null) return; // Request was no longer required.
 		if (result.isSuccess()) {
-			result.getRequest().setImageBitmap(result.getRequest().getUrl(), result.getBmp());
+			result.getRequest().setImageBitmapIfRequired(result.getBmp());
 		}
 		else {
 			LOG.w("Failed to fetch image '%s': %s", result.getRequest().getUrl(), result.getE().toString());
-			result.getRequest().setImageUnavailable(result.getRequest().getUrl());
+			result.getRequest().setImageUnavailableIfRequired();
 		}
 	}
 
