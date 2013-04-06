@@ -27,13 +27,13 @@ public class ImageLoadRequest {
 		return this.url;
 	}
 
-	public void setImagePending (final String forUrl) {
+	public void setImagePending () {
 		this.imageView.setImageResource(R.drawable.question_blue);
-		this.imageView.setTag(forUrl);
+		this.imageView.setTag(this.url);
 	}
 
-	public void setImageUnavailable (final String url) {
-		if (!url.equals(this.imageView.getTag())) return;
+	public void setImageUnavailableIfRequired () {
+		if (!isRequired()) return;
 		this.imageView.setImageResource(R.drawable.exclamation_red);
 	}
 
@@ -43,10 +43,14 @@ public class ImageLoadRequest {
 		if (this.listener != null) this.listener.imageLoaded(this);
 	}
 
-	public void setImageBitmap (final String url, final Bitmap bmp) {
-		if (!url.equals(this.imageView.getTag())) return;
+	public void setImageBitmapIfRequired (final Bitmap bmp) {
+		if (!isRequired()) return;
 		this.imageView.setImageBitmap(bmp);
 		if (this.listener != null) this.listener.imageLoaded(this);
+	}
+
+	public boolean isRequired () {
+		return this.url.equals(this.imageView.getTag());
 	}
 
 	public interface ImageLoadListener {
