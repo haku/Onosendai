@@ -11,6 +11,7 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.payload.InReplyToLoaderTask.ReplyLoaderResult;
@@ -48,17 +49,14 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 		if (params.length != 1) throw new IllegalArgumentException("Only one param per task.");
 		final Tweet startingTweet = params[0];
 
-		final Meta accountMeta = startingTweet.getFirstMetaOfType(MetaType.ACCOUNT);
-		if (accountMeta != null) {
-			final Account account = this.conf.getAccount(accountMeta.getData());
-			if (account != null) {
-				switch (account.getProvider()) {
-					case TWITTER:
-						return twitter(account, startingTweet);
-					case SUCCESSWHALE:
-						return successWhale(account, startingTweet);
-					default:
-				}
+		final Account account = MetaUtils.accountFromMeta(startingTweet, this.conf);
+		if (account != null) {
+			switch (account.getProvider()) {
+				case TWITTER:
+					return twitter(account, startingTweet);
+				case SUCCESSWHALE:
+					return successWhale(account, startingTweet);
+				default:
 			}
 		}
 		return generic(startingTweet);

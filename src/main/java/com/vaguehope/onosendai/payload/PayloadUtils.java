@@ -12,6 +12,7 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
@@ -34,8 +35,7 @@ public final class PayloadUtils {
 	}
 
 	public static PayloadList extractPayload (final Config conf, final Tweet tweet) {
-		final Meta accountMeta = tweet.getFirstMetaOfType(MetaType.ACCOUNT);
-		final Account account = accountMeta != null ? conf.getAccount(accountMeta.getData()) : null;
+		final Account account = MetaUtils.accountFromMeta(tweet, conf);
 
 		final Set<Payload> set = new LinkedHashSet<Payload>();
 		if (account != null) convertMeta(account, tweet, set);
