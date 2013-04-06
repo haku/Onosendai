@@ -52,7 +52,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		}
 
 		this.imageCache = new HybridBitmapCache(this, C.MAX_MEMORY_IMAGE_CACHE);
-		this.imageExec = ExecUtils.newBoundedCachedThreadPool(C.MAX_IMAGE_LOADER_THREADS);
+		this.imageExec = ExecUtils.newBoundedCachedThreadPool(C.IMAGE_LOADER_MAX_THREADS);
 
 		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
 

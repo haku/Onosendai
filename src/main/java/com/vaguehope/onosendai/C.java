@@ -18,10 +18,10 @@ public interface C {
 	String DATA_TW_MAX_COL_ENTRIES = "500";
 
 	// Arbitrary values.
-	int MIN_COLUMS_TO_USE_THREADPOOL = 2;
-	int MAX_THREAD_POOL_SIZE = 3;
+	int UPDATER_MIN_COLUMS_TO_USE_THREADPOOL = 2;
+	int UPDATER_MAX_THREADS = 3;
 
 	// Form main activity.
-	int MAX_IMAGE_LOADER_THREADS = 3;
+	int IMAGE_LOADER_MAX_THREADS = 3;
 
 }
