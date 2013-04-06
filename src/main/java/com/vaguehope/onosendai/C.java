@@ -21,4 +21,7 @@ public interface C {
 	int MIN_COLUMS_TO_USE_THREADPOOL = 2;
 	int MAX_THREAD_POOL_SIZE = 3;
 
+	// Form main activity.
+	int MAX_IMAGE_LOADER_THREADS = 3;
+
 }

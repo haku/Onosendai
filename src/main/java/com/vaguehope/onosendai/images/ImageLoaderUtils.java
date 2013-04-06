@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.images;
 
+import java.util.concurrent.Executor;
+
 import android.app.Activity;
 import android.graphics.Bitmap;
 
@@ -15,14 +17,24 @@ public final class ImageLoaderUtils {
 	}
 
 	public static void loadImage (final HybridBitmapCache cache, final ImageLoadRequest req) {
+		loadImage(cache, req, null);
+	}
+
+	public static void loadImage (final HybridBitmapCache cache, final ImageLoadRequest req, final Executor exec) {
 		final Bitmap bmp = cache.quickGet(req.getUrl());
 		if (bmp != null) {
 			req.setImageBitmap(bmp);
 		}
 		else {
 			req.setImagePending(req.getUrl());
+			final ImageFetcherTask task = new ImageFetcherTask(cache);
 			// TODO if this becomes multi-threaded, need to lock in each unique URL to avoid duplicate downloads.
-			new ImageFetcherTask(cache).execute(req);
+			if (exec != null) {
+				task.executeOnExecutor(exec, req);
+			}
+			else {
+				task.execute(req);
+			}
 		}
 	}
 
