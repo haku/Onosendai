@@ -395,7 +395,7 @@ public class TweetListFragment extends Fragment {
 	}
 
 	public void lookForInReplyTos (final Tweet tweet) {
-		new InReplyToLoaderTask(getConf(), getProviderMgr(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
+		new InReplyToLoaderTask(getConf(), getProviderMgr(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet); // FIXME use specific executor?
 	}
 
 	protected void setReadLaterButton (final Tweet tweet, final boolean laterColumn) {
