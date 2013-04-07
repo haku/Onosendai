@@ -1,11 +1,9 @@
 package com.vaguehope.onosendai.ui;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -40,7 +38,9 @@ import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.PostTask;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
-import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
+import com.vaguehope.onosendai.provider.successwhale.EnabledServiceRefs;
+import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.ExecUtils;
@@ -52,6 +52,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	public static final String ARG_IN_REPLY_TO_SID = "in_reply_to_sid";
 	public static final String ARG_ALSO_MENTIONS = "also_mentions";
 	public static final String ARG_BODY = "body"; // If present mentions will not be prepended to body.
+	public static final String ARG_SVCS = "svcs";
 
 	protected static final LogWrapper LOG = new LogWrapper("PA");
 
@@ -67,7 +68,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	private Spinner spnAccount;
 	private ViewGroup llSubAccounts;
 	private EditText txtBody;
-	private final Map<PostToAccount, Boolean> enabledPostToAccounts = new HashMap<PostToAccount, Boolean>();
+	private final EnabledServiceRefs enabledPostToAccounts = new EnabledServiceRefs();
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -88,7 +89,14 @@ public class PostActivity extends Activity implements ImageLoader {
 		final String accountId = this.intentExtras.getString(ARG_ACCOUNT_ID);
 		this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
 		this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
-		LOG.i("accountId=%s inReplyTo=%s", accountId, this.inReplyToSid);
+		final List<String> svcs = this.intentExtras.getStringArrayList(ARG_SVCS);
+		if (svcs != null) {
+			for (String svc : svcs) {
+				this.enabledPostToAccounts.enable(SuccessWhaleProvider.parseServiceMeta(svc));
+			}
+			this.enabledPostToAccounts.setServicesPreSpecified(true);
+		}
+		LOG.i("accountId=%s inReplyTo=%s svcs=%s", accountId, this.inReplyToSid, svcs);
 
 		this.imageCache = new HybridBitmapCache(getBaseContext(), C.MAX_MEMORY_IMAGE_CACHE);
 		this.exec = ExecUtils.newBoundedCachedThreadPool(C.IMAGE_LOADER_MAX_THREADS);
@@ -169,14 +177,6 @@ public class PostActivity extends Activity implements ImageLoader {
 		return this.accountAdaptor;
 	}
 
-	private Set<PostToAccount> getEnabledPostToAccounts() {
-		Set<PostToAccount> ret = new HashSet<PostToAccount>();
-		for (Entry<PostToAccount, Boolean> e : this.enabledPostToAccounts.entrySet()) {
-			if (e.getValue()) ret.add(e.getKey());
-		}
-		return ret;
-	}
-
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	protected void showInReplyToTweetDetails () {
@@ -186,8 +186,10 @@ public class PostActivity extends Activity implements ImageLoader {
 			view.setVisibility(View.VISIBLE);
 			tweet = getDb().getTweetDetails(this.inReplyToSid);
 			if (tweet != null) {
-				final Meta serviceMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
-				if (serviceMeta != null) this.llSubAccounts.setTag(serviceMeta.getData()); // FIXME going via the tag is a bit cryptic.
+				if (!this.enabledPostToAccounts.isServicesPreSpecified()) {
+					final Meta serviceMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
+					if (serviceMeta != null) setPostToAccountExclusive(SuccessWhaleProvider.parseServiceMeta(serviceMeta.getData()));
+				}
 
 				((TextView) view.findViewById(R.id.tweetDetailBody)).setText(tweet.getBody());
 				if (tweet.getAvatarUrl() != null) loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), (ImageView) view.findViewById(R.id.tweetDetailAvatar)));
@@ -197,6 +199,12 @@ public class PostActivity extends Activity implements ImageLoader {
 		}
 		initBody(tweet);
 		this.txtBody.setSelection(this.txtBody.getText().length());
+	}
+
+	private void setPostToAccountExclusive (final ServiceRef svc) {
+		if (svc == null) return;
+		this.enabledPostToAccounts.enable(svc);
+		SwPostToAccountLoaderTask.setExclusiveSelectedAccountBtn(this.llSubAccounts, svc);
 	}
 
 	private void initBody (final Tweet tweet) {
@@ -227,8 +235,15 @@ public class PostActivity extends Activity implements ImageLoader {
 				.putExtra(ARG_ACCOUNT_ID, account.getId())
 				.putExtra(ARG_IN_REPLY_TO_SID, this.inReplyToSid)
 				.putExtra(ARG_BODY, body);
-		// TODO save enabled sub-accounts.
-		new PostTask(getApplicationContext(), new PostRequest(account, getEnabledPostToAccounts(), body, this.inReplyToSid, recoveryIntent)).execute();
+
+		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
+		final ArrayList<String> svcsLst = new ArrayList<String>();
+		for (ServiceRef svc : svcs) {
+			svcsLst.add(svc.toServiceMeta());
+		}
+		recoveryIntent.putStringArrayListExtra(ARG_SVCS, svcsLst);
+
+		new PostTask(getApplicationContext(), new PostRequest(account, svcs, body, this.inReplyToSid, recoveryIntent)).execute();
 		finish();
 	}
 

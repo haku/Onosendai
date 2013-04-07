@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.provider.successwhale;
 
+import java.util.Arrays;
+
 import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.util.EqualHelper;
 
@@ -32,12 +34,31 @@ public class ServiceRef {
 		return EqualHelper.equal(pta.getService(), this.rawType) && EqualHelper.equal(pta.getUid(), this.uid);
 	}
 
+	public String toServiceMeta () {
+		return SuccessWhaleProvider.createServiceMeta(this.rawType, this.uid);
+	}
+
 	@Override
 	public String toString () {
 		return new StringBuilder()
 				.append("ServiceRef{").append(this.rawType)
 				.append(",").append(this.uid)
 				.append("}").toString();
+	}
+
+	@Override
+	public int hashCode () {
+		return Arrays.hashCode(new Object[] { this.rawType, this.uid });
+	}
+
+	@Override
+	public boolean equals (final Object o) {
+		if (o == null) return false;
+		if (o == this) return true;
+		if (!(o instanceof ServiceRef)) return false;
+		ServiceRef that = (ServiceRef) o;
+		return EqualHelper.equal(this.rawType, that.rawType)
+				&& EqualHelper.equal(this.uid, that.uid);
 	}
 
 }
