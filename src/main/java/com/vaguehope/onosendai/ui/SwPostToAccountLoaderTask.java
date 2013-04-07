@@ -22,13 +22,15 @@ import com.vaguehope.onosendai.storage.KvStore;
 import com.vaguehope.onosendai.ui.SwPostToAccountLoaderTask.AccountLoaderResult;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderResult> {
+class SwPostToAccountLoaderTask extends AsyncTask<Account, AccountLoaderResult, AccountLoaderResult> {
 
 	private static final LogWrapper LOG = new LogWrapper("AL");
 
 	private final KvStore kvStore;
 	private final ViewGroup llSubAccounts;
 	private final Map<PostToAccount, Boolean> enabledSubAccounts;
+
+	private ProgressBar progressBar;
 
 	public SwPostToAccountLoaderTask (final KvStore kvStore, final ViewGroup llSubAccounts, final Map<PostToAccount, Boolean> enabledSubAccounts) {
 		super();
@@ -41,9 +43,7 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderRe
 	protected void onPreExecute () {
 		this.enabledSubAccounts.clear();
 		this.llSubAccounts.removeAllViews();
-		final ProgressBar progressBar = new ProgressBar(this.llSubAccounts.getContext());
-		progressBar.setIndeterminate(true);
-		this.llSubAccounts.addView(progressBar);
+		showInProgress();
 		this.llSubAccounts.setVisibility(View.VISIBLE);
 	}
 
@@ -54,6 +54,8 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderRe
 
 		SuccessWhaleProvider swProv = new SuccessWhaleProvider(this.kvStore);
 		try {
+			final List<PostToAccount> cached = swProv.getPostToAccountsCached(account);
+			if (cached != null) publishProgress(new AccountLoaderResult(cached));
 			return new AccountLoaderResult(swProv.getPostToAccounts(account));
 		}
 		catch (SuccessWhaleException e) {
@@ -65,37 +67,66 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderRe
 	}
 
 	@Override
+	protected void onProgressUpdate (final AccountLoaderResult... results) {
+		if (results == null || results.length < 1) return;
+		final AccountLoaderResult result = results[0];
+		if (result != null && result.isSuccess()) displayAccounts(result);
+	}
+
+	@Override
 	protected void onPostExecute (final AccountLoaderResult result) {
-		this.llSubAccounts.removeAllViews();
+		hideInProgress();
+		if (result == null) return;
 		if (result.isSuccess()) {
-			final ServiceRef svc = SuccessWhaleProvider.parseServiceMeta(String.valueOf(this.llSubAccounts.getTag()));
-			for (final PostToAccount pta : result.getAccounts()) {
+			displayAccounts(result);
+		}
+		else {
+			LOG.w("Failed to update SW post to accounts: %s", result.getE());
+			Toast.makeText(this.llSubAccounts.getContext(),
+					"Failed to update sub accounts: " + result.getEmsg(),
+					Toast.LENGTH_LONG).show();
+		}
+	}
+
+	private void showInProgress () {
+		this.progressBar = new ProgressBar(this.llSubAccounts.getContext());
+		this.progressBar.setIndeterminate(true);
+		this.llSubAccounts.addView(this.progressBar);
+	}
+
+	private void hideInProgress () {
+		this.llSubAccounts.removeView(this.progressBar);
+	}
+
+	private void displayAccounts (final AccountLoaderResult result) {
+		final ServiceRef svc = SuccessWhaleProvider.parseServiceMeta(String.valueOf(this.llSubAccounts.getTag()));
+		for (final PostToAccount pta : result.getAccounts()) {
+			View existingView = this.llSubAccounts.findViewWithTag(pta.getUid());
+			if (existingView == null) {
 				final View view = View.inflate(this.llSubAccounts.getContext(), R.layout.subaccountitem, null);
-				final ToggleButton btnEnableAccount = (ToggleButton) view.findViewById(R.id.btnEnableAccount);
-				final String displayName = pta.getDisplayName();
-				btnEnableAccount.setTextOn(displayName);
-				btnEnableAccount.setTextOff(displayName);
-
-				boolean checked;
-				if (svc != null) {
-					checked = svc.matchesPostToAccount(pta);
-				}
-				else {
-					checked = pta.isEnabled();
-				}
-				btnEnableAccount.setChecked(checked);
-				this.enabledSubAccounts.put(pta, checked);
-
-				btnEnableAccount.setOnClickListener(new SubAccountToggleListener(pta, this.enabledSubAccounts));
+				view.setTag(pta.getUid());
+				configureAccountBtn((ToggleButton) view.findViewById(R.id.btnEnableAccount), pta, svc);
 				this.llSubAccounts.addView(view);
 			}
 		}
-		else {
-			LOG.w("Failed to fetch SW post to accounts: %s", result.getE());
-			Toast.makeText(this.llSubAccounts.getContext(),
-					"Failed to fetch sub accounts: " + result.getEmsg(),
-					Toast.LENGTH_LONG).show();
+	}
+
+	private void configureAccountBtn (final ToggleButton btn, final PostToAccount pta, final ServiceRef svc) {
+		final String displayName = pta.getDisplayName();
+		btn.setTextOn(displayName);
+		btn.setTextOff(displayName);
+
+		boolean checked;
+		if (svc != null) {
+			checked = svc.matchesPostToAccount(pta);
 		}
+		else {
+			checked = pta.isEnabled();
+		}
+		btn.setChecked(checked);
+		this.enabledSubAccounts.put(pta, checked);
+
+		btn.setOnClickListener(new SubAccountToggleListener(pta, this.enabledSubAccounts));
 	}
 
 	protected static class AccountLoaderResult {
@@ -130,7 +161,7 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, Void, AccountLoaderRe
 			return this.e;
 		}
 
-		public String getEmsg() {
+		public String getEmsg () {
 			return TaskUtils.getEmsg(this.e);
 		}
 

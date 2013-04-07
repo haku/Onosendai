@@ -1,7 +1,10 @@
 package com.vaguehope.onosendai.provider.successwhale;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +45,7 @@ public class SuccessWhale {
 
 	private static final String SUCCESS_WHALE_AUTH_UID_PREFIX = "SUCCESS_WHALE_AUTH_UID_";
 	private static final String SUCCESS_WHALE_AUTH_SECRET_PREFIX = "SUCCESS_WHALE_AUTH_SECRET_";
+	private static final String SUCCESS_WHALE_PTA_PREFIX = "SUCCESS_WHALE_PTA_";
 
 	private final LogWrapper log = new LogWrapper("SW");
 	private final KvStore kvStore;
@@ -169,7 +173,7 @@ public class SuccessWhale {
 		return authenticated(new SwCall<List<PostToAccount>>() {
 			@Override
 			public List<PostToAccount> invoke (final HttpClient client) throws SuccessWhaleException, IOException {
-				return client.execute(new HttpGet(makeAuthedUrl(API_POSTTOACCOUNTS)), new PostToAccountsHandler());
+				return client.execute(new HttpGet(makeAuthedUrl(API_POSTTOACCOUNTS)), new PostToAccountsHandler(SuccessWhale.this));
 			}
 
 			@Override
@@ -177,6 +181,24 @@ public class SuccessWhale {
 				return "Failed to fetch post to accounts: " + e.toString();
 			}
 		});
+	}
+
+	public List<PostToAccount> getPostToAccountsCached () {
+		final String key = SUCCESS_WHALE_PTA_PREFIX + getAccount().getId();
+		try {
+			String cached = this.kvStore.getValue(key);
+			if (cached == null || cached.isEmpty()) return null;
+			return new PostToAccountsXml(new StringReader(cached)).getAccounts();
+		}
+		catch (SAXException e) {
+			this.log.e("Failed to parse cached post to accounts.  Clearing cache.", e);
+			this.kvStore.storeValue(key, null);
+			return null;
+		}
+	}
+
+	protected void writePostToAccountsToCache (final String data) {
+		this.kvStore.storeValue(SUCCESS_WHALE_PTA_PREFIX + getAccount().getId(), data);
 	}
 
 	public void post (final Set<PostToAccount> postToAccounts, final String body, final String inReplyToSid) throws SuccessWhaleException {
@@ -288,13 +310,20 @@ public class SuccessWhale {
 
 	private static class PostToAccountsHandler implements ResponseHandler<List<PostToAccount>> {
 
-		public PostToAccountsHandler () {}
+		private final SuccessWhale sw;
+
+		public PostToAccountsHandler (final SuccessWhale sw) {
+			this.sw = sw;
+		}
 
 		@Override
 		public List<PostToAccount> handleResponse (final HttpResponse response) throws IOException {
 			checkReponseCode(response.getStatusLine());
 			try {
-				return new PostToAccountsXml(response.getEntity().getContent()).getAccounts();
+				final byte[] data = EntityUtils.toByteArray(response.getEntity());
+				List<PostToAccount> accounts = new PostToAccountsXml(new ByteArrayInputStream(data)).getAccounts();
+				if (this.sw != null) this.sw.writePostToAccountsToCache(new String(data, Charset.forName("UTF-8")));
+				return accounts;
 			}
 			catch (final SAXException e) {
 				throw new IOException("Failed to parse response: " + e.toString(), e);
