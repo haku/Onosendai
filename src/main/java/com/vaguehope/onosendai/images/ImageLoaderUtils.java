@@ -28,8 +28,8 @@ public final class ImageLoaderUtils {
 		else {
 			req.setImagePending();
 			final ImageFetcherTask task = new ImageFetcherTask(cache);
-			// TODO if this becomes multi-threaded, need to lock in each unique URL to avoid duplicate downloads.
 			if (exec != null) {
+				// TODO Need to lock in each unique URL to avoid duplicate downloads.
 				task.executeOnExecutor(exec, req);
 			}
 			else {
