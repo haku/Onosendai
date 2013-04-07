@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.images;
 
+import java.io.IOException;
+
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 
@@ -26,15 +28,18 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 		try {
 			final String url = req.getUrl();
 			Bitmap bmp = this.cache.get(url);
-			if (bmp == null) {
-				LOG.d("Fetching image: '%s'...", url);
-				bmp = HttpHelper.get(url, this.cache.fromHttp(url));
-			}
+			if (bmp == null) bmp = fetchImage(url);
 			return new ImageFetchResult(req, bmp);
 		}
 		catch (Exception e) { // NOSONAR To report errors.
 			return new ImageFetchResult(req, e);
 		}
+	}
+
+	private Bitmap fetchImage (final String url) throws IOException {
+		// FIXME Prevent multiple concurrent fetches for same image?
+		LOG.d("Fetching image: '%s'...", url);
+		return HttpHelper.get(url, this.cache.fromHttp(url));
 	}
 
 	@Override
