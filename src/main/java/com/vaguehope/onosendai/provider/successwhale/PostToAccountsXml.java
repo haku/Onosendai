@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.provider.successwhale;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -21,21 +22,28 @@ public class PostToAccountsXml implements ContentHandler {
 
 	private final List<PostToAccount> accounts = new ArrayList<PostToAccount>();
 
-	public PostToAccountsXml (final InputStream dataIs) throws SAXException {
-		SAXParserFactory spf = SAXParserFactory.newInstance();
-		SAXParser sp;
+	public PostToAccountsXml (final InputStream is) throws SAXException {
+		parse(new InputSource(is));
+	}
+
+	public PostToAccountsXml (final Reader reader) throws SAXException {
+		parse(new InputSource(reader));
+	}
+
+	private void parse (final InputSource source) throws SAXException {
+		final SAXParserFactory spf = SAXParserFactory.newInstance();
 		try {
-			sp = spf.newSAXParser();
-			XMLReader xmlReader = sp.getXMLReader();
+			final SAXParser sp = spf.newSAXParser();
+			final XMLReader xmlReader = sp.getXMLReader();
 			xmlReader.setContentHandler(this);
 			try {
-				xmlReader.parse(new InputSource(dataIs));
+				xmlReader.parse(source);
 			}
-			catch (IOException e) {
+			catch (final IOException e) {
 				throw new SAXException(e);
 			}
 		}
-		catch (ParserConfigurationException e) {
+		catch (final ParserConfigurationException e) {
 			throw new SAXException(e);
 		}
 	}
