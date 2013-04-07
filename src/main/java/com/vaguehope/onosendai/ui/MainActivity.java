@@ -10,6 +10,9 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.C;
@@ -21,6 +24,7 @@ import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
+import com.vaguehope.onosendai.layouts.SidebarLayout;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
@@ -36,6 +40,9 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 	private ProviderMgr providerMgr;
 	private HybridBitmapCache imageCache;
 	private ExecutorService imageExec;
+
+	private ViewPager viewPager;
+	private VisiblePageSelectionListener pageSelectionListener;
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -57,8 +64,11 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
 
 		// If this becomes too memory intensive, switch to android.support.v4.app.FragmentStatePagerAdapter.
-		SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), this.conf, columnWidth);
-		((ViewPager) findViewById(R.id.pager)).setAdapter(sectionsPagerAdapter);
+		final SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), this.conf, columnWidth);
+		this.viewPager = (ViewPager) findViewById(R.id.pager);
+		this.viewPager.setAdapter(sectionsPagerAdapter);
+		this.pageSelectionListener = new VisiblePageSelectionListener(columnWidth);
+		this.viewPager.setOnPageChangeListener(this.pageSelectionListener);
 
 		AlarmReceiver.configureAlarm(this); // FIXME be more smart about this?
 	}
@@ -141,6 +151,23 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	@Override
+	public void onBackPressed () {
+		for (int i = 0; i < this.viewPager.getChildCount(); i++) {
+			final View child = this.viewPager.getChildAt(i);
+			if (!(child instanceof ViewGroup)) continue;
+			final ViewGroup page = (ViewGroup) child;
+			for (int x = 0; x < page.getChildCount(); x++) {
+				final View pageChild = page.getChildAt(x);
+				if (!(pageChild instanceof SidebarLayout)) continue;
+				if (this.pageSelectionListener.isVisible((Integer) pageChild.getTag())) {
+					if (((SidebarLayout) pageChild).closeSidebar()) return;
+				}
+			}
+		}
+		super.onBackPressed();
+	}
+
 	private static class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 		private final Config conf;
@@ -157,6 +184,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 			final Column col = this.conf.getColumns().get(position);
 			final Fragment fragment = new TweetListFragment();
 			final Bundle args = new Bundle();
+			args.putInt(TweetListFragment.ARG_COLUMN_POSITION, position);
 			args.putInt(TweetListFragment.ARG_COLUMN_ID, col.getId());
 			args.putString(TweetListFragment.ARG_COLUMN_TITLE, col.getTitle());
 			args.putBoolean(TweetListFragment.ARG_COLUMN_IS_LATER, InternalColumnType.LATER.matchesColumn(col));
@@ -177,6 +205,26 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		@Override
 		public float getPageWidth (final int position) {
 			return this.pageWidth;
+		}
+
+	}
+
+	private static class VisiblePageSelectionListener extends SimpleOnPageChangeListener {
+
+		private int selectedPagePosition;
+		private final int visiblePages;
+
+		public VisiblePageSelectionListener (final float pageWidth) {
+			this.visiblePages = (int) (1 / pageWidth);
+		}
+
+		@Override
+		public void onPageSelected (final int position) {
+			this.selectedPagePosition = position;
+		}
+
+		public boolean isVisible (final int position) {
+			return position >= this.selectedPagePosition && position < this.selectedPagePosition + this.visiblePages;
 		}
 
 	}

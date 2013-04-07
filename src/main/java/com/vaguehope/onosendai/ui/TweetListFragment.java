@@ -68,6 +68,7 @@ import com.vaguehope.onosendai.util.LogWrapper;
 public class TweetListFragment extends Fragment {
 
 	static final String ARG_COLUMN_ID = "column_id";
+	static final String ARG_COLUMN_POSITION = "column_pos";
 	static final String ARG_COLUMN_TITLE = "column_title";
 	static final String ARG_COLUMN_IS_LATER = "column_is_later";
 
@@ -122,6 +123,7 @@ public class TweetListFragment extends Fragment {
 		final View rootView = inflater.inflate(R.layout.tweetlist, container, false);
 		this.sidebar = (SidebarLayout) rootView.findViewById(R.id.tweetListLayout);
 		this.sidebar.setListener(this.sidebarListener);
+		this.sidebar.setTag(getArguments().getInt(ARG_COLUMN_POSITION));
 
 		rootView.setFocusableInTouchMode(true);
 		rootView.requestFocus();
