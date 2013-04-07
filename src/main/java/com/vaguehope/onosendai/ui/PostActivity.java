@@ -224,7 +224,8 @@ public class PostActivity extends Activity implements ImageLoader {
 		final Account account = this.accountAdaptor.getAccount(this.spnAccount.getSelectedItemPosition());
 		final String body = this.txtBody.getText().toString();
 		final Intent recoveryIntent = new Intent(getBaseContext(), PostActivity.class)
-				.putExtras(this.intentExtras)
+				.putExtra(ARG_ACCOUNT_ID, account.getId())
+				.putExtra(ARG_IN_REPLY_TO_SID, this.inReplyToSid)
 				.putExtra(ARG_BODY, body);
 		// TODO save enabled sub-accounts.
 		new PostTask(getApplicationContext(), new PostRequest(account, getEnabledPostToAccounts(), body, this.inReplyToSid, recoveryIntent)).execute();

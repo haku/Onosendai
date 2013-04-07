@@ -98,7 +98,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 	protected void onPostExecute (final PostResult res) {
 		if (!res.isSuccess()) {
 			LOG.w("Post failed: %s", res.getE());
-			PendingIntent contentIntent = PendingIntent.getActivity(this.context, 0, this.req.getRecoveryIntent(), 0);
+			PendingIntent contentIntent = PendingIntent.getActivity(this.context, 0, this.req.getRecoveryIntent(), PendingIntent.FLAG_CANCEL_CURRENT);
 			Notification n = new NotificationCompat.Builder(this.context)
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
 					.setContentTitle(String.format("Tap to retry post to %s.", this.req.getAccount().toHumanString()))
