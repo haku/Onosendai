@@ -148,7 +148,7 @@ public class SuccessWhale {
 
 			@Override
 			public String describeFailure (final Exception e) {
-				return "Failed to fetch feed '" + feed.toString() + "': " + e.toString(); // FIXME does feed have good toString()?
+				return "Failed to fetch feed '" + feed + "': " + e.toString();
 			}
 		});
 	}
@@ -164,7 +164,7 @@ public class SuccessWhale {
 
 			@Override
 			public String describeFailure (final Exception e) {
-				return "Failed to fetch thread for sid='" + forSid + "': " + e.toString(); // FIXME does feed have good toString()?
+				return "Failed to fetch thread for sid='" + forSid + "': " + e.toString();
 			}
 		});
 	}
