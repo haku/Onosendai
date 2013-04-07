@@ -42,15 +42,15 @@ public final class HttpHelper {
 	}
 
 	public static <R, T extends Exception> R get (final String sUrl, final HttpStreamHandler<R, T> streamHandler) throws IOException, T { // NOSONAR Not redundant throws.
-		URL url = new URL(sUrl);
-		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		final URL url = new URL(sUrl);
+		final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("GET");
 		connection.setConnectTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_CONNECT_TIMEOUT_SECONDS));
 		connection.setReadTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_READ_TIMEOUT_SECONDS));
 
 		InputStream is = null;
 		try {
-			int responseCode = connection.getResponseCode();
+			final int responseCode = connection.getResponseCode();
 			if (responseCode >= 400) { // NOSONAR 400 is not a magic number.  Its HTTP spec.
 				throw new HttpResponseException(responseCode, streamToString(connection.getErrorStream()));
 			}
@@ -64,8 +64,8 @@ public final class HttpHelper {
 	}
 
 	private static String streamToString (final InputStream is) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+		final StringBuilder sb = new StringBuilder();
+		final BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 		try {
 			String line;
 			while ((line = rd.readLine()) != null) {
