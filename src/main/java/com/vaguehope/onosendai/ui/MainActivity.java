@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.ui;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -11,8 +12,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.C;
@@ -31,6 +30,7 @@ import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.update.AlarmReceiver;
 import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.ViewsHelper;
 
 public class MainActivity extends FragmentActivity implements ImageLoader {
 
@@ -153,16 +153,10 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 	@Override
 	public void onBackPressed () {
-		for (int i = 0; i < this.viewPager.getChildCount(); i++) {
-			final View child = this.viewPager.getChildAt(i);
-			if (!(child instanceof ViewGroup)) continue;
-			final ViewGroup page = (ViewGroup) child;
-			for (int x = 0; x < page.getChildCount(); x++) {
-				final View pageChild = page.getChildAt(x);
-				if (!(pageChild instanceof SidebarLayout)) continue;
-				if (this.pageSelectionListener.isVisible((Integer) pageChild.getTag())) {
-					if (((SidebarLayout) pageChild).closeSidebar()) return;
-				}
+		List<SidebarLayout> sidebars = ViewsHelper.findViewsByType(this.viewPager, SidebarLayout.class, 2);
+		for (SidebarLayout sb : sidebars) {
+			if (this.pageSelectionListener.isVisible((Integer) sb.getTag())) {
+				if (sb.closeSidebar()) return;
 			}
 		}
 		super.onBackPressed();
