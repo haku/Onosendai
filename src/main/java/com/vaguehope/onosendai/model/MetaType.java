@@ -7,7 +7,13 @@ public enum MetaType {
 	MENTION(3),
 	URL(4),
 	INREPLYTO(5),
+	/**
+	 * SuccessWhale sub-account type.
+	 */
 	SERVICE(6),
+	/**
+	 * Account (as appears in deck.conf).
+	 */
 	ACCOUNT(7);
 
 	private final int id;
