@@ -87,7 +87,7 @@ public class RtTask extends DbBindingAsyncTask<Void, Void, RtResult> {
 		try {
 			final Meta svcMeta = this.req.getTweet().getFirstMetaOfType(MetaType.SERVICE);
 			if(svcMeta != null) {
-				final ServiceRef svc = SuccessWhaleProvider.parseServiceMeta(svcMeta.getData());
+				final ServiceRef svc = SuccessWhaleProvider.parseServiceMeta(svcMeta);
 				if (svc != null) {
 					final NetworkType networkType = svc.getType();
 					if (networkType != null) {

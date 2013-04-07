@@ -15,8 +15,10 @@ import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.payload.InReplyToLoaderTask.ReplyLoaderResult;
+import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -120,13 +122,15 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 	private ReplyLoaderResult fetchComments (final Account account, final Tweet startingTweet) {
 		// Hack because FB items are not immutable and must always be checked for comments.
 		final Meta serviceMeta = startingTweet.getFirstMetaOfType(MetaType.SERVICE);
-		if (serviceMeta != null && serviceMeta.getData().startsWith("facebook")) { // FIXME I do not like having this string here.
-			try {
-				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
-				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
-			}
-			catch (SuccessWhaleException e) {
-				LOG.w("Failed to retrieve thread %s: %s", startingTweet.getSid(), e.toString());
+		if (serviceMeta != null) {
+			if (SuccessWhaleProvider.parseServiceMeta(serviceMeta).getType() == NetworkType.FACEBOOK) {
+				try {
+					final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
+					if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
+				}
+				catch (SuccessWhaleException e) {
+					LOG.w("Failed to retrieve thread %s: %s", startingTweet.getSid(), e.toString());
+				}
 			}
 		}
 		return null;

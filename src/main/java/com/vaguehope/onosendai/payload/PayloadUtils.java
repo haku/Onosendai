@@ -59,7 +59,7 @@ public final class PayloadUtils {
 				break;
 			case SUCCESSWHALE:
 				final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
-				final ServiceRef serviceRef = svcMeta != null ? SuccessWhaleProvider.parseServiceMeta(svcMeta.getData()) : null;
+				final ServiceRef serviceRef = svcMeta != null ? SuccessWhaleProvider.parseServiceMeta(svcMeta) : null;
 				final NetworkType networkType = serviceRef != null ? serviceRef.getType() : null;
 				if (networkType == NetworkType.FACEBOOK) set.add(new CommentPayload(account, tweet));
 				set.add(new SharePayload(tweet, networkType));
