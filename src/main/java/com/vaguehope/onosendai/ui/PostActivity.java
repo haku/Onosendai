@@ -188,7 +188,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			if (tweet != null) {
 				if (!this.enabledPostToAccounts.isServicesPreSpecified()) {
 					final Meta serviceMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
-					if (serviceMeta != null) setPostToAccountExclusive(SuccessWhaleProvider.parseServiceMeta(serviceMeta.getData()));
+					if (serviceMeta != null) setPostToAccountExclusive(SuccessWhaleProvider.parseServiceMeta(serviceMeta));
 				}
 
 				((TextView) view.findViewById(R.id.tweetDetailBody)).setText(tweet.getBody());
