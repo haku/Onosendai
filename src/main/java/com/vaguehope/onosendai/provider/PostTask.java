@@ -12,7 +12,7 @@ import android.support.v4.app.NotificationCompat;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.PostTask.PostResult;
-import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
+import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
@@ -83,7 +83,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 	private PostResult postSuccessWhale(final DbInterface db) {
 		final SuccessWhaleProvider s = new SuccessWhaleProvider(db);
 		try {
-			s.post(this.req.getAccount(), this.req.getPostToAccounts(), this.req.getBody(), this.req.getInReplyToSid());
+			s.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody(), this.req.getInReplyToSid());
 			return new PostResult(this.req);
 		}
 		catch (Exception e) { // NOSONAR need to report all errors.
@@ -118,14 +118,14 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 	public static class PostRequest {
 
 		private final Account account;
-		private final Set<PostToAccount> postToAccounts;
+		private final Set<ServiceRef> postToSvc;
 		private final String body;
 		private final String inReplyToSid;
 		private final Intent recoveryIntent;
 
-		public PostRequest (final Account account, final Set<PostToAccount> postToAccounts, final String body, final String inReplyToSid, final Intent recoveryIntent) {
+		public PostRequest (final Account account, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final Intent recoveryIntent) {
 			this.account = account;
-			this.postToAccounts = postToAccounts;
+			this.postToSvc = postToSvc;
 			this.body = body;
 			this.inReplyToSid = inReplyToSid;
 			this.recoveryIntent = recoveryIntent;
@@ -135,8 +135,8 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 			return this.account;
 		}
 
-		public Set<PostToAccount> getPostToAccounts () {
-			return this.postToAccounts;
+		public Set<ServiceRef> getPostToSvc () {
+			return this.postToSvc;
 		}
 
 		public String getBody () {
@@ -160,7 +160,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 		public String toString () {
 			return new StringBuilder()
 					.append("PostRequest{").append(this.account)
-					.append(",").append(this.postToAccounts)
+					.append(",").append(this.postToSvc)
 					.append(",").append(this.inReplyToSid)
 					.append("}").toString();
 		}

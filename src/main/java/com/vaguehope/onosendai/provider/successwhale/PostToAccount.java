@@ -34,6 +34,10 @@ public class PostToAccount {
 		return this.enabled;
 	}
 
+	public ServiceRef toSeviceRef () {
+		return new ServiceRef(this.service, this.uid);
+	}
+
 	public String getDisplayName () {
 		if (this.username != null && !this.username.isEmpty()) return this.username;
 		if (this.uid != null && !this.uid.isEmpty()) return this.uid;

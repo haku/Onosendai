@@ -59,8 +59,8 @@ public class SuccessWhaleProvider {
 		return getAccount(account).getPostToAccountsCached();
 	}
 
-	public void post (final Account account, final Set<PostToAccount> postToAccounts, final String body, final String inReplyToSid) throws SuccessWhaleException {
-		getAccount(account).post(postToAccounts, body, inReplyToSid);
+	public void post (final Account account, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid) throws SuccessWhaleException {
+		getAccount(account).post(postToSvc, body, inReplyToSid);
 	}
 
 	public void itemAction (final Account account, final ServiceRef svc, final String itemSid, final ItemAction itemAction) throws SuccessWhaleException {

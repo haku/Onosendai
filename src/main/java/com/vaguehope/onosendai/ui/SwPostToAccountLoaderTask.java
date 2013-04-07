@@ -1,7 +1,6 @@
 package com.vaguehope.onosendai.ui;
 
 import java.util.List;
-import java.util.Map;
 
 import android.os.AsyncTask;
 import android.view.View;
@@ -14,6 +13,7 @@ import android.widget.ToggleButton;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.TaskUtils;
+import com.vaguehope.onosendai.provider.successwhale.EnabledServiceRefs;
 import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
 import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
@@ -28,11 +28,11 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, AccountLoaderResult, 
 
 	private final KvStore kvStore;
 	private final ViewGroup llSubAccounts;
-	private final Map<PostToAccount, Boolean> enabledSubAccounts;
+	private final EnabledServiceRefs enabledSubAccounts;
 
 	private ProgressBar progressBar;
 
-	public SwPostToAccountLoaderTask (final KvStore kvStore, final ViewGroup llSubAccounts, final Map<PostToAccount, Boolean> enabledSubAccounts) {
+	public SwPostToAccountLoaderTask (final KvStore kvStore, final ViewGroup llSubAccounts, final EnabledServiceRefs enabledSubAccounts) {
 		super();
 		this.kvStore = kvStore;
 		this.llSubAccounts = llSubAccounts;
@@ -41,7 +41,6 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, AccountLoaderResult, 
 
 	@Override
 	protected void onPreExecute () {
-		this.enabledSubAccounts.clear();
 		this.llSubAccounts.removeAllViews();
 		showInProgress();
 		this.llSubAccounts.setVisibility(View.VISIBLE);
@@ -99,34 +98,45 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, AccountLoaderResult, 
 	}
 
 	private void displayAccounts (final AccountLoaderResult result) {
-		final ServiceRef svc = SuccessWhaleProvider.parseServiceMeta(String.valueOf(this.llSubAccounts.getTag()));
 		for (final PostToAccount pta : result.getAccounts()) {
 			View existingView = this.llSubAccounts.findViewWithTag(pta.getUid());
 			if (existingView == null) {
 				final View view = View.inflate(this.llSubAccounts.getContext(), R.layout.subaccountitem, null);
 				view.setTag(pta.getUid());
-				configureAccountBtn((ToggleButton) view.findViewById(R.id.btnEnableAccount), pta, svc);
+				configureAccountBtn((ToggleButton) view.findViewById(R.id.btnEnableAccount), pta);
 				this.llSubAccounts.addView(view);
 			}
 		}
 	}
 
-	private void configureAccountBtn (final ToggleButton btn, final PostToAccount pta, final ServiceRef svc) {
+	private void configureAccountBtn (final ToggleButton btn, final PostToAccount pta) {
 		final String displayName = pta.getDisplayName();
 		btn.setTextOn(displayName);
 		btn.setTextOff(displayName);
 
-		boolean checked;
-		if (svc != null) {
-			checked = svc.matchesPostToAccount(pta);
+		final ServiceRef svc = pta.toSeviceRef();
+		boolean checked = false;
+		if (this.enabledSubAccounts.isEnabled(svc)) {
+			checked = true;
 		}
-		else {
+		else if (!this.enabledSubAccounts.isServicesPreSpecified()) {
 			checked = pta.isEnabled();
+			if (checked) this.enabledSubAccounts.enable(svc);
 		}
 		btn.setChecked(checked);
-		this.enabledSubAccounts.put(pta, checked);
 
-		btn.setOnClickListener(new SubAccountToggleListener(pta, this.enabledSubAccounts));
+		btn.setOnClickListener(new SubAccountToggleListener(svc, this.enabledSubAccounts));
+	}
+
+	public static void setExclusiveSelectedAccountBtn (final ViewGroup llSubAccounts, final ServiceRef svc) {
+		final int childCount = llSubAccounts.getChildCount();
+		if (childCount < 1) return;
+		for (int i = 0; i < childCount; i++) {
+			final View child = llSubAccounts.getChildAt(i);
+			final ToggleButton btn = (ToggleButton) child.findViewById(R.id.btnEnableAccount);
+			if (btn == null) continue;
+			btn.setChecked(svc.getUid().equals(child.getTag()));
+		}
 	}
 
 	protected static class AccountLoaderResult {
@@ -169,11 +179,11 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, AccountLoaderResult, 
 
 	private static class SubAccountToggleListener implements OnClickListener {
 
-		private final PostToAccount pta;
-		private final Map<PostToAccount, Boolean> enabledSubAccounts;
+		private final ServiceRef svc;
+		private final EnabledServiceRefs enabledSubAccounts;
 
-		public SubAccountToggleListener (final PostToAccount pta, final Map<PostToAccount, Boolean> enabledSubAccounts) {
-			this.pta = pta;
+		public SubAccountToggleListener (final ServiceRef svc, final EnabledServiceRefs enabledSubAccounts) {
+			this.svc = svc;
 			this.enabledSubAccounts = enabledSubAccounts;
 		}
 
@@ -181,7 +191,12 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, AccountLoaderResult, 
 		public void onClick (final View v) {
 			if (!(v instanceof ToggleButton)) return;
 			ToggleButton btn = (ToggleButton) v;
-			this.enabledSubAccounts.put(this.pta, btn.isChecked());
+			if (btn.isChecked()) {
+				this.enabledSubAccounts.enable(this.svc);
+			}
+			else {
+				this.enabledSubAccounts.disable(this.svc);
+			}
 		}
 	}
 

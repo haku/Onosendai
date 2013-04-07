@@ -201,7 +201,7 @@ public class SuccessWhale {
 		this.kvStore.storeValue(SUCCESS_WHALE_PTA_PREFIX + getAccount().getId(), data);
 	}
 
-	public void post (final Set<PostToAccount> postToAccounts, final String body, final String inReplyToSid) throws SuccessWhaleException {
+	public void post (final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid) throws SuccessWhaleException {
 		authenticated(new SwCall<Void>() {
 			@Override
 			public Void invoke (final HttpClient client) throws SuccessWhaleException, IOException {
@@ -211,9 +211,9 @@ public class SuccessWhale {
 				params.add(new BasicNameValuePair("text", body));
 
 				StringBuilder accounts = new StringBuilder();
-				for (PostToAccount pta : postToAccounts) {
+				for (ServiceRef svc : postToSvc) {
 					if (accounts.length() > 0) accounts.append(":");
-					accounts.append(pta.getService()).append("/").append(pta.getUid());
+					accounts.append(svc.getRawType()).append("/").append(svc.getUid());
 				}
 				params.add(new BasicNameValuePair("accounts", accounts.toString()));
 
