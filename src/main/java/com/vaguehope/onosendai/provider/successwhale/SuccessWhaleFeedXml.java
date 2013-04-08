@@ -196,6 +196,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			if ("name".equals(elementName)) {
 				this.currentComment.fullname(this.currentText.toString());
 			}
+			else if ("fromuseravatar".equals(elementName)) {
+				this.currentComment.avatarUrl(this.currentText.toString());
+			}
 		}
 
 		this.stack.pop();
