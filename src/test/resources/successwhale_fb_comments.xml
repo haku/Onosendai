@@ -22,6 +22,7 @@
             <from>
               <name>The commenter</name>
               <id>100000239935226</id>
+              <fromuseravatar>http://graph.facebook.com/100000239935226/picture</fromuseravatar>
             </from>
             <message>The first comment.</message>
             <created-time>2013-03-31T22:06:25+0000</created-time>
@@ -31,6 +32,7 @@
             <from>
               <name>The Poster</name>
               <id>523049849</id>
+              <fromuseravatar>http://graph.facebook.com/523049849/picture</fromuseravatar>
             </from>
             <message>The second comment.</message>
             <created-time>2013-04-01T00:02:39+0000</created-time>

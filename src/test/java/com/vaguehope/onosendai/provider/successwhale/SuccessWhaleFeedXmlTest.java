@@ -138,6 +138,7 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals(null, t.getUsername());
 		assertEquals("The commenter", t.getFullname());
 		assertEquals(1364767585L, t.getTime());
+		assertEquals("http://graph.facebook.com/100000239935226/picture", t.getAvatarUrl());
 
 		Tweet t1 = tweets.getTweet(1);
 		assertEquals("The second comment.", t1.getBody());
@@ -145,6 +146,7 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals(null, t1.getUsername());
 		assertEquals("The Poster", t1.getFullname());
 		assertEquals(1364774559L, t1.getTime());
+		assertEquals("http://graph.facebook.com/523049849/picture", t1.getAvatarUrl());
 	}
 
 	private static void assertHasMeta (final List<Meta> metas, final Meta m) {
