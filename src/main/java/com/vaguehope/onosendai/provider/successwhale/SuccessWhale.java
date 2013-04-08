@@ -43,16 +43,16 @@ public class SuccessWhale {
 	private static final String API_ITEM = "/v3/item";
 	private static final String API_ACTION = "/v3/action";
 
-	private static final String SUCCESS_WHALE_AUTH_UID_PREFIX = "SUCCESS_WHALE_AUTH_UID_";
-	private static final String SUCCESS_WHALE_AUTH_SECRET_PREFIX = "SUCCESS_WHALE_AUTH_SECRET_";
-	private static final String SUCCESS_WHALE_PTA_PREFIX = "SUCCESS_WHALE_PTA_";
+	private static final String AUTH_TOKEN_PREFIX = "SW_AUTH_TOKEN_";
+	private static final String PTA_PREFIX = "SW_PTA_";
 
-	private final LogWrapper log = new LogWrapper("SW");
+	private static final LogWrapper LOG = new LogWrapper("SW");
+
 	private final KvStore kvStore;
 	private final Account account;
 	private final HttpClientFactory httpClientFactory;
 
-	private SuccessWhaleAuth auth;
+	private String token;
 
 	public SuccessWhale (final KvStore kvStore, final Account account, final HttpClientFactory httpClientFactory) {
 		this.kvStore = kvStore;
@@ -75,15 +75,15 @@ public class SuccessWhale {
 	}
 
 	private <T> T authenticated (final SwCall<T> call) throws SuccessWhaleException {
-		if (this.auth == null) readAuthFromKvStore();
-		if (this.auth == null) authenticate();
+		if (this.token == null) readAuthFromKvStore();
+		if (this.token == null) authenticate();
 		try {
 			try {
 				return call.invoke(getHttpClient());
 			}
 			catch (NotAuthorizedException e) {
-				this.log.i("Stored auth details rejected, reauthenticating.");
-				this.auth = null;
+				LOG.i("Stored auth token rejected, reauthenticating.");
+				this.token = null;
 				writeAuthToKvStore();
 				authenticate();
 				return call.invoke(getHttpClient());
@@ -95,16 +95,12 @@ public class SuccessWhale {
 	}
 
 	private void readAuthFromKvStore () {
-		final String uid = this.kvStore.getValue(SUCCESS_WHALE_AUTH_UID_PREFIX + getAccount().getId());
-		final String secret = this.kvStore.getValue(SUCCESS_WHALE_AUTH_SECRET_PREFIX + getAccount().getId());
-		if (uid != null && !uid.isEmpty() && secret != null && !secret.isEmpty()) {
-			this.auth = new SuccessWhaleAuth(uid, secret);
-		}
+		final String t = this.kvStore.getValue(AUTH_TOKEN_PREFIX + getAccount().getId());
+		if (t != null && !t.isEmpty()) this.token = t;
 	}
 
 	private void writeAuthToKvStore () {
-		this.kvStore.storeValue(SUCCESS_WHALE_AUTH_UID_PREFIX + getAccount().getId(), this.auth != null ? this.auth.getUserid() : null);
-		this.kvStore.storeValue(SUCCESS_WHALE_AUTH_SECRET_PREFIX + getAccount().getId(), this.auth != null ? this.auth.getSecret() : null);
+		this.kvStore.storeValue(AUTH_TOKEN_PREFIX + getAccount().getId(), this.token);
 	}
 
 	static void checkReponseCode (final StatusLine statusLine) throws IOException {
@@ -129,8 +125,8 @@ public class SuccessWhale {
 			params.add(new BasicNameValuePair("username", username));
 			params.add(new BasicNameValuePair("password", password));
 			post.setEntity(new UrlEncodedFormEntity(params));
-			this.auth = getHttpClient().execute(post, new AuthHandler());
-			this.log.i("Authenticated username='%s' userid='%s'.", username, this.auth.getUserid());
+			this.token = getHttpClient().execute(post, new AuthHandler());
+			LOG.i("Authenticated username='%s'.", username);
 			writeAuthToKvStore();
 		}
 		catch (final IOException e) {
@@ -184,21 +180,21 @@ public class SuccessWhale {
 	}
 
 	public List<PostToAccount> getPostToAccountsCached () {
-		final String key = SUCCESS_WHALE_PTA_PREFIX + getAccount().getId();
+		final String key = PTA_PREFIX + getAccount().getId();
 		try {
 			String cached = this.kvStore.getValue(key);
 			if (cached == null || cached.isEmpty()) return null;
 			return new PostToAccountsXml(new StringReader(cached)).getAccounts();
 		}
 		catch (SAXException e) {
-			this.log.e("Failed to parse cached post to accounts.  Clearing cache.", e);
+			LOG.e("Failed to parse cached post to accounts.  Clearing cache.", e);
 			this.kvStore.storeValue(key, null);
 			return null;
 		}
 	}
 
 	protected void writePostToAccountsToCache (final String data) {
-		this.kvStore.storeValue(SUCCESS_WHALE_PTA_PREFIX + getAccount().getId(), data);
+		this.kvStore.storeValue(PTA_PREFIX + getAccount().getId(), data);
 	}
 
 	public void post (final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid) throws SuccessWhaleException {
@@ -259,8 +255,7 @@ public class SuccessWhale {
 
 	String makeAuthedUrl (final String api, final String... params) {
 		StringBuilder u = new StringBuilder().append(BASE_URL).append(api).append("?")
-				.append("sw_uid=").append(this.auth.getUserid())
-				.append("&secret=").append(this.auth.getSecret());
+				.append("&token=").append(this.token);
 		if (params != null) {
 			for (String param : params) {
 				u.append(param);
@@ -270,8 +265,7 @@ public class SuccessWhale {
 	}
 
 	void addAuthParams (final List<NameValuePair> params) {
-		params.add(new BasicNameValuePair("sw_uid", this.auth.getUserid()));
-		params.add(new BasicNameValuePair("secret", this.auth.getSecret()));
+		params.add(new BasicNameValuePair("token", this.token));
 	}
 
 	static TweetList removeItem (final TweetList thread, final String sid) {
@@ -286,12 +280,12 @@ public class SuccessWhale {
 		return thread;
 	}
 
-	private static class AuthHandler implements ResponseHandler<SuccessWhaleAuth> {
+	private static class AuthHandler implements ResponseHandler<String> {
 
 		public AuthHandler () {}
 
 		@Override
-		public SuccessWhaleAuth handleResponse (final HttpResponse response) throws IOException {
+		public String handleResponse (final HttpResponse response) throws IOException {
 			checkReponseCode(response.getStatusLine());
 			try {
 				final String authRespRaw = EntityUtils.toString(response.getEntity());
@@ -299,7 +293,7 @@ public class SuccessWhale {
 				if (!authResp.getBoolean("success")) {
 					throw new IOException("Auth rejected: " + authResp.getString("error"));
 				}
-				return new SuccessWhaleAuth(authResp.getString("userid"), authResp.getString("secret"));
+				return authResp.getString("token");
 			}
 			catch (final JSONException e) {
 				throw new IOException("Response unparsable: " + e.toString(), e);
@@ -361,26 +355,6 @@ public class SuccessWhale {
 		public Void handleResponse (final HttpResponse response) throws IOException {
 			checkReponseCode(response.getStatusLine());
 			return null;
-		}
-
-	}
-
-	private static class SuccessWhaleAuth {
-
-		private final String userid;
-		private final String secret;
-
-		public SuccessWhaleAuth (final String userid, final String secret) {
-			this.userid = userid;
-			this.secret = secret;
-		}
-
-		public String getUserid () {
-			return this.userid;
-		}
-
-		public String getSecret () {
-			return this.secret;
 		}
 
 	}
