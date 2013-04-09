@@ -271,33 +271,32 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public Tweet getTweetDetails (final String tweetSid) {
+		return getTweetDetails(TBL_TW_SID + "=?", new String[] { tweetSid });
+	}
+
+	@Override
 	public Tweet getTweetDetails (final int columnId, final Tweet tweet) {
 		return getTweetDetails(columnId, tweet.getSid());
 	}
 
 	@Override
-	public Tweet getTweetDetails (final String tweetSid) {
-		return getTweetDetails(Integer.MIN_VALUE, tweetSid);
+	public Tweet getTweetDetails (final int columnId, final String tweetSid) {
+		return getTweetDetails(TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?",
+				new String[] { String.valueOf(columnId), tweetSid });
 	}
 
 	@Override
-	public Tweet getTweetDetails (final int columnId, final String tweetSid) {
+	public Tweet getTweetDetails (final long tweetUid) {
+		return getTweetDetails(TBL_TW_ID + "=?", new String[] { String.valueOf(tweetUid) });
+	}
+
+	private Tweet getTweetDetails (final String selection, final String[] selectionArgs) {
 		if (!checkDbOpen()) return null;
 		Tweet ret = null;
 		Cursor c = null;
 		Cursor d = null;
 		try {
-			String selection;
-			String[] selectionArgs;
-			if (columnId > Integer.MIN_VALUE) {
-				selection = TBL_TW_COLID + "=? AND " + TBL_TW_SID + "=?";
-				selectionArgs = new String[] { String.valueOf(columnId), tweetSid };
-			}
-			else {
-				selection = TBL_TW_SID + "=?";
-				selectionArgs = new String[] { tweetSid };
-			}
-
 			c = this.mDb.query(true, TBL_TW,
 					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
 					selection, selectionArgs,

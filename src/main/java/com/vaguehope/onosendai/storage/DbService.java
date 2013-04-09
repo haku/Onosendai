@@ -87,6 +87,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public Tweet getTweetDetails (final long tweetUid) {
+		return this.dbAdaptor.getTweetDetails(tweetUid);
+	}
+
+	@Override
 	public void addTwUpdateListener (final TwUpdateListener listener) {
 		this.dbAdaptor.addTwUpdateListener(listener);
 	}

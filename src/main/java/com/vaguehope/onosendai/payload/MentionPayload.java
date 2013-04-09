@@ -64,6 +64,7 @@ public class MentionPayload extends Payload {
 		intent.putExtra(PostActivity.ARG_ACCOUNT_ID, this.account.getId());
 
 		if (this.screenName.equalsIgnoreCase(getOwnerTweet().getUsername())) {
+			intent.putExtra(PostActivity.ARG_IN_REPLY_TO_UID, getOwnerTweet().getUid());
 			intent.putExtra(PostActivity.ARG_IN_REPLY_TO_SID, getOwnerTweet().getSid());
 			if (this.alsoMentions != null) intent.putExtra(PostActivity.ARG_ALSO_MENTIONS, this.alsoMentions);
 		}
