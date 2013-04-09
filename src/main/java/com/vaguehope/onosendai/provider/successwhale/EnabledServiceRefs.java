@@ -17,10 +17,11 @@ public class EnabledServiceRefs {
 		this.enabledRefs.add(ref);
 	}
 
-	public void enableExclusive (final ServiceRef ref) {
+	public void enableExclusiveAndSetPreSpecified (final ServiceRef ref) {
 		synchronized (this.enabledRefs) {
 			this.enabledRefs.clear();
 			this.enabledRefs.add(ref);
+			setServicesPreSpecified(true);
 		}
 	}
 
