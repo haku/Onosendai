@@ -18,6 +18,7 @@ public class SuccessWhaleProvider {
 	private final HttpClientFactory httpClientFactory;
 
 	public SuccessWhaleProvider (final KvStore kvStore) {
+		if (kvStore == null) throw new IllegalArgumentException("kvStore can not be null.");
 		this.kvStore = kvStore;
 		this.accounts = new ConcurrentHashMap<String, SuccessWhale>();
 		this.httpClientFactory = new HttpClientFactory();
