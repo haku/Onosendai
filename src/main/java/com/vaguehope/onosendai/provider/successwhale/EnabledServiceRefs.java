@@ -17,6 +17,13 @@ public class EnabledServiceRefs {
 		this.enabledRefs.add(ref);
 	}
 
+	public void enableExclusive (final ServiceRef ref) {
+		synchronized (this.enabledRefs) {
+			this.enabledRefs.clear();
+			this.enabledRefs.add(ref);
+		}
+	}
+
 	public void disable (final ServiceRef ref) {
 		this.enabledRefs.remove(ref);
 	}
