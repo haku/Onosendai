@@ -96,7 +96,9 @@ public class PostActivity extends Activity implements ImageLoader {
 		this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
 		this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
 		final List<String> svcs = this.intentExtras.getStringArrayList(ARG_SVCS);
-		if (svcs != null) {
+
+		this.enabledPostToAccounts.fromBundle(savedInstanceState);
+		if (svcs != null && !this.enabledPostToAccounts.isServicesPreSpecified()) {
 			for (String svc : svcs) {
 				this.enabledPostToAccounts.enable(SuccessWhaleProvider.parseServiceMeta(svc));
 			}
@@ -147,6 +149,12 @@ public class PostActivity extends Activity implements ImageLoader {
 	public void onResume () {
 		super.onResume();
 		resumeDb();
+	}
+
+	@Override
+	protected void onSaveInstanceState (final Bundle outState) {
+		super.onSaveInstanceState(outState);
+		this.enabledPostToAccounts.addToBundle(outState);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

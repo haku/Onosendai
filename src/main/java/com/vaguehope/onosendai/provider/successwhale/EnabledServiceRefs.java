@@ -1,10 +1,16 @@
 package com.vaguehope.onosendai.provider.successwhale;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import android.os.Bundle;
+
 public class EnabledServiceRefs {
+
+	private static final String KEY_SREFS = "enabled_service_refs";
 
 	private final Set<ServiceRef> enabledRefs;
 	private volatile boolean servicesPreSpecified;
@@ -44,6 +50,30 @@ public class EnabledServiceRefs {
 	public Set<ServiceRef> copyOfServices () {
 		synchronized (this.enabledRefs) {
 			return Collections.unmodifiableSet(new HashSet<ServiceRef>(this.enabledRefs));
+		}
+	}
+
+	public void addToBundle (final Bundle bundle) {
+		if (bundle == null) return;
+		synchronized (this.enabledRefs) {
+			final ArrayList<String> arr = new ArrayList<String>();
+			for (ServiceRef sr : this.enabledRefs) {
+				arr.add(sr.toServiceMeta());
+			}
+			bundle.putStringArrayList(KEY_SREFS, arr);
+		}
+	}
+
+	public void fromBundle (final Bundle bundle) {
+		if (bundle == null) return;
+		synchronized (this.enabledRefs) {
+			final List<String> arr = bundle.getStringArrayList(KEY_SREFS);
+			if (arr == null) return;
+			this.enabledRefs.clear();
+			for (String svcMeta : arr) {
+				this.enabledRefs.add(SuccessWhaleProvider.parseServiceMeta(svcMeta));
+			}
+			setServicesPreSpecified(true);
 		}
 	}
 
