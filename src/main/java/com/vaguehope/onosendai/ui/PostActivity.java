@@ -9,6 +9,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -28,6 +30,7 @@ import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountAdaptor;
+import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
@@ -127,7 +130,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		((Button) findViewById(R.id.btnPost)).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick (final View v) {
-				submitPost();
+				askPost();
 			}
 		});
 	}
@@ -189,7 +192,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			view.setVisibility(View.VISIBLE);
 			tweet = getDb().getTweetDetails(this.inReplyToUid);
 			if (tweet != null) {
-				LOG.i("metas:%s", tweet.getMetas());
+				LOG.i("inReplyTo:%s", tweet.toFullString());
 				if (!this.enabledPostToAccounts.isServicesPreSpecified()) {
 					final Meta serviceMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
 					if (serviceMeta != null) setPostToAccountExclusive(SuccessWhaleProvider.parseServiceMeta(serviceMeta));
@@ -206,9 +209,9 @@ public class PostActivity extends Activity implements ImageLoader {
 	}
 
 	private void setPostToAccountExclusive (final ServiceRef svc) {
-		LOG.d("setPostToAccountExclusive(%s)", svc);
 		if (svc == null) return;
-		this.enabledPostToAccounts.enable(svc);
+		this.enabledPostToAccounts.enableExclusive(svc);
+		this.enabledPostToAccounts.setServicesPreSpecified(true);
 		SwPostToAccountLoaderTask.setExclusiveSelectedAccountBtn(this.llSubAccounts, svc);
 	}
 
@@ -233,8 +236,38 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	}
 
-	protected void submitPost () {
+	protected void askPost () {
 		final Account account = this.accountAdaptor.getAccount(this.spnAccount.getSelectedItemPosition());
+		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
+		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(this);
+
+		String msg;
+		if (account.getProvider() == AccountProvider.SUCCESSWHALE) {
+			msg = String.format("Post to these %s accounts?\n%s", account.toHumanString(), ServiceRef.humanList(svcs, "\n"));
+		}
+		else {
+			msg = String.format("Post to %s?", account.toHumanString());
+		}
+		dlgBld.setMessage(msg);
+
+		dlgBld.setPositiveButton("Post", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int which) {
+				submitPost(account, svcs);
+			}
+		});
+
+		dlgBld.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int whichButton) {
+				dialog.cancel();
+			}
+		});
+
+		dlgBld.show();
+	}
+
+	protected void submitPost (final Account account, final Set<ServiceRef> svcs) {
 		final String body = this.txtBody.getText().toString();
 		final Intent recoveryIntent = new Intent(getBaseContext(), PostActivity.class)
 				.putExtra(ARG_ACCOUNT_ID, account.getId())
@@ -242,7 +275,6 @@ public class PostActivity extends Activity implements ImageLoader {
 				.putExtra(ARG_IN_REPLY_TO_SID, this.inReplyToSid)
 				.putExtra(ARG_BODY, body);
 
-		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
 		final ArrayList<String> svcsLst = new ArrayList<String>();
 		for (ServiceRef svc : svcs) {
 			svcsLst.add(svc.toServiceMeta());

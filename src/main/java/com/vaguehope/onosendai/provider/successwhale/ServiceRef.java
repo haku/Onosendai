@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.provider.successwhale;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.util.EqualHelper;
@@ -59,6 +60,17 @@ public class ServiceRef {
 		ServiceRef that = (ServiceRef) o;
 		return EqualHelper.equal(this.rawType, that.rawType)
 				&& EqualHelper.equal(this.uid, that.uid);
+	}
+
+	public static String humanList (final Collection<ServiceRef> col, final String token) {
+		if (col == null) return null;
+		if (col.size() < 1) return "";
+		StringBuilder b = new StringBuilder();
+		for (ServiceRef s : col) {
+			if (b.length() > 0) b.append(token);
+			b.append(s.rawType).append(":").append(s.uid);
+		}
+		return b.toString();
 	}
 
 }
