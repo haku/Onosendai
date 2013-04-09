@@ -55,6 +55,9 @@ public class SuccessWhale {
 	private String token;
 
 	public SuccessWhale (final KvStore kvStore, final Account account, final HttpClientFactory httpClientFactory) {
+		if (kvStore == null) throw new IllegalArgumentException("kvStore can not be null.");
+		if (account == null) throw new IllegalArgumentException("account can not be null.");
+		if (httpClientFactory == null) throw new IllegalArgumentException("httpClientFactory can not be null.");
 		this.kvStore = kvStore;
 		this.account = account;
 		this.httpClientFactory = httpClientFactory;
