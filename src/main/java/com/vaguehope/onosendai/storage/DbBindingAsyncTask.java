@@ -42,7 +42,7 @@ public abstract class DbBindingAsyncTask<Params, Progress, Result> extends Async
 			dbReady = this.dbReadyLatch.await(C.DB_CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 		}
 		catch (InterruptedException e) {/**/}
-		if (!dbReady) getLog().e("Not updateing: Time out waiting for DB service to connect.");
+		if (!dbReady) getLog().e("Time out waiting for DB service to connect.");
 		return dbReady;
 	}
 
