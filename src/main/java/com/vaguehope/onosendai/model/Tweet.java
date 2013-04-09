@@ -86,6 +86,19 @@ public class Tweet {
 				.append("}").toString();
 	}
 
+	public String toFullString () {
+		return new StringBuilder()
+				.append("Tweet{").append(this.uid)
+				.append(",").append(this.sid)
+				.append(",").append(this.username)
+				.append(",").append(this.fullname)
+				.append(",").append(this.body)
+				.append(",").append(this.time)
+				.append(",").append(this.avatarUrl)
+				.append(",").append(this.metas)
+				.append("}").toString();
+	}
+
 	@Override
 	public int hashCode () {
 		return Arrays.hashCode(new Object[] {
