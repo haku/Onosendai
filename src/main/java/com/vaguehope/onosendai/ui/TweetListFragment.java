@@ -239,7 +239,8 @@ public class TweetListFragment extends Fragment {
 	}
 
 	private void saveSavedScrollToDb () {
-		getDb().storeScroll(this.columnId, this.scrollState);
+		final DbInterface db = getDb();
+		if (db != null) db.storeScroll(this.columnId, this.scrollState);
 	}
 
 	protected void restoreSavedScrollFromDb () {
