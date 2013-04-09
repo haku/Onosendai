@@ -61,7 +61,9 @@ public abstract class DbBindingAsyncTask<Params, Progress, Result> extends Async
 		connectDb();
 		if (!waitForDbReady()) return null;
 		try {
-			return doInBackgroundWithDb(getDb(), params);
+			final DbInterface db = getDb();
+			if (db == null) throw new IllegalStateException("DB was not bound.");
+			return doInBackgroundWithDb(db, params);
 		}
 		finally {
 			disposeDb();
