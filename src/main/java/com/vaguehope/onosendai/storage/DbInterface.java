@@ -14,6 +14,7 @@ public interface DbInterface extends KvStore {
 	Tweet getTweetDetails(int columnId, Tweet tweet);
 	Tweet getTweetDetails(int columnId, String tweetSid);
 	Tweet getTweetDetails(String tweetSid);
+	Tweet getTweetDetails(long tweetUid);
 
 	void addTwUpdateListener (TwUpdateListener listener);
 	void removeTwUpdateListener (TwUpdateListener listener);

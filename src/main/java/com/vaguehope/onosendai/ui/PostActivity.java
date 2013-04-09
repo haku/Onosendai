@@ -50,6 +50,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	public static final String ARG_ACCOUNT_ID = "account_id";
 	public static final String ARG_IN_REPLY_TO_SID = "in_reply_to_sid";
+	public static final String ARG_IN_REPLY_TO_UID = "in_reply_to_uid";
 	public static final String ARG_ALSO_MENTIONS = "also_mentions";
 	public static final String ARG_BODY = "body"; // If present mentions will not be prepended to body.
 	public static final String ARG_SVCS = "svcs";
@@ -57,6 +58,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	protected static final LogWrapper LOG = new LogWrapper("PA");
 
 	private Bundle intentExtras;
+	private long inReplyToUid;
 	private String inReplyToSid;
 	private String[] alsoMentions;
 
@@ -87,6 +89,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 		this.intentExtras = getIntent().getExtras();
 		final String accountId = this.intentExtras.getString(ARG_ACCOUNT_ID);
+		this.inReplyToUid = this.intentExtras.getLong(ARG_IN_REPLY_TO_UID);
 		this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
 		this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
 		final List<String> svcs = this.intentExtras.getStringArrayList(ARG_SVCS);
@@ -96,7 +99,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			}
 			this.enabledPostToAccounts.setServicesPreSpecified(true);
 		}
-		LOG.i("accountId=%s inReplyTo=%s svcs=%s", accountId, this.inReplyToSid, svcs);
+		LOG.i("accountId=%s inReplyToUid=%d inReplyToSid=%s svcs=%s", accountId, this.inReplyToUid, this.inReplyToSid, svcs);
 
 		this.imageCache = new HybridBitmapCache(getBaseContext(), C.MAX_MEMORY_IMAGE_CACHE);
 		this.exec = ExecUtils.newBoundedCachedThreadPool(C.IMAGE_LOADER_MAX_THREADS);
@@ -181,11 +184,12 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	protected void showInReplyToTweetDetails () {
 		Tweet tweet = null;
-		if (this.inReplyToSid != null) {
+		if (this.inReplyToSid != null && this.inReplyToUid > 0L) {
 			final View view = findViewById(R.id.tweetReplyToDetails);
 			view.setVisibility(View.VISIBLE);
-			tweet = getDb().getTweetDetails(this.inReplyToSid);
+			tweet = getDb().getTweetDetails(this.inReplyToUid);
 			if (tweet != null) {
+				LOG.i("metas:%s", tweet.getMetas());
 				if (!this.enabledPostToAccounts.isServicesPreSpecified()) {
 					final Meta serviceMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
 					if (serviceMeta != null) setPostToAccountExclusive(SuccessWhaleProvider.parseServiceMeta(serviceMeta));
@@ -202,6 +206,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	}
 
 	private void setPostToAccountExclusive (final ServiceRef svc) {
+		LOG.d("setPostToAccountExclusive(%s)", svc);
 		if (svc == null) return;
 		this.enabledPostToAccounts.enable(svc);
 		SwPostToAccountLoaderTask.setExclusiveSelectedAccountBtn(this.llSubAccounts, svc);
@@ -233,6 +238,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		final String body = this.txtBody.getText().toString();
 		final Intent recoveryIntent = new Intent(getBaseContext(), PostActivity.class)
 				.putExtra(ARG_ACCOUNT_ID, account.getId())
+				.putExtra(ARG_IN_REPLY_TO_UID, this.inReplyToUid)
 				.putExtra(ARG_IN_REPLY_TO_SID, this.inReplyToSid)
 				.putExtra(ARG_BODY, body);
 

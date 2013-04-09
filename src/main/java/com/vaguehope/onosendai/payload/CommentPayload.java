@@ -31,6 +31,7 @@ public class CommentPayload extends Payload {
 	public Intent toIntent (final Context context) {
 		final Intent intent = new Intent(context, PostActivity.class);
 		intent.putExtra(PostActivity.ARG_ACCOUNT_ID, this.account.getId());
+		intent.putExtra(PostActivity.ARG_IN_REPLY_TO_UID, getOwnerTweet().getUid());
 		intent.putExtra(PostActivity.ARG_IN_REPLY_TO_SID, getOwnerTweet().getSid());
 		return intent;
 	}
