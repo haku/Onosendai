@@ -297,7 +297,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	protected void accountSelected (final Account account) {
 		switch (account.getProvider()) {
 			case SUCCESSWHALE:
-				new SwPostToAccountLoaderTask(getDb(), this.llSubAccounts, this.enabledPostToAccounts).executeOnExecutor(this.exec, account);
+				new SwPostToAccountLoaderTask(getApplicationContext(), this.llSubAccounts, this.enabledPostToAccounts).executeOnExecutor(this.exec, account);
 				break;
 			default:
 				this.llSubAccounts.setVisibility(View.GONE);
