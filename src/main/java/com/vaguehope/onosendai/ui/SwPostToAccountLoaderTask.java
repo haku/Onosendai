@@ -2,7 +2,7 @@ package com.vaguehope.onosendai.ui;
 
 import java.util.List;
 
-import android.os.AsyncTask;
+import android.content.Context;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -18,25 +18,31 @@ import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
 import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
-import com.vaguehope.onosendai.storage.KvStore;
+import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
+import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.ui.SwPostToAccountLoaderTask.AccountLoaderResult;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-class SwPostToAccountLoaderTask extends AsyncTask<Account, AccountLoaderResult, AccountLoaderResult> {
+class SwPostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderResult, AccountLoaderResult> {
 
 	private static final LogWrapper LOG = new LogWrapper("AL");
 
-	private final KvStore kvStore;
 	private final ViewGroup llSubAccounts;
 	private final EnabledServiceRefs enabledSubAccounts;
 
 	private ProgressBar progressBar;
 
-	public SwPostToAccountLoaderTask (final KvStore kvStore, final ViewGroup llSubAccounts, final EnabledServiceRefs enabledSubAccounts) {
-		super();
-		this.kvStore = kvStore;
+	public SwPostToAccountLoaderTask (final Context context, final ViewGroup llSubAccounts, final EnabledServiceRefs enabledSubAccounts) {
+		super(context);
+		if (llSubAccounts == null) throw new IllegalArgumentException("llSubAccounts can not be null.");
+		if (enabledSubAccounts == null) throw new IllegalArgumentException("enabledSubAccounts can not be null.");
 		this.llSubAccounts = llSubAccounts;
 		this.enabledSubAccounts = enabledSubAccounts;
+	}
+
+	@Override
+	protected LogWrapper getLog () {
+		return LOG;
 	}
 
 	@Override
@@ -47,11 +53,11 @@ class SwPostToAccountLoaderTask extends AsyncTask<Account, AccountLoaderResult, 
 	}
 
 	@Override
-	protected AccountLoaderResult doInBackground (final Account... params) {
+	protected AccountLoaderResult doInBackgroundWithDb (final DbInterface db, final Account... params) {
 		if (params.length != 1) throw new IllegalArgumentException("Only one account per task.");
 		final Account account = params[0];
 
-		SuccessWhaleProvider swProv = new SuccessWhaleProvider(this.kvStore);
+		SuccessWhaleProvider swProv = new SuccessWhaleProvider(db);
 		try {
 			final List<PostToAccount> cached = swProv.getPostToAccountsCached(account);
 			if (cached != null) publishProgress(new AccountLoaderResult(cached));
