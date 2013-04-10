@@ -107,7 +107,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		LOG.i("accountId=%s inReplyToUid=%d inReplyToSid=%s svcs=%s", accountId, this.inReplyToUid, this.inReplyToSid, svcs);
 
 		this.imageCache = new HybridBitmapCache(getBaseContext(), C.MAX_MEMORY_IMAGE_CACHE);
-		this.exec = ExecUtils.newBoundedCachedThreadPool(C.IMAGE_LOADER_MAX_THREADS);
+		this.exec = ExecUtils.newBoundedCachedThreadPool(C.IMAGE_LOADER_MAX_THREADS, LOG);
 
 		this.spnAccount = (Spinner) findViewById(R.id.spnAccount);
 		this.accountAdaptor = new AccountAdaptor(getBaseContext(), conf);
