@@ -22,6 +22,10 @@ public class LogWrapper {
 		return this.prefix;
 	}
 
+	public void wtf (final String msg, final Throwable t) {
+		Log.wtf(C.TAG, addPrefix(msg), t);
+	}
+
 	public void e (final String msg) {
 		if (!Log.isLoggable(C.TAG, Log.ERROR)) return;
 		Log.e(C.TAG, addPrefix(msg));
