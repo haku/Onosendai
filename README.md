@@ -6,7 +6,7 @@ A multi-column Twitter client.
 Features
 --------
 
-* Timelines, mentions, and lists can all be columns.
+* Timelines, mentions, lists and searches can all be columns.
 * Read Later column: any tweet can be saved locally for reading later.
 * Background feed fetching and caching.
 * Configured via JSON file on the file system.
@@ -82,6 +82,12 @@ If you remove an account or column it may be best not to reuse the ID as strange
       "account": "t0",
       "resource": "lists/mylist",
       "refresh": "15min"
+    }, {
+      "id": 10,
+      "title": "My Search for #tag",
+      "account": "t0",
+      "resource": "search/#tag",
+      "refresh": "120min"
     }, {
       "id": 7,
       "title": "Read Later",
