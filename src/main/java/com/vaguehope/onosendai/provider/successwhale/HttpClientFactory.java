@@ -7,7 +7,6 @@ import java.security.KeyStore;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
@@ -38,10 +37,10 @@ public class HttpClientFactory {
 			if (this.httpClient == null) this.httpClient = makeHttpClient();
 			return this.httpClient;
 		}
-		catch (IOException e) {
+		catch (final IOException e) {
 			throw new SuccessWhaleException("Failed to create HTTP client: " + e.toString(), e);
 		}
-		catch (GeneralSecurityException e) {
+		catch (final GeneralSecurityException e) {
 			throw new SuccessWhaleException("Failed to create HTTP client. " + e.toString(), e);
 		}
 	}
@@ -51,44 +50,38 @@ public class HttpClientFactory {
 	}
 
 	private static HttpClient makeHttpClient () throws IOException, GeneralSecurityException {
-		HttpParams params = new BasicHttpParams();
+		final HttpParams params = new BasicHttpParams();
 		configureTimeouts(params, CONNECTION_TIMEOUT, SO_TIMEOUT);
 
-		ClientConnectionManager conman = new ThreadSafeClientConnManager(params, new SchemeRegistry());
-		addHttpSchema(conman);
+		final ClientConnectionManager conman = new ThreadSafeClientConnManager(params, new SchemeRegistry());
 		addHttpsSchemaForTrustStore(conman, TS_PATH, TS_PASSWORD);
 
 		return new DefaultHttpClient(conman, params);
 	}
 
 	private static void configureTimeouts (final HttpParams params, final int connectionTimeout, final int soTimeout) {
-		HttpConnectionParamBean connParam = new HttpConnectionParamBean(params);
+		final HttpConnectionParamBean connParam = new HttpConnectionParamBean(params);
 		connParam.setConnectionTimeout(connectionTimeout);
 		connParam.setSoTimeout(soTimeout);
 	}
 
-	private static void addHttpSchema (final ClientConnectionManager conman) {
-		Scheme scheme = new Scheme("http", PlainSocketFactory.getSocketFactory(), 80); // NOSONAR 80 is not a magic number.  Its HTTP specification.
-		conman.getSchemeRegistry().register(scheme);
-	}
-
 	private static void addHttpsSchemaForTrustStore (final ClientConnectionManager connMan, final String tsPath, final char[] password) throws IOException, GeneralSecurityException {
-		KeyStore truststore = loadKeyStore(tsPath, password);
-		SSLSocketFactory sf = new SSLSocketFactory(truststore);
-		Scheme scheme = new Scheme("https", sf, 443); // NOSONAR 443 is not a magic number.  Its HTTPS specification.
+		final KeyStore truststore = loadKeyStore(tsPath, password);
+		final SSLSocketFactory sf = new SSLSocketFactory(truststore);
+		final Scheme scheme = new Scheme("https", sf, 443); // NOSONAR 443 is not a magic number.  Its HTTPS specification.
 		connMan.getSchemeRegistry().register(scheme);
 	}
 
 	private static KeyStore loadKeyStore (final String tsPath, final char[] password) throws IOException, GeneralSecurityException {
-		KeyStore ks = KeyStore.getInstance("BKS");
-		InputStream is = HttpClientFactory.class.getResourceAsStream(tsPath);
+		final KeyStore ks = KeyStore.getInstance("BKS");
+		final InputStream is = HttpClientFactory.class.getResourceAsStream(tsPath);
 		try {
 			ks.load(is, password);
+			return ks;
 		}
 		finally {
 			is.close();
 		}
-		return ks;
 	}
 
 }
