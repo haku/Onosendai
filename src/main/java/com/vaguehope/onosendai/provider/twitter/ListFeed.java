@@ -7,12 +7,14 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
 import com.vaguehope.onosendai.C;
+import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.TweetList;
 
-public class TwitterListFeed implements TwitterFeed {
+class ListFeed implements FeedGetter {
 
 	private final String slug;
 
-	public TwitterListFeed (final String slug) {
+	public ListFeed (final String slug) {
 		this.slug = slug;
 	}
 
@@ -27,8 +29,13 @@ public class TwitterListFeed implements TwitterFeed {
 	}
 
 	@Override
+	public TweetList getTweets (final Account account, final Twitter t, final long sinceId) throws TwitterException {
+		return TwitterUtils.fetchTwitterFeed(account, t, this, sinceId);
+	}
+
+	@Override
 	public String toString () {
-		return "list:" + this.slug;
+		return "list{" + this.slug + "}";
 	}
 
 }
