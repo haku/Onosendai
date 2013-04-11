@@ -13,13 +13,15 @@ public class Column {
 	private final String accountId;
 	private final String resource;
 	private final int refreshIntervalMins;
+	private final int[] excludeColumnIds;
 
-	public Column (final int id, final String title, final String accountId, final String resource, final int refreshIntervalMins) {
+	public Column (final int id, final String title, final String accountId, final String resource, final int refreshIntervalMins, final int[] excludeColumnIds) {
 		this.id = id;
 		this.title = title;
 		this.accountId = accountId;
 		this.resource = resource;
 		this.refreshIntervalMins = refreshIntervalMins;
+		this.excludeColumnIds = excludeColumnIds;
 	}
 
 	@Override
@@ -55,6 +57,7 @@ public class Column {
 				.append(",").append(this.accountId)
 				.append(",").append(this.resource)
 				.append(",").append(this.refreshIntervalMins)
+				.append(",").append(this.excludeColumnIds)
 				.append("}");
 		return s.toString();
 	}
@@ -77,6 +80,10 @@ public class Column {
 
 	public int getRefreshIntervalMins () {
 		return this.refreshIntervalMins;
+	}
+
+	public int[] getExcludeColumnIds () {
+		return this.excludeColumnIds;
 	}
 
 	public static List<String> titles (final Collection<Column> columns) {
