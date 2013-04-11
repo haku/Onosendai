@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
@@ -23,6 +24,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.xml.sax.SAXException;
+
+import android.net.http.AndroidHttpClient;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Tweet;
@@ -46,7 +49,7 @@ public class SuccessWhale {
 	private static final String AUTH_TOKEN_PREFIX = "SW_AUTH_TOKEN_";
 	private static final String PTA_PREFIX = "SW_PTA_";
 
-	private static final LogWrapper LOG = new LogWrapper("SW");
+	static final LogWrapper LOG = new LogWrapper("SW");
 
 	private final KvStore kvStore;
 	private final Account account;
@@ -84,7 +87,7 @@ public class SuccessWhale {
 			try {
 				return call.invoke(getHttpClient());
 			}
-			catch (NotAuthorizedException e) {
+			catch (final NotAuthorizedException e) {
 				LOG.i("Stored auth token rejected, reauthenticating.");
 				this.token = null;
 				writeAuthToKvStore();
@@ -92,7 +95,7 @@ public class SuccessWhale {
 				return call.invoke(getHttpClient());
 			}
 		}
-		catch (IOException e) {
+		catch (final IOException e) {
 			throw new SuccessWhaleException(call.describeFailure(e), e);
 		}
 	}
@@ -141,8 +144,10 @@ public class SuccessWhale {
 		return authenticated(new SwCall<TweetList>() {
 			@Override
 			public TweetList invoke (final HttpClient client) throws SuccessWhaleException, IOException {
-				String url = makeAuthedUrl(API_FEED, "&sources=", URLEncoder.encode(feed.getSources(), "UTF-8"));
-				return client.execute(new HttpGet(url), new FeedHandler(getAccount()));
+				final String url = makeAuthedUrl(API_FEED, "&sources=", URLEncoder.encode(feed.getSources(), "UTF-8"));
+				final HttpGet req = new HttpGet(url);
+				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
+				return client.execute(req, new FeedHandler(getAccount()));
 			}
 
 			@Override
@@ -156,8 +161,10 @@ public class SuccessWhale {
 		return authenticated(new SwCall<TweetList>() {
 			@Override
 			public TweetList invoke (final HttpClient client) throws SuccessWhaleException, IOException {
-				String url = makeAuthedUrl(API_THREAD, "&service=", serviceType, "&uid=" + serviceSid, "&postid=", forSid);
-				final TweetList thread = client.execute(new HttpGet(url), new FeedHandler(getAccount()));
+				final String url = makeAuthedUrl(API_THREAD, "&service=", serviceType, "&uid=" + serviceSid, "&postid=", forSid);
+				final HttpGet req = new HttpGet(url);
+				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
+				final TweetList thread = client.execute(req, new FeedHandler(getAccount()));
 				return removeItem(thread, forSid);
 			}
 
@@ -185,11 +192,11 @@ public class SuccessWhale {
 	public List<PostToAccount> getPostToAccountsCached () {
 		final String key = PTA_PREFIX + getAccount().getId();
 		try {
-			String cached = this.kvStore.getValue(key);
+			final String cached = this.kvStore.getValue(key);
 			if (cached == null || cached.isEmpty()) return null;
 			return new PostToAccountsXml(new StringReader(cached)).getAccounts();
 		}
-		catch (SAXException e) {
+		catch (final SAXException e) {
 			LOG.e("Failed to parse cached post to accounts.  Clearing cache.", e);
 			this.kvStore.storeValue(key, null);
 			return null;
@@ -209,8 +216,8 @@ public class SuccessWhale {
 				addAuthParams(params);
 				params.add(new BasicNameValuePair("text", body));
 
-				StringBuilder accounts = new StringBuilder();
-				for (ServiceRef svc : postToSvc) {
+				final StringBuilder accounts = new StringBuilder();
+				for (final ServiceRef svc : postToSvc) {
 					if (accounts.length() > 0) accounts.append(":");
 					accounts.append(svc.getRawType()).append("/").append(svc.getUid());
 				}
@@ -257,10 +264,10 @@ public class SuccessWhale {
 	}
 
 	String makeAuthedUrl (final String api, final String... params) {
-		StringBuilder u = new StringBuilder().append(BASE_URL).append(api).append("?")
+		final StringBuilder u = new StringBuilder().append(BASE_URL).append(api).append("?")
 				.append("&token=").append(this.token);
 		if (params != null) {
-			for (String param : params) {
+			for (final String param : params) {
 				u.append(param);
 			}
 		}
@@ -273,7 +280,7 @@ public class SuccessWhale {
 
 	static TweetList removeItem (final TweetList thread, final String sid) {
 		if (thread.count() < 1 || sid == null) return thread;
-		for (Tweet t : thread.getTweets()) {
+		for (final Tweet t : thread.getTweets()) {
 			if (sid.equals(t.getSid())) {
 				final List<Tweet> newList = new ArrayList<Tweet>(thread.getTweets());
 				newList.remove(t);
@@ -318,7 +325,7 @@ public class SuccessWhale {
 			checkReponseCode(response.getStatusLine());
 			try {
 				final byte[] data = EntityUtils.toByteArray(response.getEntity());
-				List<PostToAccount> accounts = new PostToAccountsXml(new ByteArrayInputStream(data)).getAccounts();
+				final List<PostToAccount> accounts = new PostToAccountsXml(new ByteArrayInputStream(data)).getAccounts();
 				if (this.sw != null) this.sw.writePostToAccountsToCache(new String(data, Charset.forName("UTF-8")));
 				return accounts;
 			}
@@ -341,7 +348,9 @@ public class SuccessWhale {
 		public TweetList handleResponse (final HttpResponse response) throws IOException {
 			checkReponseCode(response.getStatusLine());
 			try {
-				return new SuccessWhaleFeedXml(this.account, response.getEntity().getContent()).getTweets();
+				final HttpEntity entity = response.getEntity();
+				LOG.i("Feed content encoding: %s length: %d.", entity.getContentEncoding(), entity.getContentLength());
+				return new SuccessWhaleFeedXml(this.account, AndroidHttpClient.getUngzippedContent(entity)).getTweets();
 			}
 			catch (final SAXException e) {
 				throw new IOException("Failed to parse response: " + e.toString(), e);
