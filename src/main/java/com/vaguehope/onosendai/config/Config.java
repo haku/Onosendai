@@ -27,19 +27,19 @@ public class Config {
 	private final List<Column> feeds;
 
 	public Config () throws IOException, JSONException {
-		File f = new File(Environment.getExternalStorageDirectory().getPath(), C.CONFIG_FILE_NAME);
+		final File f = new File(Environment.getExternalStorageDirectory().getPath(), C.CONFIG_FILE_NAME);
 
 		if (!f.exists()) {
 			FileHelper.resourceToFile("/deck.conf", f);
 		}
 
-		String s = FileHelper.fileToString(f);
-		JSONObject o = (JSONObject) new JSONTokener(s).nextValue();
+		final String s = FileHelper.fileToString(f);
+		final JSONObject o = (JSONObject) new JSONTokener(s).nextValue();
 
-		JSONArray accountsJson = o.getJSONArray("accounts");
+		final JSONArray accountsJson = o.getJSONArray("accounts");
 		this.accounts = parseAccounts(accountsJson);
 
-		JSONArray feedsJson = o.getJSONArray("feeds");
+		final JSONArray feedsJson = o.getJSONArray("feeds");
 		this.feeds = parseFeeds(feedsJson);
 	}
 
@@ -60,25 +60,25 @@ public class Config {
 	}
 
 	public Column getColumnById (final int columnId) {
-		for (Column col : this.feeds) {
+		for (final Column col : this.feeds) {
 			if (columnId == col.getId()) return col;
 		}
 		return null;
 	}
 
 	public Column findInternalColumn (final InternalColumnType res) {
-		for (Column col : getColumns()) {
+		for (final Column col : getColumns()) {
 			if (res.matchesColumn(col)) return col;
 		}
 		return null;
 	}
 
 	private static Map<String, Account> parseAccounts (final JSONArray accountsJson) throws JSONException {
-		Map<String, Account> ret = new HashMap<String, Account>();
+		final Map<String, Account> ret = new HashMap<String, Account>();
 		for (int i = 0; i < accountsJson.length(); i++) {
-			JSONObject accountJson = accountsJson.getJSONObject(i);
-			String id = accountJson.getString("id");
-			AccountProvider provider = AccountProvider.parse(accountJson.getString("provider"));
+			final JSONObject accountJson = accountsJson.getJSONObject(i);
+			final String id = accountJson.getString("id");
+			final AccountProvider provider = AccountProvider.parse(accountJson.getString("provider"));
 			Account account;
 			switch (provider) {
 				case TWITTER:
@@ -98,18 +98,18 @@ public class Config {
 
 	private static Account parseTwitterAccount (final JSONObject accountJson, final String id) throws JSONException {
 		Account account;
-		String consumerKey = accountJson.getString("consumerKey");
-		String consumerSecret = accountJson.getString("consumerSecret");
-		String accessToken = accountJson.getString("accessToken");
-		String accessSecret = accountJson.getString("accessSecret");
+		final String consumerKey = accountJson.getString("consumerKey");
+		final String consumerSecret = accountJson.getString("consumerSecret");
+		final String accessToken = accountJson.getString("accessToken");
+		final String accessSecret = accountJson.getString("accessSecret");
 		account = new Account(id, AccountProvider.TWITTER, consumerKey, consumerSecret, accessToken, accessSecret);
 		return account;
 	}
 
 	private static Account parseSuccessWhaleAccount (final JSONObject accountJson, final String id) throws JSONException {
 		Account account;
-		String accessToken = accountJson.getString("username");
-		String accessSecret = accountJson.getString("password");
+		final String accessToken = accountJson.getString("username");
+		final String accessSecret = accountJson.getString("password");
 		account = new Account(id, AccountProvider.SUCCESSWHALE, null, null, accessToken, accessSecret);
 		return account;
 	}
@@ -118,15 +118,15 @@ public class Config {
 	 * // TODO allow multiple feeds per column.
 	 */
 	private static List<Column> parseFeeds (final JSONArray columnsJson) throws JSONException {
-		List<Column> ret = new ArrayList<Column>();
+		final List<Column> ret = new ArrayList<Column>();
 		for (int i = 0; i < columnsJson.length(); i++) {
-			JSONObject colJson = columnsJson.getJSONObject(i);
-			int id = colJson.getInt("id");
-			String title = colJson.getString("title");
-			String account = colJson.has("account") ? colJson.getString("account") : null;
-			String resource = colJson.getString("resource");
-			String refreshRaw = colJson.has("refresh") ? colJson.getString("refresh") : null;
-			int refreshIntervalMins = TimeParser.parseDuration(refreshRaw);
+			final JSONObject colJson = columnsJson.getJSONObject(i);
+			final int id = colJson.getInt("id");
+			final String title = colJson.getString("title");
+			final String account = colJson.has("account") ? colJson.getString("account") : null;
+			final String resource = colJson.getString("resource");
+			final String refreshRaw = colJson.has("refresh") ? colJson.getString("refresh") : null;
+			final int refreshIntervalMins = TimeParser.parseDuration(refreshRaw);
 			if (refreshIntervalMins < 1 && account != null) LOG.w("Column '%s' has invalid refresh interval: '%s'.", title, refreshRaw);
 			ret.add(new Column(id, title, account, resource, refreshIntervalMins));
 		}
