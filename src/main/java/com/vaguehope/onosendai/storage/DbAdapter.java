@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.storage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import android.content.ContentValues;
@@ -231,13 +232,41 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public List<Tweet> getTweets (final int columnId, final int numberOf) {
+		return getTweets(TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) }, numberOf);
+	}
+
+	@Override
+	public List<Tweet> getTweets (final int columnId, final int numberOf, final int[] excludeColumnIds) {
+		final StringBuilder where = new StringBuilder()
+				.append(TBL_TW_COLID).append("=?");
+		final String[] whereArgs = new String[1 + (excludeColumnIds != null ? excludeColumnIds.length : 0)];
+		whereArgs[0] = String.valueOf(columnId);
+
+		if (excludeColumnIds != null && excludeColumnIds.length > 0) {
+			where.append(" AND ").append(TBL_TW_SID)
+					.append(" NOT IN (SELECT ").append(TBL_TW_SID)
+					.append(" FROM ").append(TBL_TW)
+					.append(" WHERE ");
+			for (int i = 0; i < excludeColumnIds.length; i++) {
+				if (i > 0) where.append(" OR ");
+				where.append(TBL_TW_COLID).append("=?");
+				whereArgs[i + 1] = String.valueOf(excludeColumnIds[i]);
+			}
+			where.append(")");
+			this.log.i("%s %s", where.toString(), Arrays.asList(whereArgs)); // FIXME
+		}
+
+		return getTweets(where.toString(), whereArgs, numberOf);
+	}
+
+	private List<Tweet> getTweets (final String where, final String[] whereArgs, final int numberOf) {
 		if (!checkDbOpen()) return null;
 		List<Tweet> ret = new ArrayList<Tweet>();
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
 					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
-					TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) },
+					where, whereArgs,
 					null, null,
 					TBL_TW_TIME + " desc", String.valueOf(numberOf));
 

@@ -21,6 +21,13 @@ import com.vaguehope.onosendai.util.LogWrapper;
 
 public class Config {
 
+	private static final String KEY_ID = "id";
+	private static final String KEY_TITLE = "title";
+	private static final String KEY_ACCOUNT = "account";
+	private static final String KEY_RESOURCE = "resource";
+	private static final String KEY_REFRESH = "refresh";
+	private static final String KEY_EXCLUDE = "exclude";
+
 	private static final LogWrapper LOG = new LogWrapper("CFG");
 
 	private final Map<String, Account> accounts;
@@ -77,7 +84,7 @@ public class Config {
 		final Map<String, Account> ret = new HashMap<String, Account>();
 		for (int i = 0; i < accountsJson.length(); i++) {
 			final JSONObject accountJson = accountsJson.getJSONObject(i);
-			final String id = accountJson.getString("id");
+			final String id = accountJson.getString(KEY_ID);
 			final AccountProvider provider = AccountProvider.parse(accountJson.getString("provider"));
 			Account account;
 			switch (provider) {
@@ -121,16 +128,42 @@ public class Config {
 		final List<Column> ret = new ArrayList<Column>();
 		for (int i = 0; i < columnsJson.length(); i++) {
 			final JSONObject colJson = columnsJson.getJSONObject(i);
-			final int id = colJson.getInt("id");
-			final String title = colJson.getString("title");
-			final String account = colJson.has("account") ? colJson.getString("account") : null;
-			final String resource = colJson.getString("resource");
-			final String refreshRaw = colJson.has("refresh") ? colJson.getString("refresh") : null;
+
+			final int id = colJson.getInt(KEY_ID);
+			final String title = colJson.getString(KEY_TITLE);
+			final String account = colJson.has(KEY_ACCOUNT) ? colJson.getString(KEY_ACCOUNT) : null;
+			final String resource = colJson.getString(KEY_RESOURCE);
+
+			final String refreshRaw = colJson.optString(KEY_REFRESH, null);
 			final int refreshIntervalMins = TimeParser.parseDuration(refreshRaw);
 			if (refreshIntervalMins < 1 && account != null) LOG.w("Column '%s' has invalid refresh interval: '%s'.", title, refreshRaw);
-			ret.add(new Column(id, title, account, resource, refreshIntervalMins));
+
+			int[] excludeColumnIds = null;
+			if (colJson.has(KEY_EXCLUDE)) {
+				final JSONArray exArr = colJson.optJSONArray(KEY_EXCLUDE);
+				if (exArr != null) {
+					excludeColumnIds = asIntArr(exArr);
+				}
+				else {
+					final int exId = colJson.optInt(KEY_EXCLUDE, Integer.MIN_VALUE);
+					if (exId > Integer.MIN_VALUE) {
+						excludeColumnIds = new int[] { exId };
+					}
+				}
+				if (excludeColumnIds == null) LOG.w("Column '%s' has invalid exclude value: '%s'.", title, colJson.getString(KEY_EXCLUDE));
+			}
+
+			ret.add(new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds));
 		}
 		return Collections.unmodifiableList(ret);
+	}
+
+	private static int[] asIntArr (final JSONArray arr) throws JSONException {
+		final int[] ret = new int[arr.length()];
+		for (int i = 0; i < arr.length(); i++) {
+			ret[i] = arr.getInt(i);
+		}
+		return ret;
 	}
 
 }

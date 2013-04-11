@@ -203,9 +203,12 @@ public class TweetListFragment extends Fragment {
 		return this.conf;
 	}
 
+	private Column getColumn () {
+		return this.conf.getColumnById(this.columnId);
+	}
+
 	private Account getColumnAccount () {
-		final Column column = this.conf.getColumnById(this.columnId);
-		return this.conf.getAccount(column.getAccountId());
+		return this.conf.getAccount(getColumn().getAccountId());
 	}
 
 	protected TweetListAdapter getAdapter () {
@@ -537,7 +540,7 @@ public class TweetListFragment extends Fragment {
 	protected void refreshUiOnUiThread () {
 		final DbInterface db = getDb();
 		if (db != null) {
-			List<Tweet> tweets = db.getTweets(this.columnId, 200); // FIXME replace 200 with dynamic list.
+			final List<Tweet> tweets = db.getTweets(this.columnId, 200, getColumn().getExcludeColumnIds()); // FIXME replace 200 with dynamic list.
 			saveScrollIfNotSaved();
 			this.adapter.setInputData(new TweetList(tweets));
 			this.log.d("Refreshed %d tweets.", tweets.size());

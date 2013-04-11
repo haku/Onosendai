@@ -7,6 +7,7 @@ Features
 --------
 
 * Timelines, mentions, lists and searches can all be columns.
+* De-duplicate: filter the items in one column out of another.
 * Read Later column: any tweet can be saved locally for reading later.
 * Background feed fetching and caching.
 * Configured via JSON file on the file system.
@@ -63,7 +64,8 @@ If you remove an account or column it may be best not to reuse the ID as strange
       "title": "My World",
       "account": "t0",
       "resource": "timeline",
-      "refresh": "30min"
+      "refresh": "30min",
+      "exclude": [1,4]
     }, {
       "id": 2,
       "title": "About Me",
