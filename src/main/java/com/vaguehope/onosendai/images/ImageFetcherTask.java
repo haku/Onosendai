@@ -49,7 +49,7 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 			result.getRequest().setImageBitmapIfRequired(result.getBmp());
 		}
 		else {
-			LOG.w("Failed to fetch image '%s': %s", result.getRequest().getUrl(), result.getE().toString());
+			LOG.w("Failed to fetch image '%s': %s", result.getRequest().getUrl(), result.getEmsg());
 			result.getRequest().setImageUnavailableIfRequired();
 		}
 	}
@@ -63,8 +63,7 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 
 		public ImageFetchResult (final ImageLoadRequest request, final Bitmap bmp) {
 			if (request == null) throw new IllegalArgumentException("Missing arg: request.");
-			if (bmp == null) throw new IllegalArgumentException("Missing arg: bmp.");
-			this.success = true;
+			this.success = (bmp != null);
 			this.request = request;
 			this.bmp = bmp;
 			this.e = null;
@@ -91,8 +90,9 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 			return this.bmp;
 		}
 
-		public Exception getE () {
-			return this.e;
+		public String getEmsg () {
+			if (this.e != null) return this.e.toString();
+			return "Invalid response.";
 		}
 
 	}
