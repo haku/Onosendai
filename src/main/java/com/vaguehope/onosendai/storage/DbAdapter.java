@@ -1,7 +1,6 @@
 package com.vaguehope.onosendai.storage;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import android.content.ContentValues;
@@ -237,25 +236,21 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public List<Tweet> getTweets (final int columnId, final int numberOf, final int[] excludeColumnIds) {
+		if (excludeColumnIds == null || excludeColumnIds.length < 1) return getTweets(columnId, numberOf);
 		final StringBuilder where = new StringBuilder()
-				.append(TBL_TW_COLID).append("=?");
-		final String[] whereArgs = new String[1 + (excludeColumnIds != null ? excludeColumnIds.length : 0)];
+				.append(TBL_TW_COLID).append("=?")
+				.append(" AND ").append(TBL_TW_SID)
+				.append(" NOT IN (SELECT ").append(TBL_TW_SID)
+				.append(" FROM ").append(TBL_TW)
+				.append(" WHERE ");
+		final String[] whereArgs = new String[1 + excludeColumnIds.length];
 		whereArgs[0] = String.valueOf(columnId);
-
-		if (excludeColumnIds != null && excludeColumnIds.length > 0) {
-			where.append(" AND ").append(TBL_TW_SID)
-					.append(" NOT IN (SELECT ").append(TBL_TW_SID)
-					.append(" FROM ").append(TBL_TW)
-					.append(" WHERE ");
-			for (int i = 0; i < excludeColumnIds.length; i++) {
-				if (i > 0) where.append(" OR ");
-				where.append(TBL_TW_COLID).append("=?");
-				whereArgs[i + 1] = String.valueOf(excludeColumnIds[i]);
-			}
-			where.append(")");
-			this.log.i("%s %s", where.toString(), Arrays.asList(whereArgs)); // FIXME
+		for (int i = 0; i < excludeColumnIds.length; i++) {
+			if (i > 0) where.append(" OR ");
+			where.append(TBL_TW_COLID).append("=?");
+			whereArgs[i + 1] = String.valueOf(excludeColumnIds[i]);
 		}
-
+		where.append(")");
 		return getTweets(where.toString(), whereArgs, numberOf);
 	}
 
