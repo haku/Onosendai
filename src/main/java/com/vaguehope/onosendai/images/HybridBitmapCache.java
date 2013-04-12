@@ -10,6 +10,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.util.HashHelper;
 import com.vaguehope.onosendai.util.HttpHelper.HttpStreamHandler;
 import com.vaguehope.onosendai.util.IoHelper;
@@ -20,10 +21,12 @@ public class HybridBitmapCache {
 	private static final int BASE_HEX = 16;
 	static LogWrapper LOG = new LogWrapper("HC");
 
+	private final Context context;
 	private final MemoryBitmapCache<String> memCache;
 	private final File baseDir;
 
 	public HybridBitmapCache (final Context context, final int maxMemorySizeBytes) {
+		this.context = context;
 		this.memCache = new MemoryBitmapCache<String>(maxMemorySizeBytes);
 		this.baseDir = new File(context.getCacheDir(), "images");
 		if (!this.baseDir.exists() && !this.baseDir.mkdirs()) throw new IllegalStateException("Failed to create cache directory: " + this.baseDir.getAbsolutePath());
@@ -56,7 +59,10 @@ public class HybridBitmapCache {
 		final File file = keyToFile(key);
 		if (!file.exists()) return null;
 		final Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
-		if (bmp == null) throw new UnrederableException(file);
+		if (bmp == null) {
+			this.memCache.put(key, BitmapFactory.decodeResource(this.context.getResources(), R.drawable.exclamation_red));
+			throw new UnrederableException(file);
+		}
 		this.memCache.put(key, bmp);
 		return bmp;
 	}
