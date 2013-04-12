@@ -142,9 +142,15 @@ mvn clean install -P release
 Logging
 -------
 
-Enable debug logging with:
+Run this commands on the device either via local shell (e.g. Connect Bot) or `adb shell`.
+
+Capture last 1000 lines of log at INFO level to a file with:
 ```sh
-adb shell
+logcat -b main -t 1000 -f /sdcard/log.txt *:I
+```
+
+Enable debug level logging for Onosendai with:
+```sh
 setprop log.tag.onosendai DEBUG
 ```
 
