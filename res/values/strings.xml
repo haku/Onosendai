@@ -4,8 +4,9 @@
 	<string name="app_name">onosendai</string>
 	<string name="service_label">onosendai update service</string>
 
-	<string name="btn_menu">menu</string>
+	<string name="btn_goto">goto</string>
 	<string name="btn_jump_top">Top</string>
+	<string name="btn_menu">menu</string>
 	
 	<string name="menu_refresh_column">Refresh Column</string>
 	<string name="menu_refresh_all">Refresh All</string>

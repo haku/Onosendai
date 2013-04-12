@@ -65,6 +65,16 @@
 			style="?android:attr/buttonBarStyle">
 
 			<Button
+				android:id="@+id/tweetListGoto"
+				android:text="@string/btn_goto"
+				android:layout_width="wrap_content"
+				android:layout_height="40dip"
+				android:textSize="16sp"
+				android:layout_weight="0"
+				style="?android:attr/buttonBarButtonStyle"
+				android:textColor="@android:color/darker_gray" />
+
+			<Button
 				android:id="@+id/tweetListTitle"
 				android:text="@string/btn_jump_top"
 				android:layout_width="0dip"

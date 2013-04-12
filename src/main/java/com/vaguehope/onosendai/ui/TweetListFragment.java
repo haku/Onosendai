@@ -81,6 +81,7 @@ public class TweetListFragment extends Fragment {
 	private ImageLoader imageLoader;
 	private RefreshUiHandler refreshUiHandler;
 
+	private MainActivity mainActivity;
 	private SidebarLayout sidebar;
 	private ListView tweetList;
 
@@ -108,7 +109,8 @@ public class TweetListFragment extends Fragment {
 		this.log.setPrefix("C" + this.columnId);
 		this.log.d("onCreateView()");
 
-		this.conf = ((MainActivity) getActivity()).getConf();
+		this.mainActivity = (MainActivity) getActivity();
+		this.conf = this.mainActivity.getConf();
 		this.imageLoader = ImageLoaderUtils.fromActivity(getActivity());
 
 		/*
@@ -128,6 +130,8 @@ public class TweetListFragment extends Fragment {
 		rootView.setFocusableInTouchMode(true);
 		rootView.requestFocus();
 		rootView.setOnKeyListener(new SidebarLayout.BackButtonListener(this.sidebar));
+
+		((Button) rootView.findViewById(R.id.tweetListGoto)).setOnClickListener(new GotoMenu(this.mainActivity));
 
 		Button btnColumnTitle = (Button) rootView.findViewById(R.id.tweetListTitle);
 		btnColumnTitle.setText(getArguments().getString(ARG_COLUMN_TITLE));
@@ -195,6 +199,10 @@ public class TweetListFragment extends Fragment {
 		return this.log;
 	}
 
+	public MainActivity getMainActivity () {
+		return this.mainActivity;
+	}
+
 	public int getColumnId () {
 		return this.columnId;
 	}
@@ -215,8 +223,8 @@ public class TweetListFragment extends Fragment {
 		return this.adapter;
 	}
 
-	private ProviderMgr getProviderMgr() {
-		return ((MainActivity) getActivity()).getProviderMgr();
+	private ProviderMgr getProviderMgr () {
+		return getMainActivity().getProviderMgr();
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -149,6 +149,10 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		ImageLoaderUtils.loadImage(this.imageCache, req, this.imageExec);
 	}
 
+	public void gotoPage(final int position) {
+		this.viewPager.setCurrentItem(position, false);
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@Override
@@ -175,7 +179,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 		@Override
 		public Fragment getItem (final int position) {
-			final Column col = this.conf.getColumns().get(position);
+			final Column col = this.conf.getColumnByPosition(position);
 			final Fragment fragment = new TweetListFragment();
 			final Bundle args = new Bundle();
 			args.putInt(TweetListFragment.ARG_COLUMN_POSITION, position);
