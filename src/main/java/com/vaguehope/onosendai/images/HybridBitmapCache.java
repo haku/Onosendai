@@ -13,10 +13,12 @@ import android.graphics.BitmapFactory;
 import com.vaguehope.onosendai.util.HashHelper;
 import com.vaguehope.onosendai.util.HttpHelper.HttpStreamHandler;
 import com.vaguehope.onosendai.util.IoHelper;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class HybridBitmapCache {
 
 	private static final int BASE_HEX = 16;
+	static LogWrapper LOG = new LogWrapper("HC");
 
 	private final MemoryBitmapCache<String> memCache;
 	private final File baseDir;
@@ -31,7 +33,11 @@ public class HybridBitmapCache {
 		return this.memCache.get(key);
 	}
 
-	public Bitmap get (final String key) {
+	/**
+	 * @return null if image is not in cache.
+	 * @throws UnrederableException if image is in cache but can not be rendered.
+	 */
+	public Bitmap get (final String key) throws UnrederableException {
 		Bitmap bmp = this.memCache.get(key);
 		if (bmp == null) bmp = getFromDisc(key);
 		return bmp;
@@ -45,11 +51,13 @@ public class HybridBitmapCache {
 		this.memCache.evictAll();
 	}
 
-	protected Bitmap getFromDisc (final String key) {
+	protected Bitmap getFromDisc (final String key) throws UnrederableException {
+		if (key == null) return null;
 		final File file = keyToFile(key);
 		if (!file.exists()) return null;
 		final Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
-		if (bmp != null) this.memCache.put(key, bmp);
+		if (bmp == null) throw new UnrederableException(file);
+		this.memCache.put(key, bmp);
 		return bmp;
 	}
 
@@ -69,14 +77,18 @@ public class HybridBitmapCache {
 
 		@Override
 		public Bitmap handleStream (final InputStream is, final int contentLength) throws IOException {
-			final OutputStream os = new FileOutputStream(this.cache.keyToFile(this.key));
+			final File f = this.cache.keyToFile(this.key);
+			final OutputStream os = new FileOutputStream(f);
 			try {
 				IoHelper.copy(is, os);
+			}
+			catch (IOException e) {
+				if (!f.delete()) LOG.e("Failed to delete incomplete download '" + f.getAbsolutePath() + "': " + e.toString());
+				throw e;
 			}
 			finally {
 				os.close();
 			}
-			// TODO replace write+read disc with keep bytes in memory?
 			return this.cache.getFromDisc(this.key);
 		}
 

@@ -27,7 +27,7 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 		if (!req.isRequired()) return null;
 		try {
 			final String url = req.getUrl();
-			Bitmap bmp = this.cache.get(url); // FIXME separate read failure from cache miss.
+			Bitmap bmp = this.cache.get(url);
 			if (bmp == null) bmp = fetchImage(url);
 			return new ImageFetchResult(req, bmp);
 		}
