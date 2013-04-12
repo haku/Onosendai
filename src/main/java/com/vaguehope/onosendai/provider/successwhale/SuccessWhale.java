@@ -6,6 +6,7 @@ import java.io.StringReader;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -349,7 +350,7 @@ public class SuccessWhale {
 			checkReponseCode(response.getStatusLine());
 			try {
 				final HttpEntity entity = response.getEntity();
-				LOG.i("Feed content encoding: %s length: %d.", entity.getContentEncoding(), entity.getContentLength());
+				LOG.i("Feed content encoding: '%s', headers: %s.", entity.getContentEncoding(), Arrays.asList(response.getAllHeaders()));
 				return new SuccessWhaleFeedXml(this.account, AndroidHttpClient.getUngzippedContent(entity)).getTweets();
 			}
 			catch (final SAXException e) {
