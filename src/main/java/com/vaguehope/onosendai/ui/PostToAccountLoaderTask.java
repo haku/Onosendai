@@ -12,11 +12,11 @@ import android.widget.ToggleButton;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.provider.EnabledServiceRefs;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.provider.TaskUtils;
 import com.vaguehope.onosendai.provider.bufferapp.BufferAppException;
 import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
-import com.vaguehope.onosendai.provider.successwhale.EnabledServiceRefs;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
