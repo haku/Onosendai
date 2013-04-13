@@ -13,7 +13,6 @@ import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.RtTask.RtResult;
 import com.vaguehope.onosendai.provider.successwhale.ItemAction;
-import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
