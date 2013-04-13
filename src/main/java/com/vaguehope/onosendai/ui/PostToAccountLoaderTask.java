@@ -143,7 +143,7 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 			checked = true;
 		}
 		else if (!this.enabledSubAccounts.isServicesPreSpecified()) {
-			checked = svc.isEnabled();
+			checked = svc.isDefault();
 			if (checked) this.enabledSubAccounts.enable(svc);
 		}
 		btn.setChecked(checked);

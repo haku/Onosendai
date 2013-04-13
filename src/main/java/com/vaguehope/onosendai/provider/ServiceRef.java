@@ -13,7 +13,7 @@ public class ServiceRef {
 	private final String rawServiceType;
 	private final String uid;
 	private final String username;
-	private final boolean enabled;
+	private final boolean defult;
 
 	private NetworkType serviceType;
 
@@ -21,16 +21,16 @@ public class ServiceRef {
 		this(null, rawRype, uid, null, false);
 	}
 
-	public ServiceRef (final String rawServiceType, final String uid, final String username, final boolean enabled) {
-		this(null, rawServiceType, uid, username, enabled);
+	public ServiceRef (final String rawServiceType, final String uid, final String username, final boolean defult) {
+		this(null, rawServiceType, uid, username, defult);
 	}
 
-	public ServiceRef (final String id, final String rawServiceType, final String uid, final String username, final boolean enabled) {
+	public ServiceRef (final String id, final String rawServiceType, final String uid, final String username, final boolean defult) {
 		this.id = id;
 		this.rawServiceType = rawServiceType;
 		this.uid = uid;
 		this.username = username;
-		this.enabled = enabled;
+		this.defult = defult;
 	}
 
 	/**
@@ -60,8 +60,8 @@ public class ServiceRef {
 		return this.username;
 	}
 
-	public boolean isEnabled () {
-		return this.enabled;
+	public boolean isDefault () {
+		return this.defult;
 	}
 
 	public String toServiceMeta () {
@@ -82,13 +82,13 @@ public class ServiceRef {
 				.append(",").append(this.rawServiceType)
 				.append(",").append(this.uid)
 				.append(",").append(this.username)
-				.append(",").append(this.enabled)
+				.append(",").append(this.defult)
 				.append("}").toString();
 	}
 
 	@Override
 	public int hashCode () {
-		return Arrays.hashCode(new Object[] { this.id, this.rawServiceType, this.uid, this.username, this.enabled });
+		return Arrays.hashCode(new Object[] { this.id, this.rawServiceType, this.uid, this.username, this.defult });
 	}
 
 	@Override
@@ -101,7 +101,7 @@ public class ServiceRef {
 				&& EqualHelper.equal(this.rawServiceType, that.rawServiceType)
 				&& EqualHelper.equal(this.uid, that.uid)
 				&& EqualHelper.equal(this.username, that.username)
-				&& this.enabled == that.enabled;
+				&& this.defult == that.defult;
 	}
 
 	public static String humanList (final Collection<ServiceRef> col, final String token) {
