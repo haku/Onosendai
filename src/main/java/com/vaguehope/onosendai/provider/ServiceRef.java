@@ -17,8 +17,8 @@ public class ServiceRef {
 
 	private NetworkType serviceType;
 
-	public ServiceRef (final String rawRype, final String uid) {
-		this(null, rawRype, uid, null, false);
+	public ServiceRef (final String rawServiceType, final String uid) {
+		this(null, rawServiceType, uid, null, false);
 	}
 
 	public ServiceRef (final String rawServiceType, final String uid, final String username, final boolean defult) {
@@ -88,7 +88,7 @@ public class ServiceRef {
 
 	@Override
 	public int hashCode () {
-		return Arrays.hashCode(new Object[] { this.id, this.rawServiceType, this.uid, this.username, this.defult });
+		return Arrays.hashCode(new Object[] { this.id, this.rawServiceType, this.uid });
 	}
 
 	@Override
@@ -99,9 +99,7 @@ public class ServiceRef {
 		ServiceRef that = (ServiceRef) o;
 		return EqualHelper.equal(this.id, that.id)
 				&& EqualHelper.equal(this.rawServiceType, that.rawServiceType)
-				&& EqualHelper.equal(this.uid, that.uid)
-				&& EqualHelper.equal(this.username, that.username)
-				&& this.defult == that.defult;
+				&& EqualHelper.equal(this.uid, that.uid);
 	}
 
 	public static String humanList (final Collection<ServiceRef> col, final String token) {
