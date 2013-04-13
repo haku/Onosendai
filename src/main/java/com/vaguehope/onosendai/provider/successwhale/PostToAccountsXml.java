@@ -20,7 +20,7 @@ import org.xml.sax.XMLReader;
 
 public class PostToAccountsXml implements ContentHandler {
 
-	private final List<PostToAccount> accounts = new ArrayList<PostToAccount>();
+	private final List<ServiceRef> accounts = new ArrayList<ServiceRef>();
 
 	public PostToAccountsXml (final InputStream is) throws SAXException {
 		parse(new InputSource(is));
@@ -48,7 +48,7 @@ public class PostToAccountsXml implements ContentHandler {
 		}
 	}
 
-	public List<PostToAccount> getAccounts () {
+	public List<ServiceRef> getAccounts () {
 		return this.accounts;
 	}
 
@@ -72,10 +72,10 @@ public class PostToAccountsXml implements ContentHandler {
 		final String elementName = !localName.isEmpty() ? localName : qName;
 		if (this.stack.size() == 3) {
 			if ("posttoaccount".equals(elementName)) {
-				this.accounts.add(new PostToAccount(this.stashedService, this.stashedUsername, this.stashedUid, this.stashedEnabled));
+				this.accounts.add(new ServiceRef(this.stashedService, this.stashedUid, this.stashedUsername, this.stashedEnabled));
 				this.stashedService = null;
-				this.stashedUsername = null;
 				this.stashedUid = null;
+				this.stashedUsername = null;
 				this.stashedEnabled = false;
 			}
 		}

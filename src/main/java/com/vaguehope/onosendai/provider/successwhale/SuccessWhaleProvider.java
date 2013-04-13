@@ -57,11 +57,11 @@ public class SuccessWhaleProvider {
 		return getAccount(account).getThread(type, uid, forSid);
 	}
 
-	public List<PostToAccount> getPostToAccounts (final Account account) throws SuccessWhaleException {
+	public List<ServiceRef> getPostToAccounts (final Account account) throws SuccessWhaleException {
 		return getAccount(account).getPostToAccounts();
 	}
 
-	public List<PostToAccount> getPostToAccountsCached (final Account account) {
+	public List<ServiceRef> getPostToAccountsCached (final Account account) {
 		return getAccount(account).getPostToAccountsCached();
 	}
 

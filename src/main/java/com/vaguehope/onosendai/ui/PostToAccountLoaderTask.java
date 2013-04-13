@@ -16,7 +16,6 @@ import com.vaguehope.onosendai.provider.TaskUtils;
 import com.vaguehope.onosendai.provider.bufferapp.BufferAppException;
 import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
 import com.vaguehope.onosendai.provider.successwhale.EnabledServiceRefs;
-import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
 import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
@@ -63,7 +62,7 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 			case SUCCESSWHALE:
 				final SuccessWhaleProvider swProv = new SuccessWhaleProvider(db);
 				try {
-					final List<PostToAccount> cached = swProv.getPostToAccountsCached(account);
+					final List<ServiceRef> cached = swProv.getPostToAccountsCached(account);
 					if (cached != null) publishProgress(new AccountLoaderResult(cached));
 					return new AccountLoaderResult(swProv.getPostToAccounts(account));
 				}
@@ -123,7 +122,7 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 	}
 
 	private void displayAccounts (final AccountLoaderResult result) {
-		for (final PostToAccount pta : result.getAccounts()) {
+		for (final ServiceRef pta : result.getAccounts()) {
 			View existingView = this.llSubAccounts.findViewWithTag(pta.getUid());
 			if (existingView == null) {
 				final View view = View.inflate(this.llSubAccounts.getContext(), R.layout.subaccountitem, null);
@@ -134,18 +133,17 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 		}
 	}
 
-	private void configureAccountBtn (final ToggleButton btn, final PostToAccount pta) {
-		final String displayName = pta.getDisplayName();
+	private void configureAccountBtn (final ToggleButton btn, final ServiceRef svc) {
+		final String displayName = svc.getDisplayName();
 		btn.setTextOn(displayName);
 		btn.setTextOff(displayName);
 
-		final ServiceRef svc = pta.toSeviceRef();
 		boolean checked = false;
 		if (this.enabledSubAccounts.isEnabled(svc)) {
 			checked = true;
 		}
 		else if (!this.enabledSubAccounts.isServicesPreSpecified()) {
-			checked = pta.isEnabled();
+			checked = svc.isEnabled();
 			if (checked) this.enabledSubAccounts.enable(svc);
 		}
 		btn.setChecked(checked);
@@ -167,10 +165,10 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 	protected static class AccountLoaderResult {
 
 		private final boolean success;
-		private final List<PostToAccount> accounts;
+		private final List<ServiceRef> accounts;
 		private final Exception e;
 
-		public AccountLoaderResult (final List<PostToAccount> accounts) {
+		public AccountLoaderResult (final List<ServiceRef> accounts) {
 			if (accounts == null) throw new IllegalArgumentException("Missing arg: accounts.");
 			this.success = true;
 			this.accounts = accounts;
@@ -188,7 +186,7 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 			return this.success;
 		}
 
-		public List<PostToAccount> getAccounts () {
+		public List<ServiceRef> getAccounts () {
 			return this.accounts;
 		}
 

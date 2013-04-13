@@ -176,10 +176,10 @@ public class SuccessWhale {
 		});
 	}
 
-	public List<PostToAccount> getPostToAccounts () throws SuccessWhaleException {
-		return authenticated(new SwCall<List<PostToAccount>>() {
+	public List<ServiceRef> getPostToAccounts () throws SuccessWhaleException {
+		return authenticated(new SwCall<List<ServiceRef>>() {
 			@Override
-			public List<PostToAccount> invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+			public List<ServiceRef> invoke (final HttpClient client) throws SuccessWhaleException, IOException {
 				return client.execute(new HttpGet(makeAuthedUrl(API_POSTTOACCOUNTS)), new PostToAccountsHandler(SuccessWhale.this));
 			}
 
@@ -190,7 +190,7 @@ public class SuccessWhale {
 		});
 	}
 
-	public List<PostToAccount> getPostToAccountsCached () {
+	public List<ServiceRef> getPostToAccountsCached () {
 		final String key = PTA_PREFIX + getAccount().getId();
 		try {
 			final String cached = this.kvStore.getValue(key);
@@ -313,7 +313,7 @@ public class SuccessWhale {
 
 	}
 
-	private static class PostToAccountsHandler implements ResponseHandler<List<PostToAccount>> {
+	private static class PostToAccountsHandler implements ResponseHandler<List<ServiceRef>> {
 
 		private final SuccessWhale sw;
 
@@ -322,11 +322,11 @@ public class SuccessWhale {
 		}
 
 		@Override
-		public List<PostToAccount> handleResponse (final HttpResponse response) throws IOException {
+		public List<ServiceRef> handleResponse (final HttpResponse response) throws IOException {
 			checkReponseCode(response.getStatusLine());
 			try {
 				final byte[] data = EntityUtils.toByteArray(response.getEntity());
-				final List<PostToAccount> accounts = new PostToAccountsXml(new ByteArrayInputStream(data)).getAccounts();
+				final List<ServiceRef> accounts = new PostToAccountsXml(new ByteArrayInputStream(data)).getAccounts();
 				if (this.sw != null) this.sw.writePostToAccountsToCache(new String(data, Charset.forName("UTF-8")));
 				return accounts;
 			}
