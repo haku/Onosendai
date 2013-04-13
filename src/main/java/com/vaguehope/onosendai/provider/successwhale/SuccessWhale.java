@@ -69,7 +69,7 @@ public class SuccessWhale {
 		this.httpClientFactory = httpClientFactory;
 	}
 
-	private HttpClient getHttpClient () throws SuccessWhaleException {
+	private HttpClient getHttpClient () throws IOException {
 		return this.httpClientFactory.getHttpClient();
 	}
 

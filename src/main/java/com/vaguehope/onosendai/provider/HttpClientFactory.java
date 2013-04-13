@@ -18,8 +18,6 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
-
 /*
  * https://hc.apache.org/httpcomponents-client-ga/tutorial/html/index.html
  * https://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/impl/conn/tsccm/ThreadSafeClientConnManager.html
@@ -44,16 +42,13 @@ public class HttpClientFactory {
 		this.tsPassword = tsPassword;
 	}
 
-	public synchronized HttpClient getHttpClient () throws SuccessWhaleException {
+	public synchronized HttpClient getHttpClient () throws IOException {
 		try {
 			if (this.httpClient == null) this.httpClient = makeHttpClient();
 			return this.httpClient;
 		}
-		catch (final IOException e) {
-			throw new SuccessWhaleException("Failed to create HTTP client: " + e.toString(), e);
-		}
 		catch (final GeneralSecurityException e) {
-			throw new SuccessWhaleException("Failed to create HTTP client. " + e.toString(), e);
+			throw new IOException("Failed to create HTTP client. " + e.toString(), e);
 		}
 	}
 
