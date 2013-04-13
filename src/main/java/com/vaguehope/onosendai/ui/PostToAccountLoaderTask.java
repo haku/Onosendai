@@ -13,6 +13,8 @@ import android.widget.ToggleButton;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.TaskUtils;
+import com.vaguehope.onosendai.provider.bufferapp.BufferAppException;
+import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
 import com.vaguehope.onosendai.provider.successwhale.EnabledServiceRefs;
 import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
 import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
@@ -20,10 +22,10 @@ import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
-import com.vaguehope.onosendai.ui.SwPostToAccountLoaderTask.AccountLoaderResult;
+import com.vaguehope.onosendai.ui.PostToAccountLoaderTask.AccountLoaderResult;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-class SwPostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderResult, AccountLoaderResult> {
+class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderResult, AccountLoaderResult> {
 
 	private static final LogWrapper LOG = new LogWrapper("AL");
 
@@ -32,7 +34,7 @@ class SwPostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoade
 
 	private ProgressBar progressBar;
 
-	public SwPostToAccountLoaderTask (final Context context, final ViewGroup llSubAccounts, final EnabledServiceRefs enabledSubAccounts) {
+	public PostToAccountLoaderTask (final Context context, final ViewGroup llSubAccounts, final EnabledServiceRefs enabledSubAccounts) {
 		super(context);
 		if (llSubAccounts == null) throw new IllegalArgumentException("llSubAccounts can not be null.");
 		if (enabledSubAccounts == null) throw new IllegalArgumentException("enabledSubAccounts can not be null.");
@@ -57,18 +59,35 @@ class SwPostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoade
 		if (params.length != 1) throw new IllegalArgumentException("Only one account per task.");
 		final Account account = params[0];
 
-		SuccessWhaleProvider swProv = new SuccessWhaleProvider(db);
-		try {
-			final List<PostToAccount> cached = swProv.getPostToAccountsCached(account);
-			if (cached != null) publishProgress(new AccountLoaderResult(cached));
-			return new AccountLoaderResult(swProv.getPostToAccounts(account));
+		switch (account.getProvider()) {
+			case SUCCESSWHALE:
+				final SuccessWhaleProvider swProv = new SuccessWhaleProvider(db);
+				try {
+					final List<PostToAccount> cached = swProv.getPostToAccountsCached(account);
+					if (cached != null) publishProgress(new AccountLoaderResult(cached));
+					return new AccountLoaderResult(swProv.getPostToAccounts(account));
+				}
+				catch (SuccessWhaleException e) {
+					return new AccountLoaderResult(e);
+				}
+				finally {
+					swProv.shutdown();
+				}
+			case BUFFER:
+				final BufferAppProvider bufProv = new BufferAppProvider();
+				try {
+					return new AccountLoaderResult(bufProv.getPostToAccounts(account));
+				}
+				catch (BufferAppException e) {
+					return new AccountLoaderResult(e);
+				}
+				finally {
+					bufProv.shutdown();
+				}
+			default:
+				throw new IllegalArgumentException("Do not know how to load sub accounts for provider: " + account.getProvider());
 		}
-		catch (SuccessWhaleException e) {
-			return new AccountLoaderResult(e);
-		}
-		finally {
-			swProv.shutdown();
-		}
+
 	}
 
 	@Override
@@ -86,7 +105,7 @@ class SwPostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoade
 			displayAccounts(result);
 		}
 		else {
-			LOG.w("Failed to update SW post to accounts: %s", result.getE());
+			LOG.e("Failed to update SW post to accounts.", result.getE());
 			Toast.makeText(this.llSubAccounts.getContext(),
 					"Failed to update sub accounts: " + result.getEmsg(),
 					Toast.LENGTH_LONG).show();

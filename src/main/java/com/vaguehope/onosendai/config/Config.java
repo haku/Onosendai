@@ -94,31 +94,34 @@ public class Config {
 				case SUCCESSWHALE:
 					account = parseSuccessWhaleAccount(accountJson, id);
 					break;
+				case BUFFER:
+					account = parseBufferAccount(accountJson, id);
+					break;
 				default:
 					throw new IllegalArgumentException("Unknown provider: " + provider);
 			}
-
 			ret.put(id, account);
 		}
 		return Collections.unmodifiableMap(ret);
 	}
 
 	private static Account parseTwitterAccount (final JSONObject accountJson, final String id) throws JSONException {
-		Account account;
 		final String consumerKey = accountJson.getString("consumerKey");
 		final String consumerSecret = accountJson.getString("consumerSecret");
 		final String accessToken = accountJson.getString("accessToken");
 		final String accessSecret = accountJson.getString("accessSecret");
-		account = new Account(id, AccountProvider.TWITTER, consumerKey, consumerSecret, accessToken, accessSecret);
-		return account;
+		return new Account(id, AccountProvider.TWITTER, consumerKey, consumerSecret, accessToken, accessSecret);
 	}
 
 	private static Account parseSuccessWhaleAccount (final JSONObject accountJson, final String id) throws JSONException {
-		Account account;
 		final String accessToken = accountJson.getString("username");
 		final String accessSecret = accountJson.getString("password");
-		account = new Account(id, AccountProvider.SUCCESSWHALE, null, null, accessToken, accessSecret);
-		return account;
+		return new Account(id, AccountProvider.SUCCESSWHALE, null, null, accessToken, accessSecret);
+	}
+
+	private static Account parseBufferAccount (final JSONObject accountJson, final String id) throws JSONException {
+		final String accessToken = accountJson.getString("accessToken");
+		return new Account(id, AccountProvider.BUFFER, null, null, accessToken, null);
 	}
 
 	/**
