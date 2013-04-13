@@ -122,12 +122,12 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 	}
 
 	private void displayAccounts (final AccountLoaderResult result) {
-		for (final ServiceRef pta : result.getAccounts()) {
-			View existingView = this.llSubAccounts.findViewWithTag(pta.getUid());
+		for (final ServiceRef svc : result.getAccounts()) {
+			View existingView = this.llSubAccounts.findViewWithTag(svc);
 			if (existingView == null) {
 				final View view = View.inflate(this.llSubAccounts.getContext(), R.layout.subaccountitem, null);
-				view.setTag(pta.getUid());
-				configureAccountBtn((ToggleButton) view.findViewById(R.id.btnEnableAccount), pta);
+				view.setTag(svc);
+				configureAccountBtn((ToggleButton) view.findViewById(R.id.btnEnableAccount), svc);
 				this.llSubAccounts.addView(view);
 			}
 		}
@@ -151,14 +151,14 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 		btn.setOnClickListener(new SubAccountToggleListener(svc, this.enabledSubAccounts));
 	}
 
-	public static void setExclusiveSelectedAccountBtn (final ViewGroup llSubAccounts, final ServiceRef svc) {
+	public static void setAccountBtns (final ViewGroup llSubAccounts, final EnabledServiceRefs enabledPostToAccounts) {
 		final int childCount = llSubAccounts.getChildCount();
 		if (childCount < 1) return;
 		for (int i = 0; i < childCount; i++) {
 			final View child = llSubAccounts.getChildAt(i);
 			final ToggleButton btn = (ToggleButton) child.findViewById(R.id.btnEnableAccount);
 			if (btn == null) continue;
-			btn.setChecked(svc.getUid().equals(child.getTag()));
+			btn.setChecked(enabledPostToAccounts.isEnabled((ServiceRef) child.getTag()));
 		}
 	}
 

@@ -216,8 +216,9 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	private void setPostToAccountExclusive (final ServiceRef svc) {
 		if (svc == null) return;
+		LOG.d("setPostToAccountExclusive(%s)", svc);
 		this.enabledPostToAccounts.enableExclusiveAndSetPreSpecified(svc);
-		PostToAccountLoaderTask.setExclusiveSelectedAccountBtn(this.llSubAccounts, svc);
+		PostToAccountLoaderTask.setAccountBtns(this.llSubAccounts, this.enabledPostToAccounts);
 	}
 
 	private void initBody (final Tweet tweet) {
