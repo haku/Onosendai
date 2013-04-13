@@ -8,6 +8,7 @@ import java.util.Set;
 
 import android.os.Bundle;
 
+import com.vaguehope.onosendai.config.Account;
 
 public class EnabledServiceRefs {
 
@@ -15,9 +16,18 @@ public class EnabledServiceRefs {
 
 	private final Set<ServiceRef> enabledRefs;
 	private volatile boolean servicesPreSpecified;
+	private volatile Account account;
 
 	public EnabledServiceRefs () {
 		this.enabledRefs = Collections.synchronizedSet(new HashSet<ServiceRef>());
+	}
+
+	public void setAccount (final Account account) {
+		if (this.account != null && this.account.getId() != account.getId()) {
+			this.enabledRefs.clear();
+			this.servicesPreSpecified = false;
+		}
+		this.account = account;
 	}
 
 	public void enable (final ServiceRef ref) {
@@ -28,7 +38,7 @@ public class EnabledServiceRefs {
 		synchronized (this.enabledRefs) {
 			this.enabledRefs.clear();
 			this.enabledRefs.add(ref);
-			setServicesPreSpecified(true);
+			this.servicesPreSpecified = true;
 		}
 	}
 
@@ -74,7 +84,7 @@ public class EnabledServiceRefs {
 			for (String svcMeta : arr) {
 				this.enabledRefs.add(ServiceRef.parseServiceMeta(svcMeta));
 			}
-			setServicesPreSpecified(true);
+			this.servicesPreSpecified = true;
 		}
 	}
 

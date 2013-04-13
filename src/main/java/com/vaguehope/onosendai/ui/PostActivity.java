@@ -89,12 +89,13 @@ public class PostActivity extends Activity implements ImageLoader {
 		}
 
 		this.intentExtras = getIntent().getExtras();
-		final String accountId = this.intentExtras.getString(ARG_ACCOUNT_ID);
+		final Account account = conf.getAccount(this.intentExtras.getString(ARG_ACCOUNT_ID));
 		this.inReplyToUid = this.intentExtras.getLong(ARG_IN_REPLY_TO_UID);
 		this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
 		this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
 		final List<String> svcs = this.intentExtras.getStringArrayList(ARG_SVCS);
 
+		this.enabledPostToAccounts.setAccount(account);
 		this.enabledPostToAccounts.fromBundle(savedInstanceState);
 		if (svcs != null && !this.enabledPostToAccounts.isServicesPreSpecified()) {
 			for (String svc : svcs) {
@@ -102,7 +103,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			}
 			this.enabledPostToAccounts.setServicesPreSpecified(true);
 		}
-		LOG.i("accountId=%s inReplyToUid=%d inReplyToSid=%s svcs=%s", accountId, this.inReplyToUid, this.inReplyToSid, svcs);
+		LOG.i("accountId=%s inReplyToUid=%d inReplyToSid=%s svcs=%s", account.getId(), this.inReplyToUid, this.inReplyToSid, svcs);
 
 		this.imageCache = new HybridBitmapCache(getBaseContext(), C.MAX_MEMORY_IMAGE_CACHE);
 		this.exec = ExecUtils.newBoundedCachedThreadPool(C.IMAGE_LOADER_MAX_THREADS, LOG);
@@ -110,7 +111,6 @@ public class PostActivity extends Activity implements ImageLoader {
 		this.spnAccount = (Spinner) findViewById(R.id.spnAccount);
 		this.accountAdaptor = new AccountAdaptor(getBaseContext(), conf);
 		this.spnAccount.setAdapter(this.accountAdaptor);
-		final Account account = conf.getAccount(accountId);
 		this.spnAccount.setSelection(this.accountAdaptor.getAccountPosition(account));
 		this.spnAccount.setOnItemSelectedListener(this.accountOnItemSelectedListener);
 
@@ -307,6 +307,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		switch (account.getProvider()) {
 			case SUCCESSWHALE:
 			case BUFFER:
+				this.enabledPostToAccounts.setAccount(account);
 				new PostToAccountLoaderTask(getApplicationContext(), this.llSubAccounts, this.enabledPostToAccounts).executeOnExecutor(this.exec, account);
 				break;
 			default:
