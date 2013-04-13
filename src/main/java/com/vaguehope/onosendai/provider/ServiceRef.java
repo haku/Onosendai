@@ -1,9 +1,9 @@
-package com.vaguehope.onosendai.provider.successwhale;
+package com.vaguehope.onosendai.provider;
 
 import java.util.Arrays;
 import java.util.Collection;
 
-import com.vaguehope.onosendai.provider.NetworkType;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.util.EqualHelper;
 
 public class ServiceRef {

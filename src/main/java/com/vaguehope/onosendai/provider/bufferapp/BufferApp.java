@@ -22,9 +22,9 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.HttpClientFactory;
 import com.vaguehope.onosendai.provider.successwhale.NotAuthorizedException;
-import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.util.LogWrapper;
 

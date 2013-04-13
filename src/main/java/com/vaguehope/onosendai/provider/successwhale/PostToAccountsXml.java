@@ -18,6 +18,8 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import com.vaguehope.onosendai.provider.ServiceRef;
+
 public class PostToAccountsXml implements ContentHandler {
 
 	private final List<ServiceRef> accounts = new ArrayList<ServiceRef>();

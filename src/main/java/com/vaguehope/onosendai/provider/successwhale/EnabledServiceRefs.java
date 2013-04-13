@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.vaguehope.onosendai.provider.ServiceRef;
+
 import android.os.Bundle;
 
 public class EnabledServiceRefs {
