@@ -23,7 +23,7 @@ public class EnabledServiceRefs {
 	}
 
 	public void setAccount (final Account account) {
-		if (this.account != null && this.account.getId() != account.getId()) {
+		if (this.account != null && !this.account.getId().equals(account.getId())) {
 			this.enabledRefs.clear();
 			this.servicesPreSpecified = false;
 		}

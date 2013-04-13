@@ -33,14 +33,9 @@ public class DbClient {
 	}
 
 	@Override
-	protected void finalize () {
+	protected void finalize () throws Throwable { // NOSONAR finalize throws Throwable.
 		unbindDbService();
-		try {
-			super.finalize();
-		}
-		catch (Throwable e) {
-			throw new IllegalStateException(e);
-		}
+		super.finalize();
 	}
 
 	public void clearReadyListener () {

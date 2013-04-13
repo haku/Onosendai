@@ -251,7 +251,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		switch (account.getProvider()) {
 			case SUCCESSWHALE:
 			case BUFFER:
-				msg = String.format("Post to these %s accounts?\n%s", account.toHumanString(), ServiceRef.humanList(svcs, "\n"));
+				msg = String.format("Post to these %s accounts?%n%s", account.toHumanString(), ServiceRef.humanList(svcs, "\n"));
 				break;
 			default:
 				msg = String.format("Post to %s?", account.toHumanString());
