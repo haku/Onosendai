@@ -1,4 +1,4 @@
-package com.vaguehope.onosendai.provider.successwhale;
+package com.vaguehope.onosendai.provider;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,7 +8,6 @@ import java.util.Set;
 
 import android.os.Bundle;
 
-import com.vaguehope.onosendai.provider.ServiceRef;
 
 public class EnabledServiceRefs {
 
