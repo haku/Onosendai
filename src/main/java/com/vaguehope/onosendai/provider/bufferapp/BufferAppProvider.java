@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.successwhale.HttpClientFactory;
-import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
 import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 
 public class BufferAppProvider {
@@ -33,7 +32,7 @@ public class BufferAppProvider {
 		return this.accounts.get(account.getId());
 	}
 
-	public List<PostToAccount> getPostToAccounts (final Account account) throws BufferAppException {
+	public List<ServiceRef> getPostToAccounts (final Account account) throws BufferAppException {
 		return getAccount(account).getPostToAccounts();
 	}
 

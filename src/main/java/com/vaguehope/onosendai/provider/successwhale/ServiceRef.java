@@ -9,18 +9,27 @@ import com.vaguehope.onosendai.util.EqualHelper;
 public class ServiceRef {
 
 	private final String id;
-	private final String rawType;
+	private final String rawServiceType;
 	private final String uid;
-	private NetworkType type;
+	private final String username;
+	private final boolean enabled;
+
+	private NetworkType serviceType;
 
 	public ServiceRef (final String rawRype, final String uid) {
-		this(null, rawRype, uid);
+		this(null, rawRype, uid, null, false);
 	}
 
-	public ServiceRef (final String id, final String rawRype, final String uid) {
+	public ServiceRef (final String rawServiceType, final String uid, final String username, final boolean enabled) {
+		this(null, rawServiceType, uid, username, enabled);
+	}
+
+	public ServiceRef (final String id, final String rawServiceType, final String uid, final String username, final boolean enabled) {
 		this.id = id;
-		this.rawType = rawRype;
+		this.rawServiceType = rawServiceType;
 		this.uid = uid;
+		this.username = username;
+		this.enabled = enabled;
 	}
 
 	/**
@@ -31,12 +40,12 @@ public class ServiceRef {
 	}
 
 	public String getRawType () {
-		return this.rawType;
+		return this.rawServiceType;
 	}
 
 	public NetworkType getType () {
-		if (this.type == null) this.type = NetworkType.parse(this.rawType);
-		return this.type;
+		if (this.serviceType == null) this.serviceType = NetworkType.parse(this.rawServiceType);
+		return this.serviceType;
 	}
 
 	/**
@@ -46,26 +55,39 @@ public class ServiceRef {
 		return this.uid;
 	}
 
-	public boolean matchesPostToAccount (final PostToAccount pta) {
-		if (pta == null) return false;
-		return EqualHelper.equal(pta.getService(), this.rawType) && EqualHelper.equal(pta.getUid(), this.uid);
+	public String getUsername () {
+		return this.username;
+	}
+
+	public boolean isEnabled () {
+		return this.enabled;
 	}
 
 	public String toServiceMeta () {
-		return SuccessWhaleProvider.createServiceMeta(this.rawType, this.uid);
+		return SuccessWhaleProvider.createServiceMeta(this.rawServiceType, this.uid);
+	}
+
+	public String getDisplayName () {
+		if (this.username != null && !this.username.isEmpty()) return this.username;
+		if (this.uid != null && !this.uid.isEmpty()) return this.uid;
+		if (this.rawServiceType != null && !this.rawServiceType.isEmpty()) return this.rawServiceType;
+		return "(unknown)";
 	}
 
 	@Override
 	public String toString () {
 		return new StringBuilder()
-				.append("ServiceRef{").append(this.rawType)
+				.append("ServiceRef{").append(this.id)
+				.append(",").append(this.rawServiceType)
 				.append(",").append(this.uid)
+				.append(",").append(this.username)
+				.append(",").append(this.enabled)
 				.append("}").toString();
 	}
 
 	@Override
 	public int hashCode () {
-		return Arrays.hashCode(new Object[] { this.rawType, this.uid });
+		return Arrays.hashCode(new Object[] { this.id, this.rawServiceType, this.uid, this.username, this.enabled });
 	}
 
 	@Override
@@ -74,8 +96,11 @@ public class ServiceRef {
 		if (o == this) return true;
 		if (!(o instanceof ServiceRef)) return false;
 		ServiceRef that = (ServiceRef) o;
-		return EqualHelper.equal(this.rawType, that.rawType)
-				&& EqualHelper.equal(this.uid, that.uid);
+		return EqualHelper.equal(this.id, that.id)
+				&& EqualHelper.equal(this.rawServiceType, that.rawServiceType)
+				&& EqualHelper.equal(this.uid, that.uid)
+				&& EqualHelper.equal(this.username, that.username)
+				&& this.enabled == that.enabled;
 	}
 
 	public static String humanList (final Collection<ServiceRef> col, final String token) {
@@ -84,7 +109,7 @@ public class ServiceRef {
 		StringBuilder b = new StringBuilder();
 		for (ServiceRef s : col) {
 			if (b.length() > 0) b.append(token);
-			b.append(s.rawType).append(":").append(s.uid);
+			b.append(s.rawServiceType).append(":").append(s.uid);
 		}
 		return b.toString();
 	}

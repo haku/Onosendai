@@ -24,7 +24,6 @@ import org.json.JSONTokener;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.successwhale.HttpClientFactory;
 import com.vaguehope.onosendai.provider.successwhale.NotAuthorizedException;
-import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
 import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -78,10 +77,10 @@ public class BufferApp {
 		}
 	}
 
-	public List<PostToAccount> getPostToAccounts () throws BufferAppException {
-		return authenticated(new BufferCall<List<PostToAccount>>() {
+	public List<ServiceRef> getPostToAccounts () throws BufferAppException {
+		return authenticated(new BufferCall<List<ServiceRef>>() {
 			@Override
-			public List<PostToAccount> invoke (final HttpClient client) throws BufferAppException, IOException {
+			public List<ServiceRef> invoke (final HttpClient client) throws BufferAppException, IOException {
 				return client.execute(new HttpGet(makeAuthedUrl(API_PROFILES)), new ProfilesHandler());
 			}
 
@@ -142,24 +141,24 @@ public class BufferApp {
 		}
 	}
 
-	private static class ProfilesHandler implements ResponseHandler<List<PostToAccount>> {
+	private static class ProfilesHandler implements ResponseHandler<List<ServiceRef>> {
 
 		public ProfilesHandler () {}
 
 		@Override
-		public List<PostToAccount> handleResponse (final HttpResponse response) throws IOException {
+		public List<ServiceRef> handleResponse (final HttpResponse response) throws IOException {
 			checkReponseCode(response.getStatusLine());
 			try {
-				final List<PostToAccount> accounts = new ArrayList<PostToAccount>();
+				final List<ServiceRef> accounts = new ArrayList<ServiceRef>();
 				final JSONArray arr = (JSONArray) new JSONTokener(EntityUtils.toString(response.getEntity())).nextValue();
 				for (int i = 0; i < arr.length(); i++) {
 					final JSONObject prof = arr.getJSONObject(i);
 					final String id = prof.getString("id");
 					final String service = prof.getString("service");
-					final String username = prof.getString("service_username");
 					final String uid = prof.getString("service_id");
+					final String username = prof.getString("service_username");
 					final boolean enabled = prof.getBoolean("default");
-					accounts.add(new PostToAccount(id, service, username, uid, enabled));
+					accounts.add(new ServiceRef(id, service, uid, username, enabled));
 				}
 				return accounts;
 			}
