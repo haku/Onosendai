@@ -25,7 +25,6 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.HttpClientFactory;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.NotAuthorizedException;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 /**
@@ -49,13 +48,8 @@ public class BufferApp {
 		this.httpClientFactory = httpClientFactory;
 	}
 
-	private HttpClient getHttpClient () throws BufferAppException {
-		try {
-			return this.httpClientFactory.getHttpClient();
-		}
-		catch (final SuccessWhaleException e) { // FIXME make http client more generic.
-			throw new BufferAppException(e.getMessage(), e);
-		}
+	private HttpClient getHttpClient () throws IOException {
+		return this.httpClientFactory.getHttpClient();
 	}
 
 	Account getAccount () {
