@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -57,7 +58,7 @@ public class Column {
 				.append(",").append(this.accountId)
 				.append(",").append(this.resource)
 				.append(",").append(this.refreshIntervalMins)
-				.append(",").append(this.excludeColumnIds)
+				.append(",").append(Arrays.toString(this.excludeColumnIds))
 				.append("}");
 		return s.toString();
 	}
