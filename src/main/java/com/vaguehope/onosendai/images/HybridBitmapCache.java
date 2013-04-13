@@ -19,7 +19,7 @@ import com.vaguehope.onosendai.util.LogWrapper;
 public class HybridBitmapCache {
 
 	private static final int BASE_HEX = 16;
-	static LogWrapper LOG = new LogWrapper("HC");
+	static final LogWrapper LOG = new LogWrapper("HC");
 
 	private final Context context;
 	private final MemoryBitmapCache<String> memCache;

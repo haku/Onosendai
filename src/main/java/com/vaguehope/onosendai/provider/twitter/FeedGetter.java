@@ -8,7 +8,7 @@ import twitter4j.TwitterException;
 
 interface FeedGetter extends TwitterFeed {
 
-	public ResponseList<Status> getTweets (final Twitter t, final Paging paging) throws TwitterException;
+	ResponseList<Status> getTweets (final Twitter t, final Paging paging) throws TwitterException;
 
 	int recommendedFetchCount ();
 
