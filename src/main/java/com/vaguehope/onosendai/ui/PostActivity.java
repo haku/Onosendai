@@ -30,7 +30,6 @@ import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountAdaptor;
-import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
@@ -219,7 +218,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	private void setPostToAccountExclusive (final ServiceRef svc) {
 		if (svc == null) return;
 		this.enabledPostToAccounts.enableExclusiveAndSetPreSpecified(svc);
-		SwPostToAccountLoaderTask.setExclusiveSelectedAccountBtn(this.llSubAccounts, svc);
+		PostToAccountLoaderTask.setExclusiveSelectedAccountBtn(this.llSubAccounts, svc);
 	}
 
 	private void initBody (final Tweet tweet) {
@@ -249,11 +248,13 @@ public class PostActivity extends Activity implements ImageLoader {
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(this);
 
 		String msg;
-		if (account.getProvider() == AccountProvider.SUCCESSWHALE) {
-			msg = String.format("Post to these %s accounts?\n%s", account.toHumanString(), ServiceRef.humanList(svcs, "\n"));
-		}
-		else {
-			msg = String.format("Post to %s?", account.toHumanString());
+		switch (account.getProvider()) {
+			case SUCCESSWHALE:
+			case BUFFER:
+				msg = String.format("Post to these %s accounts?\n%s", account.toHumanString(), ServiceRef.humanList(svcs, "\n"));
+				break;
+			default:
+				msg = String.format("Post to %s?", account.toHumanString());
 		}
 		dlgBld.setMessage(msg);
 
@@ -305,7 +306,8 @@ public class PostActivity extends Activity implements ImageLoader {
 	protected void accountSelected (final Account account) {
 		switch (account.getProvider()) {
 			case SUCCESSWHALE:
-				new SwPostToAccountLoaderTask(getApplicationContext(), this.llSubAccounts, this.enabledPostToAccounts).executeOnExecutor(this.exec, account);
+			case BUFFER:
+				new PostToAccountLoaderTask(getApplicationContext(), this.llSubAccounts, this.enabledPostToAccounts).executeOnExecutor(this.exec, account);
 				break;
 			default:
 				this.llSubAccounts.setVisibility(View.GONE);

@@ -4,7 +4,8 @@ import java.util.Locale;
 
 public enum AccountProvider {
 	TWITTER("Twitter"),
-	SUCCESSWHALE("SuccessWhale");
+	SUCCESSWHALE("SuccessWhale"),
+	BUFFER("Buffer");
 
 	private final String humanName;
 

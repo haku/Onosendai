@@ -10,6 +10,7 @@ import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
@@ -29,10 +30,19 @@ public class HttpClientFactory {
 	private static final int SO_TIMEOUT = 30000;
 	private static final int SO_BUFFER_SIZE = 8192;
 
-	private static final String TS_PATH = "/successwhale.bks";
-	private static final char[] TS_PASSWORD = "123456".toCharArray();
+	private final String tsPath;
+	private final char[] tsPassword;
 
 	private volatile HttpClient httpClient;
+
+	public HttpClientFactory () {
+		this(null, null);
+	}
+
+	public HttpClientFactory (final String tsPath, final char[] tsPassword) {
+		this.tsPath = tsPath;
+		this.tsPassword = tsPassword;
+	}
 
 	public synchronized HttpClient getHttpClient () throws SuccessWhaleException {
 		try {
@@ -51,7 +61,7 @@ public class HttpClientFactory {
 		if (this.httpClient != null) this.httpClient.getConnectionManager().shutdown();
 	}
 
-	private static HttpClient makeHttpClient () throws IOException, GeneralSecurityException {
+	private HttpClient makeHttpClient () throws IOException, GeneralSecurityException {
 		final HttpParams params = new BasicHttpParams();
 		HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
 		HttpConnectionParams.setSoTimeout(params, SO_TIMEOUT);
@@ -59,7 +69,13 @@ public class HttpClientFactory {
 		HttpClientParams.setRedirecting(params, false);
 
 		final ClientConnectionManager conman = new ThreadSafeClientConnManager(params, new SchemeRegistry());
-		addHttpsSchemaForTrustStore(conman, TS_PATH, TS_PASSWORD);
+
+		if (this.tsPath != null) {
+			addHttpsSchemaForTrustStore(conman, this.tsPath, this.tsPassword);
+		}
+		else {
+			addHttpsSchema(conman);
+		}
 
 		return new DefaultHttpClient(conman, params);
 	}
@@ -67,6 +83,12 @@ public class HttpClientFactory {
 	private static void addHttpsSchemaForTrustStore (final ClientConnectionManager connMan, final String tsPath, final char[] password) throws IOException, GeneralSecurityException {
 		final KeyStore truststore = loadKeyStore(tsPath, password);
 		final SSLSocketFactory sf = new SSLSocketFactory(truststore);
+		final Scheme scheme = new Scheme("https", sf, 443); // NOSONAR 443 is not a magic number.  Its HTTPS specification.
+		connMan.getSchemeRegistry().register(scheme);
+	}
+
+	private static void addHttpsSchema (final ClientConnectionManager connMan) {
+		final SocketFactory sf = SSLSocketFactory.getSocketFactory();
 		final Scheme scheme = new Scheme("https", sf, 443); // NOSONAR 443 is not a magic number.  Its HTTPS specification.
 		connMan.getSchemeRegistry().register(scheme);
 	}
