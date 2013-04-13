@@ -1,4 +1,4 @@
-package com.vaguehope.onosendai.provider.successwhale;
+package com.vaguehope.onosendai.provider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,6 +17,8 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 
 /**
  * https://hc.apache.org/httpcomponents-client-ga/tutorial/html/index.html

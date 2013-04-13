@@ -6,8 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.provider.HttpClientFactory;
 import com.vaguehope.onosendai.provider.ServiceRef;
-import com.vaguehope.onosendai.provider.successwhale.HttpClientFactory;
 
 public class BufferAppProvider {
 
