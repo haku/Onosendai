@@ -9,7 +9,7 @@ import android.os.AsyncTask;
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-public abstract class DbBindingAsyncTask<Params, Progress, Result> extends AsyncTask<Params, Progress, Result> {
+public abstract class DbBindingAsyncTask<Params, Progress, Result> extends AsyncTask<Params, Progress, Result> { // NOSONAR Ignore generic names must match pattern '^[A-Z]$' to copy Android SDK.
 
 	private final Context context;
 	private final CountDownLatch dbReadyLatch = new CountDownLatch(1);

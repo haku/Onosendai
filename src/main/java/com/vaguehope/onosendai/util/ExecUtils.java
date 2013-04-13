@@ -46,7 +46,7 @@ public final class ExecUtils {
 	private static class LoggingThreadFactory implements ThreadFactory {
 
 		private final LogWrapper log;
-		final AtomicInteger counter = new AtomicInteger(0);
+		private final AtomicInteger counter = new AtomicInteger(0);
 		private final ThreadGroup group;
 
 		public LoggingThreadFactory (final ThreadGroup group, final LogWrapper log) {
