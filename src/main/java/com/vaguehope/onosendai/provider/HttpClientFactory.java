@@ -39,7 +39,7 @@ public class HttpClientFactory {
 
 	public HttpClientFactory (final String tsPath, final String tsPassword) {
 		this.tsPath = tsPath;
-		this.tsPassword = tsPassword.toCharArray();
+		this.tsPassword = tsPassword != null ? tsPassword.toCharArray() : null;
 	}
 
 	public synchronized HttpClient getHttpClient () throws IOException {
