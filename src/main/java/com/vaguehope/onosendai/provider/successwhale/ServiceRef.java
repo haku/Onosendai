@@ -8,13 +8,26 @@ import com.vaguehope.onosendai.util.EqualHelper;
 
 public class ServiceRef {
 
+	private final String id;
 	private final String rawType;
 	private final String uid;
 	private NetworkType type;
 
 	public ServiceRef (final String rawRype, final String uid) {
+		this(null, rawRype, uid);
+	}
+
+	public ServiceRef (final String id, final String rawRype, final String uid) {
+		this.id = id;
 		this.rawType = rawRype;
 		this.uid = uid;
+	}
+
+	/**
+	 * The new ID assigned to this account by the provider.
+	 */
+	public String getId () {
+		return this.id;
 	}
 
 	public String getRawType () {
@@ -26,6 +39,9 @@ public class ServiceRef {
 		return this.type;
 	}
 
+	/**
+	 * The ID for the service where the content ends up.
+	 */
 	public String getUid () {
 		return this.uid;
 	}

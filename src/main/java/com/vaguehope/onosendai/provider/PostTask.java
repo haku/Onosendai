@@ -12,6 +12,7 @@ import android.support.v4.app.NotificationCompat;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.PostTask.PostResult;
+import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
 import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
@@ -61,6 +62,8 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 				return postTwitter();
 			case SUCCESSWHALE:
 				return postSuccessWhale(db);
+			case BUFFER:
+				return postBufferApp();
 			default:
 				return new PostResult(this.req, new UnsupportedOperationException("Do not know how to post to account type: " + this.req.getAccount().toHumanString()));
 		}
@@ -80,7 +83,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 		}
 	}
 
-	private PostResult postSuccessWhale(final DbInterface db) {
+	private PostResult postSuccessWhale (final DbInterface db) {
 		final SuccessWhaleProvider s = new SuccessWhaleProvider(db);
 		try {
 			s.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody(), this.req.getInReplyToSid());
@@ -91,6 +94,21 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 		}
 		finally {
 			s.shutdown();
+		}
+	}
+
+	private PostResult postBufferApp () {
+		final BufferAppProvider b = new BufferAppProvider();
+		try {
+			if (this.req.getInReplyToSid() != null) LOG.w("BufferApp does not support inReplyTo field, ignoring it.");
+			b.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody());
+			return new PostResult(this.req);
+		}
+		catch (Exception e) { // NOSONAR need to report all errors.
+			return new PostResult(this.req, e);
+		}
+		finally {
+			b.shutdown();
 		}
 	}
 
@@ -197,7 +215,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 			return this.e;
 		}
 
-		public String getEmsg() {
+		public String getEmsg () {
 			return TaskUtils.getEmsg(this.e);
 		}
 

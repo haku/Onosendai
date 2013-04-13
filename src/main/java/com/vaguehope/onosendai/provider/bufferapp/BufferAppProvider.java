@@ -1,12 +1,14 @@
 package com.vaguehope.onosendai.provider.bufferapp;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.successwhale.HttpClientFactory;
 import com.vaguehope.onosendai.provider.successwhale.PostToAccount;
+import com.vaguehope.onosendai.provider.successwhale.ServiceRef;
 
 public class BufferAppProvider {
 
@@ -33,6 +35,10 @@ public class BufferAppProvider {
 
 	public List<PostToAccount> getPostToAccounts (final Account account) throws BufferAppException {
 		return getAccount(account).getPostToAccounts();
+	}
+
+	public void post (final Account account, final Set<ServiceRef> postToSvc, final String body) throws BufferAppException {
+		getAccount(account).post(postToSvc, body);
 	}
 
 	public void shutdown () {
