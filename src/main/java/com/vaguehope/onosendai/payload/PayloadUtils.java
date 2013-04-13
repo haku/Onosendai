@@ -16,7 +16,6 @@ import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.ServiceRef;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public final class PayloadUtils {
@@ -59,7 +58,7 @@ public final class PayloadUtils {
 				break;
 			case SUCCESSWHALE:
 				final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
-				final ServiceRef serviceRef = svcMeta != null ? SuccessWhaleProvider.parseServiceMeta(svcMeta) : null;
+				final ServiceRef serviceRef = svcMeta != null ? ServiceRef.parseServiceMeta(svcMeta) : null;
 				final NetworkType networkType = serviceRef != null ? serviceRef.getType() : null;
 				if (networkType == NetworkType.FACEBOOK) set.add(new CommentPayload(account, tweet));
 				set.add(new SharePayload(tweet, networkType));

@@ -39,10 +39,9 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.PostTask;
-import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
+import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.EnabledServiceRefs;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.ExecUtils;
@@ -99,7 +98,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		this.enabledPostToAccounts.fromBundle(savedInstanceState);
 		if (svcs != null && !this.enabledPostToAccounts.isServicesPreSpecified()) {
 			for (String svc : svcs) {
-				this.enabledPostToAccounts.enable(SuccessWhaleProvider.parseServiceMeta(svc));
+				this.enabledPostToAccounts.enable(ServiceRef.parseServiceMeta(svc));
 			}
 			this.enabledPostToAccounts.setServicesPreSpecified(true);
 		}
@@ -202,7 +201,7 @@ public class PostActivity extends Activity implements ImageLoader {
 				LOG.i("inReplyTo:%s", tweet.toFullString());
 				if (!this.enabledPostToAccounts.isServicesPreSpecified()) {
 					final Meta serviceMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
-					if (serviceMeta != null) setPostToAccountExclusive(SuccessWhaleProvider.parseServiceMeta(serviceMeta));
+					if (serviceMeta != null) setPostToAccountExclusive(ServiceRef.parseServiceMeta(serviceMeta));
 				}
 
 				((TextView) view.findViewById(R.id.tweetDetailBody)).setText(tweet.getBody());

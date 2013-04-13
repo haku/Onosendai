@@ -6,9 +6,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.vaguehope.onosendai.provider.ServiceRef;
-
 import android.os.Bundle;
+
+import com.vaguehope.onosendai.provider.ServiceRef;
 
 public class EnabledServiceRefs {
 
@@ -73,7 +73,7 @@ public class EnabledServiceRefs {
 			if (arr == null) return;
 			this.enabledRefs.clear();
 			for (String svcMeta : arr) {
-				this.enabledRefs.add(SuccessWhaleProvider.parseServiceMeta(svcMeta));
+				this.enabledRefs.add(ServiceRef.parseServiceMeta(svcMeta));
 			}
 			setServicesPreSpecified(true);
 		}
