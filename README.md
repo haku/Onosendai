@@ -17,6 +17,7 @@ Supported Services
 
 * Twitter columns are supported directly (bring your own API key).
 * Twitter and Facebook columns via [SuccessWhale](successwhale.com) (work in progress).
+* Posting to [Buffer](https://bufferapp.com).
 
 Download
 --------
@@ -50,12 +51,15 @@ If you remove an account or column it may be best not to reuse the ID as strange
       "consumerSecret": "?csecret?",
       "accessToken": "?atoken?",
       "accessSecret": "?asecret?"
-    },
-    {
+    }, {
       "id": "sw0",
       "provider": "successwhale",
       "username": "?username?",
       "password": "?password?"
+    }, {
+      "id": "b0",
+      "provider": "buffer",
+      "accessToken": "?accesstoken?"
     }
   ],
   "feeds": [
