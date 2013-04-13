@@ -6,16 +6,29 @@ import com.vaguehope.onosendai.util.EqualHelper;
 
 public class PostToAccount {
 
+	private final String id;
 	private final String service;
 	private final String username;
 	private final String uid;
 	private final boolean enabled;
 
 	public PostToAccount (final String service, final String username, final String uid, final boolean enabled) {
+		this(null, service, username, uid, enabled);
+	}
+
+	public PostToAccount (final String id, final String service, final String username, final String uid, final boolean enabled) {
+		this.id = id;
 		this.service = service;
 		this.username = username;
 		this.uid = uid;
 		this.enabled = enabled;
+	}
+
+	/**
+	 * The new ID assigned to this account by the provider.
+	 */
+	public String getId () {
+		return this.id;
 	}
 
 	public String getService () {
@@ -26,6 +39,9 @@ public class PostToAccount {
 		return this.username;
 	}
 
+	/**
+	 * The ID for the service where the content ends up.
+	 */
 	public String getUid () {
 		return this.uid;
 	}
@@ -35,7 +51,7 @@ public class PostToAccount {
 	}
 
 	public ServiceRef toSeviceRef () {
-		return new ServiceRef(this.service, this.uid);
+		return new ServiceRef(this.id, this.service, this.uid);
 	}
 
 	public String getDisplayName () {
