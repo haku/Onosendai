@@ -24,12 +24,8 @@ import org.json.JSONTokener;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.HttpClientFactory;
 import com.vaguehope.onosendai.provider.ServiceRef;
-import com.vaguehope.onosendai.provider.successwhale.NotAuthorizedException;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-/**
- * TODO: - Move SW classes to generic package.
- */
 public class BufferApp {
 
 	private static final String BASE_URL = "https://api.bufferapp.com:443";
@@ -127,10 +123,7 @@ public class BufferApp {
 
 	static void checkReponseCode (final StatusLine statusLine) throws IOException {
 		final int code = statusLine.getStatusCode();
-		if (code == 401) {
-			throw new NotAuthorizedException();
-		}
-		else if (code < 200 || code >= 300) {
+		if (code < 200 || code >= 300) {
 			throw new IOException("HTTP " + code + ": " + statusLine.getReasonPhrase());
 		}
 	}
