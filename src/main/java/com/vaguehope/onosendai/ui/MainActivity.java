@@ -1,6 +1,5 @@
 package com.vaguehope.onosendai.ui;
 
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +11,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
+import android.util.SparseArray;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.C;
@@ -23,14 +23,13 @@ import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
-import com.vaguehope.onosendai.layouts.SidebarLayout;
+import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.update.AlarmReceiver;
 import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
-import com.vaguehope.onosendai.util.ViewsHelper;
 
 public class MainActivity extends FragmentActivity implements ImageLoader {
 
@@ -39,10 +38,11 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 	private Config conf;
 	private ProviderMgr providerMgr;
 	private HybridBitmapCache imageCache;
-	private ExecutorService imageExec;
+	private ExecutorService exec;
 
 	private ViewPager viewPager;
 	private VisiblePageSelectionListener pageSelectionListener;
+	private final SparseArray<TweetListFragment> activePages = new SparseArray<TweetListFragment>();
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -59,7 +59,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		}
 
 		this.imageCache = new HybridBitmapCache(this, C.MAX_MEMORY_IMAGE_CACHE);
-		this.imageExec = ExecUtils.newBoundedCachedThreadPool(C.IMAGE_LOADER_MAX_THREADS, LOG);
+		this.exec = ExecUtils.newBoundedCachedThreadPool(C.IMAGE_LOADER_MAX_THREADS, LOG);
 
 		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
 
@@ -83,7 +83,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 	protected void onDestroy () {
 		if (this.providerMgr != null) this.providerMgr.shutdown();
 		if (this.imageCache != null) this.imageCache.clean();
-		if (this.imageExec != null) this.imageExec.shutdown();
+		if (this.exec != null) this.exec.shutdown();
 		disposeDb();
 		super.onDestroy();
 	}
@@ -135,6 +135,10 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		return this.conf;
 	}
 
+	public ExecutorService getExec () {
+		return this.exec;
+	}
+
 	ProviderMgr getProviderMgr () {
 		if (!waitForDbReady()) throw new IllegalStateException("DB not bound.");
 		return this.providerMgr;
@@ -146,21 +150,33 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 
 	@Override
 	public void loadImage (final ImageLoadRequest req) {
-		ImageLoaderUtils.loadImage(this.imageCache, req, this.imageExec);
+		ImageLoaderUtils.loadImage(this.imageCache, req, this.exec);
 	}
 
 	public void gotoPage(final int position) {
 		this.viewPager.setCurrentItem(position, false);
 	}
 
-//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	protected void onFragmentResumed (final int columnId, final TweetListFragment page) {
+		this.activePages.put(columnId, page);
+	}
+
+	protected void onFragmentPaused (final int columnId) {
+		this.activePages.remove(columnId);
+	}
+
+	protected ScrollState getColumnScroll (final int columnId) {
+		final TweetListFragment page = this.activePages.get(columnId);
+		if (page == null) return null;
+		return page.getCurrentScroll();
+	}
 
 	@Override
 	public void onBackPressed () {
-		List<SidebarLayout> sidebars = ViewsHelper.findViewsByType(this.viewPager, SidebarLayout.class, 2);
-		for (SidebarLayout sb : sidebars) {
-			if (this.pageSelectionListener.isVisible((Integer) sb.getTag())) {
-				if (sb.closeSidebar()) return;
+		for (int i = 0; i < this.activePages.size(); i++) {
+			final TweetListFragment page = this.activePages.valueAt(i);
+			if (this.pageSelectionListener.isVisible(page.getColumnPosition())) {
+				if (page.getSidebar().closeSidebar()) return;
 			}
 		}
 		super.onBackPressed();

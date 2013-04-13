@@ -6,6 +6,7 @@ import java.util.List;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -25,7 +26,7 @@ public class DbAdapter implements DbInterface {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private final LogWrapper log = new LogWrapper("DB");
+	private final LogWrapper log = new LogWrapper("DB"); // TODO make static?
 	private final Context mCtx;
 
 	private DatabaseHelper mDbHelper;
@@ -377,6 +378,39 @@ public class DbAdapter implements DbInterface {
 			if (c != null) c.close();
 		}
 		return ret;
+	}
+
+	@Override
+	public int getScrollUpCount (final int columnId, final int[] excludeColumnIds, final ScrollState scroll) {
+		if (!checkDbOpen()) return -1;
+
+		final StringBuilder where = new StringBuilder()
+				.append(TBL_TW_COLID).append("=?")
+				.append(" AND ").append(TBL_TW_TIME).append(">?");
+
+		final String[] whereArgs = new String[2 + (excludeColumnIds != null ? excludeColumnIds.length : 0)];
+		whereArgs[0] = String.valueOf(columnId);
+
+		// TODO integrate into query?
+		final Tweet tweet = getTweetDetails((scroll != null ? scroll : getScroll(columnId)).getItemId());
+		whereArgs[1] = String.valueOf(tweet.getTime());
+
+		if (excludeColumnIds != null && excludeColumnIds.length > 0) {
+			where.append(" AND ").append(TBL_TW_SID)
+					.append(" NOT IN (SELECT ").append(TBL_TW_SID)
+					.append(" FROM ").append(TBL_TW)
+					.append(" WHERE ");
+			for (int i = 0; i < excludeColumnIds.length; i++) {
+				if (i > 0) where.append(" OR ");
+				where.append(TBL_TW_COLID).append("=?");
+				whereArgs[2 + i] = String.valueOf(excludeColumnIds[i]);
+			}
+			where.append(")");
+		}
+
+		//this.log.i("where='%s' args='%s'.", where.toString(), Arrays.asList(whereArgs));
+
+		return (int) DatabaseUtils.queryNumEntries(this.mDb, TBL_TW, where.toString(), whereArgs);
 	}
 
 	private void notifyTwListeners (final int columnId) {
