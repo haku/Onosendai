@@ -114,10 +114,10 @@ public class SuccessWhale {
 
 	static void checkReponseCode (final StatusLine statusLine) throws IOException {
 		final int code = statusLine.getStatusCode();
-		if (code == 401) {
+		if (code == 401) { // NOSONAR not a magic number.
 			throw new NotAuthorizedException();
 		}
-		else if (code < 200 || code >= 300) {
+		else if (code < 200 || code >= 300) { // NOSONAR not a magic number.
 			throw new IOException("HTTP " + code + ": " + statusLine.getReasonPhrase());
 		}
 	}

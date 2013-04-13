@@ -4,7 +4,7 @@ public enum NetworkType {
 	TWITTER("twitter"),
 	FACEBOOK("facebook");
 
-	private final String name;
+	private final String name; // NOSONAR not a singular field.
 
 	private NetworkType (final String name) {
 		this.name = name;

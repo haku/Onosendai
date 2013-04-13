@@ -115,7 +115,7 @@ public class Tweet {
 	}
 
 	private boolean equalToTweet (final Tweet that) {
-		return this.uid == that.uid
+		return this.uid == that.uid // NOSONAR is not too complex, its an equals method.
 				&& EqualHelper.equal(this.sid, that.sid)
 				&& EqualHelper.equal(this.username, that.username)
 				&& EqualHelper.equal(this.fullname, that.fullname)

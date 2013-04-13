@@ -57,7 +57,7 @@ public class DbAdapter implements DbInterface {
 
 		@Override
 		public void onUpgrade (final SQLiteDatabase db, final int oldVersion, final int newVersion) {
-			if (oldVersion < 8) {
+			if (oldVersion < 8) { // NOSONAR not a magic number.
 				this.log.w("Upgrading database from version %d to %d, which will destroy all old data.", oldVersion, newVersion);
 				db.execSQL("DROP INDEX IF EXISTS " + TBL_TM_INDEX);
 				db.execSQL("DROP TABLE IF EXISTS " + TBL_TM);
@@ -68,11 +68,11 @@ public class DbAdapter implements DbInterface {
 			}
 			else {
 				this.log.w("Upgrading database from version %d to %d...", oldVersion, newVersion);
-				if (oldVersion < 9) {
+				if (oldVersion < 9) { // NOSONAR not a magic number.
 					this.log.w("Adding column %s...", TBL_TM_TITLE);
 					db.execSQL("ALTER TABLE " + TBL_TM + " ADD COLUMN " + TBL_TM_TITLE + " text;");
 				}
-				if (oldVersion < 10) {
+				if (oldVersion < 10) { // NOSONAR not a magic number.
 					this.log.w("Creating table %s...", TBL_KV);
 					db.execSQL(TBL_KV_CREATE);
 					this.log.w("Creating index %s...", TBL_KV_INDEX);
@@ -407,8 +407,6 @@ public class DbAdapter implements DbInterface {
 			}
 			where.append(")");
 		}
-
-		//this.log.i("where='%s' args='%s'.", where.toString(), Arrays.asList(whereArgs));
 
 		return (int) DatabaseUtils.queryNumEntries(this.mDb, TBL_TW, where.toString(), whereArgs);
 	}

@@ -72,7 +72,7 @@ public class PostToAccountsXml implements ContentHandler {
 	@Override
 	public void endElement (final String uri, final String localName, final String qName) throws SAXException {
 		final String elementName = !localName.isEmpty() ? localName : qName;
-		if (this.stack.size() == 3) {
+		if (this.stack.size() == 3) { // NOSONAR not a magic number.
 			if ("posttoaccount".equals(elementName)) {
 				this.accounts.add(new ServiceRef(this.stashedService, this.stashedUid, this.stashedUsername, this.stashedEnabled));
 				this.stashedService = null;
@@ -81,7 +81,7 @@ public class PostToAccountsXml implements ContentHandler {
 				this.stashedEnabled = false;
 			}
 		}
-		else if (this.stack.size() == 4) {
+		else if (this.stack.size() == 4) { // NOSONAR not a magic number.
 			if ("service".equals(elementName)) {
 				this.stashedService = this.currentText.toString();
 			}

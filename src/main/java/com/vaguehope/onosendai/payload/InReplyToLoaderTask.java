@@ -122,15 +122,13 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 	private ReplyLoaderResult fetchComments (final Account account, final Tweet startingTweet) {
 		// Hack because FB items are not immutable and must always be checked for comments.
 		final Meta serviceMeta = startingTweet.getFirstMetaOfType(MetaType.SERVICE);
-		if (serviceMeta != null) {
-			if (ServiceRef.parseServiceMeta(serviceMeta).getType() == NetworkType.FACEBOOK) {
-				try {
-					final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
-					if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
-				}
-				catch (SuccessWhaleException e) {
-					LOG.w("Failed to retrieve thread %s: %s", startingTweet.getSid(), e.toString());
-				}
+		if (serviceMeta != null && ServiceRef.parseServiceMeta(serviceMeta).getType() == NetworkType.FACEBOOK) {
+			try {
+				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
+				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
+			}
+			catch (SuccessWhaleException e) {
+				LOG.w("Failed to retrieve thread %s: %s", startingTweet.getSid(), e.toString());
 			}
 		}
 		return null;
