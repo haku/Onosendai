@@ -3,7 +3,8 @@ package com.vaguehope.onosendai.provider;
 import java.util.Arrays;
 import java.util.Collection;
 
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
+import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.util.EqualHelper;
 
 public class ServiceRef {
@@ -64,7 +65,7 @@ public class ServiceRef {
 	}
 
 	public String toServiceMeta () {
-		return SuccessWhaleProvider.createServiceMeta(this.rawServiceType, this.uid);
+		return createServiceMeta(this.rawServiceType, this.uid);
 	}
 
 	public String getDisplayName () {
@@ -112,6 +113,26 @@ public class ServiceRef {
 			b.append(s.rawServiceType).append(":").append(s.uid);
 		}
 		return b.toString();
+	}
+
+	public static String createServiceMeta (final String serviceType, final String serviceUid) {
+		return String.format("%s:%s", serviceType, serviceUid);
+	}
+
+	public static ServiceRef parseServiceMeta (final Meta meta) {
+		if (meta.getType() != MetaType.SERVICE) return null;
+		return parseServiceMeta(meta.getData());
+	}
+
+	public static ServiceRef parseServiceMeta (final String meta) {
+		if (meta == null) return null;
+		final int x = meta.indexOf(':');
+		if (x >= 0) {
+			final String type = meta.substring(0, x);
+			final String uid = meta.substring(x + 1);
+			return new ServiceRef(type, uid);
+		}
+		return null;
 	}
 
 }

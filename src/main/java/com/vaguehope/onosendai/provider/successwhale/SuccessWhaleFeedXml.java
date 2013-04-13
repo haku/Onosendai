@@ -41,6 +41,7 @@ import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetBuilder;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.provider.ServiceRef;
 
 public class SuccessWhaleFeedXml implements ContentHandler {
 
@@ -106,7 +107,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			if (this.addThisItem) {
 				this.currentItem.bodyIfAbsent(this.stashedFirstLinkTitle);
 				this.currentItem.meta(MetaType.ACCOUNT, this.account.getId());
-				this.currentItem.meta(MetaType.SERVICE, SuccessWhaleProvider.createServiceMeta(this.stashedService, this.stashedFetchedForUserid));
+				this.currentItem.meta(MetaType.SERVICE, ServiceRef.createServiceMeta(this.stashedService, this.stashedFetchedForUserid));
 				this.tweets.add(this.currentItem.build());
 			}
 			this.stashedFirstLinkTitle = null;
