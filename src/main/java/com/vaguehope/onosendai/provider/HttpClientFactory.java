@@ -20,11 +20,9 @@ import org.apache.http.params.HttpParams;
 
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 
-/**
+/*
  * https://hc.apache.org/httpcomponents-client-ga/tutorial/html/index.html
- * https:
- * //hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http
- * /impl/conn/tsccm/ThreadSafeClientConnManager.html
+ * https://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/impl/conn/tsccm/ThreadSafeClientConnManager.html
  */
 public class HttpClientFactory {
 
