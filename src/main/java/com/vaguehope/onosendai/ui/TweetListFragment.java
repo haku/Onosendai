@@ -76,6 +76,7 @@ public class TweetListFragment extends Fragment {
 	private final DateFormat dateFormat = DateFormat.getDateTimeInstance();
 
 	private int columnId = -1;
+	private int columnPosition = -1;
 	private boolean isLaterColumn;
 	private Config conf;
 	private ImageLoader imageLoader;
@@ -105,6 +106,7 @@ public class TweetListFragment extends Fragment {
 	@Override
 	public View onCreateView (final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		this.columnId = getArguments().getInt(ARG_COLUMN_ID);
+		this.columnPosition = getArguments().getInt(ARG_COLUMN_POSITION);
 		this.isLaterColumn = getArguments().getBoolean(ARG_COLUMN_IS_LATER, false);
 		this.log.setPrefix("C" + this.columnId);
 		this.log.d("onCreateView()");
@@ -125,7 +127,6 @@ public class TweetListFragment extends Fragment {
 		final View rootView = inflater.inflate(R.layout.tweetlist, container, false);
 		this.sidebar = (SidebarLayout) rootView.findViewById(R.id.tweetListLayout);
 		this.sidebar.setListener(this.sidebarListener);
-		this.sidebar.setTag(getArguments().getInt(ARG_COLUMN_POSITION));
 
 		rootView.setFocusableInTouchMode(true);
 		rootView.requestFocus();
@@ -177,6 +178,7 @@ public class TweetListFragment extends Fragment {
 	public void onResume () {
 		super.onResume();
 		resumeDb();
+		this.mainActivity.onFragmentResumed(getColumnId(), this);
 	}
 
 	@Override
@@ -184,6 +186,7 @@ public class TweetListFragment extends Fragment {
 		saveScroll();
 		saveSavedScrollToDb();
 		suspendDb();
+		this.mainActivity.onFragmentPaused(getColumnId());
 		super.onPause();
 	}
 
@@ -199,12 +202,20 @@ public class TweetListFragment extends Fragment {
 		return this.log;
 	}
 
-	public MainActivity getMainActivity () {
+	protected MainActivity getMainActivity () {
 		return this.mainActivity;
+	}
+
+	public SidebarLayout getSidebar () {
+		return this.sidebar;
 	}
 
 	public int getColumnId () {
 		return this.columnId;
+	}
+
+	public int getColumnPosition () {
+		return this.columnPosition;
 	}
 
 	protected Config getConf () {
@@ -228,6 +239,10 @@ public class TweetListFragment extends Fragment {
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	protected ScrollState getCurrentScroll () {
+		return ScrollState.from(this.tweetList);
+	}
 
 	private void saveScroll () {
 		final ScrollState newState = ScrollState.from(this.tweetList);
