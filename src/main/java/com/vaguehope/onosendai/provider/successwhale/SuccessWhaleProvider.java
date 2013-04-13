@@ -14,7 +14,7 @@ import com.vaguehope.onosendai.storage.KvStore;
 public class SuccessWhaleProvider {
 
 	private static final String TS_PATH = "/successwhale.bks";
-	private static final char[] TS_PASSWORD = "123456".toCharArray();
+	private static final String TS_PASSWORD = "123456";
 
 	private final KvStore kvStore;
 	private final ConcurrentMap<String, SuccessWhale> accounts;

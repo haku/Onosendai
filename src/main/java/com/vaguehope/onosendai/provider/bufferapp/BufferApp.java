@@ -123,7 +123,7 @@ public class BufferApp {
 
 	static void checkReponseCode (final StatusLine statusLine) throws IOException {
 		final int code = statusLine.getStatusCode();
-		if (code < 200 || code >= 300) {
+		if (code < 200 || code >= 300) { // NOSONAR not a magic number.
 			throw new IOException("HTTP " + code + ": " + statusLine.getReasonPhrase());
 		}
 	}

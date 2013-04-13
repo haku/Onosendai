@@ -14,10 +14,4 @@ public class MemoryBitmapCache<K> extends LruCache<K, Bitmap> {
 		return value.getRowBytes() * value.getHeight(); // Backwards compatible equivalent of getByteCount().
 	}
 
-	@Override
-	protected void entryRemoved (final boolean evicted, final K key, final Bitmap oldValue, final Bitmap newValue) {
-		// In retrospect, this is probably a bad idea as the image may still be in the UI, etc.  Disabling.
-		//oldValue.recycle();
-	}
-
 }

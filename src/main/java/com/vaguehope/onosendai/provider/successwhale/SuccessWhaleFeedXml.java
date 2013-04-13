@@ -103,7 +103,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	@Override
 	public void endElement (final String uri, final String localName, final String qName) throws SAXException {
 		final String elementName = !localName.isEmpty() ? localName : qName;
-		if (this.stack.size() == 3 && elementName.equals("item")) {
+		if (this.stack.size() == 3 && elementName.equals("item")) { // NOSONAR not a magic number.
 			if (this.addThisItem) {
 				this.currentItem.bodyIfAbsent(this.stashedFirstLinkTitle);
 				this.currentItem.meta(MetaType.ACCOUNT, this.account.getId());
@@ -115,7 +115,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			this.stashedService = null;
 			this.addThisItem = true;
 		}
-		else if (this.stack.size() == 4) {
+		else if (this.stack.size() == 4) { // NOSONAR not a magic number.
 			if ("fetchedforuserid".equals(elementName)) {
 				this.stashedFetchedForUserid = this.currentText.toString();
 			}
@@ -123,7 +123,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.stashedService = this.currentText.toString();
 			}
 		}
-		else if (this.stack.size() == 5) {
+		else if (this.stack.size() == 5) { // NOSONAR not a magic number.
 			if ("id".equals(elementName)) {
 				this.currentItem.id(this.currentText.toString());
 			}
@@ -151,7 +151,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.currentItem.meta(MetaType.MENTION, v, String.format("RT by @%s", v));
 			}
 		}
-		else if (this.stack.size() == 6) {
+		else if (this.stack.size() == 6) { // NOSONAR not a magic number.
 			if ("link".equals(elementName)) {
 				if (this.stashedLinkExpandedUrl != null) {
 					this.currentItem.meta(MetaType.URL, this.stashedLinkExpandedUrl, this.stashedLinkTitle);
@@ -168,7 +168,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.addThisItem = false;
 			}
 		}
-		else if (this.stack.size() == 7) {
+		else if (this.stack.size() == 7) { // NOSONAR not a magic number.
 			if ("url".equals(elementName)) {
 				this.stashedLinkUrl = this.currentText.toString();
 			}
@@ -193,7 +193,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.currentComment.unitTimeSeconds(TimeUnit.MILLISECONDS.toSeconds(millis));
 			}
 		}
-		else if (this.stack.size() == 8) {
+		else if (this.stack.size() == 8) { // NOSONAR not a magic number.
 			if ("name".equals(elementName)) {
 				this.currentComment.fullname(this.currentText.toString());
 			}

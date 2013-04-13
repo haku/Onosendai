@@ -175,9 +175,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 	public void onBackPressed () {
 		for (int i = 0; i < this.activePages.size(); i++) {
 			final TweetListFragment page = this.activePages.valueAt(i);
-			if (this.pageSelectionListener.isVisible(page.getColumnPosition())) {
-				if (page.getSidebar().closeSidebar()) return;
-			}
+			if (this.pageSelectionListener.isVisible(page.getColumnPosition()) && page.getSidebar().closeSidebar()) return;
 		}
 		super.onBackPressed();
 	}
