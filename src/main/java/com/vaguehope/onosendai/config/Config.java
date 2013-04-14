@@ -16,7 +16,7 @@ import org.json.JSONTokener;
 import android.os.Environment;
 
 import com.vaguehope.onosendai.C;
-import com.vaguehope.onosendai.util.FileHelper;
+import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class Config {
@@ -37,10 +37,10 @@ public class Config {
 		final File f = new File(Environment.getExternalStorageDirectory().getPath(), C.CONFIG_FILE_NAME);
 
 		if (!f.exists()) {
-			FileHelper.resourceToFile("/deck.conf", f);
+			IoHelper.resourceToFile("/deck.conf", f);
 		}
 
-		final String s = FileHelper.fileToString(f);
+		final String s = IoHelper.fileToString(f);
 		final JSONObject o = (JSONObject) new JSONTokener(s).nextValue();
 
 		final JSONArray accountsJson = o.getJSONArray("accounts");
