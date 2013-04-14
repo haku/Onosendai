@@ -73,6 +73,13 @@ public class Config {
 		return null;
 	}
 
+	public int getColumnPositionById (final int columnId) {
+		for (final Column col : this.feeds) {
+			if (columnId == col.getId()) return this.feeds.indexOf(col);
+		}
+		return -1;
+	}
+
 	public Column findInternalColumn (final InternalColumnType res) {
 		for (final Column col : getColumns()) {
 			if (res.matchesColumn(col)) return col;
