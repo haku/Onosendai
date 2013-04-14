@@ -7,6 +7,7 @@ import android.content.Context;
 import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.Ui;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
@@ -46,7 +47,7 @@ public class RtTask extends DbBindingAsyncTask<Void, Void, RtResult> {
 	protected void onPreExecute () {
 		this.notificationMgr = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
 		Notification n = new NotificationCompat.Builder(this.context)
-				.setSmallIcon(R.drawable.question_blue) // TODO better icon.
+				.setSmallIcon(Ui.notificationIcon())
 				.setContentTitle(String.format("RTing via %s...", this.req.getAccount().toHumanString()))
 				.setOngoing(true)
 				.setUsesChronometer(true)
