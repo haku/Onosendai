@@ -30,6 +30,7 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.ui.Notifications;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.NetHelper;
 
@@ -66,8 +67,8 @@ public class UpdateService extends IntentService {
 		final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
 		wl.acquire();
 		try {
-			final int columnId = i.getExtras() != null ? i.getExtras().getInt(ARG_COLUMN_ID, -1) : -1;
-			final boolean manual = i.getExtras() != null ? i.getExtras().getBoolean(ARG_IS_MANUAL) : false;
+			final int columnId = i.getIntExtra(ARG_COLUMN_ID, Integer.MIN_VALUE);
+			final boolean manual = i.getBooleanExtra(ARG_IS_MANUAL, false);
 			LOG.i("UpdateService invoked (column_id=%d, is_manual=%b).", columnId, manual);
 			doWork(columnId, manual);
 		}
@@ -149,8 +150,17 @@ public class UpdateService extends IntentService {
 	private void fetchColumns (final Config conf, final int columnId, final boolean manual, final ProviderMgr providerMgr) {
 		final long startTime = System.nanoTime();
 
+		final Collection<Column> columns = columnsToFetch(conf, columnId, manual);
+		fetchColumns(conf, providerMgr, columns);
+		Notifications.update(getBaseContext(), getDb(), columns);
+
+		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+		LOG.i("Fetched %d columns in %d millis.", columns.size(), durationMillis);
+	}
+
+	private Collection<Column> columnsToFetch (final Config conf, final int columnId, final boolean manual) {
 		final Collection<Column> columns = new ArrayList<Column>();
-		if (columnId >= 0) {
+		if (columnId > Integer.MIN_VALUE) {
 			columns.add(conf.getColumnById(columnId));
 		}
 		else {
@@ -164,17 +174,7 @@ public class UpdateService extends IntentService {
 			getDb().storeValue(KEY_PREFIX_COL_LAST_REFRESH_TIME + column.getId(), String.valueOf(now));
 		}
 
-		LOG.i("Updating columns: %s.", Column.titles(columns));
-
-		if (columns.size() >= C.UPDATER_MIN_COLUMS_TO_USE_THREADPOOL) {
-			fetchColumnsMultiThread(conf, providerMgr, columns);
-		}
-		else {
-			fetchColumnsSingleThread(conf, providerMgr, columns);
-		}
-
-		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-		LOG.i("Fetched %d columns in %d millis.", columns.size(), durationMillis);
+		return columns;
 	}
 
 	private static Collection<Column> removeNotFetchable (final Collection<Column> columns) {
@@ -195,6 +195,16 @@ public class UpdateService extends IntentService {
 			final long lastTime = Long.parseLong(lastTimeRaw);
 			if (lastTime <= 0L) continue;
 			if (now - lastTime < TimeUnit.MINUTES.toMillis(column.getRefreshIntervalMins())) colItr.remove();
+		}
+	}
+
+	private void fetchColumns (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns) {
+		LOG.i("Updating columns: %s.", Column.titles(columns));
+		if (columns.size() >= C.UPDATER_MIN_COLUMS_TO_USE_THREADPOOL) {
+			fetchColumnsMultiThread(conf, providerMgr, columns);
+		}
+		else {
+			fetchColumnsSingleThread(conf, providerMgr, columns);
 		}
 	}
 

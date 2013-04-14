@@ -4,6 +4,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -32,6 +33,8 @@ import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class MainActivity extends FragmentActivity implements ImageLoader {
+
+	public static final String ARG_FOCUS_COLUMN_ID = "focus_column_id";
 
 	private static final LogWrapper LOG = new LogWrapper("MA");
 
@@ -69,8 +72,16 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		this.viewPager.setAdapter(sectionsPagerAdapter);
 		this.pageSelectionListener = new VisiblePageSelectionListener(columnWidth);
 		this.viewPager.setOnPageChangeListener(this.pageSelectionListener);
+		showPageFromIntent(getIntent());
 
 		AlarmReceiver.configureAlarm(this); // FIXME be more smart about this?
+	}
+
+	@Override
+	protected void onNewIntent (final Intent intent) {
+		super.onNewIntent(intent);
+		setIntent(intent);
+		showPageFromIntent(intent);
 	}
 
 	@Override
@@ -153,8 +164,15 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		ImageLoaderUtils.loadImage(this.imageCache, req, this.exec);
 	}
 
-	public void gotoPage(final int position) {
+	public void gotoPage (final int position) {
 		this.viewPager.setCurrentItem(position, false);
+	}
+
+	private void showPageFromIntent (final Intent intent) {
+		if (intent.hasExtra(ARG_FOCUS_COLUMN_ID)) {
+			final int pos = this.conf.getColumnPositionById(intent.getIntExtra(ARG_FOCUS_COLUMN_ID, 0));
+			if (pos >= 0) gotoPage(pos);
+		}
 	}
 
 	protected void onFragmentResumed (final int columnId, final TweetListFragment page) {

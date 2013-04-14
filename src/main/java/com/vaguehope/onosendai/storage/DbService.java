@@ -97,6 +97,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public int getScrollUpCount (final Column column) {
+		return this.dbAdaptor.getScrollUpCount(column);
+	}
+
+	@Override
 	public int getScrollUpCount (final int columnId, final int[] excludeColumnIds, final ScrollState scroll) {
 		return this.dbAdaptor.getScrollUpCount(columnId, excludeColumnIds, scroll);
 	}

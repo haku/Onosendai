@@ -381,6 +381,11 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public int getScrollUpCount (final Column column) {
+		return getScrollUpCount(column.getId(), column.getExcludeColumnIds(), null);
+	}
+
+	@Override
 	public int getScrollUpCount (final int columnId, final int[] excludeColumnIds, final ScrollState scroll) {
 		if (!checkDbOpen()) return -1;
 
