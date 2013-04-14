@@ -78,6 +78,7 @@ public class ConfigTest {
 		assertEquals("t0", c0.getAccountId());
 		assertEquals("timeline", c0.getResource());
 		assertEquals(15, c0.getRefreshIntervalMins());
+		assertEquals(false, c0.isNotify());
 
 		Column c1 = cs.get(1);
 		assertEquals(1, c1.getId());
@@ -85,6 +86,7 @@ public class ConfigTest {
 		assertEquals("t0", c1.getAccountId());
 		assertEquals("lists/mylist", c1.getResource());
 		assertEquals(15, c1.getRefreshIntervalMins());
+		assertEquals(true, c1.isNotify());
 
 		Column c2 = cs.get(2);
 		assertEquals(2, c2.getId());
@@ -92,6 +94,7 @@ public class ConfigTest {
 		assertEquals(null, c2.getAccountId());
 		assertEquals("later", c2.getResource());
 		assertEquals(0, c2.getRefreshIntervalMins());
+		assertEquals(false, c2.isNotify());
 	}
 
 	private String fixture (final String path) throws IOException {

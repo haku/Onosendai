@@ -152,7 +152,7 @@ public class UpdateService extends IntentService {
 
 		final Collection<Column> columns = columnsToFetch(conf, columnId, manual);
 		fetchColumns(conf, providerMgr, columns);
-		Notifications.update(getBaseContext(), getDb(), columns);
+		if (!manual) Notifications.update(getBaseContext(), getDb(), columns);
 
 		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 		LOG.i("Fetched %d columns in %d millis.", columns.size(), durationMillis);

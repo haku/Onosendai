@@ -138,34 +138,41 @@ public class Config {
 		final List<Column> ret = new ArrayList<Column>();
 		for (int i = 0; i < columnsJson.length(); i++) {
 			final JSONObject colJson = columnsJson.getJSONObject(i);
-
 			final int id = colJson.getInt(KEY_ID);
 			final String title = colJson.getString(KEY_TITLE);
 			final String account = colJson.has(KEY_ACCOUNT) ? colJson.getString(KEY_ACCOUNT) : null;
 			final String resource = colJson.getString(KEY_RESOURCE);
-
 			final String refreshRaw = colJson.optString(KEY_REFRESH, null);
-			final int refreshIntervalMins = TimeParser.parseDuration(refreshRaw);
-			if (refreshIntervalMins < 1 && account != null) LOG.w("Column '%s' has invalid refresh interval: '%s'.", title, refreshRaw);
-
-			int[] excludeColumnIds = null;
-			if (colJson.has(KEY_EXCLUDE)) {
-				final JSONArray exArr = colJson.optJSONArray(KEY_EXCLUDE);
-				if (exArr != null) {
-					excludeColumnIds = asIntArr(exArr);
-				}
-				else {
-					final int exId = colJson.optInt(KEY_EXCLUDE, Integer.MIN_VALUE);
-					if (exId > Integer.MIN_VALUE) {
-						excludeColumnIds = new int[] { exId };
-					}
-				}
-				if (excludeColumnIds == null) LOG.w("Column '%s' has invalid exclude value: '%s'.", title, colJson.getString(KEY_EXCLUDE));
-			}
-
-			ret.add(new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds));
+			final int refreshIntervalMins = parseFeedRefreshInterval(refreshRaw, account, title);
+			final int[] excludeColumnIds = parseFeedExcludeColumns(colJson, title);
+			final boolean notify = colJson.optBoolean("notify", false);
+			ret.add(new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds, notify));
 		}
 		return Collections.unmodifiableList(ret);
+	}
+
+	private static int parseFeedRefreshInterval (final String refreshRaw, final String account, final String title) {
+		final int refreshIntervalMins = TimeParser.parseDuration(refreshRaw);
+		if (refreshIntervalMins < 1 && account != null) LOG.w("Column '%s' has invalid refresh interval: '%s'.", title, refreshRaw);
+		return refreshIntervalMins;
+	}
+
+	private static int[] parseFeedExcludeColumns (final JSONObject colJson, final String title) throws JSONException {
+		int[] excludeColumnIds = null;
+		if (colJson.has(KEY_EXCLUDE)) {
+			final JSONArray exArr = colJson.optJSONArray(KEY_EXCLUDE);
+			if (exArr != null) {
+				excludeColumnIds = asIntArr(exArr);
+			}
+			else {
+				final int exId = colJson.optInt(KEY_EXCLUDE, Integer.MIN_VALUE);
+				if (exId > Integer.MIN_VALUE) {
+					excludeColumnIds = new int[] { exId };
+				}
+			}
+			if (excludeColumnIds == null) LOG.w("Column '%s' has invalid exclude value: '%s'.", title, colJson.getString(KEY_EXCLUDE));
+		}
+		return excludeColumnIds;
 	}
 
 	private static int[] asIntArr (final JSONArray arr) throws JSONException {
