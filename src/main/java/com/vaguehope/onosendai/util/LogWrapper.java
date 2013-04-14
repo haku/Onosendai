@@ -46,6 +46,11 @@ public class LogWrapper {
 		Log.w(C.TAG, addPrefix(msg));
 	}
 
+	public void w (final String msg, final Throwable t) {
+		if (!Log.isLoggable(C.TAG, Log.WARN)) return;
+		Log.w(C.TAG, addPrefix(msg), t);
+	}
+
 	public void w (final String msg, final Object... args) {
 		if (!Log.isLoggable(C.TAG, Log.WARN)) return;
 		Log.w(C.TAG, addPrefix(String.format(msg, args)));
