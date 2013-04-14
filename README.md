@@ -1,7 +1,7 @@
 Onosendai - A Better Deck
 =========================
 
-A multi-column Twitter client.
+A multi-column social network client.
 
 Features
 --------
@@ -16,7 +16,7 @@ Supported Services
 ------------------
 
 * Twitter columns are supported directly (bring your own API key).
-* Twitter and Facebook columns via [SuccessWhale](successwhale.com) (work in progress).
+* Twitter and Facebook columns via [SuccessWhale](successwhale.com).
 * Posting to [Buffer](https://bufferapp.com).
 
 Download
@@ -28,7 +28,7 @@ Recent snapshot builds can be downloaded from http://karasu.vaguehope.com/onosen
 Configuration
 -------------
 
-All configuration is stored in `deck.conf` file that lives in the root of the external storage device, typically `/sdcard/deck.conf`.
+All configuration is stored in the `deck.conf` file that lives in the root of the external storage device, typically `/sdcard/deck.conf`.
 If this file does not exist a template will be created for you to edit when the UI is launched.
 
 ### Example config
@@ -149,7 +149,7 @@ mvn clean install -P release
 Logging
 -------
 
-Run this commands on the device either via local shell (e.g. Connect Bot) or `adb shell`.
+Run these commands on the device either via a local shell (e.g. Connect Bot) or `adb shell`.
 
 Capture last 1000 lines of log at INFO level to a file with:
 ```sh
@@ -161,3 +161,8 @@ Enable debug level logging for Onosendai with:
 setprop log.tag.onosendai DEBUG
 ```
 
+Apology
+-------
+Some of the icons use Kanji characters.
+They are intended to be visually distinct and not to convey any specific meaning.
+Apologies for any nonsense or unintended meaning.
