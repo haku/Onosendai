@@ -24,6 +24,7 @@ public final class Notifications {
 	public static void update (final Context context, final DbInterface db, final Collection<Column> columns) {
 		final NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		for (Column col : columns) {
+			if (!col.isNotify()) continue;
 			final int nId = BASE_NOTIFICATION_ID + col.getId();
 			final int count = db.getScrollUpCount(col);
 			if (count > 0) {

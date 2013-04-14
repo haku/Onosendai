@@ -15,14 +15,23 @@ public class Column {
 	private final String resource;
 	private final int refreshIntervalMins;
 	private final int[] excludeColumnIds;
+	private final boolean notify;
 
-	public Column (final int id, final String title, final String accountId, final String resource, final int refreshIntervalMins, final int[] excludeColumnIds) {
+	public Column (
+			final int id,
+			final String title,
+			final String accountId,
+			final String resource,
+			final int refreshIntervalMins,
+			final int[] excludeColumnIds,
+			final boolean notify) {
 		this.id = id;
 		this.title = title;
 		this.accountId = accountId;
 		this.resource = resource;
 		this.refreshIntervalMins = refreshIntervalMins;
 		this.excludeColumnIds = excludeColumnIds;
+		this.notify = notify;
 	}
 
 	@Override
@@ -85,6 +94,10 @@ public class Column {
 
 	public int[] getExcludeColumnIds () {
 		return this.excludeColumnIds;
+	}
+
+	public boolean isNotify () {
+		return this.notify;
 	}
 
 	public static List<String> titles (final Collection<Column> columns) {

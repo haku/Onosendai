@@ -75,7 +75,8 @@ If you remove an account or column it may be best not to reuse the ID as strange
       "title": "About Me",
       "account": "t0",
       "resource": "mentions",
-      "refresh": "15min"
+      "refresh": "15min",
+      "notify": true
     }, {
       "id": 1,
       "title": "My Tweets",
@@ -87,7 +88,8 @@ If you remove an account or column it may be best not to reuse the ID as strange
       "title": "My List",
       "account": "t0",
       "resource": "lists/mylist",
-      "refresh": "15min"
+      "refresh": "15min",
+      "notify": true
     }, {
       "id": 10,
       "title": "My Search for #tag",
@@ -103,7 +105,8 @@ If you remove an account or column it may be best not to reuse the ID as strange
       "title": "Mentions and Me",
       "account": "sw0",
       "resource": "twitter/12345678/statuses/mentions:twitter/12345678/statuses/user_timeline",
-      "refresh": "15min"
+      "refresh": "15min",
+      "notify": true
     }, {
       "id": 9,
       "title": "Facebook Home",
