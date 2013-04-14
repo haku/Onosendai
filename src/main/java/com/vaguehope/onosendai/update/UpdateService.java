@@ -22,9 +22,6 @@ import twitter4j.TwitterException;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.NetworkInfo.State;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 
@@ -44,6 +41,7 @@ import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.NetHelper;
 
 public class UpdateService extends IntentService {
 
@@ -126,7 +124,7 @@ public class UpdateService extends IntentService {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void doWork (final int columnId, final boolean manual) {
-		if (connectionPresent()) {
+		if (NetHelper.connectionPresent(this)) {
 			fetchColumns(columnId, manual);
 		}
 		else {
@@ -311,17 +309,6 @@ public class UpdateService extends IntentService {
 			default:
 				LOG.e("Unknown account type: %s", account.getProvider());
 		}
-	}
-
-//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	private boolean connectionPresent () {
-		ConnectivityManager cMgr = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo netInfo = cMgr.getActiveNetworkInfo();
-		if ((netInfo != null) && (netInfo.getState() != null)) {
-			return netInfo.getState().equals(State.CONNECTED);
-		}
-		return false;
 	}
 
 }
