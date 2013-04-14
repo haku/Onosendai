@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -18,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
 
-import twitter4j.TwitterException;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
@@ -29,15 +27,7 @@ import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
-import com.vaguehope.onosendai.model.Tweet;
-import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ProviderMgr;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleFeed;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
-import com.vaguehope.onosendai.provider.twitter.TwitterFeed;
-import com.vaguehope.onosendai.provider.twitter.TwitterFeeds;
-import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -110,7 +100,7 @@ public class UpdateService extends IntentService {
 		try {
 			dbReady = this.dbReadyLatch.await(C.DB_CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 		}
-		catch (InterruptedException e) {/**/}
+		catch (final InterruptedException e) {/**/}
 		if (!dbReady) LOG.e("Not updateing: Time out waiting for DB service to connect.");
 		return dbReady;
 	}
@@ -137,11 +127,11 @@ public class UpdateService extends IntentService {
 		try {
 			conf = new Config();
 		}
-		catch (IOException e) {
+		catch (final IOException e) {
 			LOG.w("Can not update: %s", e.toString());
 			return;
 		}
-		catch (JSONException e) {
+		catch (final JSONException e) {
 			LOG.w("Can not update: %s", e.toString());
 			return;
 		}
@@ -188,8 +178,8 @@ public class UpdateService extends IntentService {
 	}
 
 	private static Collection<Column> removeNotFetchable (final Collection<Column> columns) {
-		List<Column> ret = new ArrayList<Column>();
-		for (Column column : columns) {
+		final List<Column> ret = new ArrayList<Column>();
+		for (final Column column : columns) {
 			if (column.getAccountId() != null) ret.add(column);
 		}
 		return ret;
@@ -209,28 +199,32 @@ public class UpdateService extends IntentService {
 	}
 
 	private void fetchColumnsSingleThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns) {
-		for (Column column : columns) {
-			fetchColumn(conf, column, providerMgr);
+		for (final Column column : columns) {
+			final Account account = resolveColumnsAccount(conf, column);
+			if (account == null) continue;
+			FetchColumn.fetchColumn(getDb(), account, column, providerMgr);
 		}
 	}
 
 	private void fetchColumnsMultiThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns) {
-		int poolSize = Math.min(columns.size(), C.UPDATER_MAX_THREADS);
+		final int poolSize = Math.min(columns.size(), C.UPDATER_MAX_THREADS);
 		LOG.i("Using thread pool size %d for %d columns.", poolSize, columns.size());
-		ExecutorService ex = Executors.newFixedThreadPool(poolSize);
+		final ExecutorService ex = Executors.newFixedThreadPool(poolSize);
 		try {
-			Map<Column, Future<Void>> jobs = new LinkedHashMap<Column, Future<Void>>();
-			for (Column column : columns) {
-				jobs.put(column, ex.submit(new FetchColumn(conf, column, providerMgr, this)));
+			final Map<Column, Future<Void>> jobs = new LinkedHashMap<Column, Future<Void>>();
+			for (final Column column : columns) {
+				final Account account = resolveColumnsAccount(conf, column);
+				if (account == null) continue;
+				jobs.put(column, ex.submit(new FetchColumn(getDb(), account, column, providerMgr)));
 			}
-			for (Entry<Column, Future<Void>> job : jobs.entrySet()) {
+			for (final Entry<Column, Future<Void>> job : jobs.entrySet()) {
 				try {
 					job.getValue().get();
 				}
-				catch (InterruptedException e) {
+				catch (final InterruptedException e) {
 					LOG.w("Error fetching column '%s': %s %s", job.getKey().getTitle(), e.getClass().getName(), e.toString());
 				}
-				catch (ExecutionException e) {
+				catch (final ExecutionException e) {
 					LOG.w("Error fetching column '%s': %s %s", job.getKey().getTitle(), e.getClass().getName(), e.toString());
 				}
 			}
@@ -240,75 +234,10 @@ public class UpdateService extends IntentService {
 		}
 	}
 
-	private static class FetchColumn implements Callable<Void> {
-
-		private final Config conf;
-		private final Column column;
-		private final ProviderMgr providerMgr;
-		private final UpdateService updateService;
-
-		public FetchColumn (final Config conf, final Column column, final ProviderMgr providerMgr, final UpdateService updateService) {
-			this.conf = conf;
-			this.column = column;
-			this.providerMgr = providerMgr;
-			this.updateService = updateService;
-		}
-
-		@Override
-		public Void call () {
-			this.updateService.fetchColumn(this.conf, this.column, this.providerMgr);
-			return null;
-		}
-
-	}
-
-	public void fetchColumn (final Config conf, final Column column, final ProviderMgr providerMgr) {
-		final long startTime = System.nanoTime();
+	private static Account resolveColumnsAccount (final Config conf, final Column column) {
 		final Account account = conf.getAccount(column.getAccountId());
-		if (account == null) {
-			LOG.e("Unknown acountId: '%s'.", column.getAccountId());
-			return;
-		}
-		switch (account.getProvider()) {
-			case TWITTER:
-				try {
-					final TwitterProvider twitterProvider = providerMgr.getTwitterProvider();
-					twitterProvider.addAccount(account);
-					TwitterFeed feed = TwitterFeeds.parse(column.getResource());
-
-					long sinceId = -1;
-					List<Tweet> existingTweets = getDb().getTweets(column.getId(), 1);
-					if (existingTweets.size() > 0) sinceId = Long.parseLong(existingTweets.get(existingTweets.size() - 1).getSid());
-
-					TweetList tweets = twitterProvider.getTweets(feed, account, sinceId);
-					getDb().storeTweets(column, tweets.getTweets());
-
-					long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-					LOG.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
-				}
-				catch (TwitterException e) {
-					LOG.w("Failed to fetch from Twitter: %s", e.toString());
-				}
-				break;
-			case SUCCESSWHALE:
-				try {
-					final SuccessWhaleProvider successWhaleProvider = providerMgr.getSuccessWhaleProvider();
-					successWhaleProvider.addAccount(account);
-					SuccessWhaleFeed feed = new SuccessWhaleFeed(column);
-
-					TweetList tweets = successWhaleProvider.getTweets(feed, account);
-					getDb().storeTweets(column, tweets.getTweets());
-
-					long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-					LOG.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
-				}
-				catch (SuccessWhaleException e) {
-					LOG.w("Failed to fetch from SuccessWhale: %s", e.toString());
-				}
-				break;
-			default:
-				LOG.e("Unknown account type: %s", account.getProvider());
-		}
+		if (account == null) LOG.e("Unknown acountId: '%s'.", column.getAccountId());
+		return account;
 	}
 
 }
