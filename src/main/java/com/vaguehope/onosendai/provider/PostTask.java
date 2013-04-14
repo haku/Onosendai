@@ -45,7 +45,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 	@Override
 	protected void onPreExecute () {
 		this.notificationMgr = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
-		Notification n = new NotificationCompat.Builder(this.context)
+		final Notification n = new NotificationCompat.Builder(this.context)
 				.setSmallIcon(Ui.notificationIcon())
 				.setContentTitle(String.format("Posting to %s...", this.req.getAccount().toHumanString()))
 				.setOngoing(true)
@@ -75,7 +75,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 			p.post(this.req.getAccount(), this.req.getBody(), this.req.getInReplyToSidLong());
 			return new PostResult(this.req);
 		}
-		catch (Exception e) { // NOSONAR need to report all errors.
+		catch (final Exception e) { // NOSONAR need to report all errors.
 			return new PostResult(this.req, e);
 		}
 		finally {
@@ -89,7 +89,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 			s.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody(), this.req.getInReplyToSid());
 			return new PostResult(this.req);
 		}
-		catch (Exception e) { // NOSONAR need to report all errors.
+		catch (final Exception e) { // NOSONAR need to report all errors.
 			return new PostResult(this.req, e);
 		}
 		finally {
@@ -104,7 +104,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 			b.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody());
 			return new PostResult(this.req);
 		}
-		catch (Exception e) { // NOSONAR need to report all errors.
+		catch (final Exception e) { // NOSONAR need to report all errors.
 			return new PostResult(this.req, e);
 		}
 		finally {
@@ -116,8 +116,8 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 	protected void onPostExecute (final PostResult res) {
 		if (!res.isSuccess()) {
 			LOG.w("Post failed.", res.getE());
-			PendingIntent contentIntent = PendingIntent.getActivity(this.context, 0, this.req.getRecoveryIntent(), PendingIntent.FLAG_CANCEL_CURRENT);
-			Notification n = new NotificationCompat.Builder(this.context)
+			final PendingIntent contentIntent = PendingIntent.getActivity(this.context, this.notificationId, this.req.getRecoveryIntent(), PendingIntent.FLAG_CANCEL_CURRENT);
+			final Notification n = new NotificationCompat.Builder(this.context)
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
 					.setContentTitle(String.format("Tap to retry post to %s.", this.req.getAccount().toHumanString()))
 					.setContentText(res.getEmsg())
