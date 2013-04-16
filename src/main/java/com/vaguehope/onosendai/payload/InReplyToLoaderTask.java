@@ -76,6 +76,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 			if (inReplyToTweet != null) return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
 		}
 		catch (TwitterException e) {
+			// TODO expose this error msg?
 			LOG.w("Failed to retrieve tweet %s: %s", inReplyToMeta.getData(), e.toString());
 		}
 
@@ -96,6 +97,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
 			}
 			catch (SuccessWhaleException e) {
+				// TODO expose this error msg?
 				LOG.w("Failed to retrieve thread %s: %s", inReplyToMeta.getData(), e.toString());
 			}
 		}
@@ -126,9 +128,11 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 			try {
 				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
 				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
+				return new ReplyLoaderResult("No comments.", startingTweet);
 			}
 			catch (SuccessWhaleException e) {
 				LOG.w("Failed to retrieve thread %s: %s", startingTweet.getSid(), e.toString());
+				return new ReplyLoaderResult("Error fetching comments: " + e.getMessage(), startingTweet);
 			}
 		}
 		return null;
@@ -158,6 +162,13 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 
 		private final List<InReplyToPayload> payloads;
 		private final boolean checkAgain;
+		private final Payload fallback;
+
+		public ReplyLoaderResult (final String msg, final Tweet ownerTweet) {
+			this.fallback = new PlaceholderPayload(ownerTweet, msg);
+			this.payloads = null;
+			this.checkAgain = false;
+		}
 
 		public ReplyLoaderResult (final InReplyToPayload inReplyToPayload, final boolean checkAgain) {
 			this(Collections.singletonList(inReplyToPayload), checkAgain);
@@ -166,14 +177,17 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 		public ReplyLoaderResult (final List<InReplyToPayload> inReplyToPayloads, final boolean checkAgain) {
 			this.payloads = inReplyToPayloads;
 			this.checkAgain = checkAgain;
+			this.fallback = null;
 		}
 
 		public boolean hasResults () {
-			return this.payloads != null && this.payloads.size() > 0;
+			return (this.payloads != null && this.payloads.size() > 0) || this.fallback != null;
 		}
 
-		public List<InReplyToPayload> getPayloads () {
-			return this.payloads;
+		public List<? extends Payload> getPayloads () {
+			if (this.payloads != null) return this.payloads;
+			if (this.fallback != null) return Collections.singletonList(this.fallback);
+			return null;
 		}
 
 		public Tweet getFirstTweet () {
