@@ -1,11 +1,13 @@
 package com.vaguehope.onosendai.util;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -28,6 +30,21 @@ public final class IoHelper {
 			bytesReadTotal += bytesRead;
 		}
 		return bytesReadTotal;
+	}
+
+	public static String toString (final InputStream is) throws IOException {
+		final StringBuilder sb = new StringBuilder();
+		final BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+		try {
+			String line;
+			while ((line = rd.readLine()) != null) {
+				sb.append(line).append("\n");
+			}
+			return sb.toString();
+		}
+		finally {
+			is.close();
+		}
 	}
 
 	/**

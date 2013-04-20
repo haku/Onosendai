@@ -13,7 +13,6 @@ import java.util.Set;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -34,6 +33,7 @@ import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.HttpClientFactory;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.KvStore;
+import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 /**
@@ -112,13 +112,16 @@ public class SuccessWhale {
 		this.kvStore.storeValue(AUTH_TOKEN_PREFIX + getAccount().getId(), this.token);
 	}
 
-	static void checkReponseCode (final StatusLine statusLine) throws IOException {
-		final int code = statusLine.getStatusCode();
+	static void checkReponseCode (final HttpResponse response) throws IOException {
+		final int code = response.getStatusLine().getStatusCode();
 		if (code == 401) { // NOSONAR not a magic number.
 			throw new NotAuthorizedException();
 		}
 		else if (code < 200 || code >= 300) { // NOSONAR not a magic number.
-			throw new IOException("HTTP " + code + ": " + statusLine.getReasonPhrase());
+			throw new IOException(String.format("HTTP %s %s: %s",
+					code, response.getStatusLine().getReasonPhrase(),
+					IoHelper.toString(AndroidHttpClient.getUngzippedContent(response.getEntity()))
+					));
 		}
 	}
 
@@ -299,7 +302,7 @@ public class SuccessWhale {
 
 		@Override
 		public String handleResponse (final HttpResponse response) throws IOException {
-			checkReponseCode(response.getStatusLine());
+			checkReponseCode(response);
 			try {
 				final String authRespRaw = EntityUtils.toString(response.getEntity());
 				final JSONObject authResp = (JSONObject) new JSONTokener(authRespRaw).nextValue();
@@ -325,7 +328,7 @@ public class SuccessWhale {
 
 		@Override
 		public List<ServiceRef> handleResponse (final HttpResponse response) throws IOException {
-			checkReponseCode(response.getStatusLine());
+			checkReponseCode(response);
 			try {
 				final byte[] data = EntityUtils.toByteArray(response.getEntity());
 				final List<ServiceRef> accounts = new PostToAccountsXml(new ByteArrayInputStream(data)).getAccounts();
@@ -349,7 +352,7 @@ public class SuccessWhale {
 
 		@Override
 		public TweetList handleResponse (final HttpResponse response) throws IOException {
-			checkReponseCode(response.getStatusLine());
+			checkReponseCode(response);
 			try {
 				final HttpEntity entity = response.getEntity();
 				LOG.i("Feed content encoding: '%s', headers: %s.", entity.getContentEncoding(), Arrays.asList(response.getAllHeaders()));
@@ -368,7 +371,7 @@ public class SuccessWhale {
 
 		@Override
 		public Void handleResponse (final HttpResponse response) throws IOException {
-			checkReponseCode(response.getStatusLine());
+			checkReponseCode(response);
 			return null;
 		}
 
