@@ -76,8 +76,8 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 			if (inReplyToTweet != null) return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
 		}
 		catch (TwitterException e) {
-			// TODO expose this error msg?
 			LOG.w("Failed to retrieve tweet %s: %s", inReplyToMeta.getData(), e.toString());
+			return new ReplyLoaderResult("Error fetching tweet: " + e.getMessage(), startingTweet);
 		}
 
 		return null;
@@ -97,8 +97,8 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
 			}
 			catch (SuccessWhaleException e) {
-				// TODO expose this error msg?
 				LOG.w("Failed to retrieve thread %s: %s", inReplyToMeta.getData(), e.toString());
+				return new ReplyLoaderResult("Error fetching thread: " + e.getMessage(), startingTweet);
 			}
 		}
 
