@@ -16,10 +16,8 @@
 
 package com.vaguehope.onosendai.util;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +50,7 @@ public final class HttpHelper {
 		try {
 			final int responseCode = connection.getResponseCode();
 			if (responseCode >= 400) { // NOSONAR 400 is not a magic number.  Its HTTP spec.
-				throw new HttpResponseException(responseCode, streamToString(connection.getErrorStream()));
+				throw new HttpResponseException(responseCode, IoHelper.toString(connection.getErrorStream()));
 			}
 
 			is = connection.getInputStream();
@@ -60,21 +58,6 @@ public final class HttpHelper {
 		}
 		finally {
 			if (is != null) is.close();
-		}
-	}
-
-	private static String streamToString (final InputStream is) throws IOException {
-		final StringBuilder sb = new StringBuilder();
-		final BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-		try {
-			String line;
-			while ((line = rd.readLine()) != null) {
-				sb.append(line).append("\n");
-			}
-			return sb.toString();
-		}
-		finally {
-			is.close();
 		}
 	}
 
