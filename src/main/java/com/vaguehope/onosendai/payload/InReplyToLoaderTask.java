@@ -38,7 +38,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 		this.provMgr = provMgr;
 		this.db = db;
 		this.payloadListAdapter = payloadListAdapter;
-		this.placeholderPayload = new PlaceholderPayload(null, "Fetching conversation...");
+		this.placeholderPayload = new PlaceholderPayload(null, "Fetching conversation...", true);
 	}
 
 	@Override
