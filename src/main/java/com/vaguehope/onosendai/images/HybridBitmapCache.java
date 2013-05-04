@@ -15,6 +15,7 @@ import com.vaguehope.onosendai.util.HashHelper;
 import com.vaguehope.onosendai.util.HttpHelper.HttpStreamHandler;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.SyncMgr;
 
 public class HybridBitmapCache {
 
@@ -24,12 +25,14 @@ public class HybridBitmapCache {
 	private final Context context;
 	private final MemoryBitmapCache<String> memCache;
 	private final File baseDir;
+	private final SyncMgr syncMgr;
 
 	public HybridBitmapCache (final Context context, final int maxMemorySizeBytes) {
 		this.context = context;
 		this.memCache = new MemoryBitmapCache<String>(maxMemorySizeBytes);
 		this.baseDir = new File(context.getCacheDir(), "images");
 		if (!this.baseDir.exists() && !this.baseDir.mkdirs()) throw new IllegalStateException("Failed to create cache directory: " + this.baseDir.getAbsolutePath());
+		this.syncMgr = new SyncMgr();
 	}
 
 	public Bitmap quickGet (final String key) {
@@ -38,7 +41,8 @@ public class HybridBitmapCache {
 
 	/**
 	 * @return null if image is not in cache.
-	 * @throws UnrederableException if image is in cache but can not be rendered.
+	 * @throws UnrederableException
+	 *             if image is in cache but can not be rendered.
 	 */
 	public Bitmap get (final String key) throws UnrederableException {
 		Bitmap bmp = this.memCache.get(key);
@@ -69,6 +73,10 @@ public class HybridBitmapCache {
 
 	protected File keyToFile (final String key) {
 		return new File(this.baseDir, HashHelper.md5String(key).toString(BASE_HEX));
+	}
+
+	public SyncMgr getSyncMgr () {
+		return this.syncMgr;
 	}
 
 	private static class DiscCacheHandler implements HttpStreamHandler<Bitmap, RuntimeException> {
