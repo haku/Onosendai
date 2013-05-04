@@ -8,18 +8,18 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.ui.PostActivity;
 import com.vaguehope.onosendai.util.EqualHelper;
 
-public class CommentPayload extends Payload {
+public class AddCommentPayload extends Payload {
 
 	private final Account account;
 
-	public CommentPayload (final Account account, final Tweet ownerTweet) {
+	public AddCommentPayload (final Account account, final Tweet ownerTweet) {
 		super(ownerTweet, PayloadType.COMMENT);
 		this.account = account;
 	}
 
 	@Override
 	public String getTitle () {
-		return "Comment";
+		return "Add Comment";
 	}
 
 	@Override
@@ -45,8 +45,8 @@ public class CommentPayload extends Payload {
 	public boolean equals (final Object o) {
 		if (o == null) return false;
 		if (o == this) return true;
-		if (!(o instanceof CommentPayload)) return false;
-		CommentPayload that = (CommentPayload) o;
+		if (!(o instanceof AddCommentPayload)) return false;
+		AddCommentPayload that = (AddCommentPayload) o;
 		return EqualHelper.equal(this.getOwnerTweet(), that.getOwnerTweet()) &&
 				EqualHelper.equal(this.account, that.account);
 	}

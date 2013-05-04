@@ -60,7 +60,7 @@ public final class PayloadUtils {
 				final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
 				final ServiceRef serviceRef = svcMeta != null ? ServiceRef.parseServiceMeta(svcMeta) : null;
 				final NetworkType networkType = serviceRef != null ? serviceRef.getType() : null;
-				if (networkType == NetworkType.FACEBOOK) set.add(new CommentPayload(account, tweet));
+				if (networkType == NetworkType.FACEBOOK) set.add(new AddCommentPayload(account, tweet));
 				set.add(new SharePayload(tweet, networkType));
 				break;
 			default:
