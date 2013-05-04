@@ -6,15 +6,27 @@ import com.vaguehope.onosendai.util.EqualHelper;
 public class PlaceholderPayload extends Payload {
 
 	private final String msg;
+	private final boolean showSpinner;
 
 	public PlaceholderPayload (final Tweet ownerTweet, final String msg) {
+		this(ownerTweet, msg, false);
+	}
+
+	public PlaceholderPayload (final Tweet ownerTweet, final String msg, final boolean showSpinner) {
 		super(ownerTweet, PayloadType.PLACEHOLDER);
 		this.msg = msg;
+		this.showSpinner = showSpinner;
 	}
 
 	@Override
 	public String getTitle () {
 		return this.msg;
+	}
+
+	@Override
+	public PayloadLayout getLayout () {
+		if (this.showSpinner) return PayloadLayout.TEXT_SPINNER;
+		return PayloadLayout.TEXT_ONLY;
 	}
 
 	@Override
