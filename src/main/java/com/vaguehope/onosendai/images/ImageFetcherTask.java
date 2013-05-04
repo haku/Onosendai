@@ -28,7 +28,18 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 		try {
 			final String url = req.getUrl();
 			Bitmap bmp = this.cache.get(url);
-			if (bmp == null) bmp = fetchImage(url);
+			if (bmp == null) {
+				final Object sync = this.cache.getSyncMgr().getSync(url);
+				try {
+					synchronized (sync) {
+						bmp = this.cache.get(url);
+						if (bmp == null) bmp = fetchImage(url);
+					}
+				}
+				finally {
+					this.cache.getSyncMgr().returnSync(url);
+				}
+			}
 			return new ImageFetchResult(req, bmp);
 		}
 		catch (Exception e) { // NOSONAR To report errors.
@@ -37,7 +48,6 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 	}
 
 	private Bitmap fetchImage (final String url) throws IOException {
-		// FIXME Prevent multiple concurrent fetches for same image?
 		LOG.d("Fetching image: '%s'...", url);
 		return HttpHelper.get(url, this.cache.fromHttp(url));
 	}
