@@ -18,7 +18,7 @@ package com.vaguehope.onosendai.provider.successwhale;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +46,7 @@ import com.vaguehope.onosendai.provider.ServiceRef;
 public class SuccessWhaleFeedXml implements ContentHandler {
 
 	private final Account account;
-	private final List<Tweet> tweets = new LinkedList<Tweet>();
+	private final List<Tweet> tweets = new ArrayList<Tweet>();
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
