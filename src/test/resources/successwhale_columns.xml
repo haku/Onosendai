@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<user>
+  <success type="boolean">true</success>
+  <columns type="array">
+    <column>
+      <feeds type="array">
+        <feed>
+          <service>twitter</service>
+          <uid>12345678</uid>
+          <url>statuses/home_timeline</url>
+          <username>twittername</username>
+        </feed>
+      </feeds>
+      <feedpath>twitter/12345678/statuses/home_timeline</feedpath>
+    </column>
+    <column>
+      <feeds type="array">
+        <feed>
+          <service>twitter</service>
+          <uid>12345678</uid>
+          <url>twittername/lists/somelist/statuses</url>
+          <username>twittername</username>
+        </feed>
+      </feeds>
+      <feedpath>twitter/12345678/twittername/lists/somelist/statuses</feedpath>
+    </column>
+    <column>
+      <feeds type="array">
+        <feed>
+          <service>twitter</service>
+          <uid>12345678</uid>
+          <url>statuses/mentions</url>
+          <username>twittername</username>
+        </feed>
+        <feed>
+          <service>twitter</service>
+          <uid>12345678</uid>
+          <url>statuses/user_timeline</url>
+          <username>twittername</username>
+        </feed>
+      </feeds>
+      <feedpath>twitter/12345678/statuses/mentions:twitter/12345678/statuses/user_timeline</feedpath>
+    </column>
+  </columns>
+</user>

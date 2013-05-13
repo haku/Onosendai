@@ -40,6 +40,10 @@ public class SuccessWhaleProvider {
 		return this.accounts.get(account.getId());
 	}
 
+	public SuccessWhaleColumns getColumns (final Account account) throws SuccessWhaleException {
+		return getAccount(account).getColumns();
+	}
+
 	public TweetList getTweets (final SuccessWhaleFeed feed, final Account account) throws SuccessWhaleException {
 		return fetchSuccessWhaleFeed(getAccount(account), feed);
 	}

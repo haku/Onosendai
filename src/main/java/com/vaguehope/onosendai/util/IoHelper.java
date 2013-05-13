@@ -1,6 +1,8 @@
 package com.vaguehope.onosendai.util;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -19,6 +21,13 @@ public final class IoHelper {
 
 	private IoHelper () {
 		throw new AssertionError();
+	}
+
+	public static void closeQuietly (final Closeable c) {
+		try {
+			c.close();
+		}
+		catch (IOException e) {/**/}
 	}
 
 	public static long copy (final InputStream source, final OutputStream sink) throws IOException {
@@ -68,23 +77,27 @@ public final class IoHelper {
 		}
 	}
 
-	public static void resourceToFile(final String res, final File f) throws IOException {
-		final byte[] arr = new byte[COPY_BUFFER_SIZE];
+	public static void stringToFile (final String data, final File f) throws IOException {
+		streamToFile(new ByteArrayInputStream(data.getBytes()), f);
+	}
+
+	public static void resourceToFile (final String res, final File f) throws IOException {
 		final InputStream is = IoHelper.class.getResourceAsStream(res);
 		try {
-			final OutputStream os = new FileOutputStream(f);
-			try {
-				int count;
-				while ((count = is.read(arr)) >= 0) {
-					os.write(arr, 0, count);
-				}
-			}
-			finally {
-				os.close();
-			}
+			streamToFile(is, f);
 		}
 		finally {
-			is.close();
+			closeQuietly(is);
+		}
+	}
+
+	public static void streamToFile (final InputStream is, final File f) throws IOException {
+		final OutputStream os = new FileOutputStream(f);
+		try {
+			copy(is, os);
+		}
+		finally {
+			closeQuietly(os);
 		}
 	}
 
