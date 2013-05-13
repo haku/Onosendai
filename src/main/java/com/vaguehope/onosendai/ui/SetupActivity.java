@@ -4,10 +4,12 @@ import java.io.File;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -22,7 +24,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Config;
+import com.vaguehope.onosendai.config.ConfigBuilder;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
+import com.vaguehope.onosendai.storage.VolatileKvStore;
+import com.vaguehope.onosendai.util.Result;
 
 public class SetupActivity extends Activity {
 
@@ -140,20 +150,104 @@ public class SetupActivity extends Activity {
 	};
 
 	protected void doSwFetchConfig () {
-		Toast.makeText(this, "TODO: fetch SW config.", Toast.LENGTH_SHORT).show();
+		final String username = ((EditText) findViewById(R.id.txtUsername)).getText().toString();
+		final String password = ((EditText) findViewById(R.id.txtPassword)).getText().toString();
+		final Account acc = new Account("sw0", AccountProvider.SUCCESSWHALE, null, null, username, password);
+		new SwColumnsFetcher(this, acc).execute();
 	}
 
-	private static void alertAndClose (final Activity activity, final Exception e) {
+	private class SwColumnsFetcher extends AsyncTask<Void, Void, Result<SuccessWhaleColumns>> {
+
+		private final Activity activity;
+		private final Account account;
+		private ProgressDialog dialog;
+
+		public SwColumnsFetcher (final Activity activity, final Account account) {
+			this.activity = activity;
+			this.account = account;
+		}
+
+		@Override
+		protected void onPreExecute () {
+			this.dialog = ProgressDialog.show(this.activity, "SuccessWhale", "Fetching columns...", true);
+		}
+
+		@Override
+		protected Result<SuccessWhaleColumns> doInBackground (final Void... params) {
+			final SuccessWhaleProvider swProv = new SuccessWhaleProvider(new VolatileKvStore());
+			try {
+				SuccessWhaleColumns data = swProv.getColumns(this.account);
+				return new Result<SuccessWhaleColumns>(data);
+			}
+			catch (SuccessWhaleException e) {
+				return new Result<SuccessWhaleColumns>(e);
+			}
+			finally {
+				swProv.shutdown();
+			}
+		}
+
+		@Override
+		protected void onPostExecute (final Result<SuccessWhaleColumns> result) {
+			if (result.isSuccess()) {
+				writeConfig(result.getData());
+				this.dialog.dismiss();
+			}
+			else {
+				this.dialog.dismiss();
+				alert(this.activity, result.getE());
+			}
+		}
+
+		private void writeConfig (final SuccessWhaleColumns columns) {
+			try {
+				new ConfigBuilder()
+						.account(this.account)
+						.columns(columns.getColumns())
+						.readLater()
+						.writeMain();
+				startActivity(new Intent(getApplicationContext(), MainActivity.class));
+				finish();
+			}
+			catch (final Exception e) { // NOSONAR show user all errors.
+				alertAndClose(this.activity, e);
+			}
+		}
+
+	}
+
+	// TODO put in helper.
+	static void alert(final Activity activity, final Exception e) {
+		alert(activity, "Error: " + e.toString());
+	}
+
+	// TODO put in helper.
+	static void alert(final Activity activity, final String msg) {
+		new AlertDialog.Builder(activity)
+		.setMessage(msg)
+		.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int which) {
+				dialog.dismiss();
+			}
+		})
+		.show();
+	}
+
+	// TODO put in helper.
+	static void alertAndClose (final Activity activity, final Exception e) {
 		alertAndClose(activity, "Error: " + e.toString());
 	}
 
-	private static void alertAndClose (final Activity activity, final String msg) {
+	// TODO put in helper.
+	static void alertAndClose (final Activity activity, final String msg) {
 		new AlertDialog.Builder(activity)
 				.setMessage(msg)
 				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick (final DialogInterface dialog, final int which) {
 						activity.finish();
+						dialog.dismiss();
 					}
 				})
 				.show();

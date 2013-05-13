@@ -21,12 +21,21 @@ import com.vaguehope.onosendai.util.LogWrapper;
 
 public class Config {
 
-	private static final String KEY_ID = "id";
-	private static final String KEY_TITLE = "title";
-	private static final String KEY_ACCOUNT = "account";
-	private static final String KEY_RESOURCE = "resource";
-	private static final String KEY_REFRESH = "refresh";
-	private static final String KEY_EXCLUDE = "exclude";
+	static final String SECTION_ACCOUNTS = "accounts";
+	static final String SECTION_FEEDS = "feeds";
+
+	static final String KEY_ID = "id";
+	static final String KEY_PROVIDER = "provider";
+
+	static final String KEY_USERNAME = "username";
+	static final String KEY_PASSWORD = "password";
+
+	static final String KEY_TITLE = "title";
+	static final String KEY_ACCOUNT = "account";
+	static final String KEY_RESOURCE = "resource";
+	static final String KEY_REFRESH = "refresh";
+	static final String KEY_EXCLUDE = "exclude";
+	static final String KEY_NOTIFY = "notify";
 
 	private static final LogWrapper LOG = new LogWrapper("CFG");
 
@@ -75,7 +84,7 @@ public class Config {
 		}
 	}
 
-	private static File configFile () {
+	static File configFile () {
 		return new File(Environment.getExternalStorageDirectory().getPath(), C.CONFIG_FILE_NAME);
 	}
 
@@ -89,12 +98,8 @@ public class Config {
 	private Config (final File f) throws IOException, JSONException {
 		final String s = IoHelper.fileToString(f);
 		final JSONObject o = (JSONObject) new JSONTokener(s).nextValue();
-
-		final JSONArray accountsJson = o.getJSONArray("accounts");
-		this.accounts = parseAccounts(accountsJson);
-
-		final JSONArray feedsJson = o.getJSONArray("feeds");
-		this.feeds = parseFeeds(feedsJson);
+		this.accounts = parseAccounts(o.getJSONArray(SECTION_ACCOUNTS));
+		this.feeds = parseFeeds(o.getJSONArray(SECTION_FEEDS));
 	}
 
 	public Map<String, Account> getAccounts () {
@@ -139,7 +144,7 @@ public class Config {
 		for (int i = 0; i < accountsJson.length(); i++) {
 			final JSONObject accountJson = accountsJson.getJSONObject(i);
 			final String id = accountJson.getString(KEY_ID);
-			final AccountProvider provider = AccountProvider.parse(accountJson.getString("provider"));
+			final AccountProvider provider = AccountProvider.parse(accountJson.getString(KEY_PROVIDER));
 			Account account;
 			switch (provider) {
 				case TWITTER:
@@ -168,8 +173,8 @@ public class Config {
 	}
 
 	private static Account parseSuccessWhaleAccount (final JSONObject accountJson, final String id) throws JSONException {
-		final String accessToken = accountJson.getString("username");
-		final String accessSecret = accountJson.getString("password");
+		final String accessToken = accountJson.getString(KEY_USERNAME);
+		final String accessSecret = accountJson.getString(KEY_PASSWORD);
 		return new Account(id, AccountProvider.SUCCESSWHALE, null, null, accessToken, accessSecret);
 	}
 
@@ -192,7 +197,7 @@ public class Config {
 			final String refreshRaw = colJson.optString(KEY_REFRESH, null);
 			final int refreshIntervalMins = parseFeedRefreshInterval(refreshRaw, account, title);
 			final int[] excludeColumnIds = parseFeedExcludeColumns(colJson, title);
-			final boolean notify = colJson.optBoolean("notify", false);
+			final boolean notify = colJson.optBoolean(KEY_NOTIFY, false);
 			ret.add(new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds, notify));
 		}
 		return Collections.unmodifiableList(ret);

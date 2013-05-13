@@ -43,6 +43,7 @@ public class SuccessWhale {
 
 	private static final String BASE_URL = "https://successwhale-api.herokuapp.com:443";
 	private static final String API_AUTH = "/v3/authenticate.json";
+	private static final String API_COLUMNS = "/v3/columns.xml";
 	private static final String API_FEED = "/v3/feed.xml";
 	private static final String API_THREAD = "/v3/thread.xml";
 	private static final String API_POSTTOACCOUNTS = "/v3/posttoaccounts.xml";
@@ -144,6 +145,20 @@ public class SuccessWhale {
 		catch (final IOException e) {
 			throw new SuccessWhaleException("Auth failed for user '" + username + "': " + e.toString(), e);
 		}
+	}
+
+	public SuccessWhaleColumns getColumns () throws SuccessWhaleException {
+		return authenticated(new SwCall<SuccessWhaleColumns>() {
+			@Override
+			public SuccessWhaleColumns invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+				return client.execute(new HttpGet(makeAuthedUrl(API_COLUMNS)), new ColumnsHandler(getAccount()));
+			}
+
+			@Override
+			public String describeFailure (final Exception e) {
+				return "Failed to fetch columns: " + e.toString();
+			}
+		});
 	}
 
 	public TweetList getFeed (final SuccessWhaleFeed feed) throws SuccessWhaleException {
@@ -334,6 +349,27 @@ public class SuccessWhale {
 				final List<ServiceRef> accounts = new PostToAccountsXml(new ByteArrayInputStream(data)).getAccounts();
 				if (this.sw != null) this.sw.writePostToAccountsToCache(new String(data, Charset.forName("UTF-8")));
 				return accounts;
+			}
+			catch (final SAXException e) {
+				throw new IOException("Failed to parse response: " + e.toString(), e);
+			}
+		}
+
+	}
+
+	private static class ColumnsHandler implements ResponseHandler<SuccessWhaleColumns> {
+
+		private final Account account;
+
+		public ColumnsHandler (final Account account) {
+			this.account = account;
+		}
+
+		@Override
+		public SuccessWhaleColumns handleResponse (final HttpResponse response) throws IOException {
+			checkReponseCode(response);
+			try {
+				return new ColumnsXml(this.account, AndroidHttpClient.getUngzippedContent(response.getEntity())).getColumns();
 			}
 			catch (final SAXException e) {
 				throw new IOException("Failed to parse response: " + e.toString(), e);
