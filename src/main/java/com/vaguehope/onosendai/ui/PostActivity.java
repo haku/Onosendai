@@ -80,7 +80,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 		Config conf = null;
 		try {
-			conf = new Config();
+			conf = Config.getConfig();
 		}
 		catch (Exception e) {
 			Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();

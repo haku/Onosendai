@@ -4,6 +4,7 @@ package com.vaguehope.onosendai;
 public interface C {
 
 	String TAG = "onosendai";
+	String TEMPLATE_CONFIG_FILE_NAME = "deck.template";
 	String CONFIG_FILE_NAME = "deck.conf";
 
 	int MAX_MEMORY_IMAGE_CACHE = 20 * 1024 * 1024;

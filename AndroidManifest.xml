@@ -43,6 +43,12 @@
 			android:label="@string/app_name">
 		</activity>
 
+		<activity
+			android:name=".ui.SetupActivity"
+			android:label="@string/setup_title"
+			android:theme="@android:style/Theme.Holo">
+		</activity>
+
 		<receiver android:name=".update.BootReceiver">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED" />

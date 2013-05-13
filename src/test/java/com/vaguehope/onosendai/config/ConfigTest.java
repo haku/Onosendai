@@ -27,20 +27,21 @@ public class ConfigTest {
 
 	@Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+	private Config undertest;
+
 	@Before
 	public void before () throws Exception {
 		PowerMockito.mockStatic(Environment.class);
 		when(Environment.getExternalStorageDirectory()).thenReturn(this.temporaryFolder.getRoot());
-		String conf = fixture("/deck.conf");
 		File f = new File(this.temporaryFolder.getRoot(), "deck.conf");
-		FileUtils.write(f, conf);
+		FileUtils.write(f, fixture("/deck.conf"));
+
+		this.undertest = Config.getConfig();
 	}
 
 	@Test
 	public void itReadsAccounts () throws Exception {
-		Config conf = new Config();
-
-		Map<String, Account> as = conf.getAccounts();
+		Map<String, Account> as = this.undertest.getAccounts();
 		assertEquals(3, as.size());
 
 		Account a = as.get("t0");
@@ -67,9 +68,7 @@ public class ConfigTest {
 
 	@Test
 	public void itReadsColumns () throws Exception {
-		Config conf = new Config();
-
-		List<Column> cs = conf.getColumns();
+		List<Column> cs = this.undertest.getColumns();
 		assertEquals(3, cs.size());
 
 		Column c0 = cs.get(0);

@@ -30,16 +30,63 @@ public class Config {
 
 	private static final LogWrapper LOG = new LogWrapper("CFG");
 
+	public static boolean isConfigured () {
+		return configFile().exists();
+	}
+
+	public static boolean isTemplateConfigured () {
+		// TODO Check not same as internal template.
+		return templateFile().exists();
+	}
+
+	public static File writeTemplateConfig () throws ConfigException {
+		try {
+			final File t = templateFile();
+			if (t.exists()) throw new ConfigException("Template file '" + t.getAbsolutePath() + "' already exists.");
+			IoHelper.resourceToFile("/deck.conf", t);
+			return t;
+		}
+		catch (IOException e) {
+			throw new ConfigException(e);
+		}
+	}
+
+	public static void useTemplateConfig () throws ConfigException {
+		final File t = templateFile();
+		if (!isTemplateConfigured()) throw new ConfigException("Template file '" + t.getAbsolutePath() + "' does not exist.");
+
+		final File f = configFile();
+		if (f.exists()) throw new ConfigException("Config file '" + f.getAbsolutePath() + "' already exists.");
+
+		if (!t.renameTo(f)) throw new ConfigException("Failed to rename '" + t.getAbsolutePath() + "' to '" + f.getAbsolutePath() + "'.");
+	}
+
+	public static Config getConfig () throws ConfigUnavailableException {
+		final File f = configFile();
+		if (!f.exists()) throw new ConfigUnavailableException("Config file '" + f.getAbsolutePath() + "' does not exist.");
+		try {
+			return new Config(f);
+		}
+		catch (IOException e) {
+			throw new ConfigUnavailableException(e);
+		}
+		catch (JSONException e) {
+			throw new ConfigUnavailableException(e);
+		}
+	}
+
+	private static File configFile () {
+		return new File(Environment.getExternalStorageDirectory().getPath(), C.CONFIG_FILE_NAME);
+	}
+
+	private static File templateFile () {
+		return new File(Environment.getExternalStorageDirectory().getPath(), C.TEMPLATE_CONFIG_FILE_NAME);
+	}
+
 	private final Map<String, Account> accounts;
 	private final List<Column> feeds;
 
-	public Config () throws IOException, JSONException {
-		final File f = new File(Environment.getExternalStorageDirectory().getPath(), C.CONFIG_FILE_NAME);
-
-		if (!f.exists()) {
-			IoHelper.resourceToFile("/deck.conf", f);
-		}
-
+	private Config (final File f) throws IOException, JSONException {
 		final String s = IoHelper.fileToString(f);
 		final JSONObject o = (JSONObject) new JSONTokener(s).nextValue();
 
