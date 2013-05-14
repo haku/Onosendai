@@ -13,5 +13,9 @@
 			android:id="@+id/mnuRefreshAllNow"
 			android:title="@string/menu_refresh_all" />
 
+		<item
+			android:id="@+id/mnuPreferences"
+			android:title="@string/menu_preferences" />
+
 	</group>
 </menu>

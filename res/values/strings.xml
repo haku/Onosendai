@@ -40,13 +40,16 @@
 		Will be renamed to: ${config_path}
 	</string>
 
+	<string name="preferences_title">Onosendai Preferences</string>
+
 	<string name="btn_goto">goto</string>
 	<string name="btn_jump_top">Top</string>
 	<string name="btn_menu">menu</string>
 
+	<string name="menu_post">Post</string>
 	<string name="menu_refresh_column">Refresh Column</string>
 	<string name="menu_refresh_all">Refresh All</string>
-	<string name="menu_post">Post</string>
+	<string name="menu_preferences">Preferences</string>
 
 	<string name="btn_tweet_close">Close</string>
 	<string name="btn_tweet_later">Later</string>
