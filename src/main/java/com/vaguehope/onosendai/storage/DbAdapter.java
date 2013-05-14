@@ -397,7 +397,9 @@ public class DbAdapter implements DbInterface {
 		whereArgs[0] = String.valueOf(columnId);
 
 		// TODO integrate into query?
-		final Tweet tweet = getTweetDetails((scroll != null ? scroll : getScroll(columnId)).getItemId());
+		final ScrollState fscroll = scroll != null ? scroll : getScroll(columnId);
+		if (fscroll == null) return -1;
+		final Tweet tweet = getTweetDetails(fscroll.getItemId());
 		whereArgs[1] = String.valueOf(tweet.getTime());
 
 		if (excludeColumnIds != null && excludeColumnIds.length > 0) {
