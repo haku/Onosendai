@@ -3,10 +3,8 @@ package com.vaguehope.onosendai.ui;
 import java.io.File;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.AsyncTask;
@@ -32,6 +30,7 @@ import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.storage.VolatileKvStore;
+import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.Result;
 
 public class SetupActivity extends Activity {
@@ -111,10 +110,10 @@ public class SetupActivity extends Activity {
 	private void doWriteTemplate () {
 		try {
 			final File f = Config.writeTemplateConfig();
-			alertAndClose(this, "Template file written to: " + f.getAbsolutePath());
+			DialogHelper.alertAndClose(this, "Template file written to: " + f.getAbsolutePath());
 		}
 		catch (final Exception e) { // NOSONAR show user all errors.
-			alertAndClose(this, e);
+			DialogHelper.alertAndClose(this, e);
 		}
 	}
 
@@ -125,7 +124,7 @@ public class SetupActivity extends Activity {
 			finish();
 		}
 		catch (final Exception e) { // NOSONAR show user all errors.
-			alertAndClose(this, e);
+			DialogHelper.alertAndClose(this, e);
 		}
 	}
 
@@ -195,7 +194,7 @@ public class SetupActivity extends Activity {
 			}
 			else {
 				this.dialog.dismiss();
-				alert(this.activity, result.getE());
+				DialogHelper.alert(this.activity, result.getE());
 			}
 		}
 
@@ -210,47 +209,10 @@ public class SetupActivity extends Activity {
 				finish();
 			}
 			catch (final Exception e) { // NOSONAR show user all errors.
-				alertAndClose(this.activity, e);
+				DialogHelper.alertAndClose(this.activity, e);
 			}
 		}
 
-	}
-
-	// TODO put in helper.
-	static void alert(final Activity activity, final Exception e) {
-		alert(activity, "Error: " + e.toString());
-	}
-
-	// TODO put in helper.
-	static void alert(final Activity activity, final String msg) {
-		new AlertDialog.Builder(activity)
-		.setMessage(msg)
-		.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick (final DialogInterface dialog, final int which) {
-				dialog.dismiss();
-			}
-		})
-		.show();
-	}
-
-	// TODO put in helper.
-	static void alertAndClose (final Activity activity, final Exception e) {
-		alertAndClose(activity, "Error: " + e.toString());
-	}
-
-	// TODO put in helper.
-	static void alertAndClose (final Activity activity, final String msg) {
-		new AlertDialog.Builder(activity)
-				.setMessage(msg)
-				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick (final DialogInterface dialog, final int which) {
-						activity.finish();
-						dialog.dismiss();
-					}
-				})
-				.show();
 	}
 
 	private enum SetupActionType {

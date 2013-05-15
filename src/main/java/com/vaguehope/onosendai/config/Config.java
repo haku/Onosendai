@@ -25,10 +25,6 @@ public class Config {
 	static final String SECTION_FEEDS = "feeds";
 
 	static final String KEY_ID = "id";
-	static final String KEY_PROVIDER = "provider";
-
-	static final String KEY_USERNAME = "username";
-	static final String KEY_PASSWORD = "password";
 
 	static final String KEY_TITLE = "title";
 	static final String KEY_ACCOUNT = "account";
@@ -142,45 +138,10 @@ public class Config {
 	private static Map<String, Account> parseAccounts (final JSONArray accountsJson) throws JSONException {
 		final Map<String, Account> ret = new HashMap<String, Account>();
 		for (int i = 0; i < accountsJson.length(); i++) {
-			final JSONObject accountJson = accountsJson.getJSONObject(i);
-			final String id = accountJson.getString(KEY_ID);
-			final AccountProvider provider = AccountProvider.parse(accountJson.getString(KEY_PROVIDER));
-			Account account;
-			switch (provider) {
-				case TWITTER:
-					account = parseTwitterAccount(accountJson, id);
-					break;
-				case SUCCESSWHALE:
-					account = parseSuccessWhaleAccount(accountJson, id);
-					break;
-				case BUFFER:
-					account = parseBufferAccount(accountJson, id);
-					break;
-				default:
-					throw new IllegalArgumentException("Unknown provider: " + provider);
-			}
-			ret.put(id, account);
+			Account account = Account.parseJson(accountsJson.getJSONObject(i));
+			ret.put(account.getId(), account);
 		}
 		return Collections.unmodifiableMap(ret);
-	}
-
-	private static Account parseTwitterAccount (final JSONObject accountJson, final String id) throws JSONException {
-		final String consumerKey = accountJson.getString("consumerKey");
-		final String consumerSecret = accountJson.getString("consumerSecret");
-		final String accessToken = accountJson.getString("accessToken");
-		final String accessSecret = accountJson.getString("accessSecret");
-		return new Account(id, AccountProvider.TWITTER, consumerKey, consumerSecret, accessToken, accessSecret);
-	}
-
-	private static Account parseSuccessWhaleAccount (final JSONObject accountJson, final String id) throws JSONException {
-		final String accessToken = accountJson.getString(KEY_USERNAME);
-		final String accessSecret = accountJson.getString(KEY_PASSWORD);
-		return new Account(id, AccountProvider.SUCCESSWHALE, null, null, accessToken, accessSecret);
-	}
-
-	private static Account parseBufferAccount (final JSONObject accountJson, final String id) throws JSONException {
-		final String accessToken = accountJson.getString("accessToken");
-		return new Account(id, AccountProvider.BUFFER, null, null, accessToken, null);
 	}
 
 	/**

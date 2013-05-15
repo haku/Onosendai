@@ -1,9 +1,13 @@
 package com.vaguehope.onosendai.ui.pref;
 
+import org.json.JSONException;
+
 import android.content.Context;
 import android.preference.DialogPreference;
 import android.view.View;
-import android.widget.EditText;
+
+import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.util.DialogHelper;
 
 /*
  * https://developer.android.com/intl/fr/guide/topics/ui/settings.html
@@ -11,29 +15,47 @@ import android.widget.EditText;
  */
 public class AccountDialogPreference extends DialogPreference {
 
-	private static final String DEFAULT_VALUE = "Default Value desu~";
+	private final Account account;
+	private final AccountsPrefFragment accountsPrefFragment;
+	private AccountDialog dialog;
 
-	private EditText editText;
-
-	public AccountDialogPreference (final Context context) {
+	public AccountDialogPreference (final Context context, final Account account, final AccountsPrefFragment accountsPrefFragment) {
 		super(context, null);
+		this.account = account;
+		this.accountsPrefFragment = accountsPrefFragment;
 
+		setKey(account.getId());
+		setTitle("Account: " + account.getId()); // TODO Should make this more friendly.
+		setSummary(account.getProvider() + " account.");
+
+		setDialogTitle("Edit Account (" + getKey() + ")");
 		setPositiveButtonText(android.R.string.ok);
 		setNegativeButtonText(android.R.string.cancel);
 	}
 
 	@Override
 	protected View onCreateDialogView () {
-		this.editText = new EditText(getContext());
-		this.editText.setSelectAllOnFocus(true);
-		this.editText.setHint("username");
-		this.editText.setText(getPersistedString(DEFAULT_VALUE));
-		return this.editText;
+		this.dialog = new AccountDialog(getContext(), this.account);
+		return this.dialog.getRootView();
 	}
 
 	@Override
 	protected void onDialogClosed (final boolean positiveResult) {
-		if (positiveResult) persistString(this.editText.getText().toString());
+		if (positiveResult) {
+			try {
+				if (this.dialog.isDeleteSelected()) {
+					persistString(null);
+					this.accountsPrefFragment.deleteAccount(this.dialog.getInitialValue());
+				}
+				else {
+					persistString(this.dialog.getValue().toJson().toString());
+					this.accountsPrefFragment.refreshAccountsList();
+				}
+			}
+			catch (JSONException e) {
+				DialogHelper.alert(getContext(), e);
+			}
+		}
 		super.onDialogClosed(positiveResult);
 	}
 
