@@ -31,18 +31,7 @@ public class ConfigBuilder {
 
 	public ConfigBuilder account (final Account account) throws ConfigException {
 		try {
-			final JSONObject accountObj = new JSONObject();
-			switch (account.getProvider()) {
-				case SUCCESSWHALE:
-					accountObj.put(Config.KEY_ID, account.getId());
-					accountObj.put(Config.KEY_PROVIDER, account.getProvider().toString());
-					accountObj.put(Config.KEY_USERNAME, account.getAccessToken());
-					accountObj.put(Config.KEY_PASSWORD, account.getAccessSecret());
-					break;
-				default:
-					throw new IllegalArgumentException("Unsupported account provilder: " + account.getProvider());
-			}
-			this.accounts.put(accountObj);
+			this.accounts.put(account.toJson());
 			return this;
 		}
 		catch (final JSONException e) {
