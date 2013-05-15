@@ -1,4 +1,4 @@
-package com.vaguehope.onosendai.ui;
+package com.vaguehope.onosendai.ui.pref;
 
 import java.util.Set;
 
@@ -20,13 +20,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 		final Preference pref = new Preference(getActivity());
 		pref.setTitle("Add Account");
 		pref.setSummary("Add a new Twitter or SuccessWhale account");
-		pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
-			@Override
-			public boolean onPreferenceClick (final Preference preference) {
-				Toast.makeText(getActivity(), "TODO add account.", Toast.LENGTH_SHORT).show();
-				return true;
-			}
-		});
+		pref.setOnPreferenceClickListener(new AddAcountClickListener(this));
 		ps.addPreference(pref);
 
 		// TODO read accounts from pref?
@@ -51,6 +45,25 @@ public class AccountsPrefFragment extends PreferenceFragment {
 		ps.addPreference(ap1);
 
 		setPreferenceScreen(ps);
+	}
+
+	protected void promptAddAccount() {
+		Toast.makeText(getActivity(), "TODO add account.", Toast.LENGTH_SHORT).show();
+	}
+
+	private static class AddAcountClickListener implements OnPreferenceClickListener {
+
+		private final AccountsPrefFragment accountsPrefFragment;
+
+		public AddAcountClickListener (final AccountsPrefFragment accountsPrefFragment) {
+			this.accountsPrefFragment = accountsPrefFragment;
+		}
+
+		@Override
+		public boolean onPreferenceClick (final Preference preference) {
+			this.accountsPrefFragment.promptAddAccount();
+			return true;
+		}
 	}
 
 }

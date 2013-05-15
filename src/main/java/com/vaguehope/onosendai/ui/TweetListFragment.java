@@ -58,6 +58,7 @@ import com.vaguehope.onosendai.provider.RtTask.RtRequest;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
+import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
 import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.LogWrapper;
 
