@@ -1,4 +1,4 @@
-package com.vaguehope.onosendai.ui;
+package com.vaguehope.onosendai.ui.pref;
 
 import android.content.Context;
 import android.preference.DialogPreference;
