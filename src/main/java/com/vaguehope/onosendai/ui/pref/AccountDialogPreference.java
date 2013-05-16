@@ -28,6 +28,13 @@ public class AccountDialogPreference extends DialogPreference {
 		setTitle(account.humanId());
 		setSummary(account.humanDescription());
 
+		switch(account.getProvider()) {
+			case SUCCESSWHALE:
+				break;
+			default:
+				setEnabled(false);
+		}
+
 		setDialogTitle("Edit Account (" + getKey() + ")");
 		setPositiveButtonText(android.R.string.ok);
 		setNegativeButtonText(android.R.string.cancel);
