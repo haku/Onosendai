@@ -6,4 +6,9 @@
 		android:title="Accounts"
 		android:summary="Add, update and remove accounts" />
 
+	<header
+		android:fragment="com.vaguehope.onosendai.ui.pref.ColumnsPrefFragment"
+		android:title="Columns"
+		android:summary="Add, update and remove columns" />
+
 </preference-headers>

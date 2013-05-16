@@ -17,23 +17,11 @@ import android.os.Environment;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.util.IoHelper;
-import com.vaguehope.onosendai.util.LogWrapper;
 
 public class Config {
 
 	static final String SECTION_ACCOUNTS = "accounts";
 	static final String SECTION_FEEDS = "feeds";
-
-	static final String KEY_ID = "id";
-
-	static final String KEY_TITLE = "title";
-	static final String KEY_ACCOUNT = "account";
-	static final String KEY_RESOURCE = "resource";
-	static final String KEY_REFRESH = "refresh";
-	static final String KEY_EXCLUDE = "exclude";
-	static final String KEY_NOTIFY = "notify";
-
-	private static final LogWrapper LOG = new LogWrapper("CFG");
 
 	public static boolean isConfigured () {
 		return configFile().exists();
@@ -138,7 +126,7 @@ public class Config {
 	private static Map<String, Account> parseAccounts (final JSONArray accountsJson) throws JSONException {
 		final Map<String, Account> ret = new HashMap<String, Account>();
 		for (int i = 0; i < accountsJson.length(); i++) {
-			Account account = Account.parseJson(accountsJson.getJSONObject(i));
+			final Account account = Account.parseJson(accountsJson.getJSONObject(i));
 			ret.put(account.getId(), account);
 		}
 		return Collections.unmodifiableMap(ret);
@@ -150,50 +138,10 @@ public class Config {
 	private static List<Column> parseFeeds (final JSONArray columnsJson) throws JSONException {
 		final List<Column> ret = new ArrayList<Column>();
 		for (int i = 0; i < columnsJson.length(); i++) {
-			final JSONObject colJson = columnsJson.getJSONObject(i);
-			final int id = colJson.getInt(KEY_ID);
-			final String title = colJson.getString(KEY_TITLE);
-			final String account = colJson.has(KEY_ACCOUNT) ? colJson.getString(KEY_ACCOUNT) : null;
-			final String resource = colJson.getString(KEY_RESOURCE);
-			final String refreshRaw = colJson.optString(KEY_REFRESH, null);
-			final int refreshIntervalMins = parseFeedRefreshInterval(refreshRaw, account, title);
-			final int[] excludeColumnIds = parseFeedExcludeColumns(colJson, title);
-			final boolean notify = colJson.optBoolean(KEY_NOTIFY, false);
-			ret.add(new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds, notify));
+			final Column column = Column.parseJson(columnsJson.getJSONObject(i));
+			ret.add(column);
 		}
 		return Collections.unmodifiableList(ret);
-	}
-
-	private static int parseFeedRefreshInterval (final String refreshRaw, final String account, final String title) {
-		final int refreshIntervalMins = TimeParser.parseDuration(refreshRaw);
-		if (refreshIntervalMins < 1 && account != null) LOG.w("Column '%s' has invalid refresh interval: '%s'.", title, refreshRaw);
-		return refreshIntervalMins;
-	}
-
-	private static int[] parseFeedExcludeColumns (final JSONObject colJson, final String title) throws JSONException {
-		int[] excludeColumnIds = null;
-		if (colJson.has(KEY_EXCLUDE)) {
-			final JSONArray exArr = colJson.optJSONArray(KEY_EXCLUDE);
-			if (exArr != null) {
-				excludeColumnIds = asIntArr(exArr);
-			}
-			else {
-				final int exId = colJson.optInt(KEY_EXCLUDE, Integer.MIN_VALUE);
-				if (exId > Integer.MIN_VALUE) {
-					excludeColumnIds = new int[] { exId };
-				}
-			}
-			if (excludeColumnIds == null) LOG.w("Column '%s' has invalid exclude value: '%s'.", title, colJson.getString(KEY_EXCLUDE));
-		}
-		return excludeColumnIds;
-	}
-
-	private static int[] asIntArr (final JSONArray arr) throws JSONException {
-		final int[] ret = new int[arr.length()];
-		for (int i = 0; i < arr.length(); i++) {
-			ret[i] = arr.getInt(i);
-		}
-		return ret;
 	}
 
 }
