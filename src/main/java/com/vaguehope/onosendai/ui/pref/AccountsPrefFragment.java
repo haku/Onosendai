@@ -54,7 +54,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptAddAccount () {
-		String id = getPrefs().getNextAccountId();
+		final String id = getPrefs().getNextAccountId();
 		final AccountDialog dlg = new AccountDialog(getActivity(), id);
 
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(getActivity());
