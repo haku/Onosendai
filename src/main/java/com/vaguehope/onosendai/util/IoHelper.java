@@ -27,7 +27,7 @@ public final class IoHelper {
 		try {
 			c.close();
 		}
-		catch (IOException e) {/**/}
+		catch (IOException e) {/**/} // NOSONAR this is intentional, is in the name of the method.
 	}
 
 	public static long copy (final InputStream source, final OutputStream sink) throws IOException {
