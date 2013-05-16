@@ -13,13 +13,11 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
 import android.util.SparseArray;
-import android.widget.Toast;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
-import com.vaguehope.onosendai.config.ConfigUnavailableException;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.images.HybridBitmapCache;
@@ -31,6 +29,7 @@ import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.update.AlarmReceiver;
+import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -63,11 +62,10 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		setContentView(R.layout.activity_main);
 
 		try {
-			this.conf = Config.getConfig();
+			this.conf = new Prefs(getBaseContext()).asConfig();
 		}
-		catch (ConfigUnavailableException e) {
-			Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
-			finish();
+		catch (Exception e) { // No point continuing if any exception.
+			DialogHelper.alertAndClose(this, e);
 			return;
 		}
 
