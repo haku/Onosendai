@@ -398,7 +398,7 @@ public class DbAdapter implements DbInterface {
 
 		// TODO integrate into query?
 		final ScrollState fscroll = scroll != null ? scroll : getScroll(columnId);
-		if (fscroll == null) return -1;
+		if (fscroll == null) return 0; // Columns is probably empty.
 		final Tweet tweet = getTweetDetails(fscroll.getItemId());
 		whereArgs[1] = String.valueOf(tweet.getTime());
 
