@@ -51,15 +51,18 @@ public class SetupActivity extends Activity {
 
 		this.actAdaptor = new ArrayAdapter<SetupAction>(this, R.layout.setupactionlistrow);
 		this.actAdaptor.add(SetupActionType.SWIMPORT.toSetupAction(this));
-		this.actAdaptor.add(SetupActionType.WRITETEMPLATE.toSetupAction(this));
+		// TODO normal Twitter setup?
 
 		this.spnAct.setAdapter(this.actAdaptor);
 		this.spnAct.setOnItemSelectedListener(this.actOnItemSelectedListener);
 
-		if (Config.isTemplateConfigured()) {
-			final SetupAction useTemplate = SetupActionType.USETEMPLATE.toSetupAction(this);
-			this.actAdaptor.add(useTemplate);
-			this.spnAct.setSelection(this.actAdaptor.getPosition(useTemplate));
+		if (Config.isConfigFilePresent()) {
+			final SetupAction useConf = SetupActionType.USECONF.toSetupAction(this);
+			this.actAdaptor.add(useConf);
+			this.spnAct.setSelection(this.actAdaptor.getPosition(useConf));
+		}
+		else {
+			this.actAdaptor.add(SetupActionType.WRITEEXAMPLECONF.toSetupAction(this));
 		}
 
 		this.btnContinue.setOnClickListener(this.btnContinueListener);
@@ -70,7 +73,8 @@ public class SetupActivity extends Activity {
 	}
 
 	protected void actionSelected (final SetupAction act) {
-		this.txtActDes.setText(act.getDescription());
+		this.txtActDes.setText(act.getDescription()
+				.replace("${conf_path}", Config.configFile().getAbsolutePath()));
 	}
 
 	protected void runAction () {
@@ -79,11 +83,11 @@ public class SetupActivity extends Activity {
 			case SWIMPORT:
 				doSwImport();
 				break;
-			case WRITETEMPLATE:
-				doWriteTemplate();
+			case WRITEEXAMPLECONF:
+				doWriteExampleConf();
 				break;
-			case USETEMPLATE:
-				doUseTemplate();
+			case USECONF:
+				doUseConf();
 				break;
 			default:
 				Toast.makeText(this, "TODO: " + act.getType(), Toast.LENGTH_SHORT).show();
@@ -107,19 +111,24 @@ public class SetupActivity extends Activity {
 		}
 	};
 
-	private void doWriteTemplate () {
+	private void doWriteExampleConf () {
 		try {
-			final File f = Config.writeTemplateConfig();
-			DialogHelper.alertAndClose(this, "Template file written to: " + f.getAbsolutePath());
+			final File f = Config.writeExampleConfig();
+			DialogHelper.alertAndClose(this, "Example configuration file written to: " + f.getAbsolutePath());
 		}
 		catch (final Exception e) { // NOSONAR show user all errors.
 			DialogHelper.alertAndClose(this, e);
 		}
 	}
 
-	private void doUseTemplate () {
+	private void doUseConf () {
 		try {
-			Config.useTemplateConfig();
+			final Config config = Config.getConfig();
+			new ConfigBuilder()
+					.accounts(config.getAccounts().values())
+					.columns(config.getColumns())
+					.readLater()
+					.writeOverMain(this);
 			startActivity(new Intent(getApplicationContext(), MainActivity.class));
 			finish();
 		}
@@ -204,7 +213,7 @@ public class SetupActivity extends Activity {
 						.account(this.account)
 						.columns(columns.getColumns())
 						.readLater()
-						.writeMain();
+						.writeOverMain(this.activity);
 				startActivity(new Intent(getApplicationContext(), MainActivity.class));
 				finish();
 			}
@@ -217,8 +226,8 @@ public class SetupActivity extends Activity {
 
 	private enum SetupActionType {
 		SWIMPORT("swimport"),
-		WRITETEMPLATE("writetemplate"),
-		USETEMPLATE("usetemplate");
+		WRITEEXAMPLECONF("writeexampleconf"),
+		USECONF("useconf");
 
 		private final String id;
 

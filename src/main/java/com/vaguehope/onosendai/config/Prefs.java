@@ -2,11 +2,13 @@ package com.vaguehope.onosendai.config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import org.json.JSONException;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
@@ -21,14 +23,33 @@ public class Prefs {
 	private static final String KEY_COLUMN_IDS = "column_ids";
 	private static final String KEY_COLUMN_PREFIX = "column_";
 
-	private final PreferenceManager preferenceManager;
+	private final SharedPreferences sharedPreferences;
 
-	public Prefs (final PreferenceManager preferenceManager) {
-		this.preferenceManager = preferenceManager;
+	public Prefs (final Context context) {
+		this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 	}
 
-	private SharedPreferences getSharedPreferences () {
-		return this.preferenceManager.getSharedPreferences();
+	public Prefs (final PreferenceManager preferenceManager) {
+		this.sharedPreferences = preferenceManager.getSharedPreferences();
+	}
+
+	public boolean isConfigured () {
+		return readAccountIds().size() > 0;
+	}
+
+	public void writeOver (final Collection<Account> accounts, final Collection<Column> columns) throws JSONException {
+		for (final String id : readColumnIdsStr()) {
+			deleteColumn(id);
+		}
+		for (final String id : readAccountIds()) {
+			deleteAccount(id);
+		}
+		for (final Account account : accounts) {
+			writeNewAccount(account);
+		}
+		for (final Column column : columns) {
+			writeNewColumn(column);
+		}
 	}
 
 	public String getNextAccountId () {
@@ -40,7 +61,7 @@ public class Prefs {
 	}
 
 	public Account readAccount (final String id) throws JSONException {
-		final String raw = getSharedPreferences().getString(id, null);
+		final String raw = this.sharedPreferences.getString(id, null);
 		if (raw == null) return null;
 		return Account.parseJson(raw);
 	}
@@ -52,14 +73,17 @@ public class Prefs {
 		final String json = account.toJson().toString();
 		final String idsS = appendId(readAccountIds(), id);
 
-		final Editor e = getSharedPreferences().edit();
+		final Editor e = this.sharedPreferences.edit();
 		e.putString(id, json);
 		e.putString(KEY_ACCOUNT_IDS, idsS);
 		e.commit();
 	}
 
 	public void deleteAccount (final Account account) {
-		final String id = account.getId();
+		deleteAccount(account.getId());
+	}
+
+	public void deleteAccount (final String id) {
 		if (id == null || id.isEmpty()) throw new IllegalArgumentException("Account has no ID.");
 
 		final List<String> ids = new ArrayList<String>();
@@ -67,7 +91,7 @@ public class Prefs {
 		if (!ids.remove(id)) throw new IllegalStateException("Tried to delete account '" + id + "' that does not exist in '" + ids + "'.");
 		final String idsS = ArrayHelper.join(ids, ID_SEP);
 
-		final Editor e = getSharedPreferences().edit();
+		final Editor e = this.sharedPreferences.edit();
 		e.putString(KEY_ACCOUNT_IDS, idsS);
 		e.remove(id);
 		e.commit();
@@ -88,7 +112,7 @@ public class Prefs {
 
 	public List<Integer> readColumnIds () {
 		final List<Integer> ret = new ArrayList<Integer>();
-		for (String id : readColumnIdsStr()) {
+		for (final String id : readColumnIdsStr()) {
 			ret.add(parseColumnId(id));
 		}
 		return ret;
@@ -99,7 +123,7 @@ public class Prefs {
 	}
 
 	public Column readColumn (final int id) throws JSONException {
-		final String raw = getSharedPreferences().getString(makeColumnId(id), null);
+		final String raw = this.sharedPreferences.getString(makeColumnId(id), null);
 		if (raw == null) return null;
 		return Column.parseJson(raw);
 	}
@@ -110,21 +134,23 @@ public class Prefs {
 		final String json = column.toJson().toString();
 		final String idsS = appendId(readColumnIdsStr(), id);
 
-		final Editor e = getSharedPreferences().edit();
+		final Editor e = this.sharedPreferences.edit();
 		e.putString(id, json);
 		e.putString(KEY_COLUMN_IDS, idsS);
 		e.commit();
 	}
 
 	public void deleteColumn (final Column column) {
-		final String id = makeColumnId(column.getId());
+		deleteColumn(makeColumnId(column.getId()));
+	}
 
+	public void deleteColumn (final String id) {
 		final List<String> ids = new ArrayList<String>();
 		ids.addAll(readColumnIdsStr());
 		if (!ids.remove(id)) throw new IllegalStateException("Tried to delete column '" + id + "' that does not exist in '" + ids + "'.");
 		final String idsS = ArrayHelper.join(ids, ID_SEP);
 
-		final Editor e = getSharedPreferences().edit();
+		final Editor e = this.sharedPreferences.edit();
 		e.putString(KEY_COLUMN_IDS, idsS);
 		e.remove(id);
 		e.commit();
@@ -140,7 +166,7 @@ public class Prefs {
 	}
 
 	private List<String> readIds (final String key) {
-		final String ids = getSharedPreferences().getString(key, null);
+		final String ids = this.sharedPreferences.getString(key, null);
 		if (ids == null || ids.length() < 1) return Collections.emptyList();
 		return Arrays.asList(ids.split(ID_SEP));
 	}

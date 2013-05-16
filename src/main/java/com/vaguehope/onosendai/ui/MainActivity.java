@@ -21,6 +21,7 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.ConfigUnavailableException;
 import com.vaguehope.onosendai.config.InternalColumnType;
+import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
@@ -52,7 +53,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 	protected void onCreate (final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		if (!Config.isConfigured()) {
+		final Prefs prefs = new Prefs(this); // TODO replace config with this.
+		if (!prefs.isConfigured()) {
 			startActivity(new Intent(getApplicationContext(), SetupActivity.class));
 			finish();
 			return;

@@ -14,30 +14,33 @@
 		Select an action from the list below.
 	</string>
 	<string name="setup_act_swimport">Import from SuccessWhale</string>
-	<string name="setup_act_writetemplate">Manual Configuration</string>
-	<string name="setup_act_usetemplate">Activate Manual Configuration</string>
+	<string name="setup_act_writeexampleconf">Manual Configuration</string>
+	<string name="setup_act_useconf">Activate Manual Configuration</string>
 	<string name="setup_des_swimport">
 		This will import your existing layout from SuccessWhale (SW).
 		For this to you work you must have a SW account with a password configured.
 		\n
 		If you do not have an SW username and password please now go and create one.
 	</string>
-	<string name="setup_des_writetemplate">
+	<string name="setup_des_writeexampleconf">
 		This is an advanced option and requires you to manage a JSON file.
 		\n
-		This will generate you a template configuration file for you to fill in.
-		Once this file has been created you must go and edit it and then return to this screen.
+		This will generate you an example configuration file for you to fill in.
+		After this file has been created you must go and edit it in text editor.
+		Once it is ready return to this screen to import its content.
 		\n
-		The config file will be written to: ${template_path}
+		The configuration file will be written to:
+		\n
+		${conf_path}
 	</string>
-	<string name="setup_des_usetemplate">
-		It looks like you have created a template file.
+	<string name="setup_des_useconf">
+		It looks like you have created a configuration file.
 		\n
-		Use this option to validate that template file and make it active.
-		This will rename the template file.
+		Use this option to validate that configration file and import its content.
 		\n
-		The config file: ${template_path}
-		Will be renamed to: ${config_path}
+		Configuration will be read from:
+		\n
+		${conf_path}
 	</string>
 
 	<string name="preferences_title">Onosendai Preferences</string>
