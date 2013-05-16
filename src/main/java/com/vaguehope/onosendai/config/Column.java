@@ -5,9 +5,25 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
 import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class Column {
+
+	private static final String KEY_ID = "id";
+	private static final String KEY_TITLE = "title";
+	private static final String KEY_ACCOUNT = "account";
+	private static final String KEY_RESOURCE = "resource";
+	private static final String KEY_REFRESH = "refresh";
+	private static final String KEY_EXCLUDE = "exclude";
+	private static final String KEY_NOTIFY = "notify";
+
+	private static final LogWrapper LOG = new LogWrapper("COL");
 
 	private final int id;
 	private final String title;
@@ -59,6 +75,16 @@ public class Column {
 				this.refreshIntervalMins == that.refreshIntervalMins;
 	}
 
+	public String humanId () {
+		return this.title != null && !this.title.isEmpty()
+				? this.title
+				: String.format("Column %s", this.id);
+	}
+
+	public String humanDescription () {
+		return String.format("Column for account %s", this.accountId); // TODO want something like 'SuccessWhale column'.
+	}
+
 	@Override
 	public String toString () {
 		StringBuilder s = new StringBuilder();
@@ -105,6 +131,76 @@ public class Column {
 		List<String> ret = new ArrayList<String>(columns.size());
 		for (Column col : columns) {
 			ret.add(col.getTitle());
+		}
+		return ret;
+	}
+
+	public JSONObject toJson () throws JSONException {
+		final JSONObject json = new JSONObject();
+		json.put(KEY_ID, getId());
+		json.put(KEY_TITLE, getTitle());
+		json.put(KEY_ACCOUNT, getAccountId());
+		json.put(KEY_RESOURCE, getResource());
+		json.put(KEY_REFRESH, getRefreshIntervalMins() + "mins");
+		json.put(KEY_EXCLUDE, toJsonArray(getExcludeColumnIds()));
+		json.put(KEY_NOTIFY, isNotify());
+		return json;
+	}
+
+	private static JSONArray toJsonArray (final int[] arr) {
+		if (arr == null) return null;
+		final JSONArray ja = new JSONArray();
+		for (int i : arr) {
+			ja.put(i);
+		}
+		return ja;
+	}
+
+	public static Column parseJson (final String json) throws JSONException {
+		if (json == null) return null;
+		return parseJson((JSONObject) new JSONTokener(json).nextValue());
+	}
+
+	public static Column parseJson (final JSONObject json) throws JSONException {
+		final int id = json.getInt(KEY_ID);
+		final String title = json.getString(KEY_TITLE);
+		final String account = json.has(KEY_ACCOUNT) ? json.getString(KEY_ACCOUNT) : null;
+		final String resource = json.getString(KEY_RESOURCE);
+		final String refreshRaw = json.optString(KEY_REFRESH, null);
+		final int refreshIntervalMins = parseFeedRefreshInterval(refreshRaw, account, title);
+		final int[] excludeColumnIds = parseFeedExcludeColumns(json, title);
+		final boolean notify = json.optBoolean(KEY_NOTIFY, false);
+		return new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds, notify);
+	}
+
+	private static int parseFeedRefreshInterval (final String refreshRaw, final String account, final String title) {
+		final int refreshIntervalMins = TimeParser.parseDuration(refreshRaw);
+		if (refreshIntervalMins < 1 && account != null) LOG.w("Column '%s' has invalid refresh interval: '%s'.", title, refreshRaw);
+		return refreshIntervalMins;
+	}
+
+	private static int[] parseFeedExcludeColumns (final JSONObject colJson, final String title) throws JSONException {
+		int[] excludeColumnIds = null;
+		if (colJson.has(KEY_EXCLUDE)) {
+			final JSONArray exArr = colJson.optJSONArray(KEY_EXCLUDE);
+			if (exArr != null) {
+				excludeColumnIds = asIntArr(exArr);
+			}
+			else {
+				final int exId = colJson.optInt(KEY_EXCLUDE, Integer.MIN_VALUE);
+				if (exId > Integer.MIN_VALUE) {
+					excludeColumnIds = new int[] { exId };
+				}
+			}
+			if (excludeColumnIds == null) LOG.w("Column '%s' has invalid exclude value: '%s'.", title, colJson.getString(KEY_EXCLUDE));
+		}
+		return excludeColumnIds;
+	}
+
+	private static int[] asIntArr (final JSONArray arr) throws JSONException {
+		final int[] ret = new int[arr.length()];
+		for (int i = 0; i < arr.length(); i++) {
+			ret[i] = arr.getInt(i);
 		}
 		return ret;
 	}

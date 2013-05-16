@@ -48,17 +48,7 @@ public class ConfigBuilder {
 
 	public ConfigBuilder column (final Column column) throws ConfigException {
 		try {
-			final JSONObject colObj = new JSONObject();
-
-			colObj.put(Config.KEY_ID, column.getId());
-			colObj.put(Config.KEY_TITLE, column.getTitle());
-			colObj.put(Config.KEY_ACCOUNT, column.getAccountId());
-			colObj.put(Config.KEY_RESOURCE, column.getResource());
-			colObj.put(Config.KEY_REFRESH, column.getRefreshIntervalMins() + "mins");
-			colObj.put(Config.KEY_EXCLUDE, toJsonArray(column.getExcludeColumnIds()));
-			colObj.put(Config.KEY_NOTIFY, column.isNotify());
-
-			this.feeds.put(colObj);
+			this.feeds.put(column.toJson());
 			return this;
 		}
 		catch (final JSONException e) {
@@ -87,15 +77,6 @@ public class ConfigBuilder {
 		catch (final IOException e) {
 			throw new ConfigException(e);
 		}
-	}
-
-	private static JSONArray toJsonArray (final int[] arr) {
-		if (arr == null) return null;
-		final JSONArray ja = new JSONArray();
-		for (int i : arr) {
-			ja.put(i);
-		}
-		return ja;
 	}
 
 }
