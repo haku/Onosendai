@@ -60,6 +60,7 @@ import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
 import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
 import com.vaguehope.onosendai.update.UpdateService;
+import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 /**
@@ -453,7 +454,7 @@ public class TweetListFragment extends Fragment {
 	protected void askRt (final Tweet tweet) {
 		final Account account = MetaUtils.accountFromMeta(tweet, this.conf);
 		if (account == null) {
-			Toast.makeText(getActivity(), "Can not find this tweet's account metadata.", Toast.LENGTH_LONG).show();
+			DialogHelper.alert(getActivity(), "Can not find this tweet's account metadata.");
 			return;
 		}
 
@@ -510,7 +511,7 @@ public class TweetListFragment extends Fragment {
 				this.tweetListFragment.setReadLaterButton(this.tweet, !this.isLaterColumn);
 			}
 			else {
-				Toast.makeText(this.context, "Read later column not configured.", Toast.LENGTH_SHORT).show();
+				DialogHelper.alert(this.context, "Read later column not configured.");
 			}
 		}
 	}
