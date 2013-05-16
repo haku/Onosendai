@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.config;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +24,7 @@ public class Config {
 	private static final String SECTION_ACCOUNTS = "accounts";
 	private static final String SECTION_FEEDS = "feeds";
 
-	public static boolean isConfigFilePresent() {
+	public static boolean isConfigFilePresent () {
 		return configFile().exists();
 	}
 
@@ -65,6 +66,19 @@ public class Config {
 		final JSONObject o = (JSONObject) new JSONTokener(s).nextValue();
 		this.accounts = parseAccounts(o.getJSONArray(SECTION_ACCOUNTS));
 		this.feeds = parseFeeds(o.getJSONArray(SECTION_FEEDS));
+	}
+
+	Config (final Collection<Account> accounts, final Collection<Column> columns) {
+		final Map<String, Account> a = new HashMap<String, Account>();
+		for (Account account : accounts) {
+			a.put(account.getId(), account);
+		}
+
+		final List<Column> f = new ArrayList<Column>();
+		f.addAll(columns);
+
+		this.accounts = Collections.unmodifiableMap(a);
+		this.feeds = Collections.unmodifiableList(f);
 	}
 
 	public Map<String, Account> getAccounts () {

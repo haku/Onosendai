@@ -14,6 +14,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.json.JSONException;
+
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
@@ -24,7 +26,7 @@ import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
-import com.vaguehope.onosendai.config.ConfigUnavailableException;
+import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
@@ -124,9 +126,9 @@ public class UpdateService extends IntentService {
 	private void fetchColumns (final int columnId, final boolean manual) {
 		Config conf;
 		try {
-			conf = Config.getConfig();
+			conf = new Prefs(getBaseContext()).asConfig();
 		}
-		catch (final ConfigUnavailableException e) {
+		catch (final JSONException e) {
 			LOG.w("Can not update: %s", e.toString());
 			return;
 		}

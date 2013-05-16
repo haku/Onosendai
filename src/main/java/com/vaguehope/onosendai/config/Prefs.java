@@ -52,12 +52,24 @@ public class Prefs {
 		}
 	}
 
+	public Config asConfig () throws JSONException {
+		return new Config(readAccounts(), readColumns());
+	}
+
 	public String getNextAccountId () {
 		return nextId(readAccountIds(), KEY_ACCOUNT_PREFIX);
 	}
 
 	public List<String> readAccountIds () {
 		return readIds(KEY_ACCOUNT_IDS);
+	}
+
+	public Collection<Account> readAccounts () throws JSONException {
+		final Collection<Account> ret = new ArrayList<Account>();
+		for (final String id : readAccountIds()) {
+			ret.add(readAccount(id));
+		}
+		return ret;
 	}
 
 	public Account readAccount (final String id) throws JSONException {
@@ -122,8 +134,20 @@ public class Prefs {
 		return readIds(KEY_COLUMN_IDS);
 	}
 
+	public Collection<Column> readColumns () throws JSONException {
+		final Collection<Column> ret = new ArrayList<Column>();
+		for (final String id : readColumnIdsStr()) {
+			ret.add(readColumn(id));
+		}
+		return ret;
+	}
+
 	public Column readColumn (final int id) throws JSONException {
-		final String raw = this.sharedPreferences.getString(makeColumnId(id), null);
+		return readColumn(makeColumnId(id));
+	}
+
+	private Column readColumn (final String id) throws JSONException {
+		final String raw = this.sharedPreferences.getString(id, null);
 		if (raw == null) return null;
 		return Column.parseJson(raw);
 	}
@@ -144,7 +168,7 @@ public class Prefs {
 		deleteColumn(makeColumnId(column.getId()));
 	}
 
-	public void deleteColumn (final String id) {
+	private void deleteColumn (final String id) {
 		final List<String> ids = new ArrayList<String>();
 		ids.addAll(readColumnIdsStr());
 		if (!ids.remove(id)) throw new IllegalStateException("Tried to delete column '" + id + "' that does not exist in '" + ids + "'.");

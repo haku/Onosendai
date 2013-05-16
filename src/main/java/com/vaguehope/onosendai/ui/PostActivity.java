@@ -24,13 +24,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountAdaptor;
 import com.vaguehope.onosendai.config.Config;
+import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
@@ -44,6 +44,7 @@ import com.vaguehope.onosendai.provider.PostTask.PostRequest;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -78,13 +79,12 @@ public class PostActivity extends Activity implements ImageLoader {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.post);
 
-		Config conf = null;
+		Config conf;
 		try {
-			conf = Config.getConfig();
+			conf = new Prefs(getBaseContext()).asConfig();
 		}
-		catch (Exception e) {
-			Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
-			finish();
+		catch (Exception e) { // No point continuing if any exception.
+			DialogHelper.alertAndClose(this, e);
 			return;
 		}
 
