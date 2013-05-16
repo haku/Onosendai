@@ -125,9 +125,7 @@ public class SetupActivity extends Activity {
 		try {
 			final Config config = Config.getConfig();
 			new ConfigBuilder()
-					.accounts(config.getAccounts().values())
-					.columns(config.getColumns())
-					.readLater()
+					.config(config)
 					.writeOverMain(this);
 			startActivity(new Intent(getApplicationContext(), MainActivity.class));
 			finish();

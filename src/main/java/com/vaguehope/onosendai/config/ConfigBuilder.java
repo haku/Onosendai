@@ -18,6 +18,12 @@ public class ConfigBuilder {
 		this.columns = new LinkedHashMap<Integer, Column>();
 	}
 
+	public ConfigBuilder config (final Config config) throws ConfigException {
+		accounts(config.getAccounts().values());
+		columns(config.getColumns());
+		return this;
+	}
+
 	public ConfigBuilder accounts (final Collection<Account> acnts) throws ConfigException {
 		for (Account account : acnts) {
 			account(account);
