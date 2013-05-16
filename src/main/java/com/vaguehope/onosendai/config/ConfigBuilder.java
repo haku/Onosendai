@@ -1,80 +1,62 @@
 package com.vaguehope.onosendai.config;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import com.vaguehope.onosendai.util.IoHelper;
+import android.content.Context;
 
 public class ConfigBuilder {
 
-	private final JSONObject obj;
-	private final JSONArray accounts;
-	private final JSONArray feeds;
+	private final Map<String, Account> accounts;
+	private final Map<Integer, Column> columns;
 
-	public ConfigBuilder () throws ConfigException {
-		try {
-			this.obj = new JSONObject();
-			this.accounts = new JSONArray();
-			this.feeds = new JSONArray();
-			this.obj.put(Config.SECTION_ACCOUNTS, this.accounts);
-			this.obj.put(Config.SECTION_FEEDS, this.feeds);
+	public ConfigBuilder () {
+		this.accounts = new LinkedHashMap<String, Account>();
+		this.columns = new LinkedHashMap<Integer, Column>();
+	}
+
+	public ConfigBuilder accounts (final Collection<Account> acnts) throws ConfigException {
+		for (Account account : acnts) {
+			account(account);
 		}
-		catch (final JSONException e) {
-			throw new ConfigException(e);
-		}
+		return this;
 	}
 
 	public ConfigBuilder account (final Account account) throws ConfigException {
-		try {
-			this.accounts.put(account.toJson());
-			return this;
-		}
-		catch (final JSONException e) {
-			throw new ConfigException(e);
-		}
+		if (account.getId() == null || account.getId().isEmpty()) throw new ConfigException("Account is missing Id.");
+		if (this.accounts.containsKey(account.getId())) throw new ConfigException("Account ID already used: " + account.getId());
+		this.accounts.put(account.getId(), account);
+		return this;
 	}
 
-	public ConfigBuilder columns (final List<Column> columns) throws ConfigException {
-		for (final Column column : columns) {
+	public ConfigBuilder columns (final Collection<Column> cols) throws ConfigException {
+		for (final Column column : cols) {
 			column(column);
 		}
 		return this;
 	}
 
-	public ConfigBuilder column (final Column column) throws ConfigException {
-		try {
-			this.feeds.put(column.toJson());
-			return this;
-		}
-		catch (final JSONException e) {
-			throw new ConfigException(e);
-		}
-	}
-
-	public ConfigBuilder readLater () throws ConfigException {
-		column(new Column(this.feeds.length(), "Reading List", null, InternalColumnType.LATER.name(), -1, null, false));
+	public ConfigBuilder column (final Column col) throws ConfigException {
+		final Integer id = Integer.valueOf(col.getId());
+		if (this.accounts.containsKey(id)) throw new ConfigException("Column ID already used: " + id);
+		this.columns.put(id, col);
 		return this;
 	}
 
-	public void writeMain () throws ConfigException {
-		final File f = Config.configFile();
-		if (f.exists()) throw new ConfigException("Config file '" + f.getAbsolutePath() + "' already exists.");
-		write(f);
+	public ConfigBuilder readLater () throws ConfigException {
+		column(new Column(this.columns.size(), "Reading List", null, InternalColumnType.LATER.name(), -1, null, false));
+		return this;
 	}
 
-	public void write (final File f) throws ConfigException {
+	public void writeOverMain (final Context context) throws ConfigException {
 		try {
-			IoHelper.stringToFile(this.obj.toString(2), f);
+			final Prefs prefs = new Prefs(context);
+			prefs.writeOver(this.accounts.values(), this.columns.values());
 		}
-		catch (final JSONException e) {
-			throw new ConfigException(e);
-		}
-		catch (final IOException e) {
+		catch (JSONException e) {
 			throw new ConfigException(e);
 		}
 	}

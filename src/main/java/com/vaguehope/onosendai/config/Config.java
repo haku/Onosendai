@@ -20,22 +20,17 @@ import com.vaguehope.onosendai.util.IoHelper;
 
 public class Config {
 
-	static final String SECTION_ACCOUNTS = "accounts";
-	static final String SECTION_FEEDS = "feeds";
+	private static final String SECTION_ACCOUNTS = "accounts";
+	private static final String SECTION_FEEDS = "feeds";
 
-	public static boolean isConfigured () {
+	public static boolean isConfigFilePresent() {
 		return configFile().exists();
 	}
 
-	public static boolean isTemplateConfigured () {
-		// TODO Check not same as internal template.
-		return templateFile().exists();
-	}
-
-	public static File writeTemplateConfig () throws ConfigException {
+	public static File writeExampleConfig () throws ConfigException {
 		try {
-			final File t = templateFile();
-			if (t.exists()) throw new ConfigException("Template file '" + t.getAbsolutePath() + "' already exists.");
+			final File t = configFile();
+			if (t.exists()) throw new ConfigException("Configuration file '" + t.getAbsolutePath() + "' already exists.");
 			IoHelper.resourceToFile("/deck.conf", t);
 			return t;
 		}
@@ -44,19 +39,9 @@ public class Config {
 		}
 	}
 
-	public static void useTemplateConfig () throws ConfigException {
-		final File t = templateFile();
-		if (!isTemplateConfigured()) throw new ConfigException("Template file '" + t.getAbsolutePath() + "' does not exist.");
-
-		final File f = configFile();
-		if (f.exists()) throw new ConfigException("Config file '" + f.getAbsolutePath() + "' already exists.");
-
-		if (!t.renameTo(f)) throw new ConfigException("Failed to rename '" + t.getAbsolutePath() + "' to '" + f.getAbsolutePath() + "'.");
-	}
-
 	public static Config getConfig () throws ConfigUnavailableException {
 		final File f = configFile();
-		if (!f.exists()) throw new ConfigUnavailableException("Config file '" + f.getAbsolutePath() + "' does not exist.");
+		if (!f.exists()) throw new ConfigUnavailableException("Configuration file '" + f.getAbsolutePath() + "' does not exist.");
 		try {
 			return new Config(f);
 		}
@@ -68,12 +53,8 @@ public class Config {
 		}
 	}
 
-	static File configFile () {
+	public static File configFile () {
 		return new File(Environment.getExternalStorageDirectory().getPath(), C.CONFIG_FILE_NAME);
-	}
-
-	private static File templateFile () {
-		return new File(Environment.getExternalStorageDirectory().getPath(), C.TEMPLATE_CONFIG_FILE_NAME);
 	}
 
 	private final Map<String, Account> accounts;

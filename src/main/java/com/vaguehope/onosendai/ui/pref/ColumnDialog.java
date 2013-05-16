@@ -98,7 +98,7 @@ class ColumnDialog {
 				this.txtAccountId.getText().toString(),
 				this.txtResource.getText().toString(),
 				mins,
-				null, // TODO GUI for excludes.
+				this.initialValue.getExcludeColumnIds(), // TODO GUI for excludes.
 				this.chkNotify.isChecked());
 	}
 

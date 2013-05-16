@@ -82,7 +82,10 @@ public class Column {
 	}
 
 	public String humanDescription () {
-		return String.format("Column for account %s", this.accountId); // TODO want something like 'SuccessWhale column'.
+		if (this.accountId != null && !this.accountId.isEmpty()) {
+			return String.format("Column for account %s", this.accountId); // TODO want something like 'SuccessWhale column'.
+		}
+		return "";
 	}
 
 	@Override
