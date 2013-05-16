@@ -25,8 +25,8 @@ public class AccountDialogPreference extends DialogPreference {
 		this.accountsPrefFragment = accountsPrefFragment;
 
 		setKey(account.getId());
-		setTitle("Account: " + account.getId()); // TODO Should make this more friendly.
-		setSummary(account.getProvider() + " account.");
+		setTitle(account.humanId());
+		setSummary(account.humanDescription());
 
 		setDialogTitle("Edit Account (" + getKey() + ")");
 		setPositiveButtonText(android.R.string.ok);

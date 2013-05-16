@@ -35,8 +35,21 @@ public class Account {
 		this.accessSecret = accessSecret;
 	}
 
+	public String humanId () {
+		switch (this.provider) {
+			case SUCCESSWHALE:
+				return this.getAccessToken();
+			default:
+				return this.getId();
+		}
+	}
+
+	public String humanDescription() {
+		return String.format("%s account", this.getProvider().toHumanString());
+	}
+
 	public String toHumanString () {
-		return String.format("%s (%s)", this.getProvider().toHumanString(), this.getId());
+		return String.format("%s (%s)", this.getProvider().toHumanString(), humanId());
 	}
 
 	@Override
