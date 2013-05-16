@@ -48,4 +48,11 @@ public final class DialogHelper {
 				.show();
 	}
 
+	public static final DialogInterface.OnClickListener DLG_CANCEL_CLICK_LISTENER = new DialogInterface.OnClickListener() {
+		@Override
+		public void onClick (final DialogInterface dialog, final int whichButton) {
+			dialog.cancel();
+		}
+	};
+
 }

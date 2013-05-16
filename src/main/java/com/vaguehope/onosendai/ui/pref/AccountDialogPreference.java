@@ -51,13 +51,12 @@ public class AccountDialogPreference extends DialogPreference {
 		if (positiveResult) {
 			try {
 				if (this.dialog.isDeleteSelected()) {
-					persistString(null);
-					this.accountsPrefFragment.deleteAccount(this.dialog.getInitialValue());
+					this.accountsPrefFragment.getPrefs().deleteAccount(this.dialog.getInitialValue());
 				}
 				else {
 					persistString(this.dialog.getValue().toJson().toString());
-					this.accountsPrefFragment.refreshAccountsList();
 				}
+				this.accountsPrefFragment.refreshAccountsList();
 			}
 			catch (JSONException e) {
 				DialogHelper.alert(getContext(), e);
