@@ -2,39 +2,32 @@ package com.vaguehope.onosendai.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SyncMgr {
 
-	private final Map<String, MutableInt> locks = new HashMap<String, MutableInt>();
+	private final Map<String, AtomicInteger> locks = new HashMap<String, AtomicInteger>();
 
 	public Object getSync (final String key) {
 		synchronized (this.locks) {
-			MutableInt c = this.locks.get(key);
+			AtomicInteger c = this.locks.get(key);
 			if (c == null) {
-				c = new MutableInt();
+				c = new AtomicInteger(0);
 				this.locks.put(key, c);
 			}
-			c.i++;
+			c.incrementAndGet();
 			return c;
 		}
 	}
 
 	public void returnSync (final String key) {
 		synchronized (this.locks) {
-			MutableInt c = this.locks.get(key);
+			final AtomicInteger c = this.locks.get(key);
 			if (c != null) {
-				c.i--;
-				if (c.i < 1) this.locks.remove(key);
+				c.decrementAndGet();
+				if (c.intValue() < 1) this.locks.remove(key);
 			}
 		}
-	}
-
-	private static class MutableInt {
-
-		volatile int i = 0;
-
-		public MutableInt () {}
-
 	}
 
 }
