@@ -34,7 +34,7 @@ class AccountDialog {
 
 	private AccountDialog (final Context context, final String id, final Account initialValue) {
 		if (id == null) throw new IllegalArgumentException("ID may not be null.");
-		if (initialValue != null && initialValue.getId() != id) throw new IllegalStateException("ID and initialValue ID do not match.");
+		if (initialValue != null && !id.equals(initialValue.getId())) throw new IllegalStateException("ID and initialValue ID do not match.");
 
 		this.id = id;
 		this.initialValue = initialValue;
