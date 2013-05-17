@@ -78,7 +78,7 @@ public final class IoHelper {
 	}
 
 	public static void stringToFile (final String data, final File f) throws IOException {
-		streamToFile(new ByteArrayInputStream(data.getBytes()), f);
+		streamToFile(new ByteArrayInputStream(data.getBytes("UTF-8")), f);
 	}
 
 	public static void resourceToFile (final String res, final File f) throws IOException {
