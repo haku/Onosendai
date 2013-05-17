@@ -5,7 +5,6 @@ import java.util.List;
 import org.json.JSONException;
 
 import twitter4j.Twitter;
-import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
@@ -161,7 +160,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 			try {
 				return new Result<RequestToken>(this.host.getTwitter().getOAuthRequestToken(TwitterOauth.CALLBACK_URL));
 			}
-			catch (final TwitterException e) {
+			catch (final Exception e) { // NOSONAR report all errors to user.
 				return new Result<RequestToken>(e);
 			}
 		}
@@ -219,7 +218,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 				final RequestToken token = this.host.unstashRequestToken();
 				return new Result<AccessToken>(this.host.getTwitter().getOAuthAccessToken(token, this.oauthVerifier));
 			}
-			catch (final TwitterException e) {
+			catch (final Exception e) { // NOSONAR report all errors to user.
 				return new Result<AccessToken>(e);
 			}
 		}
