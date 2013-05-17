@@ -2,70 +2,64 @@ package com.vaguehope.onosendai.ui.pref;
 
 import android.content.Context;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 
-import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
 
 class AccountDialog {
 
 	private final String id;
+	private final AccountProvider accountProvider;
 	private final Account initialValue;
 
-	private final ArrayAdapter<AccountProvider> actAccountTypeAdaptor;
 	private final LinearLayout llParent;
-	private final Spinner spnAccountType;
 	private final EditText txtUsername;
 	private final EditText txtPassword;
 	private final CheckBox chkDelete;
 
-	public AccountDialog (final Context context, final String id) {
-		this(context, id, null);
+	public AccountDialog (final Context context, final String id, final AccountProvider accountProvider) {
+		this(context, id, accountProvider, null);
 	}
 
 	public AccountDialog (final Context context, final Account initialValue) {
-		this(context, initialValue != null ? initialValue.getId() : null, initialValue);
+		this(context,
+				initialValue != null ? initialValue.getId() : null,
+				initialValue != null ? initialValue.getProvider() : null,
+				initialValue);
 	}
 
-	private AccountDialog (final Context context, final String id, final Account initialValue) {
+	private AccountDialog (final Context context, final String id, final AccountProvider accountProvider, final Account initialValue) {
 		if (id == null) throw new IllegalArgumentException("ID may not be null.");
+		if (accountProvider == null) throw new IllegalArgumentException("Account provider may not be null.");
 		if (initialValue != null && !id.equals(initialValue.getId())) throw new IllegalStateException("ID and initialValue ID do not match.");
 
 		this.id = id;
+		this.accountProvider = accountProvider;
 		this.initialValue = initialValue;
 
-		this.actAccountTypeAdaptor = new ArrayAdapter<AccountProvider>(context, R.layout.accounttypelistrow);
-		this.actAccountTypeAdaptor.add(AccountProvider.SUCCESSWHALE);
-		// TODO include other account types.
-
 		this.llParent = new LinearLayout(context);
+		this.txtUsername = new EditText(context);
+		this.txtPassword = new EditText(context);
+		this.chkDelete = new CheckBox(context);
+
 		this.llParent.setOrientation(LinearLayout.VERTICAL);
 
-		this.spnAccountType = new Spinner(context);
-		this.spnAccountType.setAdapter(this.actAccountTypeAdaptor);
-		//this.spnAccountType.setOnItemSelectedListener(this...);
-		this.llParent.addView(this.spnAccountType);
+		if (this.accountProvider == AccountProvider.SUCCESSWHALE) {
+			this.txtUsername.setSelectAllOnFocus(true);
+			this.txtUsername.setHint("username");
+			this.llParent.addView(this.txtUsername);
 
-		this.txtUsername = new EditText(context);
-		this.txtUsername.setSelectAllOnFocus(true);
-		this.txtUsername.setHint("username");
-		this.llParent.addView(this.txtUsername);
+			this.txtPassword.setSelectAllOnFocus(true);
+			this.txtPassword.setHint("password");
+			this.llParent.addView(this.txtPassword);
+		}
 
-		this.txtPassword = new EditText(context);
-		this.txtPassword.setSelectAllOnFocus(true);
-		this.txtPassword.setHint("password");
-		this.llParent.addView(this.txtPassword);
-
-		this.chkDelete = new CheckBox(context);
 		this.chkDelete.setText("delete");
 		this.chkDelete.setChecked(false);
 
-		// TODO include other account types.
 		if (initialValue != null) {
 			this.txtUsername.setText(initialValue.getAccessToken());
 			this.txtPassword.setText(initialValue.getAccessSecret());
@@ -81,13 +75,19 @@ class AccountDialog {
 		return this.llParent;
 	}
 
-	public boolean isDeleteSelected() {
+	public boolean isDeleteSelected () {
 		return this.chkDelete.isChecked();
 	}
 
+	/**
+	 * Will getValue() return something?
+	 */
+	public boolean isSaveable () {
+		return this.accountProvider == AccountProvider.SUCCESSWHALE;
+	}
+
 	public Account getValue () {
-		AccountProvider ap = (AccountProvider) this.spnAccountType.getSelectedItem();
-		switch (ap) {
+		switch (this.accountProvider) {
 			case SUCCESSWHALE:
 				return new Account(this.id,
 						AccountProvider.SUCCESSWHALE,

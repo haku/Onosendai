@@ -55,6 +55,12 @@
 			android:theme="@android:style/Theme.Holo">
 		</activity>
 
+		<activity
+			android:name=".ui.pref.TwitterLoginActivity"
+			android:label="@string/preferences_title"
+			android:theme="@android:style/Theme.Holo">
+		</activity>
+
 		<receiver android:name=".update.BootReceiver">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED" />
