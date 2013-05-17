@@ -1,7 +1,5 @@
 package com.vaguehope.onosendai.util;
 
-import com.vaguehope.onosendai.provider.TaskUtils;
-
 public class Result<T> {
 
 	private final boolean success;
@@ -32,10 +30,6 @@ public class Result<T> {
 
 	public Exception getE () {
 		return this.e;
-	}
-
-	public String getEmsg () {
-		return TaskUtils.getEmsg(this.e);
 	}
 
 }
