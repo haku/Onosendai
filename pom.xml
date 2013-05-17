@@ -144,6 +144,33 @@
 					</configuration>
 				</plugin>
 
+				<plugin>
+					<groupId>com.google.code.maven-replacer-plugin</groupId>
+					<artifactId>replacer</artifactId>
+					<version>1.5.2</version>
+					<executions>
+						<execution>
+							<phase>prepare-package</phase>
+							<goals>
+								<goal>replace</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<file>target/classes/api_twitter</file>
+						<replacements>
+							<replacement>
+								<token>API_TWITTER_CONSUMER_KEY</token>
+								<value>${env.API_TWITTER_CONSUMER_KEY}</value>
+							</replacement>
+							<replacement>
+								<token>API_TWITTER_CONSUMER_SECRET</token>
+								<value>${env.API_TWITTER_CONSUMER_SECRET}</value>
+							</replacement>
+						</replacements>
+					</configuration>
+				</plugin>
+
 			</plugins>
 		</pluginManagement>
 
@@ -152,6 +179,11 @@
 			<plugin>
 				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
 				<artifactId>android-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>com.google.code.maven-replacer-plugin</groupId>
+				<artifactId>replacer</artifactId>
 			</plugin>
 
 		</plugins>

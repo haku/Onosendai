@@ -29,6 +29,7 @@ public class AccountDialogPreference extends DialogPreference {
 		setSummary(account.humanDescription());
 
 		switch(account.getProvider()) {
+			case TWITTER:
 			case SUCCESSWHALE:
 				break;
 			default:
@@ -53,7 +54,7 @@ public class AccountDialogPreference extends DialogPreference {
 				if (this.dialog.isDeleteSelected()) {
 					this.accountsPrefFragment.getPrefs().deleteAccount(this.dialog.getInitialValue());
 				}
-				else {
+				else if (this.dialog.isSaveable()) {
 					persistString(this.dialog.getValue().toJson().toString());
 				}
 				this.accountsPrefFragment.refreshAccountsList();
