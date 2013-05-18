@@ -23,6 +23,7 @@ import com.vaguehope.onosendai.util.LogWrapper;
  */
 public class TwitterLoginActivity extends Activity {
 
+	private static final int MAX_PRG = 100;
 	private static final LogWrapper LOG = new LogWrapper("TLA");
 
 	public static LogWrapper getLog () {
@@ -38,7 +39,7 @@ public class TwitterLoginActivity extends Activity {
 		layout.setOrientation(LinearLayout.VERTICAL);
 
 		final ProgressBar prgBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-		prgBar.setMax(100);
+		prgBar.setMax(MAX_PRG);
 		prgBar.setProgress(0);
 		prgBar.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 		layout.addView(prgBar);
@@ -66,11 +67,11 @@ public class TwitterLoginActivity extends Activity {
 		@Override
 		public void onProgressChanged (final WebView view, final int newProgress) {
 			super.onProgressChanged(view, newProgress);
-			if (newProgress < 100 && this.prgBar.getVisibility() == View.GONE) {
+			if (newProgress < MAX_PRG && this.prgBar.getVisibility() == View.GONE) {
 				this.prgBar.setVisibility(View.VISIBLE);
 			}
 			this.prgBar.setProgress(newProgress);
-			if (newProgress == 100) {
+			if (newProgress == MAX_PRG) {
 				this.prgBar.setVisibility(View.GONE);
 			}
 		}
