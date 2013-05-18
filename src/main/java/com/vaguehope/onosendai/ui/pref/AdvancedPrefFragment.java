@@ -9,8 +9,11 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.ConfigBuilder;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.util.DialogHelper;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class AdvancedPrefFragment extends PreferenceFragment {
+
+	private static final LogWrapper LOG = new LogWrapper("ADVPREF");
 
 	private Prefs prefs;
 
@@ -67,6 +70,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 					.writeOverMain(getActivity());
 		}
 		catch (final Exception e) { // NOSONAR show user all errors.
+			LOG.e("Failed to import configuration.", e);
 			DialogHelper.alertAndClose(getActivity(), e);
 		}
 	}

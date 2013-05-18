@@ -20,15 +20,20 @@ public final class DialogHelper {
 	}
 
 	public static void alert (final Context context, final String msg) {
+		alertAndRun(context, msg, null);
+	}
+
+	public static void alertAndRun (final Context context, final String msg, final Runnable run) {
 		new AlertDialog.Builder(context)
-				.setMessage(msg)
-				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick (final DialogInterface dialog, final int which) {
-						dialog.dismiss();
-					}
-				})
-				.show();
+		.setMessage(msg)
+		.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int which) {
+				dialog.dismiss();
+				if (run != null) run.run();
+			}
+		})
+		.show();
 	}
 
 	public static void alertAndClose (final Activity activity, final Exception e) {
@@ -36,16 +41,12 @@ public final class DialogHelper {
 	}
 
 	public static void alertAndClose (final Activity activity, final String msg) {
-		new AlertDialog.Builder(activity)
-				.setMessage(msg)
-				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick (final DialogInterface dialog, final int which) {
-						activity.finish();
-						dialog.dismiss();
-					}
-				})
-				.show();
+		alertAndRun(activity, msg, new Runnable() {
+			@Override
+			public void run () {
+				activity.finish();
+			}
+		});
 	}
 
 	public static void askYesNo(final Context context, final String msg, final Runnable onYes) {

@@ -14,6 +14,7 @@ import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
 import com.vaguehope.onosendai.util.ArrayHelper;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class Prefs {
 
@@ -22,6 +23,8 @@ public class Prefs {
 	private static final String KEY_ACCOUNT_PREFIX = "account_";
 	private static final String KEY_COLUMN_IDS = "column_ids";
 	private static final String KEY_COLUMN_PREFIX = "column_";
+
+	private static final LogWrapper LOG = new LogWrapper("PRF");
 
 	private final SharedPreferences sharedPreferences;
 
@@ -89,6 +92,8 @@ public class Prefs {
 		e.putString(id, json);
 		e.putString(KEY_ACCOUNT_IDS, idsS);
 		e.commit();
+
+		LOG.i("Wrote new account %s.", id);
 	}
 
 	public void deleteAccount (final Account account) {

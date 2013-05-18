@@ -46,9 +46,18 @@ public class ConfigBuilder {
 	}
 
 	public ConfigBuilder column (final Column col) throws ConfigException {
-		final Integer id = Integer.valueOf(col.getId());
-		if (this.columns.containsKey(id)) throw new ConfigException("Column ID already used: " + id);
-		this.columns.put(id, col);
+		Column colToAdd = col;
+		int id = col.getId();
+
+		if (id < 0) {
+			id = this.columns.size();
+			colToAdd = new Column(id, colToAdd);
+		}
+
+		final Integer key = Integer.valueOf(id);
+		if (this.columns.containsKey(key)) throw new ConfigException("Column ID already used: " + id);
+
+		this.columns.put(id, colToAdd);
 		return this;
 	}
 
