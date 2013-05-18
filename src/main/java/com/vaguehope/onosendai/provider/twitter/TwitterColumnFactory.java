@@ -6,18 +6,20 @@ import com.vaguehope.onosendai.config.Column;
 
 public final class TwitterColumnFactory {
 
+	private static final int DEFAULT_REFRESH_MINS = 30;
+
 	private TwitterColumnFactory () {
 		throw new AssertionError();
 	}
 
 	public static Column homeTimeline (final int id, final Account account) {
 		checkAccount(account);
-		return new Column(id, "Home Timeline", account.getId(), MainFeeds.TIMELINE.name(), 30, null, false);
+		return new Column(id, "Home Timeline", account.getId(), MainFeeds.TIMELINE.name(), DEFAULT_REFRESH_MINS, null, false);
 	}
 
 	public static Column mentions (final int id, final Account account) {
 		checkAccount(account);
-		return new Column(id, "Mentions", account.getId(), MainFeeds.MENTIONS.name(), 30, null, false);
+		return new Column(id, "Mentions", account.getId(), MainFeeds.MENTIONS.name(), DEFAULT_REFRESH_MINS, null, false);
 	}
 
 	private static void checkAccount (final Account account) {
