@@ -33,6 +33,10 @@ public class Column {
 	private final int[] excludeColumnIds;
 	private final boolean notify;
 
+	public Column (final int id, final Column c) {
+		this(id, c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.isNotify());
+	}
+
 	public Column (
 			final int id,
 			final String title,

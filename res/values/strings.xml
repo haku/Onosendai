@@ -13,9 +13,13 @@
 		\n
 		Select an action from the list below.
 	</string>
+	<string name="setup_act_twitter">Twitter Account</string>
 	<string name="setup_act_swimport">Import from SuccessWhale</string>
 	<string name="setup_act_writeexampleconf">Manual Configuration</string>
 	<string name="setup_act_useconf">Activate Manual Configuration</string>
+	<string name="setup_des_twitter">
+		Sign in to Twitter and authorise Onosendai to access your account.
+	</string>
 	<string name="setup_des_swimport">
 		This will import your existing layout from SuccessWhale (SW).
 		For this to you work you must have a SW account with a password configured.

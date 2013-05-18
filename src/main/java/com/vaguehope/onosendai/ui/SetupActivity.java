@@ -26,14 +26,23 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.ConfigBuilder;
+import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
+import com.vaguehope.onosendai.provider.twitter.TwitterColumnFactory;
 import com.vaguehope.onosendai.storage.VolatileKvStore;
+import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard;
+import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthCallback;
 import com.vaguehope.onosendai.util.DialogHelper;
+import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.Result;
 
 public class SetupActivity extends Activity {
+
+	private static final LogWrapper LOG = new LogWrapper("SETUP");
+
+	private Prefs prefs;
 
 	private ArrayAdapter<SetupAction> actAdaptor;
 	private Spinner spnAct;
@@ -45,13 +54,15 @@ public class SetupActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.setup);
 
+		this.prefs = new Prefs(this);
+
 		this.spnAct = (Spinner) findViewById(R.id.spnSetupAction);
 		this.txtActDes = (TextView) findViewById(R.id.txtActionDescription);
 		this.btnContinue = (Button) findViewById(R.id.btnContinue);
 
 		this.actAdaptor = new ArrayAdapter<SetupAction>(this, R.layout.setupactionlistrow);
+		this.actAdaptor.add(SetupActionType.TWITTER.toSetupAction(this));
 		this.actAdaptor.add(SetupActionType.SWIMPORT.toSetupAction(this));
-		// TODO normal Twitter setup?
 
 		this.spnAct.setAdapter(this.actAdaptor);
 		this.spnAct.setOnItemSelectedListener(this.actOnItemSelectedListener);
@@ -68,6 +79,15 @@ public class SetupActivity extends Activity {
 		this.btnContinue.setOnClickListener(this.btnContinueListener);
 	}
 
+	protected static LogWrapper getLog () {
+		return LOG;
+	}
+
+	protected Prefs getPrefs () {
+		if (this.prefs == null) throw new IllegalStateException("Prefs has not been initialised.");
+		return this.prefs;
+	}
+
 	protected ArrayAdapter<SetupAction> getActAdaptor () {
 		return this.actAdaptor;
 	}
@@ -80,6 +100,9 @@ public class SetupActivity extends Activity {
 	protected void runAction () {
 		final SetupAction act = (SetupAction) this.spnAct.getSelectedItem();
 		switch (act.getType()) {
+			case TWITTER:
+				doTwitter();
+				break;
 			case SWIMPORT:
 				doSwImport();
 				break;
@@ -111,12 +134,73 @@ public class SetupActivity extends Activity {
 		}
 	};
 
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private TwitterOauthWizard twitterOauthWizard;
+
+	private void initTwitterOauthWizard () {
+		if (this.twitterOauthWizard != null) return;
+		this.twitterOauthWizard = new TwitterOauthWizard(this, getPrefs(), new TwitterOauthCallback() {
+			@Override
+			public void deligateStartActivityForResult (final Intent intent, final int requestCode) {
+				startActivityForResult(intent, requestCode);
+			}
+
+			@Override
+			public void onAccountAdded (final Account account) {
+				onTwitterAccountAdded(account);
+			}
+		});
+	}
+
+	private void doTwitter () {
+		initTwitterOauthWizard();
+		this.twitterOauthWizard.start();
+	}
+
+	@Override
+	public void onActivityResult (final int requestCode, final int resultCode, final Intent intent) {
+		super.onActivityResult(requestCode, resultCode, intent);
+		this.twitterOauthWizard.onActivityResult(requestCode, resultCode, intent);
+	}
+
+	protected void onTwitterAccountAdded (final Account account) {
+		DialogHelper.alertAndRun(this,
+				"Default Twitter columns will be created.\n\n(TODO: dialogue to choose columns)",
+				new Runnable() {
+					@Override
+					public void run () {
+						createTwitterColumnsAndFinish(account);
+					}
+				});
+	}
+
+	protected void createTwitterColumnsAndFinish (final Account account) {
+		try {
+			new ConfigBuilder()
+					.account(account)
+					.column(TwitterColumnFactory.homeTimeline(-1, account))
+					.column(TwitterColumnFactory.mentions(-1, account))
+					.readLater()
+					.writeOverMain(this);
+			startActivity(new Intent(getApplicationContext(), MainActivity.class));
+			finish();
+		}
+		catch (final Exception e) { // NOSONAR show user all errors.
+			LOG.e("Failed to setup Twitter account and columns.", e);
+			DialogHelper.alertAndClose(this, e);
+		}
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	private void doWriteExampleConf () {
 		try {
 			final File f = Config.writeExampleConfig();
 			DialogHelper.alertAndClose(this, "Example configuration file written to: " + f.getAbsolutePath());
 		}
 		catch (final Exception e) { // NOSONAR show user all errors.
+			LOG.e("Failed to write example confuration.", e);
 			DialogHelper.alertAndClose(this, e);
 		}
 	}
@@ -131,6 +215,7 @@ public class SetupActivity extends Activity {
 			finish();
 		}
 		catch (final Exception e) { // NOSONAR show user all errors.
+			LOG.e("Failed to import configuration.", e);
 			DialogHelper.alertAndClose(this, e);
 		}
 	}
@@ -201,6 +286,7 @@ public class SetupActivity extends Activity {
 			}
 			else {
 				this.dialog.dismiss();
+				getLog().e("Failed fetch SuccessWhale configuration.", result.getE());
 				DialogHelper.alert(this.activity, result.getE());
 			}
 		}
@@ -216,6 +302,7 @@ public class SetupActivity extends Activity {
 				finish();
 			}
 			catch (final Exception e) { // NOSONAR show user all errors.
+				getLog().e("Failed to write imported SuccessWhale configuration.", e);
 				DialogHelper.alertAndClose(this.activity, e);
 			}
 		}
@@ -223,6 +310,7 @@ public class SetupActivity extends Activity {
 	}
 
 	private enum SetupActionType {
+		TWITTER("twitter"),
 		SWIMPORT("swimport"),
 		WRITEEXAMPLECONF("writeexampleconf"),
 		USECONF("useconf");

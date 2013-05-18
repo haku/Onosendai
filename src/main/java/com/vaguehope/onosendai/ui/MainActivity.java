@@ -52,7 +52,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 	protected void onCreate (final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		final Prefs prefs = new Prefs(this); // TODO replace config with this.
+		final Prefs prefs = new Prefs(getBaseContext());
 		if (!prefs.isConfigured()) {
 			startActivity(new Intent(getApplicationContext(), SetupActivity.class));
 			finish();
@@ -62,7 +62,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 		setContentView(R.layout.activity_main);
 
 		try {
-			this.conf = new Prefs(getBaseContext()).asConfig();
+			this.conf = prefs.asConfig();
 		}
 		catch (Exception e) { // No point continuing if any exception.
 			DialogHelper.alertAndClose(this, e);
