@@ -56,6 +56,7 @@ public class ColumnsXml implements ContentHandler {
 	private final Stack<String> stack = new Stack<String>();
 	private StringBuilder currentText;
 	private List<String> stashedFeedPaths;
+	private String stashedTitle;
 
 	@Override
 	public void startElement (final String uri, final String localName, final String qName, final Attributes attributes) throws SAXException {
@@ -71,7 +72,7 @@ public class ColumnsXml implements ContentHandler {
 		if (this.stack.size() == 3) { // NOSONAR not a magic number.
 			if ("column".equals(elementName)) {
 				final String resource = ArrayHelper.join(this.stashedFeedPaths, ":");
-				final Column column = new Column(this.columns.size(), "TODO title", this.account.getId(), resource, 30, null, false);
+				final Column column = new Column(this.columns.size(), this.stashedTitle, this.account.getId(), resource, 30, null, false);
 				this.columns.add(column);
 				this.stashedFeedPaths = null;
 			}
@@ -80,6 +81,9 @@ public class ColumnsXml implements ContentHandler {
 			if ("feedpath".equals(elementName)) {
 				if (this.stashedFeedPaths == null) this.stashedFeedPaths = new ArrayList<String>();
 				this.stashedFeedPaths.add(this.currentText.toString());
+			}
+			else if ("title".equals(elementName)) {
+				this.stashedTitle = this.currentText.toString();
 			}
 		}
 

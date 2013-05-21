@@ -28,9 +28,9 @@ public class ColumnsXmlTest {
 		final List<Column> columns = c.getColumns();
 		assertEquals(3, columns.size());
 
-		assertColumn(columns.get(0), 0, "TODO title", "twitter/12345678/statuses/home_timeline");
-		assertColumn(columns.get(1), 1, "TODO title", "twitter/12345678/twittername/lists/somelist/statuses");
-		assertColumn(columns.get(2), 2, "TODO title", "twitter/12345678/statuses/mentions:twitter/12345678/statuses/user_timeline");
+		assertColumn(columns.get(0), 0, "@twittername's Home Timeline", "twitter/12345678/statuses/home_timeline");
+		assertColumn(columns.get(1), 1, "Somelist", "twitter/12345678/twittername/lists/somelist/statuses");
+		assertColumn(columns.get(2), 2, "Combined Feed", "twitter/12345678/statuses/mentions:twitter/12345678/statuses/user_timeline");
 	}
 
 	private static void assertColumn (final Column c, final int id, final String title, final String resource) {
