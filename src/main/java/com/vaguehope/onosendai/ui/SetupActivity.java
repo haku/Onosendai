@@ -243,7 +243,7 @@ public class SetupActivity extends Activity {
 	protected void doSwFetchConfig () {
 		final String username = ((EditText) findViewById(R.id.txtUsername)).getText().toString();
 		final String password = ((EditText) findViewById(R.id.txtPassword)).getText().toString();
-		final Account acc = new Account("sw0", AccountProvider.SUCCESSWHALE, null, null, username, password);
+		final Account acc = new Account("sw0", username, AccountProvider.SUCCESSWHALE, null, null, username, password);
 		new SwColumnsFetcher(this, acc).execute();
 	}
 

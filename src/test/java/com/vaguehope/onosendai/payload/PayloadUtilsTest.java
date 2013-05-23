@@ -27,7 +27,7 @@ public class PayloadUtilsTest {
 	@Before
 	public void before () throws Exception {
 		this.conf = mock(Config.class);
-		when(this.conf.getAccount(ACCOUNT_ID)).thenReturn(new Account(ACCOUNT_ID, null, null, null, null, null));
+		when(this.conf.getAccount(ACCOUNT_ID)).thenReturn(new Account(ACCOUNT_ID, null, null, null, null, null, null));
 	}
 
 	@Test

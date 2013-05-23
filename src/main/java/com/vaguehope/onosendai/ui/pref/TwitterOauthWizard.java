@@ -190,7 +190,7 @@ public class TwitterOauthWizard {
 		try {
 			LOG.i("Account authorised %s.", accessToken.getScreenName());
 			final String id = this.prefs.getNextAccountId();
-			final Account account = new Account(id, AccountProvider.TWITTER,
+			final Account account = new Account(id, accessToken.getScreenName(), AccountProvider.TWITTER,
 					getTwitterConfiguration().getOAuthConsumerKey(), getTwitterConfiguration().getOAuthConsumerSecret(),
 					accessToken.getToken(), accessToken.getTokenSecret());
 			this.prefs.writeNewAccount(account);

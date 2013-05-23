@@ -9,6 +9,7 @@ import com.vaguehope.onosendai.util.EqualHelper;
 public class Account {
 
 	private static final String KEY_ID = "id";
+	private static final String KEY_TITLE = "title";
 	private static final String KEY_PROVIDER = "provider";
 
 	private static final String KEY_USERNAME = "username";
@@ -20,14 +21,16 @@ public class Account {
 	private static final String KEY_ACCESS_SECRET = "accessSecret";
 
 	private final String id;
+	private final String title;
 	private final AccountProvider provider;
 	private final String consumerKey;
 	private final String consumerSecret;
 	private final String accessToken;
 	private final String accessSecret;
 
-	public Account (final String id, final AccountProvider provider, final String consumerKey, final String consumerSecret, final String accessToken, final String accessSecret) {
+	public Account (final String id, final String title, final AccountProvider provider, final String consumerKey, final String consumerSecret, final String accessToken, final String accessSecret) {
 		this.id = id;
+		this.title = title;
 		this.provider = provider;
 		this.consumerKey = consumerKey;
 		this.consumerSecret = consumerSecret;
@@ -35,28 +38,22 @@ public class Account {
 		this.accessSecret = accessSecret;
 	}
 
-	public String humanId () {
-		switch (this.provider) {
-			case SUCCESSWHALE:
-				return this.getAccessToken();
-			default:
-				return this.getId();
+	public String humanTitle () {
+		if (this.title != null && !this.title.isEmpty()) {
+			return this.title;
 		}
+		return String.format("%s (%s)", this.provider.toHumanString(), this.id);
 	}
 
-	public String humanDescription() {
-		return String.format("%s account", this.getProvider().toHumanString());
-	}
-
-	public String toHumanString () {
-		return String.format("%s (%s)", this.getProvider().toHumanString(), humanId());
+	public String humanDescription () {
+		return String.format("%s account", this.provider.toHumanString());
 	}
 
 	@Override
 	public String toString () {
 		StringBuilder s = new StringBuilder();
-		s.append("Account{").append(this.getId())
-				.append(",").append(this.getProvider())
+		s.append("Account{").append(this.id)
+				.append(",").append(this.provider)
 				.append("}");
 		return s.toString();
 	}
@@ -66,6 +63,7 @@ public class Account {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+		result = prime * result + ((this.title == null) ? 0 : this.title.hashCode());
 		result = prime * result + ((this.provider == null) ? 0 : this.provider.hashCode());
 		result = prime * result + ((this.consumerKey == null) ? 0 : this.consumerKey.hashCode());
 		result = prime * result + ((this.consumerSecret == null) ? 0 : this.consumerSecret.hashCode());
@@ -81,6 +79,7 @@ public class Account {
 		if (!(o instanceof Account)) return false;
 		Account that = (Account) o;
 		return EqualHelper.equal(this.id, that.id) &&
+				EqualHelper.equal(this.title, that.title) &&
 				EqualHelper.equal(this.provider, that.provider) &&
 				EqualHelper.equal(this.consumerKey, that.consumerKey) &&
 				EqualHelper.equal(this.consumerSecret, that.consumerSecret) &&
@@ -90,6 +89,10 @@ public class Account {
 
 	public String getId () {
 		return this.id;
+	}
+
+	public String getTitle () {
+		return this.title;
 	}
 
 	public AccountProvider getProvider () {
@@ -115,6 +118,7 @@ public class Account {
 	public JSONObject toJson () throws JSONException {
 		final JSONObject json = new JSONObject();
 		json.put(KEY_ID, this.id);
+		json.put(KEY_TITLE, this.title);
 		json.put(KEY_PROVIDER, String.valueOf(this.provider));
 		switch (this.provider) {
 			case TWITTER:
@@ -163,22 +167,25 @@ public class Account {
 	}
 
 	private static Account parseTwitterAccount (final JSONObject accountJson, final String id) throws JSONException {
+		final String title = accountJson.optString(KEY_TITLE, null);
 		final String consumerKey = accountJson.getString(KEY_CONSUMER_KEY);
 		final String consumerSecret = accountJson.getString(KEY_CONSUMER_SECRET);
 		final String accessToken = accountJson.getString(KEY_ACCESS_TOKEN);
 		final String accessSecret = accountJson.getString(KEY_ACCESS_SECRET);
-		return new Account(id, AccountProvider.TWITTER, consumerKey, consumerSecret, accessToken, accessSecret);
+		return new Account(id, title, AccountProvider.TWITTER, consumerKey, consumerSecret, accessToken, accessSecret);
 	}
 
 	private static Account parseSuccessWhaleAccount (final JSONObject accountJson, final String id) throws JSONException {
 		final String accessToken = accountJson.getString(KEY_USERNAME);
 		final String accessSecret = accountJson.getString(KEY_PASSWORD);
-		return new Account(id, AccountProvider.SUCCESSWHALE, null, null, accessToken, accessSecret);
+		final String title = accountJson.optString(KEY_TITLE, accessToken);
+		return new Account(id, title, AccountProvider.SUCCESSWHALE, null, null, accessToken, accessSecret);
 	}
 
 	private static Account parseBufferAccount (final JSONObject accountJson, final String id) throws JSONException {
+		final String title = accountJson.optString(KEY_TITLE, null);
 		final String accessToken = accountJson.getString(KEY_ACCESS_TOKEN);
-		return new Account(id, AccountProvider.BUFFER, null, null, accessToken, null);
+		return new Account(id, title, AccountProvider.BUFFER, null, null, accessToken, null);
 	}
 
 }

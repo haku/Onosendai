@@ -89,10 +89,11 @@ class AccountDialog {
 	public Account getValue () {
 		switch (this.accountProvider) {
 			case SUCCESSWHALE:
-				return new Account(this.id,
+				final String username = this.txtUsername.getText().toString();
+				final String password = this.txtPassword.getText().toString();
+				return new Account(this.id, username,
 						AccountProvider.SUCCESSWHALE,
-						null, null, this.txtUsername.getText().toString(),
-						this.txtPassword.getText().toString());
+						null, null, username, password);
 			default:
 				return null;
 		}

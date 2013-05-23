@@ -25,7 +25,7 @@ public class AccountDialogPreference extends DialogPreference {
 		this.accountsPrefFragment = accountsPrefFragment;
 
 		setKey(account.getId());
-		setTitle(account.humanId());
+		setTitle(account.humanTitle());
 		setSummary(account.humanDescription());
 
 		switch(account.getProvider()) {
