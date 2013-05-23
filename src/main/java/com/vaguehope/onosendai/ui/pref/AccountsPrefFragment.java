@@ -16,21 +16,12 @@ import android.preference.PreferenceFragment;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Prefs;
+import com.vaguehope.onosendai.ui.pref.PrefDialogs.Listener;
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthCallback;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class AccountsPrefFragment extends PreferenceFragment {
-
-	// TODO merge these lists.
-	protected static final AccountProvider[] NEW_ACCOUNT_PROVIDERS = new AccountProvider[] {
-			AccountProvider.TWITTER,
-			AccountProvider.SUCCESSWHALE
-	};
-	private static final String[] NEW_ACCOUNT_LABELS = new String[] {
-			AccountProvider.TWITTER.toHumanString(),
-			AccountProvider.SUCCESSWHALE.toHumanString()
-	};
 
 	private static final LogWrapper LOG = new LogWrapper("APF");
 
@@ -71,17 +62,12 @@ public class AccountsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptNewAccountType () {
-		final AlertDialog.Builder bld = new AlertDialog.Builder(getActivity());
-		bld.setTitle("Account Type");
-		bld.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER);
-		bld.setItems(NEW_ACCOUNT_LABELS, new DialogInterface.OnClickListener() {
+		PrefDialogs.askAccountType(getActivity(), new Listener<AccountProvider>() {
 			@Override
-			public void onClick (final DialogInterface dialog, final int item) {
-				dialog.dismiss();
-				promptAddAccount(NEW_ACCOUNT_PROVIDERS[item]);
+			public void onAnswer (final AccountProvider answer) {
+				promptAddAccount(answer);
 			}
 		});
-		bld.show();
 	}
 
 	protected void promptAddAccount (final AccountProvider accountProvider) {
