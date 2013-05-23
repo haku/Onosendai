@@ -12,8 +12,10 @@ import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceFragment;
 
+import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Prefs;
+import com.vaguehope.onosendai.ui.pref.PrefDialogs.Listener;
 import com.vaguehope.onosendai.util.DialogHelper;
 
 public class ColumnsPrefFragment extends PreferenceFragment {
@@ -54,8 +56,18 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptAddColumn () {
+		PrefDialogs.askAccount(getActivity(), this.prefs, new Listener<Account>() {
+			@Override
+			public void onAnswer (final Account account) {
+				promptAddColumn(account);
+			}
+		});
+	}
+
+	protected void promptAddColumn (final Account account) {
 		final int id = getPrefs().getNextColumnId();
 		final ColumnDialog dlg = new ColumnDialog(getActivity(), id);
+		dlg.setAccount(account);
 
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(getActivity());
 		dlgBuilder.setTitle("New Column (" + id + ")");

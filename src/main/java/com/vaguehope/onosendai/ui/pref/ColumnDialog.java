@@ -6,6 +6,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.TimeParser;
 
@@ -85,6 +86,10 @@ class ColumnDialog {
 
 	public View getRootView () {
 		return this.llParent;
+	}
+
+	public void setAccount (final Account account) {
+		this.txtAccountId.setText(account.getId());
 	}
 
 	public boolean isDeleteSelected () {
