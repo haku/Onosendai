@@ -22,7 +22,7 @@ public class SuccessWhaleFeedXmlTest {
 
 	@Before
 	public void before () throws Exception {
-		this.account = new Account(ACCOUNT_ID, null, null, null, null, null);
+		this.account = new Account(ACCOUNT_ID, null, null, null, null, null, null);
 	}
 
 	@Test

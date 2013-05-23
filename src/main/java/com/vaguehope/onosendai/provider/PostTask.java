@@ -47,7 +47,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 		this.notificationMgr = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
 		final Notification n = new NotificationCompat.Builder(this.context)
 				.setSmallIcon(Ui.notificationIcon())
-				.setContentTitle(String.format("Posting to %s...", this.req.getAccount().toHumanString()))
+				.setContentTitle(String.format("Posting to %s...", this.req.getAccount().humanTitle()))
 				.setOngoing(true)
 				.setUsesChronometer(true)
 				.build();
@@ -65,7 +65,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 			case BUFFER:
 				return postBufferApp();
 			default:
-				return new PostResult(this.req, new UnsupportedOperationException("Do not know how to post to account type: " + this.req.getAccount().toHumanString()));
+				return new PostResult(this.req, new UnsupportedOperationException("Do not know how to post to account type: " + this.req.getAccount().humanTitle()));
 		}
 	}
 
@@ -119,7 +119,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 			final PendingIntent contentIntent = PendingIntent.getActivity(this.context, this.notificationId, this.req.getRecoveryIntent(), PendingIntent.FLAG_CANCEL_CURRENT);
 			final Notification n = new NotificationCompat.Builder(this.context)
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
-					.setContentTitle(String.format("Tap to retry post to %s.", this.req.getAccount().toHumanString()))
+					.setContentTitle(String.format("Tap to retry post to %s.", this.req.getAccount().humanTitle()))
 					.setContentText(res.getEmsg())
 					.setContentIntent(contentIntent)
 					.setAutoCancel(true)

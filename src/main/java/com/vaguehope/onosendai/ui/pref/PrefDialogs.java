@@ -66,7 +66,7 @@ public final class PrefDialogs {
 		final List<String> labels = CollectionHelper.map(accounts, new Function<Account, String>() {
 			@Override
 			public String exec (final Account account) {
-				return account.toHumanString();
+				return account.humanTitle();
 			}
 		}, new ArrayList<String>());
 
