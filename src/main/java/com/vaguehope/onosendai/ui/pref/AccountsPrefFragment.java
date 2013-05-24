@@ -16,9 +16,9 @@ import android.preference.PreferenceFragment;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Prefs;
-import com.vaguehope.onosendai.ui.pref.PrefDialogs.Listener;
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthCallback;
 import com.vaguehope.onosendai.util.DialogHelper;
+import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class AccountsPrefFragment extends PreferenceFragment {

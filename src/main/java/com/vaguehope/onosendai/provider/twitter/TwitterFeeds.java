@@ -4,8 +4,8 @@ import java.util.Locale;
 
 public final class TwitterFeeds {
 
-	private static final String PREFIX_LISTS = "lists/";
-	private static final String PREFIX_SEARCH = "search/";
+	static final String PREFIX_LISTS = "lists/";
+	static final String PREFIX_SEARCH = "search/";
 
 	private TwitterFeeds () {
 		throw new AssertionError();
