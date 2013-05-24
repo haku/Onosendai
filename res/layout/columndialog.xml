@@ -1,0 +1,99 @@
+<TableLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:padding="5dip">
+
+	<TableRow
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+
+		<TextView
+			android:paddingRight="10dp"
+			android:text="Title" />
+
+		<EditText
+			android:id="@+id/txtTitle"
+			android:layout_weight="1"
+			android:singleLine="true"
+			android:selectAllOnFocus="true"
+			android:hint="My Column" />
+
+	</TableRow>
+
+	<TableRow
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+
+		<TextView
+			android:paddingRight="10dp"
+			android:text="Account ID" />
+
+		<EditText
+			android:id="@+id/txtAccountId"
+			android:layout_weight="1"
+			android:singleLine="true"
+			android:selectAllOnFocus="true"
+			android:hint="account_x" />
+
+	</TableRow>
+
+	<TableRow
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+
+		<TextView
+			android:paddingRight="10dp"
+			android:text="Resource" />
+
+		<EditText
+			android:id="@+id/txtResource"
+			android:layout_weight="1"
+			android:singleLine="true"
+			android:selectAllOnFocus="true"
+			android:hint="feed" />
+
+	</TableRow>
+
+	<TableRow
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+
+		<TextView
+			android:paddingRight="10dp"
+			android:text="Refresh" />
+
+		<EditText
+			android:id="@+id/txtRefresh"
+			android:layout_weight="1"
+			android:singleLine="true"
+			android:selectAllOnFocus="true"
+			android:hint="30min" />
+
+	</TableRow>
+
+	<TableRow
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+
+		<CheckBox
+			android:id="@+id/chkNotify"
+			android:layout_column="1"
+			android:text="Notify" />
+
+	</TableRow>
+
+	<TableRow
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+
+		<CheckBox
+			android:id="@+id/chkDelete"
+			android:layout_column="1"
+			android:text="Delete"
+			android:checked="false"
+			android:visibility="gone" />
+
+	</TableRow>
+
+</TableLayout>
