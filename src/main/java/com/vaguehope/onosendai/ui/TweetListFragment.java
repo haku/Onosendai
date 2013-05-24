@@ -151,7 +151,6 @@ public class TweetListFragment extends Fragment {
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
 		this.adapter = new TweetListAdapter(container.getContext(), this.imageLoader);
 		this.tweetList.setAdapter(this.adapter);
-		this.tweetList.setScrollbarFadingEnabled(false);
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
 		this.refreshUiHandler = new RefreshUiHandler(this);
 
