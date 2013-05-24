@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 
 public final class DialogHelper {
@@ -76,6 +77,7 @@ public final class DialogHelper {
 		final EditText editText = new EditText(context);
 		editText.setSelectAllOnFocus(true);
 		editText.setSingleLine();
+		editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
 		dlgBld.setView(editText);
 		dlgBld.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 			@Override
