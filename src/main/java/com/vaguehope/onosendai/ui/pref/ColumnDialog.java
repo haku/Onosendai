@@ -1,11 +1,12 @@
 package com.vaguehope.onosendai.ui.pref;
 
 import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 
+import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.TimeParser;
@@ -15,7 +16,7 @@ class ColumnDialog {
 	private final int id;
 	private final Column initialValue;
 
-	private final LinearLayout llParent;
+	private final View llParent;
 	private final EditText txtTitle;
 	private final EditText txtAccountId;
 	private final EditText txtResource;
@@ -37,36 +38,15 @@ class ColumnDialog {
 		this.id = id;
 		this.initialValue = initialValue;
 
-		this.llParent = new LinearLayout(context);
-		this.llParent.setOrientation(LinearLayout.VERTICAL);
+		LayoutInflater inflater = LayoutInflater.from(context);
+		this.llParent = inflater.inflate(R.layout.columndialog, null);
 
-		this.txtTitle = new EditText(context);
-		this.txtTitle.setSelectAllOnFocus(true);
-		this.txtTitle.setHint("title");
-		this.llParent.addView(this.txtTitle);
-
-		this.txtAccountId = new EditText(context);
-		this.txtAccountId.setSelectAllOnFocus(true);
-		this.txtAccountId.setHint("accountId");
-		this.llParent.addView(this.txtAccountId);
-
-		this.txtResource = new EditText(context);
-		this.txtResource.setSelectAllOnFocus(true);
-		this.txtResource.setHint("resource");
-		this.llParent.addView(this.txtResource);
-
-		this.txtRefresh = new EditText(context);
-		this.txtRefresh.setSelectAllOnFocus(true);
-		this.txtRefresh.setHint("refresh");
-		this.llParent.addView(this.txtRefresh);
-
-		this.chkNotify = new CheckBox(context);
-		this.chkNotify.setText("notify");
-		this.llParent.addView(this.chkNotify);
-
-		this.chkDelete = new CheckBox(context);
-		this.chkDelete.setText("delete");
-		this.chkDelete.setChecked(false);
+		this.txtTitle = (EditText) this.llParent.findViewById(R.id.txtTitle);
+		this.txtAccountId = (EditText) this.llParent.findViewById(R.id.txtAccountId);
+		this.txtResource = (EditText) this.llParent.findViewById(R.id.txtResource);
+		this.txtRefresh = (EditText) this.llParent.findViewById(R.id.txtRefresh);
+		this.chkNotify = (CheckBox) this.llParent.findViewById(R.id.chkNotify);
+		this.chkDelete = (CheckBox) this.llParent.findViewById(R.id.chkDelete);
 
 		if (initialValue != null) {
 			this.txtTitle.setText(initialValue.getTitle());
@@ -76,7 +56,7 @@ class ColumnDialog {
 					? initialValue.getRefreshIntervalMins() + "mins"
 					: ""); // TODO make this a number chooser.
 			this.chkNotify.setChecked(initialValue.isNotify());
-			this.llParent.addView(this.chkDelete);
+			this.chkDelete.setVisibility(View.VISIBLE);
 		}
 	}
 
