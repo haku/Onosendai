@@ -92,6 +92,10 @@ class ColumnDialog {
 		this.txtAccountId.setText(account.getId());
 	}
 
+	public void setResource (final String resource) {
+		this.txtResource.setText(resource);
+	}
+
 	public boolean isDeleteSelected () {
 		return this.chkDelete.isChecked();
 	}

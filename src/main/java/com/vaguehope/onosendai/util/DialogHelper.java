@@ -1,11 +1,18 @@
 package com.vaguehope.onosendai.util;
 
+import java.util.List;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.widget.EditText;
 
 public final class DialogHelper {
+
+	public interface Listener<T> {
+		public void onAnswer (T answer);
+	}
 
 	private DialogHelper () {
 		throw new AssertionError();
@@ -26,7 +33,7 @@ public final class DialogHelper {
 	public static void alertAndRun (final Context context, final String msg, final Runnable run) {
 		new AlertDialog.Builder(context)
 		.setMessage(msg)
-		.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
 				dialog.dismiss();
@@ -52,14 +59,41 @@ public final class DialogHelper {
 	public static void askYesNo(final Context context, final String msg, final Runnable onYes) {
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(context);
 		dlgBld.setMessage(msg);
-		dlgBld.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		dlgBld.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
+				dialog.dismiss();
 				onYes.run();
 			}
 		});
-		dlgBld.setNegativeButton("No", DLG_CANCEL_CLICK_LISTENER);
+		dlgBld.setNegativeButton(android.R.string.no, DLG_CANCEL_CLICK_LISTENER);
 		dlgBld.show();
+	}
+
+	public static void askString(final Context context, final String msg, final Listener<String> onString) {
+		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(context);
+		dlgBld.setMessage(msg);
+		final EditText editText = new EditText(context);
+		editText.setSelectAllOnFocus(true);
+		editText.setSingleLine();
+		dlgBld.setView(editText);
+		dlgBld.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int which) {
+				dialog.dismiss();
+				onString.onAnswer(editText.getText().toString().trim());
+			}
+		});
+		dlgBld.setNegativeButton(android.R.string.cancel, DLG_CANCEL_CLICK_LISTENER);
+		dlgBld.show();
+	}
+
+	public static void askItemFromList(final Context context, final String title, final List<String> list, final Listener<String> onItem) {
+		final AlertDialog.Builder bld = new AlertDialog.Builder(context);
+		bld.setTitle(title);
+		bld.setNegativeButton(android.R.string.cancel, DialogHelper.DLG_CANCEL_CLICK_LISTENER);
+		bld.setItems(list.toArray(new String[]{}), new SimpleAnswerListener<String>(list, onItem));
+		bld.show();
 	}
 
 	public static final DialogInterface.OnClickListener DLG_CANCEL_CLICK_LISTENER = new DialogInterface.OnClickListener() {
@@ -68,5 +102,23 @@ public final class DialogHelper {
 			dialog.cancel();
 		}
 	};
+
+	public static class SimpleAnswerListener<T> implements DialogInterface.OnClickListener {
+
+		private final List<T> items;
+		private final Listener<T> onAnswer;
+
+		public SimpleAnswerListener (final List<T> items, final Listener<T> onAnswer) {
+			this.items = items;
+			this.onAnswer = onAnswer;
+		}
+
+		@Override
+		public void onClick (final DialogInterface dialog, final int which) {
+			dialog.dismiss();
+			this.onAnswer.onAnswer(this.items.get(which));
+		}
+
+	}
 
 }

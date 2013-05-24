@@ -1,13 +1,17 @@
 package com.vaguehope.onosendai.provider.twitter;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import twitter4j.ResponseList;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.UserList;
 import twitter4j.conf.ConfigurationBuilder;
 
 import com.vaguehope.onosendai.config.Account;
@@ -66,6 +70,16 @@ public class TwitterProvider {
 
 	public void rt (final Account account, final long id) throws TwitterException {
 		getTwitter(account).retweetStatus(id);
+	}
+
+	public List<String> getListSlugs(final Account account) throws TwitterException {
+		final Twitter t = getTwitter(account);
+		final ResponseList<UserList> lists = t.getUserLists(t.getId());
+		final List<String> slugs = new ArrayList<String>();
+		for (final UserList list : lists) {
+			slugs.add(list.getSlug());
+		}
+		return slugs;
 	}
 
 	private static TwitterFactory makeTwitterFactory (final Account account) {
