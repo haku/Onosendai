@@ -62,12 +62,14 @@ public class AccountsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptNewAccountType () {
-		PrefDialogs.askAccountType(getActivity(), new Listener<AccountProvider>() {
-			@Override
-			public void onAnswer (final AccountProvider answer) {
-				promptAddAccount(answer);
-			}
-		});
+		DialogHelper.askItem(getActivity(), "Account Type",
+				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.SUCCESSWHALE },
+				new Listener<AccountProvider>() {
+					@Override
+					public void onAnswer (final AccountProvider answer) {
+						promptAddAccount(answer);
+					}
+				});
 	}
 
 	protected void promptAddAccount (final AccountProvider accountProvider) {
@@ -94,6 +96,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 			public void deligateStartActivityForResult (final Intent intent, final int requestCode) {
 				startActivityForResult(intent, requestCode);
 			}
+
 			@Override
 			public void onAccountAdded (final Account account) {
 				refreshAccountsList();

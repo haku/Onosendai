@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.ui.pref;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONException;
@@ -60,7 +61,9 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptAddColumn () {
-		PrefDialogs.askAccount(getActivity(), this.prefs, new Listener<Account>() {
+		final List<Account> items = readAccountsOrAlert();
+		if (items == null) return;
+		DialogHelper.askItem(getActivity(), "Account", items, new Listener<Account>() {
 			@Override
 			public void onAnswer (final Account account) {
 				promptAddColumn(account);
@@ -83,7 +86,7 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptAddTwitterColumn (final Account account) {
-		PrefDialogs.askTwitterColumnType(getActivity(), new Listener<TwitterColumnType>() {
+		DialogHelper.askItem(getActivity(), "Twitter Columns", TwitterColumnType.values(), new Listener<TwitterColumnType>() {
 			@Override
 			public void onAnswer (final TwitterColumnType type) {
 				promptAddTwitterColumn(account, type);
@@ -179,6 +182,20 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		});
 		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER);
 		dlgBuilder.create().show();
+	}
+
+	private List<Account> readAccountsOrAlert () {
+		try {
+			List<Account> items = new ArrayList<Account>();
+			for (Account account : this.prefs.readAccounts()) {
+				items.add(account);
+			}
+			return items;
+		}
+		catch (JSONException e) {
+			DialogHelper.alert(getActivity(), "Failed to read accounts.", e);
+			return null;
+		}
 	}
 
 	private static class AddAcountClickListener implements OnPreferenceClickListener {
