@@ -9,7 +9,7 @@
 	app:sidebarView="@id/tweetDetailView">
 
 	<RelativeLayout
-		android:id="@id/tweetDetailView"
+		android:id="@+id/tweetDetailView"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent">
 
@@ -50,8 +50,8 @@
 
     <!-- Note: set background to disable transparency. -->
 
-	<LinearLayout
-		android:id="@id/tweetListView"
+	<RelativeLayout
+		android:id="@+id/tweetListView"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		android:background="@android:color/background_dark"
@@ -59,8 +59,10 @@
 		android:orientation="vertical">
 
 		<LinearLayout
+			android:id="@+id/tweetListTitleBar"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
+			android:layout_alignParentTop="true"
 			android:orientation="horizontal"
 			style="?android:attr/buttonBarStyle">
 
@@ -99,9 +101,10 @@
 			android:id="@+id/tweetListList"
 			android:layout_width="fill_parent"
 			android:layout_height="0dip"
-			android:layout_weight="1"
+			android:layout_below="@id/tweetListTitleBar"
+			android:layout_alignParentBottom="true"
 			android:fadeScrollbars="false" />
 
-	</LinearLayout>
+	</RelativeLayout>
 
 </com.vaguehope.onosendai.layouts.SidebarLayout>

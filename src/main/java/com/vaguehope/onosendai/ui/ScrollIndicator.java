@@ -20,8 +20,8 @@ public class ScrollIndicator {
 	}
 
 	public static void attach (final Context context, final ViewGroup rootView, final ListView tweetList) {
-		final View bar = new View(context);
-		bar.layout(0, 0, 0, 0);
+		final AbsoluteShape bar = new AbsoluteShape(context);
+		bar.layoutForce(0, 0, 0, 0);
 		bar.setBackgroundColor(COLOUR);
 		bar.bringToFront();
 		rootView.addView(bar);
@@ -36,15 +36,32 @@ public class ScrollIndicator {
 		return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, a, context.getResources().getDisplayMetrics());
 	}
 
+	private static class AbsoluteShape extends View {
+
+		public AbsoluteShape (final Context context) {
+			super(context);
+		}
+
+		@Override
+		public void layout (final int l, final int t, final int r, final int b) {
+			/* block calls so no layout manager can not mess with us. */
+		}
+
+		public void layoutForce (final int l, final int t, final int r, final int b) {
+			super.layout(l, t, r, b);
+		}
+
+	}
+
 	private static class BarMovingScrollListener implements OnScrollListener {
 
-		private final View bar;
+		private final AbsoluteShape bar;
 		private final float pxPerItem;
 		private final int barWidth;
 
 		private int lastPosition = -1;
 
-		public BarMovingScrollListener (final View bar, final float pxPerItem, final int barWidth) {
+		public BarMovingScrollListener (final AbsoluteShape bar, final float pxPerItem, final int barWidth) {
 			this.bar = bar;
 			this.pxPerItem = pxPerItem;
 			this.barWidth = barWidth;
@@ -55,7 +72,7 @@ public class ScrollIndicator {
 			final int position = view.getFirstVisiblePosition();
 			if (position != this.lastPosition) {
 				final int y = (int) (position * this.pxPerItem);
-				this.bar.layout(view.getRight() - this.barWidth, view.getTop(), view.getRight(), view.getTop() + y);
+				this.bar.layoutForce(view.getRight() - this.barWidth, view.getTop(), view.getRight(), view.getTop() + y);
 				this.lastPosition = position;
 			}
 		}

@@ -166,7 +166,8 @@ public class TweetListFragment extends Fragment {
 		((Button) rootView.findViewById(R.id.tweetDetailClose)).setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
 		this.btnDetailsLater = (Button) rootView.findViewById(R.id.tweetDetailLater);
 
-		ScrollIndicator.attach(getActivity(), (ViewGroup) rootView, this.tweetList);
+		final ViewGroup tweetListView = (ViewGroup) rootView.findViewById(R.id.tweetListView);
+		ScrollIndicator.attach(getActivity(), tweetListView, this.tweetList);
 
 		return rootView;
 	}
