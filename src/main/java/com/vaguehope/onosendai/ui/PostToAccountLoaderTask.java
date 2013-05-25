@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.vaguehope.onosendai.R;
@@ -22,6 +21,7 @@ import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.ui.PostToAccountLoaderTask.AccountLoaderResult;
+import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderResult, AccountLoaderResult> {
@@ -105,9 +105,7 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 		}
 		else {
 			LOG.e("Failed to update SW post to accounts.", result.getE());
-			Toast.makeText(this.llSubAccounts.getContext(),
-					"Failed to update sub accounts: " + result.getEmsg(),
-					Toast.LENGTH_LONG).show();
+			DialogHelper.alert(this.llSubAccounts.getContext(), "Failed to update sub accounts.", result.getE());
 		}
 	}
 
