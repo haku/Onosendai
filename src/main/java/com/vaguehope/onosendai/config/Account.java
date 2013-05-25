@@ -5,8 +5,9 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.util.Titleable;
 
-public class Account {
+public class Account implements Titleable {
 
 	private static final String KEY_ID = "id";
 	private static final String KEY_TITLE = "title";
@@ -38,15 +39,16 @@ public class Account {
 		this.accessSecret = accessSecret;
 	}
 
-	public String humanTitle () {
+	@Override
+	public String getUiTitle () {
 		if (this.title != null && !this.title.isEmpty()) {
 			return this.title;
 		}
-		return String.format("%s (%s)", this.provider.toHumanString(), this.id);
+		return String.format("%s (%s)", this.provider.getUiTitle(), this.id);
 	}
 
-	public String humanDescription () {
-		return String.format("%s account", this.provider.toHumanString());
+	public String getUiDescription () {
+		return String.format("%s account", this.provider.getUiTitle());
 	}
 
 	@Override

@@ -1,6 +1,8 @@
 package com.vaguehope.onosendai.provider.twitter;
 
-public enum TwitterColumnType {
+import com.vaguehope.onosendai.util.Titleable;
+
+public enum TwitterColumnType implements Titleable {
 
 	TIMELINE("Home Timeline"),
 	MENTIONS("Mentions"),
@@ -13,7 +15,8 @@ public enum TwitterColumnType {
 		this.title = title;
 	}
 
-	public String getTitle () {
+	@Override
+	public String getUiTitle () {
 		return this.title;
 	}
 

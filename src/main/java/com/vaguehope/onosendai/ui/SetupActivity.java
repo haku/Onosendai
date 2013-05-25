@@ -3,11 +3,9 @@ package com.vaguehope.onosendai.ui;
 import java.io.File;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -28,15 +26,13 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.ConfigBuilder;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumnsFetcher;
 import com.vaguehope.onosendai.provider.twitter.TwitterColumnFactory;
-import com.vaguehope.onosendai.storage.VolatileKvStore;
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard;
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthCallback;
 import com.vaguehope.onosendai.util.DialogHelper;
+import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
-import com.vaguehope.onosendai.util.Result;
 
 public class SetupActivity extends Activity {
 
@@ -244,69 +240,28 @@ public class SetupActivity extends Activity {
 		final String username = ((EditText) findViewById(R.id.txtUsername)).getText().toString();
 		final String password = ((EditText) findViewById(R.id.txtPassword)).getText().toString();
 		final Account acc = new Account("sw0", username, AccountProvider.SUCCESSWHALE, null, null, username, password);
-		new SwColumnsFetcher(this, acc).execute();
+		new SuccessWhaleColumnsFetcher(this, acc, new Listener<SuccessWhaleColumns>() {
+			@Override
+			public void onAnswer (final SuccessWhaleColumns answer) {
+				writeConfig(acc, answer);
+			}
+		}).execute();
 	}
 
-	private class SwColumnsFetcher extends AsyncTask<Void, Void, Result<SuccessWhaleColumns>> {
-
-		private final Activity activity;
-		private final Account account;
-		private ProgressDialog dialog;
-
-		public SwColumnsFetcher (final Activity activity, final Account account) {
-			this.activity = activity;
-			this.account = account;
+	protected void writeConfig (final Account account, final SuccessWhaleColumns columns) {
+		try {
+			new ConfigBuilder()
+					.account(account)
+					.columns(columns.getColumns())
+					.readLater()
+					.writeOverMain(this);
+			startActivity(new Intent(getApplicationContext(), MainActivity.class));
+			finish();
 		}
-
-		@Override
-		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.activity, "SuccessWhale", "Fetching columns...", true);
+		catch (final Exception e) { // NOSONAR show user all errors.
+			getLog().e("Failed to write imported SuccessWhale configuration.", e);
+			DialogHelper.alertAndClose(this, e);
 		}
-
-		@Override
-		protected Result<SuccessWhaleColumns> doInBackground (final Void... params) {
-			final SuccessWhaleProvider swProv = new SuccessWhaleProvider(new VolatileKvStore());
-			try {
-				SuccessWhaleColumns data = swProv.getColumns(this.account);
-				return new Result<SuccessWhaleColumns>(data);
-			}
-			catch (SuccessWhaleException e) {
-				return new Result<SuccessWhaleColumns>(e);
-			}
-			finally {
-				swProv.shutdown();
-			}
-		}
-
-		@Override
-		protected void onPostExecute (final Result<SuccessWhaleColumns> result) {
-			if (result.isSuccess()) {
-				writeConfig(result.getData());
-				this.dialog.dismiss();
-			}
-			else {
-				this.dialog.dismiss();
-				getLog().e("Failed fetch SuccessWhale configuration.", result.getE());
-				DialogHelper.alert(this.activity, result.getE());
-			}
-		}
-
-		private void writeConfig (final SuccessWhaleColumns columns) {
-			try {
-				new ConfigBuilder()
-						.account(this.account)
-						.columns(columns.getColumns())
-						.readLater()
-						.writeOverMain(this.activity);
-				startActivity(new Intent(getApplicationContext(), MainActivity.class));
-				finish();
-			}
-			catch (final Exception e) { // NOSONAR show user all errors.
-				getLog().e("Failed to write imported SuccessWhale configuration.", e);
-				DialogHelper.alertAndClose(this.activity, e);
-			}
-		}
-
 	}
 
 	private enum SetupActionType {

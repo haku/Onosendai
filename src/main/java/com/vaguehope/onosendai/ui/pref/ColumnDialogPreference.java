@@ -22,8 +22,8 @@ public class ColumnDialogPreference extends DialogPreference {
 		this.columnsPrefFragment = columnsPrefFragment;
 
 		setKey(Prefs.makeColumnId(column.getId()));
-		setTitle(column.humanId());
-		setSummary(column.humanDescription());
+		setTitle(column.getUiTitle());
+		setSummary(column.getUiDescription());
 
 		setDialogTitle("Edit Column (" + getKey() + ")");
 		setPositiveButtonText(android.R.string.ok);

@@ -2,7 +2,9 @@ package com.vaguehope.onosendai.config;
 
 import java.util.Locale;
 
-public enum AccountProvider {
+import com.vaguehope.onosendai.util.Titleable;
+
+public enum AccountProvider implements Titleable {
 	TWITTER("Twitter"),
 	SUCCESSWHALE("SuccessWhale"),
 	BUFFER("Buffer");
@@ -13,7 +15,8 @@ public enum AccountProvider {
 		this.humanName = humanName;
 	}
 
-	public String toHumanString () {
+	@Override
+	public String getUiTitle () {
 		return this.humanName;
 	}
 

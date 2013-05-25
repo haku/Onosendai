@@ -460,7 +460,7 @@ public class TweetListFragment extends Fragment {
 		}
 
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
-		dlgBld.setMessage(String.format("RT / Like via %s?", account.humanTitle()));
+		dlgBld.setMessage(String.format("RT / Like via %s?", account.getUiTitle()));
 
 		dlgBld.setPositiveButton("RT", new DialogInterface.OnClickListener() {
 			@Override

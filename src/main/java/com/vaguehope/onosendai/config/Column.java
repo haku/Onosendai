@@ -12,8 +12,9 @@ import org.json.JSONTokener;
 
 import com.vaguehope.onosendai.util.EqualHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.Titleable;
 
-public class Column {
+public class Column implements Titleable {
 
 	private static final String KEY_ID = "id";
 	private static final String KEY_TITLE = "title";
@@ -79,13 +80,14 @@ public class Column {
 				this.refreshIntervalMins == that.refreshIntervalMins;
 	}
 
-	public String humanId () {
+	@Override
+	public String getUiTitle () {
 		return this.title != null && !this.title.isEmpty()
 				? this.title
 				: String.format("Column %s", this.id);
 	}
 
-	public String humanDescription () {
+	public String getUiDescription () {
 		if (this.accountId != null && !this.accountId.isEmpty()) {
 			return String.format("Column for account %s", this.accountId); // TODO want something like 'SuccessWhale column'.
 		}
