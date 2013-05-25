@@ -26,7 +26,7 @@ public final class DialogHelper {
 	}
 
 	public static void alert (final Context context, final String msg, final Exception e) {
-		alert(context, msg + e.toString());
+		alert(context, msg + "\n" + e.toString());
 	}
 
 	public static void alert (final Context context, final String msg) {
