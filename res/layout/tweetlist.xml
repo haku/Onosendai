@@ -103,7 +103,7 @@
 			android:layout_height="0dip"
 			android:layout_below="@id/tweetListTitleBar"
 			android:layout_alignParentBottom="true"
-			android:fadeScrollbars="false" />
+			android:scrollbars="none" />
 
 	</RelativeLayout>
 
