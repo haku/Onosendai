@@ -11,7 +11,9 @@ import android.widget.ListView;
 
 public class ScrollIndicator {
 
-	private static final int ITEM_HEIGHT_DIP = 2;
+	private static final int ACCEL_STOP_1 = 5;
+	private static final int ACCEL_STOP_2 = 15;
+	private static final int ACCEL_STOP_3 = 100;
 	private static final int BAR_WIDTH_DIP = 7;
 	private static final int COLOUR = Color.GRAY;
 
@@ -26,10 +28,10 @@ public class ScrollIndicator {
 		bar.bringToFront();
 		rootView.addView(bar);
 
+		final float pxPerUnit = dipToPixels(context, 1); // Perhaps this should be a % of list height?
 		final int barWidth = (int) dipToPixels(context, BAR_WIDTH_DIP);
-		final float pxPerItem = dipToPixels(context, ITEM_HEIGHT_DIP);
 
-		tweetList.setOnScrollListener(new BarMovingScrollListener(bar, pxPerItem, barWidth));
+		tweetList.setOnScrollListener(new BarMovingScrollListener(bar, pxPerUnit, barWidth));
 	}
 
 	private static float dipToPixels (final Context context, final int a) {
@@ -56,14 +58,14 @@ public class ScrollIndicator {
 	private static class BarMovingScrollListener implements OnScrollListener {
 
 		private final AbsoluteShape bar;
-		private final float pxPerItem;
+		private final float pxPerUnit;
 		private final int barWidth;
 
 		private int lastPosition = -1;
 
-		public BarMovingScrollListener (final AbsoluteShape bar, final float pxPerItem, final int barWidth) {
+		public BarMovingScrollListener (final AbsoluteShape bar, final float pxPerUnit, final int barWidth) {
 			this.bar = bar;
-			this.pxPerItem = pxPerItem;
+			this.pxPerUnit = pxPerUnit;
 			this.barWidth = barWidth;
 		}
 
@@ -71,8 +73,11 @@ public class ScrollIndicator {
 		public void onScrollStateChanged (final AbsListView view, final int scrollStateFlag) {
 			final int position = view.getFirstVisiblePosition();
 			if (position != this.lastPosition) {
-				final int y = (int) (position * this.pxPerItem);
-				this.bar.layoutForce(view.getRight() - this.barWidth, view.getTop(), view.getRight(), view.getTop() + y);
+				final int h = (int) ((position
+						+ Math.min(position, ACCEL_STOP_1)
+						+ Math.min(position, ACCEL_STOP_2)
+						+ Math.min(position, ACCEL_STOP_3)) * this.pxPerUnit);
+				this.bar.layoutForce(view.getRight() - this.barWidth, view.getTop(), view.getRight(), view.getTop() + h);
 				this.lastPosition = position;
 			}
 		}
