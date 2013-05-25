@@ -42,6 +42,8 @@ public class ScrollIndicator {
 		private final float pxPerItem;
 		private final int barWidth;
 
+		private int lastPosition = -1;
+
 		public BarMovingScrollListener (final View bar, final float pxPerItem, final int barWidth) {
 			this.bar = bar;
 			this.pxPerItem = pxPerItem;
@@ -50,8 +52,12 @@ public class ScrollIndicator {
 
 		@Override
 		public void onScrollStateChanged (final AbsListView view, final int scrollStateFlag) {
-			final int y = (int) (view.getFirstVisiblePosition() * this.pxPerItem);
-			this.bar.layout(view.getRight() - this.barWidth, view.getTop(), view.getRight(), view.getTop() + y);
+			final int position = view.getFirstVisiblePosition();
+			if (position != this.lastPosition) {
+				final int y = (int) (position * this.pxPerItem);
+				this.bar.layout(view.getRight() - this.barWidth, view.getTop(), view.getRight(), view.getTop() + y);
+				this.lastPosition = position;
+			}
 		}
 
 		@Override
