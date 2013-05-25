@@ -5,10 +5,8 @@ import java.util.List;
 import org.json.JSONException;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
@@ -18,15 +16,11 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.twitter.TwitterColumnType;
-import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
+import com.vaguehope.onosendai.provider.twitter.TwitterListsFetcher;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
-import com.vaguehope.onosendai.util.LogWrapper;
-import com.vaguehope.onosendai.util.Result;
 
 public class ColumnsPrefFragment extends PreferenceFragment {
-
-	private static final LogWrapper LOG = new LogWrapper("CPF");
 
 	private Prefs prefs;
 
@@ -36,10 +30,6 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		setPreferenceScreen(getPreferenceManager().createPreferenceScreen(getActivity()));
 		this.prefs = new Prefs(getPreferenceManager());
 		refreshColumnsList();
-	}
-
-	protected static LogWrapper getLog () {
-		return LOG;
 	}
 
 	protected Prefs getPrefs () {
@@ -81,6 +71,9 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 			case TWITTER:
 				promptAddTwitterColumn(account);
 				break;
+//			case SUCCESSWHALE:
+//				promptAddSuccessWhaleColumn(account);
+//				break;
 			default:
 				promptAddColumn(account, (String) null);
 				break;
@@ -97,7 +90,7 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptAddTwitterColumn (final Account account, final TwitterColumnType type) {
-		switch(type) {
+		switch (type) {
 			case LIST:
 				promptAddTwitterListColumn(account);
 				break;
@@ -110,7 +103,12 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptAddTwitterListColumn (final Account account) {
-		new TwitterListsFetchTask(this, account).execute();
+		new TwitterListsFetcher(getActivity(), account, new Listener<List<String>>() {
+			@Override
+			public void onAnswer (final List<String> lists) {
+				promptAddTwitterListColumn(account, lists);
+			}
+		}).execute();
 	}
 
 	protected void promptAddTwitterListColumn (final Account account, final List<String> listSlugs) {
@@ -129,6 +127,10 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 				promptAddColumn(account, TwitterColumnType.SEARCH.getResource() + answer);
 			}
 		});
+	}
+
+	protected void promptAddSuccessWhaleColumn (final Account account) {
+
 	}
 
 	protected void promptAddColumn (final Account account, final String resource) {
@@ -155,50 +157,6 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		});
 		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER);
 		dlgBuilder.create().show();
-	}
-
-	private static class TwitterListsFetchTask extends AsyncTask<Void, Void, Result<List<String>>> {
-
-		private final ColumnsPrefFragment host;
-		private final Account account;
-		private ProgressDialog dialog;
-
-		public TwitterListsFetchTask (final ColumnsPrefFragment host, final Account account) {
-			this.host = host;
-			this.account = account;
-		}
-
-		@Override
-		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.host.getActivity(), "Twitter", "Fetching lists...", true);
-		}
-
-		@Override
-		protected Result<List<String>> doInBackground (final Void... params) {
-			final TwitterProvider twitter = new TwitterProvider();
-			try {
-				return new Result<List<String>>(twitter.getListSlugs(this.account));
-			}
-			catch (final Exception e) { // NOSONAR report all errors to user.
-				return new Result<List<String>>(e);
-			}
-			finally {
-				twitter.shutdown();
-			}
-		}
-
-		@Override
-		protected void onPostExecute (final Result<List<String>> result) {
-			this.dialog.dismiss();
-			if (result.isSuccess()) {
-				this.host.promptAddTwitterListColumn(this.account, result.getData());
-			}
-			else {
-				getLog().e("Failed to init OAuth.", result.getE());
-				DialogHelper.alert(this.host.getActivity(), result.getE());
-			}
-		}
-
 	}
 
 	private static class AddAcountClickListener implements OnPreferenceClickListener {
