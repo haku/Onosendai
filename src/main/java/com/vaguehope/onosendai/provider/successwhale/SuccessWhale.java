@@ -151,7 +151,9 @@ public class SuccessWhale {
 		return authenticated(new SwCall<SuccessWhaleColumns>() {
 			@Override
 			public SuccessWhaleColumns invoke (final HttpClient client) throws SuccessWhaleException, IOException {
-				return client.execute(new HttpGet(makeAuthedUrl(API_COLUMNS)), new ColumnsHandler(getAccount()));
+				final HttpGet req = new HttpGet(makeAuthedUrl(API_COLUMNS));
+				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
+				return client.execute(req, new ColumnsHandler(getAccount()));
 			}
 
 			@Override

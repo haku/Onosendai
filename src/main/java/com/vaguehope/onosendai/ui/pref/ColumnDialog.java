@@ -76,6 +76,10 @@ class ColumnDialog {
 		this.txtResource.setText(resource);
 	}
 
+	public void setTitle (final String title) {
+		this.txtTitle.setText(title);
+	}
+
 	public boolean isDeleteSelected () {
 		return this.chkDelete.isChecked();
 	}

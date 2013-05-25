@@ -15,6 +15,8 @@ import android.preference.PreferenceFragment;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Prefs;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumnsFetcher;
 import com.vaguehope.onosendai.provider.twitter.TwitterColumnType;
 import com.vaguehope.onosendai.provider.twitter.TwitterListsFetcher;
 import com.vaguehope.onosendai.util.DialogHelper;
@@ -71,9 +73,9 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 			case TWITTER:
 				promptAddTwitterColumn(account);
 				break;
-//			case SUCCESSWHALE:
-//				promptAddSuccessWhaleColumn(account);
-//				break;
+			case SUCCESSWHALE:
+				promptAddSuccessWhaleColumn(account);
+				break;
 			default:
 				promptAddColumn(account, (String) null);
 				break;
@@ -112,7 +114,7 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptAddTwitterListColumn (final Account account, final List<String> listSlugs) {
-		DialogHelper.askItemFromList(getActivity(), "Twitter List", listSlugs, new Listener<String>() {
+		DialogHelper.askStringItem(getActivity(), "Twitter List", listSlugs, new Listener<String>() {
 			@Override
 			public void onAnswer (final String answer) {
 				promptAddColumn(account, TwitterColumnType.LIST.getResource() + answer);
@@ -130,14 +132,34 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptAddSuccessWhaleColumn (final Account account) {
+		new SuccessWhaleColumnsFetcher(getActivity(), account, new Listener<SuccessWhaleColumns>() {
+			@Override
+			public void onAnswer (final SuccessWhaleColumns columns) {
+				promptAddSuccessWhaleColumn(account, columns);
+			}
+		}).execute();
+	}
 
+	protected void promptAddSuccessWhaleColumn (final Account account, final SuccessWhaleColumns columns) {
+		// TODO allow multi selection.
+		DialogHelper.askItem(getActivity(), "SuccessWhale Column", columns.getColumns(), new Listener<Column>() {
+			@Override
+			public void onAnswer (final Column column) {
+				promptAddColumn(account, column.getResource(), column.getTitle());
+			}
+		});
 	}
 
 	protected void promptAddColumn (final Account account, final String resource) {
+		promptAddColumn(account, resource, null);
+	}
+
+	protected void promptAddColumn (final Account account, final String resource, final String title) {
 		final int id = getPrefs().getNextColumnId();
 		final ColumnDialog dlg = new ColumnDialog(getActivity(), id);
 		if (account != null) dlg.setAccount(account);
 		if (resource != null) dlg.setResource(resource);
+		if (title != null) dlg.setTitle(title);
 
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(getActivity());
 		dlgBuilder.setTitle("New Column (" + id + ")");

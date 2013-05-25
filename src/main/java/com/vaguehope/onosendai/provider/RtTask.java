@@ -48,7 +48,7 @@ public class RtTask extends DbBindingAsyncTask<Void, Void, RtResult> {
 		this.notificationMgr = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
 		Notification n = new NotificationCompat.Builder(this.context)
 				.setSmallIcon(Ui.notificationIcon())
-				.setContentTitle(String.format("RTing via %s...", this.req.getAccount().humanTitle()))
+				.setContentTitle(String.format("RTing via %s...", this.req.getAccount().getUiTitle()))
 				.setOngoing(true)
 				.setUsesChronometer(true)
 				.build();
@@ -64,7 +64,7 @@ public class RtTask extends DbBindingAsyncTask<Void, Void, RtResult> {
 			case SUCCESSWHALE:
 				return rtViaSuccessWhale(db);
 			default:
-				return new RtResult(this.req, new UnsupportedOperationException("Do not know how to RT via account type: " + this.req.getAccount().humanTitle()));
+				return new RtResult(this.req, new UnsupportedOperationException("Do not know how to RT via account type: " + this.req.getAccount().getUiTitle()));
 		}
 	}
 
@@ -122,7 +122,7 @@ public class RtTask extends DbBindingAsyncTask<Void, Void, RtResult> {
 			LOG.w("RT failed: %s", res.getE());
 			Notification n = new NotificationCompat.Builder(this.context)
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
-					.setContentTitle(String.format("Failed to RT via %s.", this.req.getAccount().humanTitle()))
+					.setContentTitle(String.format("Failed to RT via %s.", this.req.getAccount().getUiTitle()))
 					.setContentText(res.getEmsg())
 					.setAutoCancel(true)
 					.setUsesChronometer(false)

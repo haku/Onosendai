@@ -25,8 +25,8 @@ public class AccountDialogPreference extends DialogPreference {
 		this.accountsPrefFragment = accountsPrefFragment;
 
 		setKey(account.getId());
-		setTitle(account.humanTitle());
-		setSummary(account.humanDescription());
+		setTitle(account.getUiTitle());
+		setSummary(account.getUiDescription());
 
 		switch(account.getProvider()) {
 			case TWITTER:
