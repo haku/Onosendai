@@ -42,13 +42,9 @@ public class Account implements Titleable {
 	@Override
 	public String getUiTitle () {
 		if (this.title != null && !this.title.isEmpty()) {
-			return this.title;
+			return String.format("%s (%s)", this.title, this.provider.getUiTitle());
 		}
 		return String.format("%s (%s)", this.provider.getUiTitle(), this.id);
-	}
-
-	public String getUiDescription () {
-		return String.format("%s account", this.provider.getUiTitle());
 	}
 
 	@Override
