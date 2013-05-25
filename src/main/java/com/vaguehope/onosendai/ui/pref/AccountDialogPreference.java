@@ -26,7 +26,6 @@ public class AccountDialogPreference extends DialogPreference {
 
 		setKey(account.getId());
 		setTitle(account.getUiTitle());
-		setSummary(account.getUiDescription());
 
 		switch(account.getProvider()) {
 			case TWITTER:
