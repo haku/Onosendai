@@ -117,7 +117,7 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptAddTwitterListColumn (final Account account, final List<String> listSlugs) {
-		DialogHelper.askStringItem(getActivity(), "Twitter List", listSlugs, new Listener<String>() {
+		DialogHelper.askStringItem(getActivity(), "Twitter Lists", listSlugs, new Listener<String>() {
 			@Override
 			public void onAnswer (final String answer) {
 				promptAddColumn(account, TwitterColumnType.LIST.getResource() + answer);
@@ -145,7 +145,7 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 
 	protected void promptAddSuccessWhaleColumn (final Account account, final SuccessWhaleColumns columns) {
 		// TODO allow multi selection.
-		DialogHelper.askItem(getActivity(), "SuccessWhale Column", columns.getColumns(), new Listener<Column>() {
+		DialogHelper.askItem(getActivity(), "SuccessWhale Columns", columns.getColumns(), new Listener<Column>() {
 			@Override
 			public void onAnswer (final Column column) {
 				promptAddColumn(account, column.getResource(), column.getTitle());
