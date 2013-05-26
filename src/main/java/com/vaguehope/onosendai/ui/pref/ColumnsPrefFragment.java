@@ -184,6 +184,18 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		dlgBuilder.create().show();
 	}
 
+	protected void askDeleteColumn (final Column column) {
+		DialogHelper.askYesNo(getActivity(),
+				String.format("Delete the column %s and all its data?", column.getUiTitle()),
+				new Runnable() {
+					@Override
+					public void run () {
+						getPrefs().deleteColumn(column);
+						refreshColumnsList();
+					}
+				});
+	}
+
 	private List<Account> readAccountsOrAlert () {
 		try {
 			List<Account> items = new ArrayList<Account>();
