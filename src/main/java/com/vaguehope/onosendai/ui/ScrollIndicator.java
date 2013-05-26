@@ -9,7 +9,7 @@ import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.ListView;
 
-public class ScrollIndicator {
+public final class ScrollIndicator {
 
 	private static final int ACCEL_STOP_1 = 5;
 	private static final int ACCEL_STOP_2 = 15;

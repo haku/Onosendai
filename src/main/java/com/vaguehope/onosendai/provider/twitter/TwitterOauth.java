@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.provider.twitter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 
 import com.vaguehope.onosendai.util.IoHelper;
 
@@ -40,7 +41,7 @@ public final class TwitterOauth {
 
 	private static void read () {
 		if (read) return;
-		final BufferedReader r = new BufferedReader(new InputStreamReader(TwitterOauth.class.getResourceAsStream(RES_PATH)));
+		final BufferedReader r = new BufferedReader(new InputStreamReader(TwitterOauth.class.getResourceAsStream(RES_PATH), Charset.forName("UTF-8")));
 		try {
 			key = r.readLine();
 			secret = r.readLine();
