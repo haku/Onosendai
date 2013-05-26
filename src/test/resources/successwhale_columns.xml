@@ -3,45 +3,45 @@
   <success type="boolean">true</success>
   <columns type="array">
     <column>
-      <feeds type="array">
-        <feed>
+      <sources type="array">
+        <source>
           <service>twitter</service>
           <uid>12345678</uid>
           <url>statuses/home_timeline</url>
           <username>twittername</username>
-        </feed>
-      </feeds>
-      <feedpath>twitter/12345678/statuses/home_timeline</feedpath>
+        </source>
+      </sources>
+      <fullpath>twitter/12345678/statuses/home_timeline</fullpath>
       <title>@twittername's Home Timeline</title>
     </column>
     <column>
-      <feeds type="array">
-        <feed>
+      <sources type="array">
+        <source>
           <service>twitter</service>
           <uid>12345678</uid>
           <url>twittername/lists/somelist/statuses</url>
           <username>twittername</username>
-        </feed>
-      </feeds>
-      <feedpath>twitter/12345678/twittername/lists/somelist/statuses</feedpath>
+        </source>
+      </sources>
+      <fullpath>twitter/12345678/twittername/lists/somelist/statuses</fullpath>
       <title>Somelist</title>
     </column>
     <column>
-      <feeds type="array">
-        <feed>
+      <sources type="array">
+        <source>
           <service>twitter</service>
           <uid>12345678</uid>
           <url>statuses/mentions</url>
           <username>twittername</username>
-        </feed>
-        <feed>
+        </source>
+        <source>
           <service>twitter</service>
           <uid>12345678</uid>
           <url>statuses/user_timeline</url>
           <username>twittername</username>
-        </feed>
-      </feeds>
-      <feedpath>twitter/12345678/statuses/mentions:twitter/12345678/statuses/user_timeline</feedpath>
+        </source>
+      </sources>
+      <fullpath>twitter/12345678/statuses/mentions:twitter/12345678/statuses/user_timeline</fullpath>
       <title>Combined Feed</title>
     </column>
   </columns>

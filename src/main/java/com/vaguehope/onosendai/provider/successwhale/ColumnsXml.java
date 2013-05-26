@@ -55,7 +55,7 @@ public class ColumnsXml implements ContentHandler {
 
 	private final Stack<String> stack = new Stack<String>();
 	private StringBuilder currentText;
-	private List<String> stashedFeedPaths;
+	private List<String> stashedFullpaths;
 	private String stashedTitle;
 
 	@Override
@@ -71,16 +71,18 @@ public class ColumnsXml implements ContentHandler {
 		final String elementName = !localName.isEmpty() ? localName : qName;
 		if (this.stack.size() == 3) { // NOSONAR not a magic number.
 			if ("column".equals(elementName)) {
-				final String resource = ArrayHelper.join(this.stashedFeedPaths, ":");
-				final Column column = new Column(this.columns.size(), this.stashedTitle, this.account.getId(), resource, 30, null, false);
-				this.columns.add(column);
-				this.stashedFeedPaths = null;
+				if (this.stashedFullpaths != null) {
+					final String resource = ArrayHelper.join(this.stashedFullpaths, ":");
+					final Column column = new Column(this.columns.size(), this.stashedTitle, this.account.getId(), resource, 30, null, false);
+					this.columns.add(column);
+				}
+				this.stashedFullpaths = null;
 			}
 		}
 		else if (this.stack.size() == 4) { // NOSONAR not a magic number.
-			if ("feedpath".equals(elementName)) {
-				if (this.stashedFeedPaths == null) this.stashedFeedPaths = new ArrayList<String>();
-				this.stashedFeedPaths.add(this.currentText.toString());
+			if ("fullpath".equals(elementName)) {
+				if (this.stashedFullpaths == null) this.stashedFullpaths = new ArrayList<String>();
+				this.stashedFullpaths.add(this.currentText.toString());
 			}
 			else if ("title".equals(elementName)) {
 				this.stashedTitle = this.currentText.toString();
