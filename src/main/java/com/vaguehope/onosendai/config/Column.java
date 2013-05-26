@@ -184,7 +184,7 @@ public class Column implements Titleable {
 
 	private static int parseFeedRefreshInterval (final String refreshRaw, final String account, final String title) {
 		final int refreshIntervalMins = TimeParser.parseDuration(refreshRaw);
-		if (refreshIntervalMins < 1 && account != null) LOG.w("Column '%s' has invalid refresh interval: '%s'.", title, refreshRaw);
+		if (refreshIntervalMins < 0 && account != null) LOG.w("Column '%s' has invalid refresh interval: '%s'.", title, refreshRaw);
 		return refreshIntervalMins;
 	}
 
