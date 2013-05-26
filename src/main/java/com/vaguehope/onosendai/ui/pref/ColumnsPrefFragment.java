@@ -159,9 +159,10 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptAddColumn (final Account account, final String resource, final String title) {
+		if (account == null) throw new IllegalArgumentException("Account can not be null.");
+
 		final int id = getPrefs().getNextColumnId();
-		final ColumnDialog dlg = new ColumnDialog(getActivity(), this.prefs, id);
-		if (account != null) dlg.setAccount(account);
+		final ColumnDialog dlg = new ColumnDialog(getActivity(), this.prefs, id, account.getId());
 		if (resource != null) dlg.setResource(resource);
 		if (title != null) dlg.setTitle(title);
 
