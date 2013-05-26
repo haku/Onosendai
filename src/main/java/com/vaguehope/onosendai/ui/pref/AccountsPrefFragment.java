@@ -142,6 +142,19 @@ public class AccountsPrefFragment extends PreferenceFragment {
 		dlgBuilder.create().show();
 	}
 
+	protected void askDeleteAccount (final Account account) {
+		// FIXME do not allow this if columns are using this account.
+		DialogHelper.askYesNo(getActivity(),
+				String.format("Delete the account %s?", account.getUiTitle()),
+				new Runnable() {
+					@Override
+					public void run () {
+						getPrefs().deleteAccount(account);
+						refreshAccountsList();
+					}
+				});
+	}
+
 	private static class AddAcountClickListener implements OnPreferenceClickListener {
 
 		private final AccountsPrefFragment accountsPrefFragment;
