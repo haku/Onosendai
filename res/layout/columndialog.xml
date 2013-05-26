@@ -17,7 +17,7 @@
 			android:layout_weight="1"
 			android:singleLine="true"
 			android:selectAllOnFocus="true"
-			android:hint="My Column" />
+			android:hint="e.g. My Column" />
 
 	</TableRow>
 
@@ -34,7 +34,7 @@
 			android:layout_weight="1"
 			android:singleLine="true"
 			android:selectAllOnFocus="true"
-			android:hint="account_x" />
+			android:hint="e.g. account_x" />
 
 	</TableRow>
 
@@ -51,7 +51,7 @@
 			android:layout_weight="1"
 			android:singleLine="true"
 			android:selectAllOnFocus="true"
-			android:hint="feed" />
+			android:hint="e.g. TIMELINE" />
 
 	</TableRow>
 
@@ -68,7 +68,7 @@
 			android:layout_weight="1"
 			android:singleLine="true"
 			android:selectAllOnFocus="true"
-			android:hint="30min" />
+			android:hint="e.g. 30min" />
 
 	</TableRow>
 
