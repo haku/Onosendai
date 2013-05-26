@@ -41,12 +41,12 @@ public class ColumnDialogPreference extends DialogPreference {
 		if (positiveResult) {
 			try {
 				if (this.dialog.isDeleteSelected()) {
-					this.columnsPrefFragment.getPrefs().deleteColumn(this.dialog.getInitialValue());
+					this.columnsPrefFragment.askDeleteColumn(this.dialog.getInitialValue());
 				}
 				else {
 					persistString(this.dialog.getValue().toJson().toString());
+					this.columnsPrefFragment.refreshColumnsList();
 				}
-				this.columnsPrefFragment.refreshColumnsList();
 			}
 			catch (JSONException e) {
 				DialogHelper.alert(getContext(), e);
