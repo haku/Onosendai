@@ -41,14 +41,11 @@
 
 		<TextView
 			android:paddingRight="10dp"
-			android:text="Account ID" />
+			android:text="Account" />
 
-		<EditText
-			android:id="@+id/txtAccountId"
-			android:layout_weight="1"
-			android:singleLine="true"
-			android:selectAllOnFocus="true"
-			android:hint="e.g. account_x" />
+		<TextView
+			android:id="@+id/lblAccount"
+			android:layout_weight="1" />
 
 	</TableRow>
 
