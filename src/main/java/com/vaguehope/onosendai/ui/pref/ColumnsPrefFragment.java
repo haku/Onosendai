@@ -20,6 +20,7 @@ import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumnsFetcher;
 import com.vaguehope.onosendai.provider.twitter.TwitterColumnType;
 import com.vaguehope.onosendai.provider.twitter.TwitterListsFetcher;
+import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 
@@ -190,10 +191,21 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 				new Runnable() {
 					@Override
 					public void run () {
+						deleteDataForColumn(column);
 						getPrefs().deleteColumn(column);
 						refreshColumnsList();
 					}
 				});
+	}
+
+	protected void deleteDataForColumn (final Column column) {
+		final OsPreferenceActivity act = (OsPreferenceActivity) getActivity();
+		final DbInterface db = act.getDb();
+		if (db == null) {
+			DialogHelper.alert(getActivity(), "Database not bound, aborting column deletion.");
+			return;
+		}
+		db.deleteTweets(column);
 	}
 
 	private List<Account> readAccountsOrAlert () {
