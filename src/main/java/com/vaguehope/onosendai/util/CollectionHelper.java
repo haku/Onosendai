@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class CollectionHelper {
+public final class CollectionHelper {
 
 	private CollectionHelper () {
 		throw new AssertionError();

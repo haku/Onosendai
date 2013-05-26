@@ -14,7 +14,7 @@ import android.widget.EditText;
 public final class DialogHelper {
 
 	public interface Listener<T> {
-		public void onAnswer (T answer);
+		void onAnswer (T answer);
 	}
 
 	private DialogHelper () {

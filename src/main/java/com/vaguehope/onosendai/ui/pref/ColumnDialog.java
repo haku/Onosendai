@@ -18,6 +18,7 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.util.CollectionHelper;
+import com.vaguehope.onosendai.util.EqualHelper;
 
 class ColumnDialog {
 
@@ -41,7 +42,6 @@ class ColumnDialog {
 	private final View llParent;
 	private final EditText txtTitle;
 	private final Spinner spnPosition;
-	private final TextView lblAccount;
 	private final EditText txtResource;
 	private final Spinner spnRefresh;
 	private final CheckBox chkNotify;
@@ -61,7 +61,7 @@ class ColumnDialog {
 	private ColumnDialog (final Context context, final Prefs prefs, final int id, final String accountId, final Column initialValue) {
 		if (prefs == null) throw new IllegalArgumentException("Prefs can not be null.");
 		if (initialValue != null && initialValue.getId() != id) throw new IllegalStateException("ID and initialValue ID do not match.");
-		if (initialValue != null && initialValue.getAccountId() != accountId) throw new IllegalStateException("Account ID and initialValue account ID do not match.");
+		if (initialValue != null && !EqualHelper.equal(initialValue.getAccountId(), accountId)) throw new IllegalStateException("Account ID and initialValue account ID do not match.");
 
 		this.id = id;
 		this.accountId = accountId;
@@ -72,7 +72,7 @@ class ColumnDialog {
 
 		this.txtTitle = (EditText) this.llParent.findViewById(R.id.txtTitle);
 		this.spnPosition = (Spinner) this.llParent.findViewById(R.id.spnPosition);
-		this.lblAccount = (TextView) this.llParent.findViewById(R.id.lblAccount);
+		final TextView lblAccount = (TextView) this.llParent.findViewById(R.id.lblAccount);
 		this.txtResource = (EditText) this.llParent.findViewById(R.id.txtResource);
 		this.spnRefresh = (Spinner) this.llParent.findViewById(R.id.spnRefresh);
 		this.chkNotify = (CheckBox) this.llParent.findViewById(R.id.chkNotify);
@@ -83,13 +83,13 @@ class ColumnDialog {
 		this.spnPosition.setAdapter(posAdapter);
 
 		if (accountId == null || accountId.isEmpty()) {
-			this.lblAccount.setText("-"); // System account.
+			lblAccount.setText("-"); // System account.
 			this.spnRefresh.setEnabled(false); // Currently only have LATER column which can not be refreshed.
 		}
 		else {
 			try {
 				final Account account = prefs.readAccount(accountId);
-				this.lblAccount.setText(account.getUiTitle());
+				lblAccount.setText(account.getUiTitle());
 			}
 			catch (JSONException e) {
 				throw new IllegalStateException(e); // TODO this seems like wall-paper.
