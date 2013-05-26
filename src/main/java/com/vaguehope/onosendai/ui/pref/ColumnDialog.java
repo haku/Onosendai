@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.ui.pref;
 
+import java.util.List;
+
 import org.json.JSONException;
 
 import android.content.Context;
@@ -15,10 +17,22 @@ import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Prefs;
-import com.vaguehope.onosendai.config.TimeParser;
 import com.vaguehope.onosendai.util.CollectionHelper;
 
 class ColumnDialog {
+
+	private static final List<Duration> REFRESH_DURAITONS = CollectionHelper.listOf(
+			new Duration(0, "Never"),
+			new Duration(15, "15 minutes"),
+			new Duration(30, "30 minutes"),
+			new Duration(45, "45 minutes"),
+			new Duration(60, "1 hour"),
+			new Duration(60 * 2, "2 hours"),
+			new Duration(60 * 3, "3 hours"),
+			new Duration(60 * 6, "6 hours"),
+			new Duration(60 * 12, "12 hours"),
+			new Duration(60 * 24, "24 hours")
+			);
 
 	private final int id;
 	private final String accountId;
@@ -29,7 +43,7 @@ class ColumnDialog {
 	private final Spinner spnPosition;
 	private final TextView lblAccount;
 	private final EditText txtResource;
-	private final EditText txtRefresh;
+	private final Spinner spnRefresh;
 	private final CheckBox chkNotify;
 	private final CheckBox chkDelete;
 
@@ -60,7 +74,7 @@ class ColumnDialog {
 		this.spnPosition = (Spinner) this.llParent.findViewById(R.id.spnPosition);
 		this.lblAccount = (TextView) this.llParent.findViewById(R.id.lblAccount);
 		this.txtResource = (EditText) this.llParent.findViewById(R.id.txtResource);
-		this.txtRefresh = (EditText) this.llParent.findViewById(R.id.txtRefresh);
+		this.spnRefresh = (Spinner) this.llParent.findViewById(R.id.spnRefresh);
 		this.chkNotify = (CheckBox) this.llParent.findViewById(R.id.chkNotify);
 		this.chkDelete = (CheckBox) this.llParent.findViewById(R.id.chkDelete);
 
@@ -70,6 +84,7 @@ class ColumnDialog {
 
 		if (accountId == null || accountId.isEmpty()) {
 			this.lblAccount.setText("-"); // System account.
+			this.spnRefresh.setEnabled(false); // Currently only have LATER column which can not be refreshed.
 		}
 		else {
 			try {
@@ -81,19 +96,29 @@ class ColumnDialog {
 			}
 		}
 
+		final ArrayAdapter<Duration> refAdapter = new ArrayAdapter<Duration>(context, R.layout.numberspinneritem);
+		refAdapter.addAll(REFRESH_DURAITONS);
+		this.spnRefresh.setAdapter(refAdapter);
+
 		if (initialValue != null) {
 			this.txtTitle.setText(initialValue.getTitle());
 			this.spnPosition.setSelection(posAdapter.getPosition(Integer.valueOf(prefs.readColumnPosition(initialValue.getId()) + 1)));
 			this.txtResource.setText(initialValue.getResource());
-			this.txtRefresh.setText(initialValue.getRefreshIntervalMins() > 0
-					? initialValue.getRefreshIntervalMins() + "mins"
-					: ""); // TODO make this a number chooser.
+			setDurationSpinner(initialValue.getRefreshIntervalMins(), refAdapter);
 			this.chkNotify.setChecked(initialValue.isNotify());
 			this.chkDelete.setVisibility(View.VISIBLE);
 		}
 		else {
 			this.spnPosition.setSelection(posAdapter.getCount() - 1); // Last item.
+			setDurationSpinner(0, refAdapter); // Default to no background refresh.
 		}
+	}
+
+	private void setDurationSpinner (final int mins, final ArrayAdapter<Duration> refAdapter) {
+		final Duration duration = new Duration(mins > 0 ? mins : 0);
+		final int pos = refAdapter.getPosition(duration);
+		if (pos < 0) refAdapter.add(duration); // Allow for any value to have been chosen before.
+		this.spnRefresh.setSelection(pos < 0 ? refAdapter.getPosition(duration) : pos);
 	}
 
 	public Column getInitialValue () {
@@ -124,14 +149,52 @@ class ColumnDialog {
 	}
 
 	public Column getValue () {
-		final int mins = TimeParser.parseDuration(this.txtRefresh.getText().toString());
 		return new Column(this.id,
 				this.txtTitle.getText().toString(),
 				this.accountId,
 				this.txtResource.getText().toString(),
-				mins,
+				((Duration) this.spnRefresh.getSelectedItem()).getMins(),
 				this.initialValue != null ? this.initialValue.getExcludeColumnIds() : null, // TODO GUI for excludes.
 				this.chkNotify.isChecked());
+	}
+
+	private static class Duration {
+
+		private final int mins;
+		private final String title;
+
+		public Duration (final int mins) {
+			this(mins, null);
+		}
+
+		public Duration (final int mins, final String title) {
+			this.mins = mins;
+			this.title = title;
+		}
+
+		public int getMins () {
+			return this.mins;
+		}
+
+		@Override
+		public String toString () {
+			return this.title;
+		}
+
+		@Override
+		public boolean equals (final Object o) {
+			if (o == null) return false;
+			if (o == this) return true;
+			if (!(o instanceof Duration)) return false;
+			final Duration that = (Duration) o;
+			return this.mins == that.mins;
+		}
+
+		@Override
+		public int hashCode () {
+			return this.mins;
+		}
+
 	}
 
 }

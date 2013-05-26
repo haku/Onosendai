@@ -2,6 +2,8 @@ package com.vaguehope.onosendai.util;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class CollectionHelper {
 
@@ -35,6 +37,10 @@ public class CollectionHelper {
 			arr[i] = Integer.valueOf(from + i);
 		}
 		return Arrays.asList(arr);
+	}
+
+	public static <T> List<T> listOf(final T... items) {
+		return Collections.unmodifiableList(Arrays.asList(items));
 	}
 
 }
