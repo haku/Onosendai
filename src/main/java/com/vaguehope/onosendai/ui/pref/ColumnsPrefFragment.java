@@ -160,7 +160,7 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 
 	protected void promptAddColumn (final Account account, final String resource, final String title) {
 		final int id = getPrefs().getNextColumnId();
-		final ColumnDialog dlg = new ColumnDialog(getActivity(), id);
+		final ColumnDialog dlg = new ColumnDialog(getActivity(), this.prefs, id);
 		if (account != null) dlg.setAccount(account);
 		if (resource != null) dlg.setResource(resource);
 		if (title != null) dlg.setTitle(title);
@@ -173,7 +173,9 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 			public void onClick (final DialogInterface dialog, final int which) {
 				dialog.dismiss();
 				try {
-					getPrefs().writeNewColumn(dlg.getValue());
+					final Column column = dlg.getValue();
+					getPrefs().writeNewColumn(column);
+					moveColumnToPosition(column, dlg.getPosition());
 				}
 				catch (final JSONException e) {
 					DialogHelper.alert(getActivity(), "Failed to write new column: ", e);
@@ -183,6 +185,10 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		});
 		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER);
 		dlgBuilder.create().show();
+	}
+
+	protected void moveColumnToPosition (final Column column, final int newPosition) {
+		this.prefs.moveColumnToPosition(column.getId(), newPosition);
 	}
 
 	protected void askDeleteColumn (final Column column) {

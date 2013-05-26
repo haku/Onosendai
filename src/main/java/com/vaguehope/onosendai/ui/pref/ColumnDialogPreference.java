@@ -32,7 +32,7 @@ public class ColumnDialogPreference extends DialogPreference {
 
 	@Override
 	protected View onCreateDialogView () {
-		this.dialog = new ColumnDialog(getContext(), this.column);
+		this.dialog = new ColumnDialog(getContext(), this.columnsPrefFragment.getPrefs(), this.column);
 		return this.dialog.getRootView();
 	}
 
@@ -44,7 +44,9 @@ public class ColumnDialogPreference extends DialogPreference {
 					this.columnsPrefFragment.askDeleteColumn(this.dialog.getInitialValue());
 				}
 				else {
-					persistString(this.dialog.getValue().toJson().toString());
+					final Column newColumn = this.dialog.getValue();
+					persistString(newColumn.toJson().toString());
+					this.columnsPrefFragment.moveColumnToPosition(newColumn, this.dialog.getPosition());
 					this.columnsPrefFragment.refreshColumnsList();
 				}
 			}

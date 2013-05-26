@@ -103,8 +103,7 @@ public class Prefs {
 	public void deleteAccount (final String id) {
 		if (id == null || id.isEmpty()) throw new IllegalArgumentException("Account has no ID.");
 
-		final List<String> ids = new ArrayList<String>();
-		ids.addAll(readAccountIds());
+		final List<String> ids = new ArrayList<String>(readAccountIds());
 		if (!ids.remove(id)) throw new IllegalStateException("Tried to delete account '" + id + "' that does not exist in '" + ids + "'.");
 		final String idsS = ArrayHelper.join(ids, ID_SEP);
 
@@ -139,6 +138,17 @@ public class Prefs {
 		return readIds(KEY_COLUMN_IDS);
 	}
 
+	/**
+	 * 0 based.
+	 */
+	public int readColumnPosition (final int id) {
+		return readColumnPosition(makeColumnId(id));
+	}
+
+	private int readColumnPosition (final String id) {
+		return readColumnIdsStr().indexOf(id);
+	}
+
 	public Collection<Column> readColumns () throws JSONException {
 		final Collection<Column> ret = new ArrayList<Column>();
 		for (final String id : readColumnIdsStr()) {
@@ -169,13 +179,31 @@ public class Prefs {
 		e.commit();
 	}
 
+	public void moveColumnToPosition (final int id, final int position) {
+		moveColumnToPosition(makeColumnId(id), position);
+	}
+
+	private void moveColumnToPosition (final String id, final int position) {
+		final List<String> ids = readColumnIdsStr();
+		if (ids.indexOf(id) == position) return; // Already in that position.
+		if (position < 0 || position >= ids.size()) throw new IllegalArgumentException("Position '" + position + "' is out of bounds.");
+
+		final List<String> newIds = new ArrayList<String>(ids);
+		if (!newIds.remove(id)) throw new IllegalArgumentException("ID '" + id + "' not found.");
+		newIds.add(position, id);
+		final String idsS = ArrayHelper.join(newIds, ID_SEP);
+
+		final Editor e = this.sharedPreferences.edit();
+		e.putString(KEY_COLUMN_IDS, idsS);
+		e.commit();
+	}
+
 	public void deleteColumn (final Column column) {
 		deleteColumn(makeColumnId(column.getId()));
 	}
 
 	private void deleteColumn (final String id) {
-		final List<String> ids = new ArrayList<String>();
-		ids.addAll(readColumnIdsStr());
+		final List<String> ids = new ArrayList<String>(readColumnIdsStr());
 		if (!ids.remove(id)) throw new IllegalStateException("Tried to delete column '" + id + "' that does not exist in '" + ids + "'.");
 		final String idsS = ArrayHelper.join(ids, ID_SEP);
 
@@ -201,8 +229,7 @@ public class Prefs {
 	}
 
 	private static String appendId (final List<String> existingIds, final String id) {
-		final List<String> ids = new ArrayList<String>();
-		ids.addAll(existingIds);
+		final List<String> ids = new ArrayList<String>(existingIds);
 		ids.add(id);
 		return ArrayHelper.join(ids, ID_SEP);
 	}
