@@ -74,12 +74,9 @@
 			android:paddingRight="10dp"
 			android:text="Refresh" />
 
-		<EditText
-			android:id="@+id/txtRefresh"
-			android:layout_weight="1"
-			android:singleLine="true"
-			android:selectAllOnFocus="true"
-			android:hint="e.g. 30min" />
+		<Spinner
+			android:id="@+id/spnRefresh"
+			android:layout_weight="1" />
 
 	</TableRow>
 
