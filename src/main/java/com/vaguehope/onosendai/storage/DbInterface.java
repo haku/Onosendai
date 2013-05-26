@@ -10,6 +10,7 @@ public interface DbInterface extends KvStore {
 
 	void storeTweets(Column column, List<Tweet> tweets);
 	void deleteTweet(Column column, Tweet tweet);
+	void deleteTweets(Column column);
 
 	List<Tweet> getTweets(int columnId, int numberOf);
 	List<Tweet> getTweets(int columnId, int numberOf, int[] excludeColumnIds);
