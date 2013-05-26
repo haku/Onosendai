@@ -36,6 +36,10 @@ public class Prefs {
 		this.sharedPreferences = preferenceManager.getSharedPreferences();
 	}
 
+	public SharedPreferences getSharedPreferences () {
+		return this.sharedPreferences;
+	}
+
 	public boolean isConfigured () {
 		return readAccountIds().size() > 0;
 	}

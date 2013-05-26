@@ -5,6 +5,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -33,12 +35,13 @@ import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-public class MainActivity extends FragmentActivity implements ImageLoader {
+public class MainActivity extends FragmentActivity implements ImageLoader, OnSharedPreferenceChangeListener {
 
 	public static final String ARG_FOCUS_COLUMN_ID = "focus_column_id";
 
 	private static final LogWrapper LOG = new LogWrapper("MA");
 
+	private Prefs prefs;
 	private Config conf;
 	private ProviderMgr providerMgr;
 	private HybridBitmapCache imageCache;
@@ -48,21 +51,24 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 	private VisiblePageSelectionListener pageSelectionListener;
 	private final SparseArray<TweetListFragment> activePages = new SparseArray<TweetListFragment>();
 
+	private boolean prefsChanged = false;
+
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		final Prefs prefs = new Prefs(getBaseContext());
-		if (!prefs.isConfigured()) {
+		this.prefs = new Prefs(getBaseContext());
+		if (!this.prefs.isConfigured()) {
 			startActivity(new Intent(getApplicationContext(), SetupActivity.class));
 			finish();
 			return;
 		}
+		this.prefs.getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
 
 		setContentView(R.layout.activity_main);
 
 		try {
-			this.conf = prefs.asConfig();
+			this.conf = this.prefs.asConfig();
 		}
 		catch (Exception e) { // No point continuing if any exception.
 			DialogHelper.alertAndClose(this, e);
@@ -96,15 +102,31 @@ public class MainActivity extends FragmentActivity implements ImageLoader {
 	public void onResume () {
 		super.onResume();
 		resumeDb();
+
+		if (this.prefsChanged) {
+			DialogHelper.alertAndRun(this, "Activity will be reloaded with new preferences.", new Runnable() {
+				@Override
+				public void run () {
+					finish();
+					startActivity(getIntent());
+				}
+			});
+		}
 	}
 
 	@Override
 	protected void onDestroy () {
+		if (this.prefs != null) this.prefs.getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
 		if (this.providerMgr != null) this.providerMgr.shutdown();
 		if (this.imageCache != null) this.imageCache.clean();
 		if (this.exec != null) this.exec.shutdown();
 		disposeDb();
 		super.onDestroy();
+	}
+
+	@Override
+	public void onSharedPreferenceChanged (final SharedPreferences sharedPreferences, final String key) {
+		this.prefsChanged = true;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
