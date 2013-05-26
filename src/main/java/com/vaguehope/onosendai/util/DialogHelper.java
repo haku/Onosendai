@@ -62,14 +62,14 @@ public final class DialogHelper {
 	public static void askYesNo (final Context context, final String msg, final Runnable onYes) {
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(context);
 		dlgBld.setMessage(msg);
-		dlgBld.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+		dlgBld.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
 				dialog.dismiss();
 				onYes.run();
 			}
 		});
-		dlgBld.setNegativeButton(android.R.string.no, DLG_CANCEL_CLICK_LISTENER);
+		dlgBld.setNegativeButton("No", DLG_CANCEL_CLICK_LISTENER);
 		dlgBld.show();
 	}
 
