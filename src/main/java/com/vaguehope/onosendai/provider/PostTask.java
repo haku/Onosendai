@@ -10,8 +10,8 @@ import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
-import com.vaguehope.onosendai.Ui;
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.PostTask.PostResult;
 import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
@@ -46,7 +46,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 	protected void onPreExecute () {
 		this.notificationMgr = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
 		final Notification n = new NotificationCompat.Builder(this.context)
-				.setSmallIcon(Ui.notificationIcon())
+				.setSmallIcon(Notifications.notificationIcon())
 				.setContentTitle(String.format("Posting to %s...", this.req.getAccount().getUiTitle()))
 				.setOngoing(true)
 				.setUsesChronometer(true)

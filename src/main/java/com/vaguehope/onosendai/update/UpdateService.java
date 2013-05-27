@@ -27,10 +27,10 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
+import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
-import com.vaguehope.onosendai.ui.Notifications;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.NetHelper;
 
