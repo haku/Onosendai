@@ -67,7 +67,7 @@ public class Column implements Titleable {
 		result = prime * result + ((this.resource == null) ? 0 : this.resource.hashCode());
 		result = prime * result + this.refreshIntervalMins;
 		result = prime * result + ((this.excludeColumnIds == null) ? 0 : this.title.hashCode());
-		result = prime * result + (this.notify ? 1231 : 1237);
+		result = prime * result + (this.notify ? Boolean.TRUE.hashCode() : Boolean.FALSE.hashCode());
 		return result;
 	}
 
