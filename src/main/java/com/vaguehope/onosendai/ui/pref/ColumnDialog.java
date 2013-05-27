@@ -81,6 +81,8 @@ class ColumnDialog {
 		refAdapter.addAll(REFRESH_DURAITONS);
 		this.spnRefresh.setAdapter(refAdapter);
 
+		this.chkDelete.setChecked(false);
+
 		if (initialValue != null) {
 			this.txtTitle.setText(initialValue.getTitle());
 			this.spnPosition.setSelection(posAdapter.getPosition(Integer.valueOf(prefs.readColumnPosition(initialValue.getId()) + 1)));
@@ -92,6 +94,7 @@ class ColumnDialog {
 		else {
 			this.spnPosition.setSelection(posAdapter.getCount() - 1); // Last item.
 			setDurationSpinner(0, refAdapter); // Default to no background refresh.
+			this.chkDelete.setVisibility(View.GONE);
 		}
 	}
 
