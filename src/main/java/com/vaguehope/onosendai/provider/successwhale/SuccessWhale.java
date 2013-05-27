@@ -182,17 +182,19 @@ public class SuccessWhale {
 
 	public TweetList getFeed (final SuccessWhaleFeed feed) throws SuccessWhaleException {
 		return authenticated(new SwCall<TweetList>() {
+			private String url;
+
 			@Override
 			public TweetList invoke (final HttpClient client) throws SuccessWhaleException, IOException {
-				final String url = makeAuthedUrl(API_FEED, "&sources=", URLEncoder.encode(feed.getSources(), "UTF-8"));
-				final HttpGet req = new HttpGet(url);
+				this.url = makeAuthedUrl(API_FEED, "&sources=", URLEncoder.encode(feed.getSources(), "UTF-8"));
+				final HttpGet req = new HttpGet(this.url);
 				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
 				return client.execute(req, new FeedHandler(getAccount()));
 			}
 
 			@Override
 			public String describeFailure (final Exception e) {
-				return "Failed to fetch feed '" + feed + "': " + e.toString();
+				return "Failed to fetch feed '" + feed + "' from '" + this.url + "': " + e.toString();
 			}
 		});
 	}
