@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.payload;
 
+import java.util.List;
+
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -8,6 +10,7 @@ import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.NetworkType;
+import com.vaguehope.onosendai.util.CollectionHelper;
 
 public class SharePayload extends Payload {
 
@@ -38,16 +41,16 @@ public class SharePayload extends Payload {
 
 	@Override
 	public PayloadRowView makeRowView (final View view) {
-		return new PayloadRowView(new Button[] {
+		return new PayloadRowView(CollectionHelper.listOf(
 				(Button) view.findViewById(R.id.btnShareRt),
 				(Button) view.findViewById(R.id.btnShareQuote)
-		});
+		));
 	}
 
 	@Override
 	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final PayloadClickListener clickListener) {
-		final Button[] btns = rowView.getButtons();
-		final Button btnRt = btns[0];
+		final List<Button> btns = rowView.getButtons();
+		final Button btnRt = btns.get(0);
 
 		if (this.networkType != null) {
 			switch (this.networkType) {
@@ -67,8 +70,8 @@ public class SharePayload extends Payload {
 			btnRt.setVisibility(View.GONE);
 		}
 
-		for (int i = 0; i < btns.length; i++) {
-			btns[i].setOnClickListener(new BtnListener(this, clickListener, i));
+		for (int i = 0; i < btns.size(); i++) {
+			btns.get(i).setOnClickListener(new BtnListener(this, clickListener, i));
 		}
 	}
 

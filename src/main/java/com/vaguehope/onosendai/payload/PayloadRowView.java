@@ -1,5 +1,9 @@
 package com.vaguehope.onosendai.payload;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -10,7 +14,7 @@ class PayloadRowView {
 	private final TextView main;
 	private final TextView secondary;
 	private final ImageView image;
-	private final Button[] buttons;
+	private final List<Button> buttons;
 
 	public PayloadRowView (final TextView main) {
 		this(main, null, null);
@@ -31,11 +35,11 @@ class PayloadRowView {
 		this.buttons = null;
 	}
 
-	public PayloadRowView (final Button[] buttons) {
+	public PayloadRowView (final List<Button> buttons) {
 		this.main = null;
 		this.secondary = null;
 		this.image = null;
-		this.buttons = buttons;
+		this.buttons = Collections.unmodifiableList(new ArrayList<Button>(buttons));
 	}
 
 	public void setText (final String text) {
@@ -62,7 +66,7 @@ class PayloadRowView {
 		return this.image;
 	}
 
-	public Button[] getButtons () {
+	public List<Button> getButtons () {
 		return this.buttons;
 	}
 
