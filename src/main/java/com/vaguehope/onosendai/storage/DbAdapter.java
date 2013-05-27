@@ -22,7 +22,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 10;
+	private static final int DB_VERSION = 11;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -77,6 +77,10 @@ public class DbAdapter implements DbInterface {
 					db.execSQL(TBL_KV_CREATE);
 					this.log.w("Creating index %s...", TBL_KV_INDEX);
 					db.execSQL(TBL_KV_CREATE_INDEX);
+				}
+				if (oldVersion < 11) { // NOSONAR not a magic number.
+					this.log.w("Adding column %s...", TBL_SC_TIME);
+					db.execSQL("ALTER TABLE " + TBL_SC + " ADD COLUMN " + TBL_SC_TIME + " integer;");
 				}
 			}
 		}
@@ -456,12 +460,14 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_SC_COLID = "colid";
 	private static final String TBL_SC_ITEMID = "itemid";
 	private static final String TBL_SC_TOP = "top";
+	private static final String TBL_SC_TIME = "time";
 
 	private static final String TBL_SC_CREATE = "create table " + TBL_SC + " ("
 			+ TBL_SC_ID + " integer primary key autoincrement,"
 			+ TBL_SC_COLID + " integer,"
 			+ TBL_SC_ITEMID + " integer,"
 			+ TBL_SC_TOP + " integer,"
+			+ TBL_SC_TIME + " integer,"
 			+ "UNIQUE(" + TBL_SC_COLID + ") ON CONFLICT REPLACE" +
 			");";
 
@@ -475,6 +481,7 @@ public class DbAdapter implements DbInterface {
 			values.put(TBL_SC_COLID, columnId);
 			values.put(TBL_SC_ITEMID, state.getItemId());
 			values.put(TBL_SC_TOP, state.getTop());
+			values.put(TBL_SC_TIME, state.getItemTime());
 			this.mDb.insertWithOnConflict(TBL_SC, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 			this.mDb.setTransactionSuccessful();
 		}
@@ -491,17 +498,19 @@ public class DbAdapter implements DbInterface {
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_SC,
-					new String[] { TBL_SC_ITEMID, TBL_SC_TOP },
+					new String[] { TBL_SC_ITEMID, TBL_SC_TOP, TBL_SC_TIME },
 					TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) },
 					null, null, null, null);
 
 			if (c != null && c.moveToFirst()) {
 				final int colItemId = c.getColumnIndex(TBL_SC_ITEMID);
 				final int colTop = c.getColumnIndex(TBL_SC_TOP);
+				final int colTime = c.getColumnIndex(TBL_SC_TIME);
 
 				final long itemId = c.getLong(colItemId);
 				final int top = c.getInt(colTop);
-				ret = new ScrollState(itemId, top);
+				final long time = c.getLong(colTime);
+				ret = new ScrollState(itemId, top, time);
 			}
 		}
 		finally {

@@ -249,7 +249,7 @@ public class TweetListFragment extends Fragment {
 	}
 
 	private void saveScroll () {
-		final ScrollState newState = ScrollState.from(this.tweetList);
+		final ScrollState newState = getCurrentScroll();
 		if (newState != null) {
 			this.scrollState = newState;
 			this.log.d("Saved scroll: %s", this.scrollState);
