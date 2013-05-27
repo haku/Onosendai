@@ -1,4 +1,4 @@
-package com.vaguehope.onosendai.provider;
+package com.vaguehope.onosendai.util;
 
 import java.io.IOException;
 import java.io.InputStream;
