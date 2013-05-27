@@ -19,7 +19,7 @@ import org.xml.sax.XMLReader;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
-import com.vaguehope.onosendai.util.ArrayHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class ColumnsXml implements ContentHandler {
 
@@ -55,7 +55,7 @@ public class ColumnsXml implements ContentHandler {
 
 	private final Stack<String> stack = new Stack<String>();
 	private StringBuilder currentText;
-	private List<String> stashedFullpaths;
+	private String stashedFullpath;
 	private String stashedTitle;
 
 	@Override
@@ -71,18 +71,16 @@ public class ColumnsXml implements ContentHandler {
 		final String elementName = !localName.isEmpty() ? localName : qName;
 		if (this.stack.size() == 3) { // NOSONAR not a magic number.
 			if ("column".equals(elementName)) {
-				if (this.stashedFullpaths != null) {
-					final String resource = ArrayHelper.join(this.stashedFullpaths, ":");
-					final Column column = new Column(this.columns.size(), this.stashedTitle, this.account.getId(), resource, 30, null, false);
-					this.columns.add(column);
+				if (!StringHelper.isEmpty(this.stashedFullpath)) {
+					this.columns.add(new Column(this.columns.size(), this.stashedTitle, this.account.getId(), this.stashedFullpath, 30, null, false));
 				}
-				this.stashedFullpaths = null;
+				this.stashedFullpath = null;
+				this.stashedTitle = null;
 			}
 		}
 		else if (this.stack.size() == 4) { // NOSONAR not a magic number.
 			if ("fullpath".equals(elementName)) {
-				if (this.stashedFullpaths == null) this.stashedFullpaths = new ArrayList<String>();
-				this.stashedFullpaths.add(this.currentText.toString());
+				this.stashedFullpath = this.currentText.toString();
 			}
 			else if ("title".equals(elementName)) {
 				this.stashedTitle = this.currentText.toString();
