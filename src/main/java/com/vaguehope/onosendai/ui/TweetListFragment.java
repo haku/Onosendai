@@ -60,6 +60,7 @@ import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
 import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.widget.ScrollIndicator;
 import com.vaguehope.onosendai.widget.SidebarLayout;
 import com.vaguehope.onosendai.widget.SidebarLayout.SidebarListener;
 
