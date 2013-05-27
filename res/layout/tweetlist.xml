@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.vaguehope.onosendai.layouts.SidebarLayout
+<com.vaguehope.onosendai.widget.SidebarLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res/com.vaguehope.onosendai"
 	android:id="@+id/tweetListLayout"
@@ -107,4 +107,4 @@
 
 	</RelativeLayout>
 
-</com.vaguehope.onosendai.layouts.SidebarLayout>
+</com.vaguehope.onosendai.widget.SidebarLayout>

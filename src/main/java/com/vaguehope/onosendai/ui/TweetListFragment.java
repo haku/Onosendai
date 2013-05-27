@@ -37,8 +37,6 @@ import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
-import com.vaguehope.onosendai.layouts.SidebarLayout;
-import com.vaguehope.onosendai.layouts.SidebarLayout.SidebarListener;
 import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
@@ -62,6 +60,8 @@ import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
 import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.widget.SidebarLayout;
+import com.vaguehope.onosendai.widget.SidebarLayout.SidebarListener;
 
 /**
  * https://developer.android.com/intl/fr/guide/components/fragments.html#

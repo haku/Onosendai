@@ -17,7 +17,7 @@
  * Authored by Julian Chu <walkingice AT 0xlab.org>
  */
 
-package com.vaguehope.onosendai.layouts;
+package com.vaguehope.onosendai.widget;
 
 import android.content.Context;
 import android.content.res.TypedArray;

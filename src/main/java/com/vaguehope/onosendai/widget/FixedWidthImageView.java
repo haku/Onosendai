@@ -1,4 +1,4 @@
-package com.vaguehope.onosendai.layouts;
+package com.vaguehope.onosendai.widget;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
