@@ -3,7 +3,9 @@ package com.vaguehope.onosendai.util;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class CollectionHelper {
 
@@ -41,6 +43,10 @@ public final class CollectionHelper {
 
 	public static <T> List<T> listOf(final T... items) {
 		return Collections.unmodifiableList(Arrays.asList(items));
+	}
+
+	public static <T> Set<T> setOf(final T... items) {
+		return Collections.unmodifiableSet(new HashSet<T>(Arrays.asList(items)));
 	}
 
 }

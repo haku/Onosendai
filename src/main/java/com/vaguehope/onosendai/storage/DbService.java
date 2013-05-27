@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.storage;
 
 import java.util.List;
+import java.util.Set;
 
 import android.app.Service;
 import android.content.Intent;
@@ -77,7 +78,7 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public List<Tweet> getTweets (final int columnId, final int numberOf, final int[] excludeColumnIds) {
+	public List<Tweet> getTweets (final int columnId, final int numberOf, final Set<Integer> excludeColumnIds) {
 		return this.dbAdaptor.getTweets(columnId, numberOf, excludeColumnIds);
 	}
 
@@ -107,7 +108,7 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public int getScrollUpCount (final int columnId, final int[] excludeColumnIds, final ScrollState scroll) {
+	public int getScrollUpCount (final int columnId, final Set<Integer> excludeColumnIds, final ScrollState scroll) {
 		return this.dbAdaptor.getScrollUpCount(columnId, excludeColumnIds, scroll);
 	}
 
