@@ -2,12 +2,15 @@ package com.vaguehope.onosendai.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnMultiChoiceClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 
@@ -105,10 +108,7 @@ public final class DialogHelper {
 	}
 
 	public static <T extends Titleable> void askItem (final Context context, final String title, final List<T> list, final Listener<T> onItem) {
-		final List<String> titles = new ArrayList<String>();
-		for (T item : list) {
-			titles.add(item.getUiTitle());
-		}
+		final List<String> titles = titlesList(list);
 		askItem(context, title, list, titles.toArray(new String[] {}), onItem);
 	}
 
@@ -117,6 +117,41 @@ public final class DialogHelper {
 		bld.setTitle(title);
 		bld.setNegativeButton(android.R.string.cancel, DialogHelper.DLG_CANCEL_CLICK_LISTENER);
 		bld.setItems(labels, new SimpleAnswerListener<T>(list, onItem));
+		bld.show();
+	}
+
+	public static <T extends Titleable> void askItems (final Context context, final String title, final List<T> list, final Listener<Set<T>> onItem) {
+		final List<String> titles = new ArrayList<String>();
+		for (T item : list) {
+			titles.add(item.getUiTitle());
+		}
+		askItems(context, title, list, titles.toArray(new String[] {}), onItem);
+	}
+
+	private static <T> void askItems (final Context context, final String title, final List<T> list, final String[] labels, final Listener<Set<T>> onItems) {
+		final Set<T> selectedItems = new HashSet<T>();
+		final AlertDialog.Builder bld = new AlertDialog.Builder(context);
+		bld.setTitle(title);
+		bld.setNegativeButton(android.R.string.cancel, DialogHelper.DLG_CANCEL_CLICK_LISTENER);
+		bld.setMultiChoiceItems(labels, null, new OnMultiChoiceClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int which, final boolean isChecked) {
+				T item = list.get(which);
+				if (isChecked) {
+					selectedItems.add(item);
+				}
+				else {
+					selectedItems.remove(item);
+				}
+			}
+		});
+		bld.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int which) {
+				dialog.dismiss();
+				onItems.onAnswer(selectedItems);
+			}
+		});
 		bld.show();
 	}
 
@@ -143,6 +178,14 @@ public final class DialogHelper {
 			this.onAnswer.onAnswer(this.items.get(which));
 		}
 
+	}
+
+	private static <T extends Titleable> List<String> titlesList (final List<T> list) {
+		final List<String> titles = new ArrayList<String>();
+		for (T item : list) {
+			titles.add(item.getUiTitle());
+		}
+		return titles;
 	}
 
 }

@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.ui.pref;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.json.JSONException;
 
@@ -19,9 +20,13 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumnsFetcher;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleSource;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleSources;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleSourcesFetcher;
 import com.vaguehope.onosendai.provider.twitter.TwitterColumnType;
 import com.vaguehope.onosendai.provider.twitter.TwitterListsFetcher;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 
@@ -52,12 +57,12 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 
 		try {
 			final Config config = getPrefs().asConfig();
-			for (Column column : config.getColumns()) {
+			for (final Column column : config.getColumns()) {
 				final Account account = config.getAccount(column.getAccountId());
 				getPreferenceScreen().addPreference(new ColumnDialogPreference(getActivity(), column, account, this));
 			}
 		}
-		catch (JSONException e) {
+		catch (final JSONException e) {
 			DialogHelper.alertAndClose(getActivity(), "Error reading preferences:", e);
 		}
 	}
@@ -137,6 +142,22 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptAddSuccessWhaleColumn (final Account account) {
+		final String existing = "Existing Column";
+		final String custom = "Custom Source Mix";
+		DialogHelper.askStringItem(getActivity(), "Column Type", CollectionHelper.listOf(existing, custom), new Listener<String>() {
+			@Override
+			public void onAnswer (final String answer) {
+				if (existing.equals(answer)) {
+					promptAddSuccessWhaleExistingColumn(account);
+				}
+				else {
+					promptAddSuccessWhaleCustomColumn(account);
+				}
+			}
+		});
+	}
+
+	protected void promptAddSuccessWhaleExistingColumn (final Account account) {
 		new SuccessWhaleColumnsFetcher(getActivity(), account, new Listener<SuccessWhaleColumns>() {
 			@Override
 			public void onAnswer (final SuccessWhaleColumns columns) {
@@ -151,6 +172,24 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 			@Override
 			public void onAnswer (final Column column) {
 				promptAddColumn(account, column.getResource(), column.getTitle());
+			}
+		});
+	}
+
+	protected void promptAddSuccessWhaleCustomColumn (final Account account) {
+		new SuccessWhaleSourcesFetcher(getActivity(), account, new Listener<SuccessWhaleSources>() {
+			@Override
+			public void onAnswer (final SuccessWhaleSources sources) {
+				promptAddSuccessWhaleColumn(account, sources);
+			}
+		}).execute();
+	}
+
+	protected void promptAddSuccessWhaleColumn (final Account account, final SuccessWhaleSources sources) {
+		DialogHelper.askItems(getActivity(), "SuccessWhale Sources", sources.getSources(), new Listener<Set<SuccessWhaleSource>>() {
+			@Override
+			public void onAnswer (final Set<SuccessWhaleSource> anwer) {
+				promptAddColumn(account, SuccessWhaleSources.toResource(anwer));
 			}
 		});
 	}
@@ -218,13 +257,13 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 
 	private List<Account> readAccountsOrAlert () {
 		try {
-			List<Account> items = new ArrayList<Account>();
-			for (Account account : this.prefs.readAccounts()) {
+			final List<Account> items = new ArrayList<Account>();
+			for (final Account account : this.prefs.readAccounts()) {
 				items.add(account);
 			}
 			return items;
 		}
-		catch (JSONException e) {
+		catch (final JSONException e) {
 			DialogHelper.alert(getActivity(), "Failed to read accounts.", e);
 			return null;
 		}
