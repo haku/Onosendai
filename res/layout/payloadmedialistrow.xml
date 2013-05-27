@@ -12,7 +12,7 @@
 		android:textSize="14sp"
 		android:padding="10dip" />
 
-	<com.vaguehope.onosendai.layouts.FixedWidthImageView
+	<com.vaguehope.onosendai.widget.FixedWidthImageView
 		android:id="@+id/imgMain"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
