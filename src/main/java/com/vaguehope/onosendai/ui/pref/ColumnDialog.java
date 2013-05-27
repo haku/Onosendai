@@ -2,8 +2,6 @@ package com.vaguehope.onosendai.ui.pref;
 
 import java.util.List;
 
-import org.json.JSONException;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,10 +9,8 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
-import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.util.CollectionHelper;
@@ -72,7 +68,6 @@ class ColumnDialog {
 
 		this.txtTitle = (EditText) this.llParent.findViewById(R.id.txtTitle);
 		this.spnPosition = (Spinner) this.llParent.findViewById(R.id.spnPosition);
-		final TextView lblAccount = (TextView) this.llParent.findViewById(R.id.lblAccount);
 		this.txtResource = (EditText) this.llParent.findViewById(R.id.txtResource);
 		this.spnRefresh = (Spinner) this.llParent.findViewById(R.id.spnRefresh);
 		this.chkNotify = (CheckBox) this.llParent.findViewById(R.id.chkNotify);
@@ -81,20 +76,6 @@ class ColumnDialog {
 		final ArrayAdapter<Integer> posAdapter = new ArrayAdapter<Integer>(context, R.layout.numberspinneritem);
 		posAdapter.addAll(CollectionHelper.sequence(1, prefs.readColumnIds().size() + (initialValue == null ? 1 : 0)));
 		this.spnPosition.setAdapter(posAdapter);
-
-		if (accountId == null || accountId.isEmpty()) {
-			lblAccount.setText("-"); // System account.
-			this.spnRefresh.setEnabled(false); // Currently only have LATER column which can not be refreshed.
-		}
-		else {
-			try {
-				final Account account = prefs.readAccount(accountId);
-				lblAccount.setText(account.getUiTitle());
-			}
-			catch (JSONException e) {
-				throw new IllegalStateException(e); // TODO this seems like wall-paper.
-			}
-		}
 
 		final ArrayAdapter<Duration> refAdapter = new ArrayAdapter<Duration>(context, R.layout.numberspinneritem);
 		refAdapter.addAll(REFRESH_DURAITONS);

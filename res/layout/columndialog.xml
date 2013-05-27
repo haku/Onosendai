@@ -41,20 +41,6 @@
 
 		<TextView
 			android:paddingRight="10dp"
-			android:text="Account" />
-
-		<TextView
-			android:id="@+id/lblAccount"
-			android:layout_weight="1" />
-
-	</TableRow>
-
-	<TableRow
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content">
-
-		<TextView
-			android:paddingRight="10dp"
 			android:text="Resource" />
 
 		<EditText

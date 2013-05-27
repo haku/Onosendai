@@ -87,13 +87,6 @@ public class Column implements Titleable {
 				: String.format("Column %s", this.id);
 	}
 
-	public String getUiDescription () {
-		if (this.accountId != null && !this.accountId.isEmpty()) {
-			return String.format("Column for account %s", this.accountId); // TODO want something like 'SuccessWhale column'.
-		}
-		return "";
-	}
-
 	@Override
 	public String toString () {
 		StringBuilder s = new StringBuilder();

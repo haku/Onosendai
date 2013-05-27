@@ -22,7 +22,7 @@ public final class DialogHelper {
 	}
 
 	public static void alert (final Context context, final Exception e) {
-		alert(context, "Error: " + e.toString());
+		alert(context, "Error:", e);
 	}
 
 	public static void alert (final Context context, final String msg, final Exception e) {
@@ -47,7 +47,11 @@ public final class DialogHelper {
 	}
 
 	public static void alertAndClose (final Activity activity, final Exception e) {
-		alertAndClose(activity, "Error: " + e.toString());
+		alertAndClose(activity, "Error:", e);
+	}
+
+	public static void alertAndClose (final Activity activity, final String msg, final Exception e) {
+		alertAndClose(activity, msg + "\n" + e.toString());
 	}
 
 	public static void alertAndClose (final Activity activity, final String msg) {
@@ -93,7 +97,7 @@ public final class DialogHelper {
 	}
 
 	public static void askStringItem (final Context context, final String title, final List<String> list, final Listener<String> onItem) {
-		askItem(context, title, list, list.toArray(new String[]{}), onItem);
+		askItem(context, title, list, list.toArray(new String[] {}), onItem);
 	}
 
 	public static <T extends Titleable> void askItem (final Context context, final String title, final T[] arr, final Listener<T> onItem) {
@@ -105,7 +109,7 @@ public final class DialogHelper {
 		for (T item : list) {
 			titles.add(item.getUiTitle());
 		}
-		askItem(context, title, list, titles.toArray(new String[]{}), onItem);
+		askItem(context, title, list, titles.toArray(new String[] {}), onItem);
 	}
 
 	private static <T> void askItem (final Context context, final String title, final List<T> list, final String[] labels, final Listener<T> onItem) {
