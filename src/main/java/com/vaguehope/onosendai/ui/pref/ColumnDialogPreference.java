@@ -6,9 +6,12 @@ import android.content.Context;
 import android.preference.DialogPreference;
 import android.view.View;
 
+import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.util.DialogHelper;
+import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class ColumnDialogPreference extends DialogPreference {
 
@@ -16,14 +19,18 @@ public class ColumnDialogPreference extends DialogPreference {
 	private final ColumnsPrefFragment columnsPrefFragment;
 	private ColumnDialog dialog;
 
-	public ColumnDialogPreference (final Context context, final Column column, final ColumnsPrefFragment columnsPrefFragment) {
+	public ColumnDialogPreference (final Context context, final Column column, final Account account, final ColumnsPrefFragment columnsPrefFragment) {
 		super(context, null);
+
+		if (!EqualHelper.equal(account != null ? account.getId() : null, !StringHelper.isEmpty(column.getAccountId()) ? column.getAccountId() : null))
+				throw new IllegalArgumentException("Account ID and column account ID do not match.");
+
 		this.column = column;
 		this.columnsPrefFragment = columnsPrefFragment;
 
 		setKey(Prefs.makeColumnId(column.getId()));
 		setTitle(column.getUiTitle());
-		setSummary(column.getUiDescription());
+		setSummary(account != null ? account.getUiTitle() : null);
 
 		setDialogTitle("Edit Column (" + getKey() + ")");
 		setPositiveButtonText(android.R.string.ok);

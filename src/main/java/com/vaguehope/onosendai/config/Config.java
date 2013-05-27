@@ -18,6 +18,7 @@ import android.os.Environment;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.util.IoHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class Config {
 
@@ -86,6 +87,7 @@ public class Config {
 	}
 
 	public Account getAccount (final String accountId) {
+		if (StringHelper.isEmpty(accountId)) return null;
 		return this.accounts.get(accountId);
 	}
 

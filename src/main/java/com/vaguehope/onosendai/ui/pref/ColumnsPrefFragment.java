@@ -15,6 +15,7 @@ import android.preference.PreferenceFragment;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumnsFetcher;
@@ -49,15 +50,15 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		pref.setOnPreferenceClickListener(new AddAcountClickListener(this));
 		getPreferenceScreen().addPreference(pref);
 
-		final List<Integer> columnIds = getPrefs().readColumnIds();
-		for (final Integer columnId : columnIds) {
-			try {
-				final Column column = getPrefs().readColumn(columnId);
-				getPreferenceScreen().addPreference(new ColumnDialogPreference(getActivity(), column, this));
+		try {
+			final Config config = getPrefs().asConfig();
+			for (Column column : config.getColumns()) {
+				final Account account = config.getAccount(column.getAccountId());
+				getPreferenceScreen().addPreference(new ColumnDialogPreference(getActivity(), column, account, this));
 			}
-			catch (final JSONException e) {
-				DialogHelper.alert(getActivity(), "Failed to read column: ", e);
-			}
+		}
+		catch (JSONException e) {
+			DialogHelper.alertAndClose(getActivity(), "Error reading preferences:", e);
 		}
 	}
 
