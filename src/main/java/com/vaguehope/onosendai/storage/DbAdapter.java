@@ -418,6 +418,7 @@ public class DbAdapter implements DbInterface {
 		final ScrollState fscroll = scroll != null ? scroll : getScroll(columnId);
 		if (fscroll == null) return 0; // Columns is probably empty.
 		final Tweet tweet = getTweetDetails(fscroll.getItemId());
+		if (tweet == null) return 0; // Columns is probably empty.
 		whereArgs[1] = String.valueOf(tweet.getTime());
 
 		if (excludeColumnIds != null && excludeColumnIds.length > 0) {
