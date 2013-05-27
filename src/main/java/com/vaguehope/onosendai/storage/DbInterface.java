@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.storage;
 
 import java.util.List;
+import java.util.Set;
 
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.ScrollState;
@@ -13,7 +14,7 @@ public interface DbInterface extends KvStore {
 	void deleteTweets(Column column);
 
 	List<Tweet> getTweets(int columnId, int numberOf);
-	List<Tweet> getTweets(int columnId, int numberOf, int[] excludeColumnIds);
+	List<Tweet> getTweets(int columnId, int numberOf, Set<Integer> excludeColumnIds);
 
 	Tweet getTweetDetails(int columnId, Tweet tweet);
 	Tweet getTweetDetails(int columnId, String tweetSid);
@@ -21,7 +22,7 @@ public interface DbInterface extends KvStore {
 	Tweet getTweetDetails(long tweetUid);
 
 	int getScrollUpCount(Column column);
-	int getScrollUpCount(int columnId, int[] excludeColumnIds, ScrollState scroll);
+	int getScrollUpCount(int columnId, Set<Integer> excludeColumnIds, ScrollState scroll);
 
 	void addTwUpdateListener (TwUpdateListener listener);
 	void removeTwUpdateListener (TwUpdateListener listener);

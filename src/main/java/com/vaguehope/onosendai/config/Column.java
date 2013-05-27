@@ -1,9 +1,11 @@
 package com.vaguehope.onosendai.config;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,7 +33,7 @@ public class Column implements Titleable {
 	private final String accountId;
 	private final String resource;
 	private final int refreshIntervalMins;
-	private final int[] excludeColumnIds;
+	private final Set<Integer> excludeColumnIds;
 	private final boolean notify;
 
 	public Column (final int id, final Column c) {
@@ -44,7 +46,7 @@ public class Column implements Titleable {
 			final String accountId,
 			final String resource,
 			final int refreshIntervalMins,
-			final int[] excludeColumnIds,
+			final Set<Integer> excludeColumnIds,
 			final boolean notify) {
 		this.id = id;
 		this.title = title;
@@ -59,11 +61,13 @@ public class Column implements Titleable {
 	public int hashCode () {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((this.accountId == null) ? 0 : this.accountId.hashCode());
 		result = prime * result + this.id;
-		result = prime * result + this.refreshIntervalMins;
-		result = prime * result + ((this.resource == null) ? 0 : this.resource.hashCode());
 		result = prime * result + ((this.title == null) ? 0 : this.title.hashCode());
+		result = prime * result + ((this.accountId == null) ? 0 : this.accountId.hashCode());
+		result = prime * result + ((this.resource == null) ? 0 : this.resource.hashCode());
+		result = prime * result + this.refreshIntervalMins;
+		result = prime * result + ((this.excludeColumnIds == null) ? 0 : this.title.hashCode());
+		result = prime * result + (this.notify ? 1231 : 1237);
 		return result;
 	}
 
@@ -77,7 +81,9 @@ public class Column implements Titleable {
 				EqualHelper.equal(this.title, that.title) &&
 				EqualHelper.equal(this.accountId, that.accountId) &&
 				EqualHelper.equal(this.resource, that.resource) &&
-				this.refreshIntervalMins == that.refreshIntervalMins;
+				this.refreshIntervalMins == that.refreshIntervalMins &&
+				EqualHelper.equal(this.excludeColumnIds, that.excludeColumnIds) &&
+				EqualHelper.equal(this.notify, that.notify);
 	}
 
 	@Override
@@ -95,7 +101,8 @@ public class Column implements Titleable {
 				.append(",").append(this.accountId)
 				.append(",").append(this.resource)
 				.append(",").append(this.refreshIntervalMins)
-				.append(",").append(Arrays.toString(this.excludeColumnIds))
+				.append(",").append(this.excludeColumnIds)
+				.append(",").append(this.notify)
 				.append("}");
 		return s.toString();
 	}
@@ -120,7 +127,7 @@ public class Column implements Titleable {
 		return this.refreshIntervalMins;
 	}
 
-	public int[] getExcludeColumnIds () {
+	public Set<Integer> getExcludeColumnIds () {
 		return this.excludeColumnIds;
 	}
 
@@ -149,10 +156,10 @@ public class Column implements Titleable {
 		return json;
 	}
 
-	private static JSONArray toJsonArray (final int[] arr) {
-		if (arr == null) return null;
+	private static JSONArray toJsonArray (final Set<Integer> ints) {
+		if (ints == null) return null;
 		final JSONArray ja = new JSONArray();
-		for (int i : arr) {
+		for (Integer i : ints) {
 			ja.put(i);
 		}
 		return ja;
@@ -170,7 +177,7 @@ public class Column implements Titleable {
 		final String resource = json.getString(KEY_RESOURCE);
 		final String refreshRaw = json.optString(KEY_REFRESH, null);
 		final int refreshIntervalMins = parseFeedRefreshInterval(refreshRaw, account, title);
-		final int[] excludeColumnIds = parseFeedExcludeColumns(json, title);
+		final Set<Integer> excludeColumnIds = parseFeedExcludeColumns(json, title);
 		final boolean notify = json.optBoolean(KEY_NOTIFY, false);
 		return new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds, notify);
 	}
@@ -181,28 +188,28 @@ public class Column implements Titleable {
 		return refreshIntervalMins;
 	}
 
-	private static int[] parseFeedExcludeColumns (final JSONObject colJson, final String title) throws JSONException {
-		int[] excludeColumnIds = null;
+	private static Set<Integer> parseFeedExcludeColumns (final JSONObject colJson, final String title) throws JSONException {
+		Set<Integer> excludeColumnIds = null;
 		if (colJson.has(KEY_EXCLUDE)) {
 			final JSONArray exArr = colJson.optJSONArray(KEY_EXCLUDE);
 			if (exArr != null) {
-				excludeColumnIds = asIntArr(exArr);
+				excludeColumnIds = asIntSet(exArr);
 			}
 			else {
 				final int exId = colJson.optInt(KEY_EXCLUDE, Integer.MIN_VALUE);
 				if (exId > Integer.MIN_VALUE) {
-					excludeColumnIds = new int[] { exId };
+					excludeColumnIds = Collections.singleton(Integer.valueOf(exId));
 				}
 			}
 			if (excludeColumnIds == null) LOG.w("Column '%s' has invalid exclude value: '%s'.", title, colJson.getString(KEY_EXCLUDE));
 		}
-		return excludeColumnIds;
+		return excludeColumnIds == null ? null : Collections.unmodifiableSet(excludeColumnIds);
 	}
 
-	private static int[] asIntArr (final JSONArray arr) throws JSONException {
-		final int[] ret = new int[arr.length()];
+	private static Set<Integer> asIntSet (final JSONArray arr) throws JSONException {
+		final Set<Integer> ret = new HashSet<Integer>();
 		for (int i = 0; i < arr.length(); i++) {
-			ret[i] = arr.getInt(i);
+			ret.add(Integer.valueOf(arr.getInt(i)));
 		}
 		return ret;
 	}

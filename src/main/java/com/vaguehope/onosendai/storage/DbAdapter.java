@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.storage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -254,20 +255,24 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public List<Tweet> getTweets (final int columnId, final int numberOf, final int[] excludeColumnIds) {
-		if (excludeColumnIds == null || excludeColumnIds.length < 1) return getTweets(columnId, numberOf);
+	public List<Tweet> getTweets (final int columnId, final int numberOf, final Set<Integer> excludeColumnIds) {
+		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweets(columnId, numberOf);
+
 		final StringBuilder where = new StringBuilder()
 				.append(TBL_TW_COLID).append("=?")
 				.append(" AND ").append(TBL_TW_SID)
 				.append(" NOT IN (SELECT ").append(TBL_TW_SID)
 				.append(" FROM ").append(TBL_TW)
 				.append(" WHERE ");
-		final String[] whereArgs = new String[1 + excludeColumnIds.length];
+		final String[] whereArgs = new String[1 + excludeColumnIds.size()];
 		whereArgs[0] = String.valueOf(columnId);
-		for (int i = 0; i < excludeColumnIds.length; i++) {
+
+		int i = 0;
+		for (Integer id : excludeColumnIds) {
 			if (i > 0) where.append(" OR ");
 			where.append(TBL_TW_COLID).append("=?");
-			whereArgs[i + 1] = String.valueOf(excludeColumnIds[i]);
+			whereArgs[1 + i] = String.valueOf(id);
+			i++;
 		}
 		where.append(")");
 		return getTweets(where.toString(), whereArgs, numberOf);
@@ -404,14 +409,14 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public int getScrollUpCount (final int columnId, final int[] excludeColumnIds, final ScrollState scroll) {
+	public int getScrollUpCount (final int columnId, final Set<Integer> excludeColumnIds, final ScrollState scroll) {
 		if (!checkDbOpen()) return -1;
 
 		final StringBuilder where = new StringBuilder()
 				.append(TBL_TW_COLID).append("=?")
 				.append(" AND ").append(TBL_TW_TIME).append(">?");
 
-		final String[] whereArgs = new String[2 + (excludeColumnIds != null ? excludeColumnIds.length : 0)];
+		final String[] whereArgs = new String[2 + (excludeColumnIds != null ? excludeColumnIds.size() : 0)];
 		whereArgs[0] = String.valueOf(columnId);
 
 		// TODO integrate into query?
@@ -421,15 +426,18 @@ public class DbAdapter implements DbInterface {
 		if (tweet == null) return 0; // Columns is probably empty.
 		whereArgs[1] = String.valueOf(tweet.getTime());
 
-		if (excludeColumnIds != null && excludeColumnIds.length > 0) {
+		if (excludeColumnIds != null && excludeColumnIds.size() > 0) {
 			where.append(" AND ").append(TBL_TW_SID)
 					.append(" NOT IN (SELECT ").append(TBL_TW_SID)
 					.append(" FROM ").append(TBL_TW)
 					.append(" WHERE ");
-			for (int i = 0; i < excludeColumnIds.length; i++) {
+
+			int i = 0;
+			for (Integer id : excludeColumnIds) {
 				if (i > 0) where.append(" OR ");
 				where.append(TBL_TW_COLID).append("=?");
-				whereArgs[2 + i] = String.valueOf(excludeColumnIds[i]);
+				whereArgs[2 + i] = String.valueOf(id);
+				i++;
 			}
 			where.append(")");
 		}
