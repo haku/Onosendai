@@ -15,6 +15,7 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 class ColumnDialog {
 
@@ -88,6 +89,7 @@ class ColumnDialog {
 			this.spnPosition.setSelection(posAdapter.getPosition(Integer.valueOf(prefs.readColumnPosition(initialValue.getId()) + 1)));
 			this.txtResource.setText(initialValue.getResource());
 			setDurationSpinner(initialValue.getRefreshIntervalMins(), refAdapter);
+			if (StringHelper.isEmpty(accountId)) this.spnRefresh.setEnabled(false);
 			this.chkNotify.setChecked(initialValue.isNotify());
 			this.chkDelete.setVisibility(View.VISIBLE);
 		}
