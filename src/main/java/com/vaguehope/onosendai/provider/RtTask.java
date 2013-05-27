@@ -7,11 +7,11 @@ import android.content.Context;
 import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
-import com.vaguehope.onosendai.Ui;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.RtTask.RtResult;
 import com.vaguehope.onosendai.provider.successwhale.ItemAction;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
@@ -47,7 +47,7 @@ public class RtTask extends DbBindingAsyncTask<Void, Void, RtResult> {
 	protected void onPreExecute () {
 		this.notificationMgr = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
 		Notification n = new NotificationCompat.Builder(this.context)
-				.setSmallIcon(Ui.notificationIcon())
+				.setSmallIcon(Notifications.notificationIcon())
 				.setContentTitle(String.format("RTing via %s...", this.req.getAccount().getUiTitle()))
 				.setOngoing(true)
 				.setUsesChronometer(true)
