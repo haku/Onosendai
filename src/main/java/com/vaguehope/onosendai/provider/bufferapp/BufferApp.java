@@ -22,8 +22,8 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import com.vaguehope.onosendai.config.Account;
-import com.vaguehope.onosendai.provider.HttpClientFactory;
 import com.vaguehope.onosendai.provider.ServiceRef;
+import com.vaguehope.onosendai.util.HttpClientFactory;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class BufferApp {

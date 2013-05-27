@@ -30,9 +30,9 @@ import android.net.http.AndroidHttpClient;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
-import com.vaguehope.onosendai.provider.HttpClientFactory;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.KvStore;
+import com.vaguehope.onosendai.util.HttpClientFactory;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
