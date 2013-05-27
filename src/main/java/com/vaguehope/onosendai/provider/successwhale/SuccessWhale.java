@@ -44,6 +44,7 @@ public class SuccessWhale {
 	private static final String BASE_URL = "https://successwhale-api.herokuapp.com:443";
 	private static final String API_AUTH = "/v3/authenticate.json";
 	private static final String API_COLUMNS = "/v3/columns.xml";
+	private static final String API_SOURCES = "/v3/sources.xml";
 	private static final String API_FEED = "/v3/feed.xml";
 	private static final String API_THREAD = "/v3/thread.xml";
 	private static final String API_POSTTOACCOUNTS = "/v3/posttoaccounts.xml";
@@ -159,6 +160,22 @@ public class SuccessWhale {
 			@Override
 			public String describeFailure (final Exception e) {
 				return "Failed to fetch columns: " + e.toString();
+			}
+		});
+	}
+
+	public SuccessWhaleSources getSources () throws SuccessWhaleException {
+		return authenticated(new SwCall<SuccessWhaleSources>() {
+			@Override
+			public SuccessWhaleSources invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+				final HttpGet req = new HttpGet(makeAuthedUrl(API_SOURCES));
+				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
+				return client.execute(req, SourcesHandler.INSTANCE);
+			}
+
+			@Override
+			public String describeFailure (final Exception e) {
+				return "Failed to fetch sources: " + e.toString();
 			}
 		});
 	}
@@ -372,6 +389,22 @@ public class SuccessWhale {
 			checkReponseCode(response);
 			try {
 				return new ColumnsXml(this.account, AndroidHttpClient.getUngzippedContent(response.getEntity())).getColumns();
+			}
+			catch (final SAXException e) {
+				throw new IOException("Failed to parse response: " + e.toString(), e);
+			}
+		}
+
+	}
+
+	private enum SourcesHandler implements ResponseHandler<SuccessWhaleSources> {
+		INSTANCE;
+
+		@Override
+		public SuccessWhaleSources handleResponse (final HttpResponse response) throws IOException {
+			checkReponseCode(response);
+			try {
+				return new SourcesXml(AndroidHttpClient.getUngzippedContent(response.getEntity())).getSources();
 			}
 			catch (final SAXException e) {
 				throw new IOException("Failed to parse response: " + e.toString(), e);

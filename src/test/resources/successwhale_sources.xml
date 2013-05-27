@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<user>
+  <success type="boolean">true</success>
+  <sources type="array">
+    <source>
+      <service>twitter</service>
+      <username>exampleuser</username>
+      <uid>12365487</uid>
+      <shorturl>statuses/home_timeline</shorturl>
+      <fullurl>twitter/12365487/statuses/home_timeline</fullurl>
+      <shortname>Home Timeline</shortname>
+      <fullname>@exampleuser's Home Timeline</fullname>
+    </source>
+    <source>
+      <service>twitter</service>
+      <username>exampleuser</username>
+      <uid>12365487</uid>
+      <shorturl>statuses/user_timeline</shorturl>
+      <fullurl>twitter/12365487/statuses/user_timeline</fullurl>
+      <shortname>Own Tweets</shortname>
+      <fullname>@exampleuser's Own Tweets</fullname>
+    </source>
+    <source>
+      <service>twitter</service>
+      <username>exampleuser</username>
+      <uid>12365487</uid>
+      <shorturl>statuses/mentions</shorturl>
+      <fullurl>twitter/12365487/statuses/mentions</fullurl>
+      <shortname>Mentions</shortname>
+      <fullname>@exampleuser's Mentions</fullname>
+    </source>
+    <source>
+      <service>twitter</service>
+      <username>exampleuser</username>
+      <uid>12365487</uid>
+      <shorturl>direct_messages</shorturl>
+      <fullurl>twitter/12365487/direct_messages</fullurl>
+      <shortname>Direct Messages</shortname>
+      <fullname>@exampleuser's Direct Messages</fullname>
+    </source>
+    <source>
+      <service>twitter</service>
+      <username>exampleuser</username>
+      <uid>12365487</uid>
+      <shorturl>sent_messages</shorturl>
+      <fullurl>twitter/12365487/sent_messages</fullurl>
+      <shortname>Sent Messages</shortname>
+      <fullname>@exampleuser's Sent Messages</fullname>
+    </source>
+    <source>
+      <service>facebook</service>
+      <username>Mx Smith</username>
+      <uid>983412343</uid>
+      <shorturl>me/home</shorturl>
+      <fullurl>facebook/983412343/me/home</fullurl>
+      <shortname>Home Feed</shortname>
+      <fullname>Mx Smith's Home Feed</fullname>
+    </source>
+    <source>
+      <service>facebook</service>
+      <username>Mx Smith</username>
+      <uid>983412343</uid>
+      <shorturl>me</shorturl>
+      <fullurl>facebook/983412343/me</fullurl>
+      <shortname>Wall</shortname>
+      <fullname>Mx Smith's Wall</fullname>
+    </source>
+    <source>
+      <service>facebook</service>
+      <username>Mx Smith</username>
+      <uid>983412343</uid>
+      <shorturl>me/events</shorturl>
+      <fullurl>facebook/983412343/me/events</fullurl>
+      <shortname>Events</shortname>
+      <fullname>Mx Smith's Events</fullname>
+    </source>
+    <source>
+      <service>facebook</service>
+      <username>Mx Smith</username>
+      <uid>983412343</uid>
+      <shorturl>me/notifications</shorturl>
+      <fullurl>facebook/983412343/me/notifications</fullurl>
+      <shortname>Notifications</shortname>
+      <fullname>Mx Smith's Notifications</fullname>
+    </source>
+  </sources>
+</user>
