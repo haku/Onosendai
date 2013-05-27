@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
 import com.vaguehope.onosendai.util.IoHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public final class TwitterOauth {
 
@@ -45,8 +46,7 @@ public final class TwitterOauth {
 		try {
 			key = r.readLine();
 			secret = r.readLine();
-			if (key == null || secret == null
-					|| key.isEmpty() || secret.isEmpty()
+			if (StringHelper.isEmpty(key) || StringHelper.isEmpty(secret)
 					|| DEF_KEY.equals(key) || DEF_SECRET.equals(secret))
 				throw new IllegalStateException("API keys are missing.");
 			read = true;
