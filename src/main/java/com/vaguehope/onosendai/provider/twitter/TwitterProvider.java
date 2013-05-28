@@ -84,6 +84,7 @@ public class TwitterProvider {
 
 	private static TwitterFactory makeTwitterFactory (final Account account) {
 		final ConfigurationBuilder cb = new ConfigurationBuilder()
+				.setUseSSL(true)
 				.setOAuthConsumerKey(account.getConsumerKey())
 				.setOAuthConsumerSecret(account.getConsumerSecret())
 				.setOAuthAccessToken(account.getAccessToken())
