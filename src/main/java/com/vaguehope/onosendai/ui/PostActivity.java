@@ -12,10 +12,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -47,6 +49,8 @@ import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.MediaHelper;
+import com.vaguehope.onosendai.util.MediaHelper.ImageMetadata;
 
 public class PostActivity extends Activity implements ImageLoader {
 
@@ -115,6 +119,13 @@ public class PostActivity extends Activity implements ImageLoader {
 		this.spnAccount.setOnItemSelectedListener(this.accountOnItemSelectedListener);
 
 		this.llSubAccounts = (ViewGroup) findViewById(R.id.llSubAccounts);
+
+		((Button) findViewById(R.id.btnAttach)).setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick (final View v) {
+				askChoosePicture();
+			}
+		});
 
 		this.txtBody = (EditText) findViewById(R.id.txtBody);
 		final TextView txtCharRemaining = (TextView) findViewById(R.id.txtCharRemaining);
@@ -312,6 +323,45 @@ public class PostActivity extends Activity implements ImageLoader {
 				break;
 			default:
 				this.llSubAccounts.setVisibility(View.GONE);
+		}
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private static final int SELECT_PICTURE = 105340; // NOSONAR Just a number.
+
+	protected void askChoosePicture () {
+		startActivityForResult(Intent.createChooser(new Intent(Intent.ACTION_GET_CONTENT)
+				.setType("image/*")
+				.addCategory(Intent.CATEGORY_OPENABLE),
+				"Select Picture")
+				//.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { new Intent(MediaStore.ACTION_IMAGE_CAPTURE) })
+				, SELECT_PICTURE);
+	}
+
+	@Override
+	protected void onActivityResult (final int requestCode, final int resultCode, final Intent imageReturnedIntent) {
+		super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
+		switch (requestCode) {
+			case SELECT_PICTURE:
+				if (resultCode == RESULT_OK) onPictureChosen(imageReturnedIntent);
+				break;
+			default:
+		}
+	}
+
+	private void onPictureChosen (final Intent imageReturnedIntent) {
+		final Uri uri = imageReturnedIntent.getData();
+		if ("file".equals(uri.getScheme())) {
+			DialogHelper.alert(this, "TODO include this in post:\n" + uri);
+		}
+		else if ("content".equals(uri.getScheme())) {
+			final ImageMetadata metadata = MediaHelper.getImageMetadata(this, uri);
+			//InputStream imageStream = getContentResolver().openInputStream(uri);
+			DialogHelper.alert(this, "TODO include this in post:\n" + metadata);
+		}
+		else {
+			DialogHelper.alert(this, "Unknown resource scheme:\n" + uri);
 		}
 	}
 
