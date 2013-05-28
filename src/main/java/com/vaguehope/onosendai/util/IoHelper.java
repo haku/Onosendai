@@ -24,6 +24,7 @@ public final class IoHelper {
 	}
 
 	public static void closeQuietly (final Closeable c) {
+		if (c == null) return;
 		try {
 			c.close();
 		}

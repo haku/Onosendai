@@ -12,10 +12,29 @@
 		android:layout_height="wrap_content"
 		android:orientation="vertical">
 
-		<Spinner
-			android:id="@+id/spnAccount"
+		<!-- TODO rework these nested LLs into one RelativeLayout. -->
+		<LinearLayout
 			android:layout_width="match_parent"
-			android:layout_height="wrap_content" />
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			style="?android:attr/buttonBarStyle">
+
+			<Spinner
+				android:id="@+id/spnAccount"
+				android:layout_width="0px"
+				android:layout_height="wrap_content"
+				android:layout_weight="1" />
+
+			<Button
+				android:id="@+id/btnAttach"
+				android:layout_width="wrap_content"
+				android:layout_height="fill_parent"
+				style="?android:attr/buttonBarButtonStyle"
+				android:paddingLeft="10dip"
+				android:paddingRight="10dip"
+				android:text="Attach" />
+
+		</LinearLayout>
 
 		<HorizontalScrollView
 			android:layout_width="match_parent"
