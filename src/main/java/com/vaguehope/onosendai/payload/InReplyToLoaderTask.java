@@ -128,7 +128,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 			try {
 				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
 				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
-				return new ReplyLoaderResult("No comments.", startingTweet);
+				return new ReplyLoaderResult("No visible comments.", startingTweet);
 			}
 			catch (SuccessWhaleException e) {
 				LOG.w("Failed to retrieve thread %s: %s", startingTweet.getSid(), e.toString());
