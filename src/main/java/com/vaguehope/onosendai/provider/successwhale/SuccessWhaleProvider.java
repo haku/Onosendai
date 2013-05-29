@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.provider.successwhale;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,8 +74,8 @@ public class SuccessWhaleProvider {
 		return getAccount(account).getPostToAccountsCached();
 	}
 
-	public void post (final Account account, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid) throws SuccessWhaleException {
-		getAccount(account).post(postToSvc, body, inReplyToSid);
+	public void post (final Account account, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final String attachmentName, final long attachmentLength, final InputStream attachmentIs) throws SuccessWhaleException {
+		getAccount(account).post(postToSvc, body, inReplyToSid, attachmentName, attachmentLength, attachmentIs);
 	}
 
 	public void itemAction (final Account account, final ServiceRef svc, final String itemSid, final ItemAction itemAction) throws SuccessWhaleException {

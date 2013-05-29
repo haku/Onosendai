@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.provider.successwhale;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -9,6 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+
+import local.apache.InputStreamPart;
+import local.apache.MultipartEntity;
+import local.apache.Part;
+import local.apache.StringPart;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -249,27 +255,32 @@ public class SuccessWhale {
 		this.kvStore.storeValue(PTA_PREFIX + getAccount().getId(), data);
 	}
 
-	public void post (final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid) throws SuccessWhaleException {
+	public void post (final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid,
+			final String attachmentName, final long attachmentLength, final InputStream attachmentIs) throws SuccessWhaleException {
 		authenticated(new SwCall<Void>() {
 			@Override
 			public Void invoke (final HttpClient client) throws SuccessWhaleException, IOException {
 				final HttpPost post = new HttpPost(BASE_URL + API_ITEM);
-				final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
-				addAuthParams(params);
-				params.add(new BasicNameValuePair("text", body));
+				final List<Part> parts = new ArrayList<Part>();
+				parts.add(new StringPart("token", SuccessWhale.this.token));
+				parts.add(new StringPart("text", body));
 
 				final StringBuilder accounts = new StringBuilder();
 				for (final ServiceRef svc : postToSvc) {
 					if (accounts.length() > 0) accounts.append(":");
 					accounts.append(svc.getRawType()).append("/").append(svc.getUid());
 				}
-				params.add(new BasicNameValuePair("accounts", accounts.toString()));
+				parts.add(new StringPart("accounts", accounts.toString()));
 
 				if (inReplyToSid != null && !inReplyToSid.isEmpty()) {
-					params.add(new BasicNameValuePair("in_reply_to_id", inReplyToSid));
+					parts.add(new StringPart("in_reply_to_id", inReplyToSid));
 				}
 
-				post.setEntity(new UrlEncodedFormEntity(params));
+				if (attachmentName != null && attachmentIs != null) {
+					parts.add(new InputStreamPart("file", attachmentName, attachmentLength, attachmentIs));
+				}
+
+				post.setEntity(new MultipartEntity(parts.toArray(new Part[] {})));
 				client.execute(post, new CheckStatusOnlyHandler());
 				return null;
 			}
