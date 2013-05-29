@@ -1,5 +1,8 @@
 package com.vaguehope.onosendai.provider;
 
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
 
 import android.app.Notification;
@@ -7,6 +10,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
@@ -18,21 +22,23 @@ import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.MediaHelper;
+import com.vaguehope.onosendai.util.MediaHelper.ImageMetadata;
 
-public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
+public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 
 	private static final LogWrapper LOG = new LogWrapper("PT");
 
-	private final Context context;
 	private final PostRequest req;
 	private final int notificationId;
 
 	private NotificationManager notificationMgr;
+	private NotificationCompat.Builder notificationBuilder;
 
 	public PostTask (final Context context, final PostRequest req) {
 		super(context);
-		this.context = context;
 		this.req = req;
 		this.notificationId = (int) System.currentTimeMillis(); // Probably unique.
 	}
@@ -44,14 +50,22 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 
 	@Override
 	protected void onPreExecute () {
-		this.notificationMgr = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
-		final Notification n = new NotificationCompat.Builder(this.context)
+		this.notificationMgr = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+		this.notificationBuilder = new NotificationCompat.Builder(getContext())
 				.setSmallIcon(Notifications.notificationIcon())
 				.setContentTitle(String.format("Posting to %s...", this.req.getAccount().getUiTitle()))
 				.setOngoing(true)
-				.setUsesChronometer(true)
-				.build();
-		this.notificationMgr.notify(this.notificationId, n);
+				.setUsesChronometer(true);
+		updateNotificaiton();
+	}
+
+	private void updateNotificaiton () {
+		this.notificationMgr.notify(this.notificationId, this.notificationBuilder.build());
+	}
+
+	protected void setProgress (final int max, final int progress) {
+		this.notificationBuilder.setProgress(max, progress, false);
+		updateNotificaiton();
 	}
 
 	@Override
@@ -71,14 +85,19 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 
 	private PostResult postTwitter () {
 		final TwitterProvider p = new TwitterProvider();
+		InputStream attachmentIs = null;
 		try {
-			p.post(this.req.getAccount(), this.req.getBody(), this.req.getInReplyToSidLong());
+			final ImageMetadata metadata = MediaHelper.imageMetadata(getContext(), this.req.getAttachment());
+			attachmentIs = metadata.open();
+			if (attachmentIs != null) attachmentIs = new ProgressTrackingInputStream(this, metadata.getSize(), attachmentIs);
+			p.post(this.req.getAccount(), this.req.getBody(), this.req.getInReplyToSidLong(), metadata.getName(), attachmentIs);
 			return new PostResult(this.req);
 		}
 		catch (final Exception e) { // NOSONAR need to report all errors.
 			return new PostResult(this.req, e);
 		}
 		finally {
+			IoHelper.closeQuietly(attachmentIs);
 			p.shutdown();
 		}
 	}
@@ -116,8 +135,8 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 	protected void onPostExecute (final PostResult res) {
 		if (!res.isSuccess()) {
 			LOG.w("Post failed.", res.getE());
-			final PendingIntent contentIntent = PendingIntent.getActivity(this.context, this.notificationId, this.req.getRecoveryIntent(), PendingIntent.FLAG_CANCEL_CURRENT);
-			final Notification n = new NotificationCompat.Builder(this.context)
+			final PendingIntent contentIntent = PendingIntent.getActivity(getContext(), this.notificationId, this.req.getRecoveryIntent(), PendingIntent.FLAG_CANCEL_CURRENT);
+			final Notification n = new NotificationCompat.Builder(getContext())
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
 					.setContentTitle(String.format("Tap to retry post to %s.", this.req.getAccount().getUiTitle()))
 					.setContentText(res.getEmsg())
@@ -139,13 +158,15 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 		private final Set<ServiceRef> postToSvc;
 		private final String body;
 		private final String inReplyToSid;
+		private final Uri attachment;
 		private final Intent recoveryIntent;
 
-		public PostRequest (final Account account, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final Intent recoveryIntent) {
+		public PostRequest (final Account account, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final Uri attachment, final Intent recoveryIntent) {
 			this.account = account;
 			this.postToSvc = postToSvc;
 			this.body = body;
 			this.inReplyToSid = inReplyToSid;
+			this.attachment = attachment;
 			this.recoveryIntent = recoveryIntent;
 		}
 
@@ -170,6 +191,10 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 			return Long.parseLong(this.inReplyToSid);
 		}
 
+		public Uri getAttachment () {
+			return this.attachment;
+		}
+
 		public Intent getRecoveryIntent () {
 			return this.recoveryIntent;
 		}
@@ -180,6 +205,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 					.append("PostRequest{").append(this.account)
 					.append(",").append(this.postToSvc)
 					.append(",").append(this.inReplyToSid)
+					.append(",").append(this.attachment)
 					.append("}").toString();
 		}
 
@@ -217,6 +243,46 @@ public class PostTask extends DbBindingAsyncTask<Void, Void, PostResult> {
 
 		public String getEmsg () {
 			return TaskUtils.getEmsg(this.e);
+		}
+
+	}
+
+	private class ProgressTrackingInputStream extends FilterInputStream {
+
+		private final PostTask host;
+		private final long size;
+
+		long progress = 0;
+		int lastPercent = -1;
+
+		protected ProgressTrackingInputStream (final PostTask host, final long size, final InputStream is) {
+			super(is);
+			this.host = host;
+			this.size = size;
+		}
+
+		private void increment (final int added) {
+			if (added < 1) return;
+			this.progress += added;
+			final int percent = (int) (this.progress * 100f / this.size);
+			if (percent != this.lastPercent) {
+				this.host.setProgress(100, percent);
+				this.lastPercent = percent;
+			}
+		}
+
+		@Override
+		public int read () throws IOException {
+			final int n = super.read();
+			increment(1);
+			return n;
+		}
+
+		@Override
+		public int read (final byte[] buffer, final int offset, final int count) throws IOException {
+			final int n = super.read(buffer, offset, count);
+			increment(n);
+			return n;
 		}
 
 	}
