@@ -84,8 +84,8 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 	}
 
 	private PostResult postTwitter () {
-		final TwitterProvider p = new TwitterProvider();
 		InputStream attachmentIs = null;
+		final TwitterProvider p = new TwitterProvider();
 		try {
 			final ImageMetadata metadata = MediaHelper.imageMetadata(getContext(), this.req.getAttachment());
 			attachmentIs = metadata.open();
@@ -103,15 +103,20 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 	}
 
 	private PostResult postSuccessWhale (final DbInterface db) {
+		InputStream attachmentIs = null;
 		final SuccessWhaleProvider s = new SuccessWhaleProvider(db);
 		try {
-			s.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody(), this.req.getInReplyToSid());
+			final ImageMetadata metadata = MediaHelper.imageMetadata(getContext(), this.req.getAttachment());
+			attachmentIs = metadata.open();
+			if (attachmentIs != null) attachmentIs = new ProgressTrackingInputStream(this, metadata.getSize(), attachmentIs);
+			s.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody(), this.req.getInReplyToSid(), metadata.getName(), metadata.getSize(), attachmentIs);
 			return new PostResult(this.req);
 		}
 		catch (final Exception e) { // NOSONAR need to report all errors.
 			return new PostResult(this.req, e);
 		}
 		finally {
+			IoHelper.closeQuietly(attachmentIs);
 			s.shutdown();
 		}
 	}
