@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.text.DecimalFormat;
 
 public final class IoHelper {
 
@@ -29,6 +30,14 @@ public final class IoHelper {
 			c.close();
 		}
 		catch (IOException e) {/**/} // NOSONAR this is intentional, is in the name of the method.
+	}
+
+	public static String readableFileSize (final long size) {
+		// http://stackoverflow.com/questions/3263892/format-file-size-as-mb-gb-etc
+		if (size <= 0) return "0";
+		final String[] units = new String[] { "B", "KB", "MB", "GB", "TB" };
+		int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
+		return new DecimalFormat("#,##0.#").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
 	}
 
 	public static long copy (final InputStream source, final OutputStream sink) throws IOException {

@@ -60,6 +60,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	public static final String ARG_ALSO_MENTIONS = "also_mentions";
 	public static final String ARG_BODY = "body"; // If present mentions will not be prepended to body.
 	public static final String ARG_SVCS = "svcs";
+	public static final String ARG_ATTACHMENT = "post_attachment_uri";
 
 	protected static final LogWrapper LOG = new LogWrapper("PA");
 
@@ -76,7 +77,9 @@ public class PostActivity extends Activity implements ImageLoader {
 	private Spinner spnAccount;
 	private ViewGroup llSubAccounts;
 	private EditText txtBody;
+
 	private final EnabledServiceRefs enabledPostToAccounts = new EnabledServiceRefs();
+	private Uri attachment;
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -120,6 +123,9 @@ public class PostActivity extends Activity implements ImageLoader {
 
 		this.llSubAccounts = (ViewGroup) findViewById(R.id.llSubAccounts);
 
+		if (savedInstanceState != null) this.attachment = savedInstanceState.getParcelable(ARG_ATTACHMENT);
+		if (this.attachment == null) this.attachment = this.intentExtras.getParcelable(ARG_ATTACHMENT);
+		redrawAttachment();
 		((Button) findViewById(R.id.btnAttach)).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick (final View v) {
@@ -164,6 +170,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	protected void onSaveInstanceState (final Bundle outState) {
 		super.onSaveInstanceState(outState);
 		this.enabledPostToAccounts.addToBundle(outState);
+		outState.putParcelable(ARG_ATTACHMENT, this.attachment);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -292,6 +299,7 @@ public class PostActivity extends Activity implements ImageLoader {
 				.putExtra(ARG_ACCOUNT_ID, account.getId())
 				.putExtra(ARG_IN_REPLY_TO_UID, this.inReplyToUid)
 				.putExtra(ARG_IN_REPLY_TO_SID, this.inReplyToSid)
+				.putExtra(ARG_ATTACHMENT, this.attachment)
 				.putExtra(ARG_BODY, body);
 
 		final ArrayList<String> svcsLst = new ArrayList<String>();
@@ -300,7 +308,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		}
 		recoveryIntent.putStringArrayListExtra(ARG_SVCS, svcsLst);
 
-		new PostTask(getApplicationContext(), new PostRequest(account, svcs, body, this.inReplyToSid, recoveryIntent)).execute();
+		new PostTask(getApplicationContext(), new PostRequest(account, svcs, body, this.inReplyToSid, this.attachment, recoveryIntent)).execute();
 		finish();
 	}
 
@@ -330,6 +338,13 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	private static final int SELECT_PICTURE = 105340; // NOSONAR Just a number.
 
+	private void redrawAttachment () {
+		final ImageMetadata metadata = MediaHelper.imageMetadata(this, this.attachment);
+		final TextView txtAttached = (TextView) findViewById(R.id.txtAttached);
+		txtAttached.setText(String.format("Attachment: %s", metadata.getUiTitle()));
+		txtAttached.setVisibility(metadata.exists() ? View.VISIBLE : View.GONE);
+	}
+
 	protected void askChoosePicture () {
 		startActivityForResult(Intent.createChooser(new Intent(Intent.ACTION_GET_CONTENT)
 				.setType("image/*")
@@ -352,16 +367,12 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	private void onPictureChosen (final Intent imageReturnedIntent) {
 		final Uri uri = imageReturnedIntent.getData();
-		if ("file".equals(uri.getScheme())) {
-			DialogHelper.alert(this, "TODO include this in post:\n" + uri);
-		}
-		else if ("content".equals(uri.getScheme())) {
-			final ImageMetadata metadata = MediaHelper.getImageMetadata(this, uri);
-			//InputStream imageStream = getContentResolver().openInputStream(uri);
-			DialogHelper.alert(this, "TODO include this in post:\n" + metadata);
+		if (MediaHelper.isUnderstoodResource(uri)) {
+			this.attachment = uri;
+			redrawAttachment();
 		}
 		else {
-			DialogHelper.alert(this, "Unknown resource scheme:\n" + uri);
+			DialogHelper.alert(this, "Unknown resource:\n" + uri);
 		}
 	}
 

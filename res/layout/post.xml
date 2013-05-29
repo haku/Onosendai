@@ -56,6 +56,12 @@
 			layout="@layout/tweetdetail"
 			android:visibility="gone" />
 
+		<TextView
+			android:id="@+id/txtAttached"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:visibility="gone" />
+
 		<!-- height set to wrap_content to prevent double-scrolling. -->
 		<EditText
 			android:id="@+id/txtBody"

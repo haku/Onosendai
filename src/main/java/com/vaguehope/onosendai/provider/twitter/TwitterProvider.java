@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.provider.twitter;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -62,9 +63,10 @@ public class TwitterProvider {
 		return TwitterUtils.convertTweet(account, getTwitter(account).showStatus(id));
 	}
 
-	public void post (final Account account, final String body, final long inReplyTo) throws TwitterException {
+	public void post (final Account account, final String body, final long inReplyTo, final String attachmentName, final InputStream attachmentIs) throws TwitterException {
 		final StatusUpdate s = new StatusUpdate(body);
 		if (inReplyTo > 0) s.setInReplyToStatusId(inReplyTo);
+		if (attachmentName != null && attachmentIs != null) s.setMedia(attachmentName, attachmentIs);
 		getTwitter(account).updateStatus(s);
 	}
 
