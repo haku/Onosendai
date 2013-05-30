@@ -252,13 +252,16 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 
 	}
 
-	private class ProgressTrackingInputStream extends FilterInputStream {
+	private static class ProgressTrackingInputStream extends FilterInputStream {
+
+		private static final float PERCENT_F = 100f;
+		private static final int PERCENT_I = 100;
 
 		private final PostTask host;
 		private final long size;
 
-		long progress = 0;
-		int lastPercent = -1;
+		private long progress = 0;
+		private int lastPercent = -1;
 
 		protected ProgressTrackingInputStream (final PostTask host, final long size, final InputStream is) {
 			super(is);
@@ -269,9 +272,9 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 		private void increment (final int added) {
 			if (added < 1) return;
 			this.progress += added;
-			final int percent = (int) (this.progress * 100f / this.size);
+			final int percent = (int) (this.progress * PERCENT_F / this.size);
 			if (percent != this.lastPercent) {
-				this.host.setProgress(100, percent);
+				this.host.setProgress(PERCENT_I, percent);
 				this.lastPercent = percent;
 			}
 		}
