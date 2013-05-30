@@ -163,7 +163,10 @@
 						</execution>
 					</executions>
 					<configuration>
-						<file>target/classes/api_twitter</file>
+						<includes>
+							<include>target/classes/build_number</include>
+							<include>target/classes/api_twitter</include>
+						</includes>
 						<replacements>
 							<replacement>
 								<token>API_TWITTER_CONSUMER_KEY</token>
@@ -172,6 +175,10 @@
 							<replacement>
 								<token>API_TWITTER_CONSUMER_SECRET</token>
 								<value>${env.API_TWITTER_CONSUMER_SECRET}</value>
+							</replacement>
+							<replacement>
+								<token>BUILD_NUMBER</token>
+								<value>${env.BUILD_NUMBER}</value>
 							</replacement>
 						</replacements>
 					</configuration>
