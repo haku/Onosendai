@@ -3,6 +3,8 @@ Onosendai - A Better Deck
 
 A multi-column social network client.
 
+![Onosendai Phone and Tablet UI](http://vaguehope.com/uploads/onoseldai-2013-05.png Onosendai Phone and Tablet UI)
+
 Features
 --------
 
@@ -10,7 +12,6 @@ Features
 * De-duplicate: filter the items in one column out of another.
 * Read Later column: any tweet can be saved locally for reading later.
 * Background feed fetching and caching.
-* Configured via JSON file on the file system.
 
 Supported Services
 ------------------
@@ -22,14 +23,15 @@ Supported Services
 Download
 --------
 
-Currently there are no stable releases of Onosendai.
+Currently there are no 'official' releases of Onosendai.
 Recent snapshot builds can be downloaded from http://karasu.vaguehope.com/onosendai.
 
-Configuration
--------------
+Abvanced Configuration
+----------------------
 
-All configuration is stored in the `deck.conf` file that lives in the root of the external storage device, typically `/sdcard/deck.conf`.
-If this file does not exist a template will be created for you to edit when the UI is launched.
+Advanced configuration (not using the UI) is available.
+This is via the `deck.conf` file that lives in the root of the external storage device, typically `/sdcard/deck.conf`.
+If this file does not exist a template can be created by the welcome screen for you to edit.
 
 ### Example config
 
