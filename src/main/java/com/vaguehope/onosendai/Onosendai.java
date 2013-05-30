@@ -1,11 +1,15 @@
 package com.vaguehope.onosendai;
 
+import java.io.IOException;
+
 import org.acra.ACRA;
 import org.acra.ReportField;
 import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
 
 import android.app.Application;
+
+import com.vaguehope.onosendai.util.IoHelper;
 
 @ReportsCrashes(formKey = "" /* not used */,
 		mailTo = "reports@onosendai.mobi",
@@ -36,6 +40,15 @@ public class Onosendai extends Application {
 	public void onCreate () {
 		super.onCreate();
 		ACRA.init(this);
+		addBuildNumberToCrashReport();
+	}
+
+	private void addBuildNumberToCrashReport () {
+		try {
+			final String buildNumber = IoHelper.toString(getClass().getResourceAsStream("/build_number"));
+			ACRA.getErrorReporter().putCustomData("BUILD_NUMBER", buildNumber);
+		}
+		catch (IOException e) {/* On a best-can-do basis. */}
 	}
 
 }

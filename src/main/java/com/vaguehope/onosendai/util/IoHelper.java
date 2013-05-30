@@ -53,12 +53,14 @@ public final class IoHelper {
 	}
 
 	public static String toString (final InputStream is) throws IOException {
+		if (is == null) return null;
 		final StringBuilder sb = new StringBuilder();
 		final BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 		try {
 			String line;
 			while ((line = rd.readLine()) != null) {
-				sb.append(line).append("\n");
+				if (sb.length() > 0) sb.append("\n");
+				sb.append(line);
 			}
 			return sb.toString();
 		}
