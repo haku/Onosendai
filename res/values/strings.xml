@@ -4,6 +4,11 @@
 	<string name="app_name">onosendai</string>
 	<string name="service_label">onosendai update service</string>
 
+	<string name="crash_dialog_title">CSI Onosendai</string>
+	<string name="crash_dialog_text">Thank you for crash testing Onosendai.  Please email a bug report.</string>
+	<string name="crash_dialog_comment_prompt">You message here:</string>
+	<string name="crash_dialog_ok_toast">Thank you for your time.</string>
+
 	<string name="setup_title">Onosendai Setup</string>
 	<string name="setup_welcome">
 		Onosendai is not currently configured.

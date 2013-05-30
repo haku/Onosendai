@@ -62,6 +62,12 @@
 			<version>2.2</version>
 		</dependency>
 
+		<dependency>
+			<groupId>ch.acra</groupId>
+			<artifactId>acra</artifactId>
+			<version>4.5.0</version>
+		</dependency>
+
 		<!-- Test -->
 
 		<dependency>
