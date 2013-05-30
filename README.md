@@ -3,7 +3,7 @@ Onosendai - A Better Deck
 
 A multi-column social network client.
 
-![Onosendai Phone and Tablet UI](http://vaguehope.com/uploads/onoseldai-2013-05.png Onosendai Phone and Tablet UI)
+![Onosendai Phone and Tablet UI](http://vaguehope.com/uploads/onoseldai-2013-05.png "Onosendai Phone and Tablet UI")
 
 Features
 --------
