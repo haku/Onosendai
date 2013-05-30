@@ -23,10 +23,18 @@
 		android:anyDensity="true" />
 
 	<application
+		android:name="Onosendai"
 		android:allowBackup="true"
 		android:icon="@drawable/ic_hosaka_meji"
 		android:label="@string/app_name"
 		android:theme="@style/AppTheme">
+
+		<activity
+			android:name="org.acra.CrashReportDialog"
+			android:theme="@android:style/Theme.Dialog"
+			android:launchMode="singleInstance"
+			android:excludeFromRecents="true"
+			android:finishOnTaskLaunch="true" />
 
 		<activity
 			android:name=".ui.MainActivity"
