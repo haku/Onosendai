@@ -9,6 +9,7 @@ Features
 --------
 
 * Timelines, mentions, lists and searches can all be columns.
+* Adaptive layout: tablets show multiple columns at once.
 * De-duplicate: filter the items in one column out of another.
 * Read Later column: any tweet can be saved locally for reading later.
 * Background feed fetching and caching.
@@ -26,7 +27,7 @@ Download
 Currently there are no 'official' releases of Onosendai.
 Recent snapshot builds can be downloaded from http://karasu.vaguehope.com/onosendai.
 
-Abvanced Configuration
+Advanced Configuration
 ----------------------
 
 Advanced configuration (not using the UI) is available.
