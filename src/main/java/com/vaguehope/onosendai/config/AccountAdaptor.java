@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.config;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import android.content.Context;
@@ -17,9 +18,9 @@ public class AccountAdaptor extends BaseAdapter {
 	private final LayoutInflater layoutInflater;
 	private final List<Account> accounts;
 
-	public AccountAdaptor (final Context context, final Config conf) {
+	public AccountAdaptor (final Context context, final Collection<Account> accounts) {
 		this.layoutInflater = LayoutInflater.from(context);
-		this.accounts = new ArrayList<Account>(conf.getAccounts().values());
+		this.accounts = new ArrayList<Account>(accounts);
 	}
 
 	public int getAccountPosition (final Account account) {
