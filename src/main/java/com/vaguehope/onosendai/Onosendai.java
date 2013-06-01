@@ -8,6 +8,7 @@ import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
 
 import android.app.Application;
+import android.util.Log;
 
 import com.vaguehope.onosendai.util.IoHelper;
 
@@ -48,7 +49,9 @@ public class Onosendai extends Application {
 			final String buildNumber = IoHelper.toString(getClass().getResourceAsStream("/build_number"));
 			ACRA.getErrorReporter().putCustomData("BUILD_NUMBER", buildNumber);
 		}
-		catch (IOException e) {/* On a best-can-do basis. */}
+		catch (IOException e) {
+			Log.w(C.TAG, "Failed to read BUILD_NUMBER: " + e.toString());
+		}
 	}
 
 }
