@@ -8,11 +8,13 @@ A multi-column social network client.
 Features
 --------
 
+* Multiple accounts.
 * Timelines, mentions, lists and searches can all be columns.
 * Adaptive layout: tablets show multiple columns at once.
 * De-duplicate: filter the items in one column out of another.
 * Read Later column: any tweet can be saved locally for reading later.
 * Background feed fetching and caching.
+* Inline image previews (currently only for twimg.com but others on the TODO list).
 
 Supported Services
 ------------------
