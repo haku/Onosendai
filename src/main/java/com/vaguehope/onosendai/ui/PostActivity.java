@@ -115,69 +115,10 @@ public class PostActivity extends Activity implements ImageLoader {
 		this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
 		LOG.i("inReplyToUid=%d inReplyToSid=%s alsoMentions=%s", this.inReplyToUid, this.inReplyToSid, Arrays.toString(this.alsoMentions));
 
-		String accountId = null;
-		Account account = null;
-		if (savedInstanceState != null) accountId = savedInstanceState.getString(ARG_ACCOUNT_ID);
-		if (accountId == null) accountId = this.intentExtras.getString(ARG_ACCOUNT_ID);
-		if (accountId != null) {
-			account = conf.getAccount(accountId);
-			final List<String> svcs = this.intentExtras.getStringArrayList(ARG_SVCS);
-			LOG.i("accountId=%s svcs=%s", account.getId(), svcs);
-
-			this.enabledPostToAccounts.setAccount(account);
-			this.enabledPostToAccounts.fromBundle(savedInstanceState);
-			if (svcs != null && !this.enabledPostToAccounts.isServicesPreSpecified()) {
-				for (String svc : svcs) {
-					this.enabledPostToAccounts.enable(ServiceRef.parseServiceMeta(svc));
-				}
-				this.enabledPostToAccounts.setServicesPreSpecified(true);
-			}
-		}
-		else {
-			this.askAccountOnActivate = true;
-		}
-
-		this.spnAccount = (Spinner) findViewById(R.id.spnAccount);
-		this.accountAdaptor = new AccountAdaptor(getBaseContext(), accounts);
-		this.spnAccount.setAdapter(this.accountAdaptor);
-		setSelectedAccount(account);
-		this.spnAccount.setOnItemSelectedListener(this.accountOnItemSelectedListener);
-
-		this.llSubAccounts = (ViewGroup) findViewById(R.id.llSubAccounts);
-
-		if (savedInstanceState != null) this.attachment = savedInstanceState.getParcelable(ARG_ATTACHMENT);
-		if (this.attachment == null) this.attachment = this.intentExtras.getParcelable(ARG_ATTACHMENT);
-		if (this.attachment == null && Intent.ACTION_SEND.equals(getIntent().getAction())
-				&& getIntent().getType() != null
-				&& getIntent().getType().startsWith("image/")) {
-			final Uri intentUri = getIntent().getParcelableExtra(Intent.EXTRA_STREAM);
-			if (ImageMetadata.isUnderstoodResource(intentUri)) {
-				this.attachment = intentUri;
-			}
-			else {
-				DialogHelper.alert(this, "Unknown resource:\n" + intentUri);
-			}
-		}
-		redrawAttachment();
-		((Button) findViewById(R.id.btnAttach)).setOnClickListener(this.attachClickListener);
-
-		this.txtBody = (EditText) findViewById(R.id.txtBody);
-		final TextView txtCharRemaining = (TextView) findViewById(R.id.txtCharRemaining);
-		this.txtBody.addTextChangedListener(new TextCounterWatcher(txtCharRemaining, this.txtBody));
-
-		((Button) findViewById(R.id.btnCancel)).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick (final View v) {
-				finish();
-			}
-		});
-
-		((Button) findViewById(R.id.btnPost)).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick (final View v) {
-				askPost();
-			}
-		});
+		setupAccounts(savedInstanceState, accounts, conf);
+		setupAttachemnt(savedInstanceState);
+		setupTextBody();
+		wireMainButtons();
 	}
 
 	@Override
@@ -232,6 +173,81 @@ public class PostActivity extends Activity implements ImageLoader {
 		final DbClient d = this.bndDb;
 		if (d == null) return null;
 		return d.getDb();
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private void setupAccounts (final Bundle savedInstanceState, final Collection<Account> accounts, final Config conf) {
+		String accountId = null;
+		Account account = null;
+
+		if (savedInstanceState != null) accountId = savedInstanceState.getString(ARG_ACCOUNT_ID);
+		if (accountId == null) accountId = this.intentExtras.getString(ARG_ACCOUNT_ID);
+		if (accountId != null) {
+			account = conf.getAccount(accountId);
+			final List<String> svcs = this.intentExtras.getStringArrayList(ARG_SVCS);
+			LOG.i("accountId=%s svcs=%s", account.getId(), svcs);
+
+			this.enabledPostToAccounts.setAccount(account);
+			this.enabledPostToAccounts.fromBundle(savedInstanceState);
+			if (svcs != null && !this.enabledPostToAccounts.isServicesPreSpecified()) {
+				for (String svc : svcs) {
+					this.enabledPostToAccounts.enable(ServiceRef.parseServiceMeta(svc));
+				}
+				this.enabledPostToAccounts.setServicesPreSpecified(true);
+			}
+		}
+		else {
+			this.askAccountOnActivate = true;
+		}
+
+		this.spnAccount = (Spinner) findViewById(R.id.spnAccount);
+		this.accountAdaptor = new AccountAdaptor(getBaseContext(), accounts);
+		this.spnAccount.setAdapter(this.accountAdaptor);
+		setSelectedAccount(account);
+		this.spnAccount.setOnItemSelectedListener(this.accountOnItemSelectedListener);
+
+		this.llSubAccounts = (ViewGroup) findViewById(R.id.llSubAccounts);
+	}
+
+	private void setupAttachemnt (final Bundle savedInstanceState) {
+		if (savedInstanceState != null) this.attachment = savedInstanceState.getParcelable(ARG_ATTACHMENT);
+		if (this.attachment == null) this.attachment = this.intentExtras.getParcelable(ARG_ATTACHMENT);
+		if (this.attachment == null && Intent.ACTION_SEND.equals(getIntent().getAction())
+				&& getIntent().getType() != null
+				&& getIntent().getType().startsWith("image/")) {
+			final Uri intentUri = getIntent().getParcelableExtra(Intent.EXTRA_STREAM);
+			if (ImageMetadata.isUnderstoodResource(intentUri)) {
+				this.attachment = intentUri;
+			}
+			else {
+				DialogHelper.alert(this, "Unknown resource:\n" + intentUri);
+			}
+		}
+		redrawAttachment();
+		((Button) findViewById(R.id.btnAttach)).setOnClickListener(this.attachClickListener);
+	}
+
+	private void setupTextBody () {
+		this.txtBody = (EditText) findViewById(R.id.txtBody);
+		final TextView txtCharRemaining = (TextView) findViewById(R.id.txtCharRemaining);
+		this.txtBody.addTextChangedListener(new TextCounterWatcher(txtCharRemaining, this.txtBody));
+	}
+
+	private void wireMainButtons () {
+		((Button) findViewById(R.id.btnCancel)).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick (final View v) {
+				finish();
+			}
+		});
+
+		((Button) findViewById(R.id.btnPost)).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick (final View v) {
+				askPost();
+			}
+		});
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
