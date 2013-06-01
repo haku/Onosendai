@@ -35,6 +35,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Random;
 
 import org.apache.http.Header;
@@ -95,7 +96,7 @@ public class MultipartEntity extends AbstractHttpEntity {
     /**
      * The pool of ASCII chars to be used for generating a multipart boundary.
      */
-    private static byte[] MULTIPART_CHARS = EncodingUtils.getAsciiBytes(
+    private static final byte[] MULTIPART_CHARS = EncodingUtils.getAsciiBytes(
         "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
     /**
@@ -111,7 +112,7 @@ public class MultipartEntity extends AbstractHttpEntity {
     }
 
     /** The MIME parts as set by the constructor */
-    protected Part[] parts;
+    private final Part[] parts;
 
     private byte[] multipartBoundary;
 
@@ -131,7 +132,7 @@ public class MultipartEntity extends AbstractHttpEntity {
       if (params == null) {
           throw new IllegalArgumentException("params cannot be null");
       }
-      this.parts = parts;
+      this.parts = Arrays.copyOf(parts, parts.length);
       this.params = params;
     }
 
@@ -140,7 +141,7 @@ public class MultipartEntity extends AbstractHttpEntity {
       if (parts == null) {
           throw new IllegalArgumentException("parts cannot be null");
       }
-      this.parts = parts;
+      this.parts = Arrays.copyOf(parts, parts.length);
       this.params = null;
     }
 
@@ -211,7 +212,7 @@ public class MultipartEntity extends AbstractHttpEntity {
     }
 
     @Override
-	public InputStream getContent() throws IOException, IllegalStateException {
+	public InputStream getContent() throws IOException {
           if(!isRepeatable() && this.contentConsumed ) {
               throw new IllegalStateException("Content has been consumed");
           }
@@ -219,8 +220,7 @@ public class MultipartEntity extends AbstractHttpEntity {
 
           ByteArrayOutputStream baos = new ByteArrayOutputStream();
           Part.sendParts(baos, this.parts, this.multipartBoundary);
-          ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-          return bais;
+          return new ByteArrayInputStream(baos.toByteArray());
     }
 
     @Override
