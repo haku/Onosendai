@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<group android:id="@+id/group_popupmenu">
+
+		<item
+			android:id="@+id/mnuChange"
+			android:title="Change" />
+
+		<item
+			android:id="@+id/mnuRemove"
+			android:title="Remove" />
+
+	</group>
+</menu>
