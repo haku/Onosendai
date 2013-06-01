@@ -16,6 +16,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -126,12 +128,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		if (savedInstanceState != null) this.attachment = savedInstanceState.getParcelable(ARG_ATTACHMENT);
 		if (this.attachment == null) this.attachment = this.intentExtras.getParcelable(ARG_ATTACHMENT);
 		redrawAttachment();
-		((Button) findViewById(R.id.btnAttach)).setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick (final View v) {
-				askChoosePicture();
-			}
-		});
+		((Button) findViewById(R.id.btnAttach)).setOnClickListener(this.attachClickListener);
 
 		this.txtBody = (EditText) findViewById(R.id.txtBody);
 		final TextView txtCharRemaining = (TextView) findViewById(R.id.txtCharRemaining);
@@ -345,7 +342,47 @@ public class PostActivity extends Activity implements ImageLoader {
 		txtAttached.setVisibility(metadata.exists() ? View.VISIBLE : View.GONE);
 	}
 
-	protected void askChoosePicture () {
+	private final OnClickListener attachClickListener = new OnClickListener() {
+		@Override
+		public void onClick (final View v) {
+			showAttachMenu(v);
+		}
+	};
+
+	protected void showAttachMenu(final View v) {
+		if (this.attachment == null) {
+			askChoosePicture();
+		}
+		else {
+			final PopupMenu popupMenu = new PopupMenu(this, v);
+			popupMenu.getMenuInflater().inflate(R.menu.attachmenu, popupMenu.getMenu());
+			popupMenu.setOnMenuItemClickListener(this.attachMenuClickListener);
+			popupMenu.show();
+		}
+	}
+
+	protected final PopupMenu.OnMenuItemClickListener attachMenuClickListener = new PopupMenu.OnMenuItemClickListener() {
+		@Override
+		public boolean onMenuItemClick (final MenuItem item) {
+			return attachMenuItemClick(item);
+		}
+	};
+
+	protected boolean attachMenuItemClick (final MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.mnuChange:
+				askChoosePicture();
+				return true;
+			case R.id.mnuRemove:
+				this.attachment = null;
+				redrawAttachment();
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	private void askChoosePicture () {
 		startActivityForResult(Intent.createChooser(new Intent(Intent.ACTION_GET_CONTENT)
 				.setType("image/*")
 				.addCategory(Intent.CATEGORY_OPENABLE),
