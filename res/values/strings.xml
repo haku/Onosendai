@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-	<string name="app_name">onosendai</string>
-	<string name="service_label">onosendai update service</string>
+	<string name="app_name">Onosendai</string>
+	<string name="service_label">Onosendai update service</string>
 
 	<string name="crash_dialog_title">CSI Onosendai</string>
 	<string name="crash_dialog_text">Thank you for crash testing Onosendai.  Please email a bug report.</string>
