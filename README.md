@@ -20,7 +20,7 @@ Supported Services
 ------------------
 
 * Twitter columns are supported directly (bring your own API key).
-* Twitter and Facebook columns via [SuccessWhale](successwhale.com).
+* Twitter and Facebook columns via [SuccessWhale](http://successwhale.com).
 * Posting to [Buffer](https://bufferapp.com).
 
 Download
