@@ -95,6 +95,7 @@ public class ImageMetadata implements Titleable {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	public static boolean isUnderstoodResource (final Uri uri) {
+		if (uri == null) return false;
 		return SCHEME_CONTENT.equals(uri.getScheme()) || SCHEME_FILE.equals(uri.getScheme());
 	}
 
