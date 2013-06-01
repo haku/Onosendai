@@ -18,7 +18,7 @@ import java.text.DecimalFormat;
 
 public final class IoHelper {
 
-	private static final int _1024 = 1024;
+	private static final int I_1024 = 1024;
 	private static final int COPY_BUFFER_SIZE = 1024 * 4;
 
 	private IoHelper () {
@@ -37,8 +37,8 @@ public final class IoHelper {
 		// http://stackoverflow.com/questions/3263892/format-file-size-as-mb-gb-etc
 		if (size <= 0) return "0";
 		final String[] units = new String[] { "B", "KB", "MB", "GB", "TB" };
-		int digitGroups = (int) (Math.log10(size) / Math.log10(_1024));
-		return new DecimalFormat("#,##0.#").format(size / Math.pow(_1024, digitGroups)) + " " + units[digitGroups];
+		int digitGroups = (int) (Math.log10(size) / Math.log10(I_1024));
+		return new DecimalFormat("#,##0.#").format(size / Math.pow(I_1024, digitGroups)) + " " + units[digitGroups];
 	}
 
 	public static long copy (final InputStream source, final OutputStream sink) throws IOException {
