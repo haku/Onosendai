@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.provider;
 
+import java.io.FileNotFoundException;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,10 +23,8 @@ import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
-import com.vaguehope.onosendai.util.IoHelper;
+import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.LogWrapper;
-import com.vaguehope.onosendai.util.MediaHelper;
-import com.vaguehope.onosendai.util.MediaHelper.ImageMetadata;
 
 public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 
@@ -84,39 +83,29 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 	}
 
 	private PostResult postTwitter () {
-		InputStream attachmentIs = null;
 		final TwitterProvider p = new TwitterProvider();
 		try {
-			final ImageMetadata metadata = MediaHelper.imageMetadata(getContext(), this.req.getAttachment());
-			attachmentIs = metadata.open();
-			if (attachmentIs != null) attachmentIs = new ProgressTrackingInputStream(this, metadata.getSize(), attachmentIs);
-			p.post(this.req.getAccount(), this.req.getBody(), this.req.getInReplyToSidLong(), metadata.getName(), attachmentIs);
+			p.post(this.req.getAccount(), this.req.getBody(), this.req.getInReplyToSidLong(), resolveAttachment());
 			return new PostResult(this.req);
 		}
 		catch (final Exception e) { // NOSONAR need to report all errors.
 			return new PostResult(this.req, e);
 		}
 		finally {
-			IoHelper.closeQuietly(attachmentIs);
 			p.shutdown();
 		}
 	}
 
 	private PostResult postSuccessWhale (final DbInterface db) {
-		InputStream attachmentIs = null;
 		final SuccessWhaleProvider s = new SuccessWhaleProvider(db);
 		try {
-			final ImageMetadata metadata = MediaHelper.imageMetadata(getContext(), this.req.getAttachment());
-			attachmentIs = metadata.open();
-			if (attachmentIs != null) attachmentIs = new ProgressTrackingInputStream(this, metadata.getSize(), attachmentIs);
-			s.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody(), this.req.getInReplyToSid(), metadata.getName(), metadata.getSize(), attachmentIs);
+			s.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody(), this.req.getInReplyToSid(), resolveAttachment());
 			return new PostResult(this.req);
 		}
 		catch (final Exception e) { // NOSONAR need to report all errors.
 			return new PostResult(this.req, e);
 		}
 		finally {
-			IoHelper.closeQuietly(attachmentIs);
 			s.shutdown();
 		}
 	}
@@ -134,6 +123,13 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 		finally {
 			b.shutdown();
 		}
+	}
+
+	private ImageMetadata resolveAttachment () throws FileNotFoundException {
+		if (this.req.getAttachment() == null) return null;
+		final ImageMetadata image = new ProgressTrackingImageMetadata(this, getContext(), this.req.getAttachment());
+		if (!image.exists()) throw new FileNotFoundException("Attachment not found: " + this.req.getAttachment());
+		return image;
 	}
 
 	@Override
@@ -248,6 +244,24 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 
 		public String getEmsg () {
 			return TaskUtils.getEmsg(this.e);
+		}
+
+	}
+
+	private static class ProgressTrackingImageMetadata extends ImageMetadata {
+
+		private final PostTask host;
+
+		public ProgressTrackingImageMetadata (final PostTask host, final Context context, final Uri uri) {
+			super(context, uri);
+			this.host = host;
+		}
+
+		@Override
+		public InputStream open () throws IOException {
+			final InputStream is = super.open();
+			if (is == null) return null;
+			return new ProgressTrackingInputStream(this.host, getSize(), is);
 		}
 
 	}

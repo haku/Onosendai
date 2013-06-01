@@ -50,9 +50,8 @@ import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.ExecUtils;
+import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.LogWrapper;
-import com.vaguehope.onosendai.util.MediaHelper;
-import com.vaguehope.onosendai.util.MediaHelper.ImageMetadata;
 
 public class PostActivity extends Activity implements ImageLoader {
 
@@ -336,7 +335,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	private static final int SELECT_PICTURE = 105340; // NOSONAR Just a number.
 
 	private void redrawAttachment () {
-		final ImageMetadata metadata = MediaHelper.imageMetadata(this, this.attachment);
+		final ImageMetadata metadata = new ImageMetadata(this, this.attachment);
 		final TextView txtAttached = (TextView) findViewById(R.id.txtAttached);
 		txtAttached.setText(String.format("Attachment: %s", metadata.getUiTitle()));
 		txtAttached.setVisibility(metadata.exists() ? View.VISIBLE : View.GONE);
@@ -404,7 +403,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	private void onPictureChosen (final Intent imageReturnedIntent) {
 		final Uri uri = imageReturnedIntent.getData();
-		if (MediaHelper.isUnderstoodResource(uri)) {
+		if (ImageMetadata.isUnderstoodResource(uri)) {
 			this.attachment = uri;
 			redrawAttachment();
 		}

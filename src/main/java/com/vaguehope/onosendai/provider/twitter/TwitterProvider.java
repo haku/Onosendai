@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.provider.twitter;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -18,6 +19,8 @@ import twitter4j.conf.ConfigurationBuilder;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.util.ImageMetadata;
+import com.vaguehope.onosendai.util.IoHelper;
 
 public class TwitterProvider {
 
@@ -63,11 +66,20 @@ public class TwitterProvider {
 		return TwitterUtils.convertTweet(account, getTwitter(account).showStatus(id));
 	}
 
-	public void post (final Account account, final String body, final long inReplyTo, final String attachmentName, final InputStream attachmentIs) throws TwitterException {
-		final StatusUpdate s = new StatusUpdate(body);
-		if (inReplyTo > 0) s.setInReplyToStatusId(inReplyTo);
-		if (attachmentName != null && attachmentIs != null) s.setMedia(attachmentName, attachmentIs);
-		getTwitter(account).updateStatus(s);
+	public void post (final Account account, final String body, final long inReplyTo, final ImageMetadata media) throws TwitterException, IOException {
+		InputStream attachmentIs = null;
+		try {
+			final StatusUpdate s = new StatusUpdate(body);
+			if (inReplyTo > 0) s.setInReplyToStatusId(inReplyTo);
+			if (media != null && media.exists()) {
+				attachmentIs = media.open();
+				s.setMedia(media.getName(), attachmentIs);
+			}
+			getTwitter(account).updateStatus(s);
+		}
+		finally {
+			IoHelper.closeQuietly(attachmentIs);
+		}
 	}
 
 	public void rt (final Account account, final long id) throws TwitterException {

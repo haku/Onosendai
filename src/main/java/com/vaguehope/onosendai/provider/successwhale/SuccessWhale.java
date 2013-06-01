@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import local.apache.StringPart;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -39,6 +41,7 @@ import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.KvStore;
 import com.vaguehope.onosendai.util.HttpClientFactory;
+import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -255,65 +258,79 @@ public class SuccessWhale {
 		this.kvStore.storeValue(PTA_PREFIX + getAccount().getId(), data);
 	}
 
-	public void post (final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid,
-			final String attachmentName, final long attachmentLength, final InputStream attachmentIs) throws SuccessWhaleException {
+	public void post (final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final ImageMetadata image) throws SuccessWhaleException {
 		authenticated(new SwCall<Void>() {
 			@Override
 			public Void invoke (final HttpClient client) throws SuccessWhaleException, IOException {
-				final HttpPost post = new HttpPost(BASE_URL + API_ITEM);
-				final List<Part> parts = new ArrayList<Part>();
-				parts.add(new StringPart("token", SuccessWhale.this.token));
-				parts.add(new StringPart("text", body));
-
-				final StringBuilder accounts = new StringBuilder();
-				for (final ServiceRef svc : postToSvc) {
-					if (accounts.length() > 0) accounts.append(":");
-					accounts.append(svc.getRawType()).append("/").append(svc.getUid());
-				}
-				parts.add(new StringPart("accounts", accounts.toString()));
-
-				if (inReplyToSid != null && !inReplyToSid.isEmpty()) {
-					parts.add(new StringPart("in_reply_to_id", inReplyToSid));
-				}
-
-				if (attachmentName != null && attachmentIs != null) {
-					parts.add(new InputStreamPart("file", attachmentName, attachmentLength, attachmentIs));
-				}
-
-				post.setEntity(new MultipartEntity(parts.toArray(new Part[] {})));
-				client.execute(post, new CheckStatusOnlyHandler());
+				attemptPost(client, postToSvc, body, inReplyToSid, image);
 				return null;
 			}
 
 			@Override
 			public String describeFailure (final Exception e) {
-				return e.toString();
+				return "Failed to post via SuccessWhale: " + e.toString();
 			}
 		});
+	}
+
+	protected void attemptPost (final HttpClient client, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final ImageMetadata image) throws IOException, ClientProtocolException {
+		InputStream attachmentIs = null;
+		try {
+			final HttpPost post = new HttpPost(BASE_URL + API_ITEM);
+			final List<Part> parts = new ArrayList<Part>();
+			parts.add(new StringPart("token", SuccessWhale.this.token));
+			parts.add(new StringPart("text", body));
+
+			final StringBuilder accounts = new StringBuilder();
+			for (final ServiceRef svc : postToSvc) {
+				if (accounts.length() > 0) accounts.append(":");
+				accounts.append(svc.getRawType()).append("/").append(svc.getUid());
+			}
+			parts.add(new StringPart("accounts", accounts.toString()));
+
+			if (inReplyToSid != null && !inReplyToSid.isEmpty()) {
+				parts.add(new StringPart("in_reply_to_id", inReplyToSid));
+			}
+
+			if (image != null && image.exists()) {
+				attachmentIs = image.open();
+				parts.add(new InputStreamPart("file", image.getName(), image.getSize(), attachmentIs));
+			}
+
+			post.setEntity(new MultipartEntity(parts.toArray(new Part[] {})));
+			client.execute(post, new CheckStatusOnlyHandler());
+		}
+		finally {
+			IoHelper.closeQuietly(attachmentIs);
+		}
 	}
 
 	public void itemAction (final ServiceRef svc, final String itemSid, final ItemAction itemAction) throws SuccessWhaleException {
 		authenticated(new SwCall<Void>() {
 			@Override
 			public Void invoke (final HttpClient client) throws SuccessWhaleException, IOException {
-				final HttpPost post = new HttpPost(BASE_URL + API_ACTION);
-				final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
-				addAuthParams(params);
-				params.add(new BasicNameValuePair("service", svc.getRawType()));
-				params.add(new BasicNameValuePair("uid", svc.getUid()));
-				params.add(new BasicNameValuePair("postid", itemSid));
-				params.add(new BasicNameValuePair("action", itemAction.getAction()));
-
-				post.setEntity(new UrlEncodedFormEntity(params));
-				client.execute(post, new CheckStatusOnlyHandler());
+				attemptItemAction(client, svc, itemSid, itemAction);
 				return null;
 			}
 
 			@Override
 			public String describeFailure (final Exception e) {
-				return e.toString();
+				return "Item action failed: " + e.toString();
 			}
 		});
+	}
+
+	protected void attemptItemAction (final HttpClient client, final ServiceRef svc, final String itemSid, final ItemAction itemAction) throws UnsupportedEncodingException, IOException, ClientProtocolException {
+		final HttpPost post = new HttpPost(BASE_URL + API_ACTION);
+		final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+		addAuthParams(params);
+		params.add(new BasicNameValuePair("service", svc.getRawType()));
+		params.add(new BasicNameValuePair("uid", svc.getUid()));
+		params.add(new BasicNameValuePair("postid", itemSid));
+		params.add(new BasicNameValuePair("action", itemAction.getAction()));
+
+		post.setEntity(new UrlEncodedFormEntity(params));
+		client.execute(post, new CheckStatusOnlyHandler());
 	}
 
 	String makeAuthedUrl (final String api, final String... params) {
