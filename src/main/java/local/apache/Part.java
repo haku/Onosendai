@@ -61,7 +61,7 @@ public abstract class Part {
      * @deprecated
      */
     @Deprecated
-	protected static final byte[] BOUNDARY_BYTES = EncodingUtils.getAsciiBytes(BOUNDARY);
+	private static final byte[] BOUNDARY_BYTES = EncodingUtils.getAsciiBytes(BOUNDARY);
 
     /**
      * The default boundary to be used if {@link #setPartBoundary(byte[])} has not
@@ -86,35 +86,35 @@ public abstract class Part {
     protected static final String EXTRA = "--";
 
     /** Extra characters as a byte array */
-    protected static final byte[] EXTRA_BYTES =
+    private static final byte[] EXTRA_BYTES =
       EncodingUtils.getAsciiBytes(EXTRA);
 
     /** Content dispostion characters */
     protected static final String CONTENT_DISPOSITION = "Content-Disposition: form-data; name=";
 
     /** Content dispostion as a byte array */
-    protected static final byte[] CONTENT_DISPOSITION_BYTES =
+    private static final byte[] CONTENT_DISPOSITION_BYTES =
       EncodingUtils.getAsciiBytes(CONTENT_DISPOSITION);
 
     /** Content type header */
     protected static final String CONTENT_TYPE = "Content-Type: ";
 
     /** Content type header as a byte array */
-    protected static final byte[] CONTENT_TYPE_BYTES =
+    private static final byte[] CONTENT_TYPE_BYTES =
       EncodingUtils.getAsciiBytes(CONTENT_TYPE);
 
     /** Content charset */
     protected static final String CHARSET = "; charset=";
 
     /** Content charset as a byte array */
-    protected static final byte[] CHARSET_BYTES =
+    private static final byte[] CHARSET_BYTES =
       EncodingUtils.getAsciiBytes(CHARSET);
 
     /** Content type header */
     protected static final String CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding: ";
 
     /** Content type header as a byte array */
-    protected static final byte[] CONTENT_TRANSFER_ENCODING_BYTES =
+    private static final byte[] CONTENT_TRANSFER_ENCODING_BYTES =
       EncodingUtils.getAsciiBytes(CONTENT_TRANSFER_ENCODING);
 
     /**
@@ -178,7 +178,7 @@ public abstract class Part {
      * @param boundaryBytes An array of ASCII bytes.
      * @since 3.0
      */
-    void setPartBoundary(final byte[] boundaryBytes) {
+    private void setPartBoundary(final byte[] boundaryBytes) {
         this.boundaryBytes = boundaryBytes;
     }
 
