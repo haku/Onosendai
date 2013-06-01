@@ -257,11 +257,7 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 
 	private List<Account> readAccountsOrAlert () {
 		try {
-			final List<Account> items = new ArrayList<Account>();
-			for (final Account account : this.prefs.readAccounts()) {
-				items.add(account);
-			}
-			return items;
+			return new ArrayList<Account>(this.prefs.readAccounts());
 		}
 		catch (final JSONException e) {
 			DialogHelper.alert(getActivity(), "Failed to read accounts.", e);
