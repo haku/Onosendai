@@ -85,17 +85,7 @@ public class BufferApp {
 		authenticated(new BufferCall<Void>() {
 			@Override
 			public Void invoke (final HttpClient client) throws BufferAppException, IOException {
-				final HttpPost post = new HttpPost(BASE_URL + API_UPDATES_CREATE);
-				final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
-				addAuthParams(params);
-				params.add(new BasicNameValuePair("text", body));
-
-				for (final ServiceRef svc : postToSvc) {
-					params.add(new BasicNameValuePair("profile_ids[]", svc.getId()));
-				}
-
-				post.setEntity(new UrlEncodedFormEntity(params));
-				client.execute(post, new CheckStatusOnlyHandler());
+				attemptPost(postToSvc, body, client);
 				return null;
 			}
 
@@ -104,6 +94,20 @@ public class BufferApp {
 				return e.toString();
 			}
 		});
+	}
+
+	protected void attemptPost (final Set<ServiceRef> postToSvc, final String body, final HttpClient client) throws IOException {
+		final HttpPost post = new HttpPost(BASE_URL + API_UPDATES_CREATE);
+		final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+		addAuthParams(params);
+		params.add(new BasicNameValuePair("text", body));
+
+		for (final ServiceRef svc : postToSvc) {
+			params.add(new BasicNameValuePair("profile_ids[]", svc.getId()));
+		}
+
+		post.setEntity(new UrlEncodedFormEntity(params));
+		client.execute(post, new CheckStatusOnlyHandler());
 	}
 
 	String makeAuthedUrl (final String api, final String... params) throws IOException {
