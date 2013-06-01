@@ -232,6 +232,14 @@ public class PostActivity extends Activity implements ImageLoader {
 		this.txtBody = (EditText) findViewById(R.id.txtBody);
 		final TextView txtCharRemaining = (TextView) findViewById(R.id.txtCharRemaining);
 		this.txtBody.addTextChangedListener(new TextCounterWatcher(txtCharRemaining, this.txtBody));
+
+		if (Intent.ACTION_SEND.equals(getIntent().getAction()) && "text/plain".equals(getIntent().getType())) {
+			final String intentText = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+			if (intentText != null) {
+				this.txtBody.setText(intentText);
+				this.txtBody.setSelection(this.txtBody.getText().length());
+			}
+		}
 	}
 
 	private void wireMainButtons () {
