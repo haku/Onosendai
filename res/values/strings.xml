@@ -14,7 +14,6 @@
 		Onosendai is not currently configured.
 		\n
 		This will help you get started by generating an initial configuration for you that you can customise.
-		Please keep in mind that this is still an ALPHA product and configuration is mostly a manual process.
 		\n
 		Select an action from the list below.
 	</string>
@@ -29,7 +28,7 @@
 		This will import your existing layout from SuccessWhale (SW).
 		For this to you work you must have a SW account with a password configured.
 		\n
-		If you do not have an SW username and password please now go and create one.
+		If you do not have a SW user-name and password please create one before continuing.
 	</string>
 	<string name="setup_des_writeexampleconf">
 		This is an advanced option and requires you to manage a JSON file.
@@ -45,7 +44,7 @@
 	<string name="setup_des_useconf">
 		It looks like you have created a configuration file.
 		\n
-		Use this option to validate that configration file and import its content.
+		Use this option to validate that configuration file and import its content.
 		\n
 		Configuration will be read from:
 		\n
