@@ -332,7 +332,7 @@ public class TweetListFragment extends Fragment {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	protected void scheduleRefresh (final boolean all) {
+	private void scheduleRefresh (final boolean all) {
 		final Intent intent = new Intent(getActivity(), UpdateService.class);
 		intent.putExtra(UpdateService.ARG_IS_MANUAL, true);
 		if (!all) intent.putExtra(UpdateService.ARG_COLUMN_ID, this.columnId);
@@ -356,32 +356,36 @@ public class TweetListFragment extends Fragment {
 		public void onClick (final View v) {
 			PopupMenu popupMenu = new PopupMenu(getActivity(), v);
 			popupMenu.getMenuInflater().inflate(R.menu.listmenu, popupMenu.getMenu());
-			popupMenu.setOnMenuItemClickListener(TweetListFragment.this.menuItemClientListener);
+			popupMenu.setOnMenuItemClickListener(TweetListFragment.this.menuItemClickListener);
 			popupMenu.show();
 		}
 	};
 
-	protected final PopupMenu.OnMenuItemClickListener menuItemClientListener = new PopupMenu.OnMenuItemClickListener() {
+	protected final PopupMenu.OnMenuItemClickListener menuItemClickListener = new PopupMenu.OnMenuItemClickListener() {
 		@Override
 		public boolean onMenuItemClick (final MenuItem item) {
-			switch (item.getItemId()) {
-				case R.id.mnuPost:
-					showPost();
-					return true;
-				case R.id.mnuRefreshColumnNow:
-					scheduleRefresh(false);
-					return true;
-				case R.id.mnuRefreshAllNow:
-					scheduleRefresh(true);
-					return true;
-				case R.id.mnuPreferences:
-					startActivity(new Intent(getActivity(), OsPreferenceActivity.class));
-					return true;
-				default:
-					return false;
-			}
+			return menuItemClick(item);
 		}
 	};
+
+	protected boolean menuItemClick(final MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.mnuPost:
+				showPost();
+				return true;
+			case R.id.mnuRefreshColumnNow:
+				scheduleRefresh(false);
+				return true;
+			case R.id.mnuRefreshAllNow:
+				scheduleRefresh(true);
+				return true;
+			case R.id.mnuPreferences:
+				startActivity(new Intent(getActivity(), OsPreferenceActivity.class));
+				return true;
+			default:
+				return false;
+		}
+	}
 
 	private final OnItemClickListener tweetItemClickedListener = new OnItemClickListener() {
 		@Override
@@ -394,29 +398,37 @@ public class TweetListFragment extends Fragment {
 
 		@Override
 		public boolean payloadClicked (final Payload payload) {
-			if (payload.getType() == PayloadType.INREPLYTO) {
-				showTweetDetails(((InReplyToPayload) payload).getInReplyToTweet());
-				return true;
-			}
-			return false;
+			return payloadClick(payload);
 		}
 
 		@Override
 		public void subviewClicked (final Payload payload, final int index) {
-			if (payload.getType() == PayloadType.SHARE) {
-				switch (index) {
-					case 0:
-						askRt(payload.getOwnerTweet());
-						break;
-					case 1:
-						showPost(payload.getOwnerTweet());
-						break;
-					default:
-				}
-			}
+			payloadSubviewClick(payload, index);
 		}
 
 	};
+
+	protected boolean payloadClick (final Payload payload) {
+		if (payload.getType() == PayloadType.INREPLYTO) {
+			showTweetDetails(((InReplyToPayload) payload).getInReplyToTweet());
+			return true;
+		}
+		return false;
+	}
+
+	protected void payloadSubviewClick (final Payload payload, final int index) {
+		if (payload.getType() == PayloadType.SHARE) {
+			switch (index) {
+				case 0:
+					askRt(payload.getOwnerTweet());
+					break;
+				case 1:
+					showPost(payload.getOwnerTweet());
+					break;
+				default:
+			}
+		}
+	}
 
 	protected void showTweetDetails (final Tweet listTweet) {
 		final Tweet dbTweet = getDb().getTweetDetails(this.columnId, listTweet);
@@ -440,11 +452,11 @@ public class TweetListFragment extends Fragment {
 		this.btnDetailsLater.setOnClickListener(new DetailsLaterClickListener(this, tweet, laterColumn));
 	}
 
-	protected void showPost () {
+	private void showPost () {
 		showPost(null);
 	}
 
-	protected void showPost (final Tweet tweetToQuote) {
+	private void showPost (final Tweet tweetToQuote) {
 		final Intent intent = new Intent(getActivity(), PostActivity.class)
 				.putExtra(PostActivity.ARG_ACCOUNT_ID, getColumnAccount().getId());
 		if (tweetToQuote != null) {
@@ -454,7 +466,7 @@ public class TweetListFragment extends Fragment {
 		startActivity(intent);
 	}
 
-	protected void askRt (final Tweet tweet) {
+	private void askRt (final Tweet tweet) {
 		final Account account = MetaUtils.accountFromMeta(tweet, this.conf);
 		if (account == null) {
 			DialogHelper.alert(getActivity(), "Can not find this tweet's account metadata.");
