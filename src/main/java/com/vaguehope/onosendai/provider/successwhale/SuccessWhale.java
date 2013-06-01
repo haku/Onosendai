@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -20,7 +19,6 @@ import local.apache.StringPart;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -273,7 +271,7 @@ public class SuccessWhale {
 		});
 	}
 
-	protected void attemptPost (final HttpClient client, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final ImageMetadata image) throws IOException, ClientProtocolException {
+	protected void attemptPost (final HttpClient client, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final ImageMetadata image) throws IOException {
 		InputStream attachmentIs = null;
 		try {
 			final HttpPost post = new HttpPost(BASE_URL + API_ITEM);
@@ -320,7 +318,7 @@ public class SuccessWhale {
 		});
 	}
 
-	protected void attemptItemAction (final HttpClient client, final ServiceRef svc, final String itemSid, final ItemAction itemAction) throws UnsupportedEncodingException, IOException, ClientProtocolException {
+	protected void attemptItemAction (final HttpClient client, final ServiceRef svc, final String itemSid, final ItemAction itemAction) throws IOException {
 		final HttpPost post = new HttpPost(BASE_URL + API_ACTION);
 		final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
 		addAuthParams(params);
