@@ -2,11 +2,15 @@ package com.vaguehope.onosendai.ui;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import org.json.JSONException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -49,6 +53,7 @@ import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.DialogHelper;
+import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -73,6 +78,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	private DbClient bndDb;
 	private HybridBitmapCache imageCache;
 	private ExecutorService exec;
+	private Prefs prefs;
 
 	private AccountAdaptor accountAdaptor;
 	private Spinner spnAccount;
@@ -80,6 +86,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	private EditText txtBody;
 
 	private final EnabledServiceRefs enabledPostToAccounts = new EnabledServiceRefs();
+	private boolean askAccountOnActivate;
 	private Uri attachment;
 
 	@Override
@@ -87,45 +94,70 @@ public class PostActivity extends Activity implements ImageLoader {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.post);
 
+		Collection<Account> accounts;
 		Config conf;
 		try {
-			conf = new Prefs(getBaseContext()).asConfig();
+			this.prefs = new Prefs(getBaseContext());
+			accounts = this.prefs.readAccounts();
+			conf = this.prefs.asConfig();
 		}
 		catch (Exception e) { // No point continuing if any exception.
 			DialogHelper.alertAndClose(this, e);
 			return;
 		}
 
-		this.intentExtras = getIntent().getExtras();
-		final Account account = conf.getAccount(this.intentExtras.getString(ARG_ACCOUNT_ID));
-		this.inReplyToUid = this.intentExtras.getLong(ARG_IN_REPLY_TO_UID);
-		this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
-		this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
-		final List<String> svcs = this.intentExtras.getStringArrayList(ARG_SVCS);
-
-		this.enabledPostToAccounts.setAccount(account);
-		this.enabledPostToAccounts.fromBundle(savedInstanceState);
-		if (svcs != null && !this.enabledPostToAccounts.isServicesPreSpecified()) {
-			for (String svc : svcs) {
-				this.enabledPostToAccounts.enable(ServiceRef.parseServiceMeta(svc));
-			}
-			this.enabledPostToAccounts.setServicesPreSpecified(true);
-		}
-		LOG.i("accountId=%s inReplyToUid=%d inReplyToSid=%s svcs=%s", account.getId(), this.inReplyToUid, this.inReplyToSid, svcs);
-
 		this.imageCache = new HybridBitmapCache(getBaseContext(), C.MAX_MEMORY_IMAGE_CACHE);
 		this.exec = ExecUtils.newBoundedCachedThreadPool(C.IMAGE_LOADER_MAX_THREADS, LOG);
 
+		this.intentExtras = getIntent().getExtras();
+		this.inReplyToUid = this.intentExtras.getLong(ARG_IN_REPLY_TO_UID);
+		this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
+		this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
+		LOG.i("inReplyToUid=%d inReplyToSid=%s alsoMentions=%s", this.inReplyToUid, this.inReplyToSid, Arrays.toString(this.alsoMentions));
+
+		String accountId = null;
+		Account account = null;
+		if (savedInstanceState != null) accountId = savedInstanceState.getString(ARG_ACCOUNT_ID);
+		if (accountId == null) accountId = this.intentExtras.getString(ARG_ACCOUNT_ID);
+		if (accountId != null) {
+			account = conf.getAccount(accountId);
+			final List<String> svcs = this.intentExtras.getStringArrayList(ARG_SVCS);
+			LOG.i("accountId=%s svcs=%s", account.getId(), svcs);
+
+			this.enabledPostToAccounts.setAccount(account);
+			this.enabledPostToAccounts.fromBundle(savedInstanceState);
+			if (svcs != null && !this.enabledPostToAccounts.isServicesPreSpecified()) {
+				for (String svc : svcs) {
+					this.enabledPostToAccounts.enable(ServiceRef.parseServiceMeta(svc));
+				}
+				this.enabledPostToAccounts.setServicesPreSpecified(true);
+			}
+		}
+		else {
+			this.askAccountOnActivate = true;
+		}
+
 		this.spnAccount = (Spinner) findViewById(R.id.spnAccount);
-		this.accountAdaptor = new AccountAdaptor(getBaseContext(), conf);
+		this.accountAdaptor = new AccountAdaptor(getBaseContext(), accounts);
 		this.spnAccount.setAdapter(this.accountAdaptor);
-		this.spnAccount.setSelection(this.accountAdaptor.getAccountPosition(account));
+		setSelectedAccount(account);
 		this.spnAccount.setOnItemSelectedListener(this.accountOnItemSelectedListener);
 
 		this.llSubAccounts = (ViewGroup) findViewById(R.id.llSubAccounts);
 
 		if (savedInstanceState != null) this.attachment = savedInstanceState.getParcelable(ARG_ATTACHMENT);
 		if (this.attachment == null) this.attachment = this.intentExtras.getParcelable(ARG_ATTACHMENT);
+		if (this.attachment == null && Intent.ACTION_SEND.equals(getIntent().getAction())
+				&& getIntent().getType() != null
+				&& getIntent().getType().startsWith("image/")) {
+			final Uri intentUri = getIntent().getParcelableExtra(Intent.EXTRA_STREAM);
+			if (ImageMetadata.isUnderstoodResource(intentUri)) {
+				this.attachment = intentUri;
+			}
+			else {
+				DialogHelper.alert(this, "Unknown resource:\n" + intentUri);
+			}
+		}
 		redrawAttachment();
 		((Button) findViewById(R.id.btnAttach)).setOnClickListener(this.attachClickListener);
 
@@ -160,11 +192,16 @@ public class PostActivity extends Activity implements ImageLoader {
 	public void onResume () {
 		super.onResume();
 		resumeDb();
+		if (this.askAccountOnActivate) {
+			askAccount();
+			this.askAccountOnActivate = false;
+		}
 	}
 
 	@Override
 	protected void onSaveInstanceState (final Bundle outState) {
 		super.onSaveInstanceState(outState);
+		outState.putString(ARG_ACCOUNT_ID, getSelectedAccount().getId());
 		this.enabledPostToAccounts.addToBundle(outState);
 		outState.putParcelable(ARG_ATTACHMENT, this.attachment);
 	}
@@ -201,6 +238,36 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	protected AccountAdaptor getAccountAdaptor () {
 		return this.accountAdaptor;
+	}
+
+	private Account getSelectedAccount () {
+		return this.accountAdaptor.getAccount(this.spnAccount.getSelectedItemPosition());
+	}
+
+	protected void setSelectedAccount (final Account account) {
+		if (account == null) return;
+		this.spnAccount.setSelection(this.accountAdaptor.getAccountPosition(account));
+	}
+
+	protected void askAccount () {
+		final List<Account> items = readAccountsOrAlert();
+		if (items == null) return;
+		DialogHelper.askItem(this, "Post to Account", items, new Listener<Account>() {
+			@Override
+			public void onAnswer (final Account account) {
+				setSelectedAccount(account);
+			}
+		});
+	}
+
+	private List<Account> readAccountsOrAlert () {
+		try {
+			return new ArrayList<Account>(this.prefs.readAccounts());
+		}
+		catch (final JSONException e) {
+			DialogHelper.alert(this, "Failed to read accounts.", e);
+			return null;
+		}
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -257,7 +324,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	}
 
 	protected void askPost () {
-		final Account account = this.accountAdaptor.getAccount(this.spnAccount.getSelectedItemPosition());
+		final Account account = getSelectedAccount();
 		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(this);
 
@@ -348,7 +415,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		}
 	};
 
-	protected void showAttachMenu(final View v) {
+	protected void showAttachMenu (final View v) {
 		if (this.attachment == null) {
 			askChoosePicture();
 		}
