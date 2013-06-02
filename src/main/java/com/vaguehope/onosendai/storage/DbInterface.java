@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 
@@ -15,6 +16,8 @@ public interface DbInterface extends KvStore {
 
 	List<Tweet> getTweets(int columnId, int numberOf);
 	List<Tweet> getTweets(int columnId, int numberOf, Set<Integer> excludeColumnIds);
+
+	List<Tweet> findTweetsWithMeta (MetaType metaType, String data, final int numberOf);
 
 	Tweet getTweetDetails(int columnId, Tweet tweet);
 	Tweet getTweetDetails(int columnId, String tweetSid);

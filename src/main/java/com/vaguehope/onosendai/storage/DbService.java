@@ -9,6 +9,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 
@@ -80,6 +81,11 @@ public class DbService extends Service implements DbInterface {
 	@Override
 	public List<Tweet> getTweets (final int columnId, final int numberOf, final Set<Integer> excludeColumnIds) {
 		return this.dbAdaptor.getTweets(columnId, numberOf, excludeColumnIds);
+	}
+
+	@Override
+	public List<Tweet> findTweetsWithMeta (final MetaType metaType, final String data, final int numberOf) {
+		return this.dbAdaptor.findTweetsWithMeta(metaType, data, numberOf);
 	}
 
 	@Override

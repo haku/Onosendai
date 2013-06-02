@@ -36,6 +36,12 @@ public class PayloadListAdapter extends BaseAdapter {
 		notifyDataSetChanged();
 	}
 
+	// FIXME refactor so this can be package private.
+	public void addItemsTop (final List<Payload> payloads) {
+		this.listData.addItemsTop(payloads);
+		notifyDataSetChanged();
+	}
+
 	void replaceItem(final Payload find, final Payload with) {
 		this.listData.replaceItem(find, with);
 		notifyDataSetChanged();

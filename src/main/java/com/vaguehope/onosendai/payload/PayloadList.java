@@ -15,6 +15,10 @@ public class PayloadList {
 		this.payloads.add(payload);
 	}
 
+	void addItemsTop(final List<Payload> items) {
+		this.payloads.addAll(0, items);
+	}
+
 	void replaceItem (final Payload find, final Payload with) {
 		for (int i = 0; i < this.payloads.size(); i++) {
 			if (find.equals(this.payloads.get(i))) this.payloads.set(i, with);
