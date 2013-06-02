@@ -13,6 +13,7 @@ class PayloadRowView {
 
 	private final TextView main;
 	private final TextView secondary;
+	private final TextView tertiary;
 	private final ImageView image;
 	private final List<Button> buttons;
 
@@ -29,8 +30,13 @@ class PayloadRowView {
 	}
 
 	public PayloadRowView (final TextView main, final ImageView image, final TextView secondary) {
+		this(main, image, secondary, null);
+	}
+
+	public PayloadRowView (final TextView main, final ImageView image, final TextView secondary, final TextView tertiary) {
 		this.main = main;
 		this.secondary = secondary;
+		this.tertiary = tertiary;
 		this.image = image;
 		this.buttons = null;
 	}
@@ -38,6 +44,7 @@ class PayloadRowView {
 	public PayloadRowView (final List<Button> buttons) {
 		this.main = null;
 		this.secondary = null;
+		this.tertiary = null;
 		this.image = null;
 		this.buttons = Collections.unmodifiableList(new ArrayList<Button>(buttons));
 	}
@@ -52,14 +59,16 @@ class PayloadRowView {
 		this.main.setVisibility(View.GONE);
 	}
 
-	public void setSecondaryText(final String text) {
+	public void setSecondaryText (final String text) {
 		if (this.secondary == null) return;
 		this.secondary.setText(text);
 		this.secondary.setVisibility(View.VISIBLE);
 	}
 
-	public void hideSecondary () {
-		this.secondary.setVisibility(View.GONE);
+	public void setTertiaryText (final String text) {
+		if (this.tertiary == null) return;
+		this.tertiary.setText(text);
+		this.tertiary.setVisibility(View.VISIBLE);
 	}
 
 	public ImageView getImage () {

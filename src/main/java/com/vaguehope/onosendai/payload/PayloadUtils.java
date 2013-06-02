@@ -33,10 +33,11 @@ public final class PayloadUtils {
 		throw new AssertionError();
 	}
 
-	public static PayloadList extractPayload (final Config conf, final Tweet tweet) {
+	public static PayloadList makePayloads (final Config conf, final Tweet tweet) {
 		final Account account = MetaUtils.accountFromMeta(tweet, conf);
 
 		final Set<Payload> set = new LinkedHashSet<Payload>();
+		set.add(new PrincipalPayload(tweet));
 		if (account != null) convertMeta(account, tweet, set);
 		extractUrls(tweet, set);
 		extractHashTags(tweet, set);
