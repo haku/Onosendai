@@ -197,7 +197,7 @@ public class DbAdapter implements DbInterface {
 				values.put(TBL_TW_FULLNAME, tweet.getFullname());
 				values.put(TBL_TW_BODY, tweet.getBody());
 				values.put(TBL_TW_AVATAR, tweet.getAvatarUrl());
-				final long uid = this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+				final long uid = this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 
 				final List<Meta> metas = tweet.getMetas();
 				if (metas != null) {
@@ -207,7 +207,7 @@ public class DbAdapter implements DbInterface {
 						values.put(TBL_TM_TYPE, meta.getType().getId());
 						values.put(TBL_TM_DATA, meta.getData());
 						if (meta.getTitle() != null) values.put(TBL_TM_TITLE, meta.getTitle());
-						this.mDb.insertWithOnConflict(TBL_TM, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+						this.mDb.insertWithOnConflict(TBL_TM, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 					}
 				}
 			}
