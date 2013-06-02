@@ -57,7 +57,7 @@ public class ScrollState {
 		if (this.itemTime > 0L && adapter instanceof TweetListAdapter) {
 			final TweetList tweetList = ((TweetListAdapter) adapter).getInputData();
 			for (int i = 0; i < tweetList.count(); i++) {
-				if (tweetList.getTweet(i).getTime() < this.itemTime) {
+				if (tweetList.getTweet(i).getTime() <= this.itemTime) {
 					lv.setSelectionFromTop(i, 0);
 					return;
 				}
