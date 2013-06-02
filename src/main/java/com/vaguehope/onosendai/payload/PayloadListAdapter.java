@@ -8,7 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
+import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.images.ImageLoader;
+import com.vaguehope.onosendai.model.Tweet;
 
 public class PayloadListAdapter extends BaseAdapter {
 
@@ -24,13 +26,9 @@ public class PayloadListAdapter extends BaseAdapter {
 		this.imageLoader = imageLoader;
 	}
 
-	public void setInputData (final PayloadList data) {
-		this.listData = data;
+	public void setInput (final Config config, final Tweet tweet) {
+		this.listData = PayloadUtils.makePayloads(config, tweet);
 		notifyDataSetChanged();
-	}
-
-	public PayloadList getInputData () {
-		return this.listData;
 	}
 
 	void addItem (final Payload payload) {

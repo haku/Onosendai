@@ -1,11 +1,8 @@
 package com.vaguehope.onosendai.ui;
 
 import java.lang.ref.WeakReference;
-import java.text.DateFormat;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -23,10 +20,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.R;
@@ -34,7 +29,6 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
-import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.model.MetaUtils;
@@ -49,7 +43,6 @@ import com.vaguehope.onosendai.payload.PayloadClickListener;
 import com.vaguehope.onosendai.payload.PayloadListAdapter;
 import com.vaguehope.onosendai.payload.PayloadListClickListener;
 import com.vaguehope.onosendai.payload.PayloadType;
-import com.vaguehope.onosendai.payload.PayloadUtils;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.RtTask;
 import com.vaguehope.onosendai.provider.RtTask.RtRequest;
@@ -76,7 +69,6 @@ public class TweetListFragment extends Fragment {
 	static final String ARG_COLUMN_IS_LATER = "column_is_later";
 
 	private final LogWrapper log = new LogWrapper();
-	private final DateFormat dateFormat = DateFormat.getDateTimeInstance();
 
 	private int columnId = -1;
 	private int columnPosition = -1;
@@ -89,10 +81,6 @@ public class TweetListFragment extends Fragment {
 	private SidebarLayout sidebar;
 	private ListView tweetList;
 
-	private TextView txtTweetBody;
-	private ImageView imgTweetAvatar;
-	private TextView txtTweetName;
-	private TextView txtTweetDate;
 	private PayloadListAdapter lstTweetPayloadAdaptor;
 	private Button btnDetailsLater;
 
@@ -155,15 +143,10 @@ public class TweetListFragment extends Fragment {
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
 		this.refreshUiHandler = new RefreshUiHandler(this);
 
-		ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
-		lstTweetPayload.addHeaderView(inflater.inflate(R.layout.tweetdetail, null));
 		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), this.imageLoader, this.payloadClickListener);
+		final ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
 		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
 		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(this.payloadClickListener));
-		this.txtTweetBody = (TextView) rootView.findViewById(R.id.tweetDetailBody);
-		this.imgTweetAvatar = (ImageView) rootView.findViewById(R.id.tweetDetailAvatar);
-		this.txtTweetName = (TextView) rootView.findViewById(R.id.tweetDetailName);
-		this.txtTweetDate = (TextView) rootView.findViewById(R.id.tweetDetailDate);
 		((Button) rootView.findViewById(R.id.tweetDetailClose)).setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
 		this.btnDetailsLater = (Button) rootView.findViewById(R.id.tweetDetailLater);
 
@@ -433,18 +416,10 @@ public class TweetListFragment extends Fragment {
 	protected void showTweetDetails (final Tweet listTweet) {
 		final Tweet dbTweet = getDb().getTweetDetails(this.columnId, listTweet);
 		final Tweet tweet = dbTweet != null ? dbTweet : listTweet;
-		this.txtTweetBody.setText(tweet.getBody());
-		if (tweet.getAvatarUrl() != null) this.imageLoader.loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), this.imgTweetAvatar));
-		this.txtTweetName.setText(tweet.getFullname());
-		this.txtTweetDate.setText(this.dateFormat.format(new Date(TimeUnit.SECONDS.toMillis(tweet.getTime()))));
-		this.lstTweetPayloadAdaptor.setInputData(PayloadUtils.extractPayload(getConf(), tweet));
-		lookForInReplyTos(tweet);
+		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
+		new InReplyToLoaderTask(getConf(), getProviderMgr(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet); // FIXME use specific executor?
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
-	}
-
-	public void lookForInReplyTos (final Tweet tweet) {
-		new InReplyToLoaderTask(getConf(), getProviderMgr(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet); // FIXME use specific executor?
 	}
 
 	protected void setReadLaterButton (final Tweet tweet, final boolean laterColumn) {

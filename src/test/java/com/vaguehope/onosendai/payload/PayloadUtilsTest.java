@@ -130,7 +130,7 @@ public class PayloadUtilsTest {
 
 	private void testLinkExtraction (final String body, final String... expectedUrls) {
 		Tweet tweet = new TweetBuilder().body(body).meta(MetaType.ACCOUNT, ACCOUNT_ID).build();
-		PayloadList payloadList = PayloadUtils.extractPayload(this.conf, tweet);
+		PayloadList payloadList = PayloadUtils.makePayloads(this.conf, tweet);
 		payloadList = removeNotOfType(PayloadType.LINK, payloadList);
 
 		assertEquals(expectedUrls.length, payloadList.size());
@@ -143,7 +143,7 @@ public class PayloadUtilsTest {
 
 	private void testHashTagExtraction (final String body, final String... expectedTags) {
 		Tweet tweet = new TweetBuilder().body(body).meta(MetaType.ACCOUNT, ACCOUNT_ID).build();
-		PayloadList payloadList = PayloadUtils.extractPayload(this.conf, tweet);
+		PayloadList payloadList = PayloadUtils.makePayloads(this.conf, tweet);
 		payloadList = removeNotOfType(PayloadType.HASHTAG, payloadList);
 		assertEquals(expectedTags.length, payloadList.size());
 		for (int i = 0; i < expectedTags.length; i++) {
@@ -155,7 +155,7 @@ public class PayloadUtilsTest {
 
 	private void testMentionExtraction (final String body, final String... expectedMentions) {
 		Tweet tweet = new TweetBuilder().body(body).username("user").meta(MetaType.ACCOUNT, ACCOUNT_ID).build();
-		PayloadList payloadList = PayloadUtils.extractPayload(this.conf, tweet);
+		PayloadList payloadList = PayloadUtils.makePayloads(this.conf, tweet);
 		payloadList = removeNotOfType(PayloadType.MENTION, payloadList);
 
 		StringBuilder replyAllMention = new StringBuilder();
