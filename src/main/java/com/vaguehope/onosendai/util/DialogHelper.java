@@ -20,6 +20,10 @@ public final class DialogHelper {
 		void onAnswer (T answer);
 	}
 
+	public interface Question<T> {
+		boolean ask (T arg);
+	}
+
 	private DialogHelper () {
 		throw new AssertionError();
 	}
@@ -121,22 +125,43 @@ public final class DialogHelper {
 	}
 
 	public static <T extends Titleable> void askItems (final Context context, final String title, final List<T> list, final Listener<Set<T>> onItem) {
-		final List<String> titles = new ArrayList<String>();
-		for (T item : list) {
-			titles.add(item.getUiTitle());
-		}
-		askItems(context, title, list, titles.toArray(new String[] {}), onItem);
+		askItems(context, title, list, null, onItem);
 	}
 
-	private static <T> void askItems (final Context context, final String title, final List<T> list, final String[] labels, final Listener<Set<T>> onItems) {
-		final Set<T> selectedItems = new HashSet<T>();
+	public static <T extends Titleable> void askItems (final Context context, final String title, final List<T> list, final Question<T> isChecked, final Listener<Set<T>> onItem) {
+		final List<String> titles = new ArrayList<String>();
+		for (final T item : list) {
+			titles.add(item.getUiTitle());
+		}
+
+		boolean[] arrChecked = null;
+		if (isChecked != null) {
+			arrChecked = new boolean[list.size()];
+			for (int i = 0; i < list.size(); i++) {
+				arrChecked[i] = isChecked.ask(list.get(i));
+			}
+		}
+
+		askItems(context, title, list, titles.toArray(new String[] {}), arrChecked, onItem);
+	}
+
+	private static <T> void askItems (final Context context, final String title, final List<T> list, final String[] labels, final boolean[] checked, final Listener<Set<T>> onItems) {
+		if(labels.length != list.size()) throw new IllegalArgumentException("List and titles array must be same length.");
+		if(checked != null && checked.length != list.size()) throw new IllegalArgumentException("List and checed array must be same length.");
+
 		final AlertDialog.Builder bld = new AlertDialog.Builder(context);
 		bld.setTitle(title);
 		bld.setNegativeButton(android.R.string.cancel, DialogHelper.DLG_CANCEL_CLICK_LISTENER);
-		bld.setMultiChoiceItems(labels, null, new OnMultiChoiceClickListener() {
+		final Set<T> selectedItems = new HashSet<T>();
+		if (checked != null) {
+			for (int i = 0; i < list.size(); i++) {
+				if (checked[i]) selectedItems.add(list.get(i));
+			}
+		}
+		bld.setMultiChoiceItems(labels, checked, new OnMultiChoiceClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which, final boolean isChecked) {
-				T item = list.get(which);
+				final T item = list.get(which);
 				if (isChecked) {
 					selectedItems.add(item);
 				}
@@ -182,7 +207,7 @@ public final class DialogHelper {
 
 	private static <T extends Titleable> List<String> titlesList (final List<T> list) {
 		final List<String> titles = new ArrayList<String>();
-		for (T item : list) {
+		for (final T item : list) {
 			titles.add(item.getUiTitle());
 		}
 		return titles;

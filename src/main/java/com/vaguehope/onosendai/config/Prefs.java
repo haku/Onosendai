@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONException;
 
@@ -153,12 +155,20 @@ public class Prefs {
 		return readColumnIdsStr().indexOf(id);
 	}
 
-	public Collection<Column> readColumns () throws JSONException {
-		final Collection<Column> ret = new ArrayList<Column>();
+	public List<Column> readColumns () throws JSONException {
+		final List<Column> ret = new ArrayList<Column>();
 		for (final String id : readColumnIdsStr()) {
 			ret.add(readColumn(id));
 		}
 		return ret;
+	}
+
+	public Map<Integer, Column> readColumnsAsMap () throws JSONException {
+		final Map<Integer, Column> map = new LinkedHashMap<Integer, Column>();
+		for (final Column col : readColumns()) {
+			map.put(Integer.valueOf(col.getId()), col);
+		}
+		return map;
 	}
 
 	public Column readColumn (final int id) throws JSONException {
