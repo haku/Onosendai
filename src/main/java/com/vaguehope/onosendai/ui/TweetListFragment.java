@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.ui;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,6 +32,7 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
@@ -417,6 +419,15 @@ public class TweetListFragment extends Fragment {
 		final Tweet dbTweet = getDb().getTweetDetails(this.columnId, listTweet);
 		final Tweet tweet = dbTweet != null ? dbTweet : listTweet;
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
+
+		// TODO move this block somewhere more appropriate.
+		final List<Tweet> replies = getDb().findTweetsWithMeta(MetaType.INREPLYTO, tweet.getSid(), 20);
+		final List<Payload> replyPayloads = new ArrayList<Payload>();
+		for (Tweet reply : replies) {
+			replyPayloads.add(new InReplyToPayload(tweet, reply));
+		}
+		this.lstTweetPayloadAdaptor.addItemsTop(replyPayloads);
+
 		new InReplyToLoaderTask(getConf(), getProviderMgr(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet); // FIXME use specific executor?
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
