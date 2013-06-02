@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -70,7 +71,7 @@ public class Config {
 	}
 
 	Config (final Collection<Account> accounts, final Collection<Column> columns) {
-		final Map<String, Account> a = new HashMap<String, Account>();
+		final Map<String, Account> a = new LinkedHashMap<String, Account>();
 		for (Account account : accounts) {
 			a.put(account.getId(), account);
 		}
