@@ -1,7 +1,6 @@
 package com.vaguehope.onosendai.ui;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,7 +31,6 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
-import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
@@ -45,6 +43,7 @@ import com.vaguehope.onosendai.payload.PayloadClickListener;
 import com.vaguehope.onosendai.payload.PayloadListAdapter;
 import com.vaguehope.onosendai.payload.PayloadListClickListener;
 import com.vaguehope.onosendai.payload.PayloadType;
+import com.vaguehope.onosendai.payload.ReplyLoaderTask;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.RtTask;
 import com.vaguehope.onosendai.provider.RtTask.RtRequest;
@@ -420,15 +419,10 @@ public class TweetListFragment extends Fragment {
 		final Tweet tweet = dbTweet != null ? dbTweet : listTweet;
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 
-		// TODO move this block somewhere more appropriate.
-		final List<Tweet> replies = getDb().findTweetsWithMeta(MetaType.INREPLYTO, tweet.getSid(), 20);
-		final List<Payload> replyPayloads = new ArrayList<Payload>();
-		for (Tweet reply : replies) {
-			replyPayloads.add(new InReplyToPayload(tweet, reply));
-		}
-		this.lstTweetPayloadAdaptor.addItemsTop(replyPayloads);
+		// FIXME use specific executor?
+		new ReplyLoaderTask(getActivity(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
+		new InReplyToLoaderTask(getConf(), getProviderMgr(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
 
-		new InReplyToLoaderTask(getConf(), getProviderMgr(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet); // FIXME use specific executor?
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
 	}
