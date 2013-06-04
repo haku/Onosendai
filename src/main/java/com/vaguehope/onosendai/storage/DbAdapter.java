@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.storage;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -10,6 +11,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteQueryBuilder;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Column;
@@ -17,6 +19,7 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class DbAdapter implements DbInterface {
@@ -280,7 +283,6 @@ public class DbAdapter implements DbInterface {
 
 	private List<Tweet> getTweets (final String where, final String[] whereArgs, final int numberOf) {
 		if (!checkDbOpen()) return null;
-		List<Tweet> ret = new ArrayList<Tweet>();
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
@@ -288,34 +290,58 @@ public class DbAdapter implements DbInterface {
 					where, whereArgs,
 					null, null,
 					TBL_TW_TIME + " desc", String.valueOf(numberOf));
-
-			if (c != null && c.moveToFirst()) {
-				final int colId = c.getColumnIndex(TBL_TW_ID);
-				final int colSid = c.getColumnIndex(TBL_TW_SID);
-				final int colUesrname = c.getColumnIndex(TBL_TW_USERNAME);
-				final int colFullname = c.getColumnIndex(TBL_TW_FULLNAME);
-				final int colBody = c.getColumnIndex(TBL_TW_BODY);
-				final int colTime = c.getColumnIndex(TBL_TW_TIME);
-				final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
-
-				ret = new ArrayList<Tweet>();
-				do {
-					final long uid = c.getLong(colId);
-					final String sid = c.getString(colSid);
-					final String username = c.getString(colUesrname);
-					final String fullname = c.getString(colFullname);
-					final String body = c.getString(colBody);
-					final long time = c.getLong(colTime);
-					final String avatar = c.getString(colAvatar);
-					ret.add(new Tweet(uid, sid, username, fullname, body, time, avatar, null));
-				}
-				while (c.moveToNext());
-			}
+			return readTweets(c);
 		}
 		finally {
-			if (c != null) c.close();
+			IoHelper.closeQuietly(c);
 		}
-		return ret;
+	}
+
+	private static List<Tweet> readTweets (final Cursor c) {
+		if (c != null && c.moveToFirst()) {
+			final int colId = c.getColumnIndex(TBL_TW_ID);
+			final int colSid = c.getColumnIndex(TBL_TW_SID);
+			final int colUesrname = c.getColumnIndex(TBL_TW_USERNAME);
+			final int colFullname = c.getColumnIndex(TBL_TW_FULLNAME);
+			final int colBody = c.getColumnIndex(TBL_TW_BODY);
+			final int colTime = c.getColumnIndex(TBL_TW_TIME);
+			final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
+
+			List<Tweet> ret = new ArrayList<Tweet>();
+			do {
+				final long uid = c.getLong(colId);
+				final String sid = c.getString(colSid);
+				final String username = c.getString(colUesrname);
+				final String fullname = c.getString(colFullname);
+				final String body = c.getString(colBody);
+				final long time = c.getLong(colTime);
+				final String avatar = c.getString(colAvatar);
+				ret.add(new Tweet(uid, sid, username, fullname, body, time, avatar, null));
+			}
+			while (c.moveToNext());
+			return ret;
+		}
+		return Collections.EMPTY_LIST;
+	}
+
+	@Override
+	public List<Tweet> findTweetsWithMeta (final MetaType metaType, final String data, final int numberOf) {
+		if (!checkDbOpen()) return null;
+		Cursor c = null;
+		try {
+			final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+			qb.setTables(TBL_TW + " INNER JOIN " + TBL_TM + " ON " + TBL_TW + "." + TBL_TW_ID + " = " + TBL_TM_TWID);
+			qb.setDistinct(true);
+			c = qb.query(this.mDb,
+					new String[] { TBL_TW + "." + TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
+					TBL_TW + "." + TBL_TW_ID + "=" + TBL_TM_TWID + " AND " + TBL_TM_TYPE + "=" + metaType.getId() + " AND " + TBL_TM_DATA + "=?",
+					new String[] { data },
+					TBL_TW_SID, null, TBL_TW_TIME + " desc", String.valueOf(numberOf));
+			return readTweets(c);
+		}
+		finally {
+			IoHelper.closeQuietly(c);
+		}
 	}
 
 	@Override
@@ -391,14 +417,14 @@ public class DbAdapter implements DbInterface {
 					}
 				}
 				finally {
-					if (d != null) d.close();
+					IoHelper.closeQuietly(d);
 				}
 
 				ret = new Tweet(uid, sid, username, fullname, body, time, avatar, metas);
 			}
 		}
 		finally {
-			if (c != null) c.close();
+			IoHelper.closeQuietly(c);
 		}
 		return ret;
 	}
@@ -523,7 +549,7 @@ public class DbAdapter implements DbInterface {
 			}
 		}
 		finally {
-			if (c != null) c.close();
+			IoHelper.closeQuietly(c);
 		}
 
 		this.log.d("Read scroll for col %d: %s", columnId, ret);
@@ -585,7 +611,7 @@ public class DbAdapter implements DbInterface {
 			}
 		}
 		finally {
-			if (c != null) c.close();
+			IoHelper.closeQuietly(c);
 		}
 		if (ret == null) {
 			this.log.d("Read KV: '%s' = null.", key);

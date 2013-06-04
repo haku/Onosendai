@@ -43,6 +43,7 @@ import com.vaguehope.onosendai.payload.PayloadClickListener;
 import com.vaguehope.onosendai.payload.PayloadListAdapter;
 import com.vaguehope.onosendai.payload.PayloadListClickListener;
 import com.vaguehope.onosendai.payload.PayloadType;
+import com.vaguehope.onosendai.payload.ReplyLoaderTask;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.RtTask;
 import com.vaguehope.onosendai.provider.RtTask.RtRequest;
@@ -417,7 +418,11 @@ public class TweetListFragment extends Fragment {
 		final Tweet dbTweet = getDb().getTweetDetails(this.columnId, listTweet);
 		final Tweet tweet = dbTweet != null ? dbTweet : listTweet;
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
-		new InReplyToLoaderTask(getConf(), getProviderMgr(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet); // FIXME use specific executor?
+
+		// FIXME use specific executor?
+		new ReplyLoaderTask(getActivity(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
+		new InReplyToLoaderTask(getConf(), getProviderMgr(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
+
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
 	}
