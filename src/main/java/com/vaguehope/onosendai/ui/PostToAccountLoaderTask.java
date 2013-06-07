@@ -105,12 +105,12 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 		}
 		else {
 			LOG.e("Failed to update SW post to accounts.", result.getE());
-			DialogHelper.alert(this.llSubAccounts.getContext(), "Failed to update sub accounts.", result.getE());
+			DialogHelper.alert(getContext(), "Failed to update sub accounts.", result.getE());
 		}
 	}
 
 	private void showInProgress () {
-		this.progressBar = new ProgressBar(this.llSubAccounts.getContext());
+		this.progressBar = new ProgressBar(getContext());
 		this.progressBar.setIndeterminate(true);
 		this.llSubAccounts.addView(this.progressBar);
 	}
@@ -123,7 +123,7 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 		for (final ServiceRef svc : result.getAccounts()) {
 			View existingView = this.llSubAccounts.findViewWithTag(svc);
 			if (existingView == null) {
-				final View view = View.inflate(this.llSubAccounts.getContext(), R.layout.subaccountitem, null);
+				final View view = View.inflate(getContext(), R.layout.subaccountitem, null);
 				view.setTag(svc);
 				configureAccountBtn((ToggleButton) view.findViewById(R.id.btnEnableAccount), svc);
 				this.llSubAccounts.addView(view);
