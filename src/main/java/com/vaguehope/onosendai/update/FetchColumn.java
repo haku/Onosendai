@@ -18,6 +18,7 @@ import com.vaguehope.onosendai.provider.twitter.TwitterFeed;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeeds;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 class FetchColumn implements Callable<Void> {
@@ -47,6 +48,16 @@ class FetchColumn implements Callable<Void> {
 	}
 
 	public static void fetchColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr) {
+		db.notifyTwListenersColumnState(column.getId(), ColumnState.UPDATE_RUNNING);
+		try {
+			fetchColumnInner(db, account, column, providerMgr);
+		}
+		finally {
+			db.notifyTwListenersColumnState(column.getId(), ColumnState.UPDATE_OVER);
+		}
+	}
+
+	private static void fetchColumnInner (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr) {
 		final long startTime = System.nanoTime();
 		switch (account.getProvider()) {
 			case TWITTER:

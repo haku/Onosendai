@@ -22,6 +22,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.R;
@@ -49,6 +50,7 @@ import com.vaguehope.onosendai.provider.RtTask;
 import com.vaguehope.onosendai.provider.RtTask.RtRequest;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
 import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
 import com.vaguehope.onosendai.update.UpdateService;
@@ -80,6 +82,7 @@ public class TweetListFragment extends Fragment {
 
 	private MainActivity mainActivity;
 	private SidebarLayout sidebar;
+	private ProgressBar prgUpdating;
 	private ListView tweetList;
 
 	private PayloadListAdapter lstTweetPayloadAdaptor;
@@ -129,6 +132,8 @@ public class TweetListFragment extends Fragment {
 		Button btnColumnTitle = (Button) rootView.findViewById(R.id.tweetListTitle);
 		btnColumnTitle.setText(getArguments().getString(ARG_COLUMN_TITLE));
 		btnColumnTitle.setOnClickListener(this.columnTitleClickListener);
+
+		this.prgUpdating = (ProgressBar) rootView.findViewById(R.id.tweetListPrg);
 
 		Button btnMenu = (Button) rootView.findViewById(R.id.tweetListMenu);
 		if (this.isLaterColumn) {
@@ -352,7 +357,7 @@ public class TweetListFragment extends Fragment {
 		}
 	};
 
-	protected boolean menuItemClick(final MenuItem item) {
+	protected boolean menuItemClick (final MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.mnuPost:
 				showPost();
@@ -533,15 +538,39 @@ public class TweetListFragment extends Fragment {
 	}
 
 	private final TwUpdateListener guiUpdateListener = new TwUpdateListener() {
+
 		@Override
 		public void columnChanged (final int changeColumnId) {
 			if (changeColumnId != getColumnId()) return;
 			refreshUi();
 		}
+
+		@Override
+		public void columnStatus (final int eventColumnId, final ColumnState eventType) {
+			if (eventColumnId != getColumnId()) return;
+			statusChanged(eventType);
+		}
+
 	};
 
+	private static final int MSG_REFRESH = 1;
+	private static final int MSG_UPDATE_RUNNING = 2;
+	private static final int MSG_UPDATE_OVER = 3;
+
 	protected void refreshUi () {
-		this.refreshUiHandler.sendEmptyMessage(0);
+		this.refreshUiHandler.sendEmptyMessage(MSG_REFRESH);
+	}
+
+	protected void statusChanged (final ColumnState state) {
+		switch (state) {
+			case UPDATE_RUNNING:
+				this.refreshUiHandler.sendEmptyMessage(MSG_UPDATE_RUNNING);
+				break;
+			case UPDATE_OVER:
+				this.refreshUiHandler.sendEmptyMessage(MSG_UPDATE_OVER);
+				break;
+			default:
+		}
 	}
 
 	private static class RefreshUiHandler extends Handler {
@@ -554,13 +583,27 @@ public class TweetListFragment extends Fragment {
 
 		@Override
 		public void handleMessage (final Message msg) {
-			TweetListFragment parent = this.parentRef.get();
-			if (parent != null) parent.refreshUiOnUiThread();
+			final TweetListFragment parent = this.parentRef.get();
+			if (parent != null) parent.msgOnUiThread(msg);
 		}
-
 	}
 
-	protected void refreshUiOnUiThread () {
+	protected void msgOnUiThread (final Message msg) {
+		switch (msg.what) {
+			case MSG_REFRESH:
+				refreshUiOnUiThread();
+				break;
+			case MSG_UPDATE_RUNNING:
+				this.prgUpdating.setVisibility(View.VISIBLE);
+				break;
+			case MSG_UPDATE_OVER:
+				this.prgUpdating.setVisibility(View.GONE);
+				break;
+			default:
+		}
+	}
+
+	private void refreshUiOnUiThread () {
 		final DbInterface db = getDb();
 		if (db != null) {
 			final List<Tweet> tweets = db.getTweets(this.columnId, 200, getColumn().getExcludeColumnIds()); // FIXME replace 200 with dynamic list.

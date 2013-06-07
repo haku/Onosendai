@@ -3,7 +3,10 @@ package com.vaguehope.onosendai.storage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -36,6 +39,7 @@ public class DbAdapter implements DbInterface {
 	private DatabaseHelper mDbHelper;
 	private SQLiteDatabase mDb;
 
+	private final Map<Integer, ColumnState> columnStates = new ConcurrentHashMap<Integer, ColumnState>();
 	private final List<TwUpdateListener> twUpdateListeners = new ArrayList<TwUpdateListener>();
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -220,7 +224,7 @@ public class DbAdapter implements DbInterface {
 			this.mDb.endTransaction();
 		}
 
-		notifyTwListeners(column.getId());
+		notifyTwListenersColumnChanged(column.getId());
 	}
 
 	@Override
@@ -235,7 +239,7 @@ public class DbAdapter implements DbInterface {
 		finally {
 			this.mDb.endTransaction();
 		}
-		notifyTwListeners(column.getId());
+		notifyTwListenersColumnChanged(column.getId());
 	}
 
 	@Override
@@ -249,7 +253,7 @@ public class DbAdapter implements DbInterface {
 		finally {
 			this.mDb.endTransaction();
 		}
-		notifyTwListeners(column.getId());
+		notifyTwListenersColumnChanged(column.getId());
 	}
 
 	@Override
@@ -271,7 +275,7 @@ public class DbAdapter implements DbInterface {
 		whereArgs[0] = String.valueOf(columnId);
 
 		int i = 0;
-		for (Integer id : excludeColumnIds) {
+		for (final Integer id : excludeColumnIds) {
 			if (i > 0) where.append(" OR ");
 			where.append(TBL_TW_COLID).append("=?");
 			whereArgs[1 + i] = String.valueOf(id);
@@ -307,7 +311,7 @@ public class DbAdapter implements DbInterface {
 			final int colTime = c.getColumnIndex(TBL_TW_TIME);
 			final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
 
-			List<Tweet> ret = new ArrayList<Tweet>();
+			final List<Tweet> ret = new ArrayList<Tweet>();
 			do {
 				final long uid = c.getLong(colId);
 				final String sid = c.getString(colSid);
@@ -459,7 +463,7 @@ public class DbAdapter implements DbInterface {
 					.append(" WHERE ");
 
 			int i = 0;
-			for (Integer id : excludeColumnIds) {
+			for (final Integer id : excludeColumnIds) {
 				if (i > 0) where.append(" OR ");
 				where.append(TBL_TW_COLID).append("=?");
 				whereArgs[2 + i] = String.valueOf(id);
@@ -471,14 +475,25 @@ public class DbAdapter implements DbInterface {
 		return (int) DatabaseUtils.queryNumEntries(this.mDb, TBL_TW, where.toString(), whereArgs);
 	}
 
-	private void notifyTwListeners (final int columnId) {
+	private void notifyTwListenersColumnChanged (final int columnId) {
 		for (final TwUpdateListener l : this.twUpdateListeners) {
 			l.columnChanged(columnId);
 		}
 	}
 
 	@Override
+	public void notifyTwListenersColumnState (final int columnId, final ColumnState state) {
+		this.columnStates.put(Integer.valueOf(columnId), state);
+		for (final TwUpdateListener l : this.twUpdateListeners) {
+			l.columnStatus(columnId, state);
+		}
+	}
+
+	@Override
 	public void addTwUpdateListener (final TwUpdateListener listener) {
+		for (final Entry<Integer, ColumnState> e : this.columnStates.entrySet()) {
+			listener.columnStatus(e.getKey().intValue(), e.getValue());
+		}
 		this.twUpdateListeners.add(listener);
 	}
 
