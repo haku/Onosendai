@@ -16,6 +16,8 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 
+import android.database.Cursor;
+
 public final class IoHelper {
 
 	private static final int I_1024 = 1024;
@@ -23,6 +25,11 @@ public final class IoHelper {
 
 	private IoHelper () {
 		throw new AssertionError();
+	}
+
+	public static void closeQuietly (final Cursor c) {
+		if (c == null) return;
+		c.close();
 	}
 
 	public static void closeQuietly (final Closeable c) {
