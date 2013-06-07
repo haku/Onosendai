@@ -139,6 +139,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public void notifyTwListenersColumnState (final int columnId, final ColumnState eventType) {
+		this.dbAdaptor.notifyTwListenersColumnState(columnId, eventType);
+	}
+
+	@Override
 	public String getValue (final String key) {
 		return this.dbAdaptor.getValue(key);
 	}

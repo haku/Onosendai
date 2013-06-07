@@ -33,8 +33,16 @@ public interface DbInterface extends KvStore {
 	void storeScroll(int columnId, ScrollState state);
 	ScrollState getScroll(int columnId);
 
+	void notifyTwListenersColumnState (final int columnId, final ColumnState state);
+
+	enum ColumnState {
+		UPDATE_RUNNING,
+		UPDATE_OVER;
+	}
+
 	interface TwUpdateListener {
 		void columnChanged(int columnId);
+		void columnStatus(int columnId, ColumnState state);
 	}
 
 }
