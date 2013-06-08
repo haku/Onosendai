@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
@@ -14,6 +13,7 @@ import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.widget.PendingImage;
 
 public class MediaPayload extends Payload {
 
@@ -56,7 +56,7 @@ public class MediaPayload extends Payload {
 
 	@Override
 	public PayloadRowView makeRowView (final View view) {
-		return new PayloadRowView((TextView) view.findViewById(R.id.txtMain), (ImageView) view.findViewById(R.id.imgMain));
+		return new PayloadRowView((TextView) view.findViewById(R.id.txtMain), (PendingImage) view.findViewById(R.id.imgMain));
 	}
 
 	@Override
