@@ -73,11 +73,13 @@ class FetchColumn implements Callable<Void> {
 					TweetList tweets = twitterProvider.getTweets(feed, account, sinceId);
 					db.storeTweets(column, tweets.getTweets());
 
+					storeSuccess(db, column);
 					long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 					LOG.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
 				}
 				catch (TwitterException e) {
 					LOG.w("Failed to fetch from Twitter: %s", e.toString());
+					storeError(db, column, e.toString());
 				}
 				break;
 			case SUCCESSWHALE:
@@ -89,16 +91,31 @@ class FetchColumn implements Callable<Void> {
 					TweetList tweets = successWhaleProvider.getTweets(feed, account);
 					db.storeTweets(column, tweets.getTweets());
 
+					storeSuccess(db, column);
 					long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 					LOG.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
 				}
 				catch (SuccessWhaleException e) {
 					LOG.w("Failed to fetch from SuccessWhale: %s", e.toString());
+					storeError(db, column, e.toString());
 				}
 				break;
 			default:
 				LOG.e("Unknown account type: %s", account.getProvider());
 		}
 	}
+
+	private static void storeSuccess (final DbInterface db, final Column column) {
+		storeResult(db, column, null);
+	}
+
+	private static void storeError (final DbInterface db, final Column column, final String msg) {
+		storeResult(db, column, msg);
+	}
+
+	private static void storeResult (final DbInterface db, final Column column, final String result) {
+		db.storeValue(KvKeys.KEY_PREFIX_COL_LAST_REFRESH_ERROR + column.getId(), result);
+	}
+
 
 }

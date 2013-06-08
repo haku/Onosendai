@@ -23,6 +23,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.R;
@@ -53,6 +54,7 @@ import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
 import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
+import com.vaguehope.onosendai.update.KvKeys;
 import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -84,6 +86,7 @@ public class TweetListFragment extends Fragment {
 	private SidebarLayout sidebar;
 	private ProgressBar prgUpdating;
 	private ListView tweetList;
+	private TextView tweetListStatus;
 
 	private PayloadListAdapter lstTweetPayloadAdaptor;
 	private Button btnDetailsLater;
@@ -158,6 +161,8 @@ public class TweetListFragment extends Fragment {
 
 		final ViewGroup tweetListView = (ViewGroup) rootView.findViewById(R.id.tweetListView);
 		ScrollIndicator.attach(getActivity(), tweetListView, this.tweetList);
+
+		this.tweetListStatus = (TextView) rootView.findViewById(R.id.tweetListStatus);
 
 		return rootView;
 	}
@@ -598,6 +603,7 @@ public class TweetListFragment extends Fragment {
 				break;
 			case MSG_UPDATE_OVER:
 				this.prgUpdating.setVisibility(View.GONE);
+				redrawLastUpdateError();
 				break;
 			default:
 		}
@@ -611,9 +617,23 @@ public class TweetListFragment extends Fragment {
 			this.adapter.setInputData(new TweetList(tweets));
 			this.log.d("Refreshed %d tweets.", tweets.size());
 			restoreScroll();
+			redrawLastUpdateError();
 		}
 		else {
 			this.log.w("Failed to refresh column as DB was not bound.");
+		}
+	}
+
+	private void redrawLastUpdateError () {
+		final DbInterface db = getDb();
+		final String msg = db.getValue(KvKeys.KEY_PREFIX_COL_LAST_REFRESH_ERROR + this.columnId);
+		if (msg != null) {
+			this.tweetListStatus.setText(msg);
+			this.tweetListStatus.setVisibility(View.VISIBLE);
+		}
+		else {
+			this.tweetListStatus.setVisibility(View.GONE);
+			this.tweetListStatus.setText("");
 		}
 	}
 
