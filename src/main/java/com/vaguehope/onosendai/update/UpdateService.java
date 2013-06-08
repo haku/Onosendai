@@ -39,7 +39,6 @@ public class UpdateService extends IntentService {
 	public static final String ARG_COLUMN_ID = "column_id";
 	public static final String ARG_IS_MANUAL = "is_manual";
 
-	private static final String KEY_PREFIX_COL_LAST_REFRESH_TIME = "COL_LAST_REFRESH_TIME_";
 	protected static final LogWrapper LOG = new LogWrapper("US");
 
 	private final CountDownLatch dbReadyLatch = new CountDownLatch(1);
@@ -167,7 +166,7 @@ public class UpdateService extends IntentService {
 		// For now treating the configured interval as an 'attempt rate' not 'success rate' so write update time now.
 		final long now = System.currentTimeMillis();
 		for (final Column column : columns) {
-			getDb().storeValue(KEY_PREFIX_COL_LAST_REFRESH_TIME + column.getId(), String.valueOf(now));
+			getDb().storeValue(KvKeys.KEY_PREFIX_COL_LAST_REFRESH_TIME + column.getId(), String.valueOf(now));
 		}
 
 		return columns;
@@ -186,7 +185,7 @@ public class UpdateService extends IntentService {
 		final long now = System.currentTimeMillis();
 		while (colItr.hasNext()) {
 			final Column column = colItr.next();
-			final String lastTimeRaw = getDb().getValue(KEY_PREFIX_COL_LAST_REFRESH_TIME + column.getId());
+			final String lastTimeRaw = getDb().getValue(KvKeys.KEY_PREFIX_COL_LAST_REFRESH_TIME + column.getId());
 			if (lastTimeRaw == null) continue; // Never refreshed.
 			final long lastTime = Long.parseLong(lastTimeRaw);
 			if (lastTime <= 0L) continue; // Probably never refreshed.
