@@ -11,6 +11,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnMultiChoiceClickListener;
+import android.view.WindowManager.BadTokenException;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 
@@ -34,6 +35,13 @@ public final class DialogHelper {
 
 	public static void alert (final Context context, final String msg, final Exception e) {
 		alert(context, msg + "\n" + e.toString());
+	}
+
+	public static void alertIfPossible (final Context context, final String msg, final Exception e) {
+		try {
+			alert(context, msg, e);
+		}
+		catch (BadTokenException ignored) {/* If the UI context is no longer valid. */} // NOSONAR exception intentionally ignored.
 	}
 
 	public static void alert (final Context context, final String msg) {
