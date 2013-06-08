@@ -12,12 +12,9 @@
 		android:textSize="14sp"
 		android:padding="10dip" />
 
-	<com.vaguehope.onosendai.widget.FixedWidthImageView
+	<com.vaguehope.onosendai.widget.PendingImage
 		android:id="@+id/imgMain"
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:src="@drawable/question_blue"
-		android:scaleType="fitCenter"
-		android:adjustViewBounds="true" />
+		android:layout_height="wrap_content" />
 
 </LinearLayout>

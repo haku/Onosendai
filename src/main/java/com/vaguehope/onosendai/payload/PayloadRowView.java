@@ -9,12 +9,15 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.vaguehope.onosendai.widget.PendingImage;
+
 class PayloadRowView {
 
 	private final TextView main;
 	private final TextView secondary;
 	private final TextView tertiary;
 	private final ImageView image;
+	private final PendingImage pendingImage;
 	private final List<Button> buttons;
 
 	public PayloadRowView (final TextView main) {
@@ -38,6 +41,16 @@ class PayloadRowView {
 		this.secondary = secondary;
 		this.tertiary = tertiary;
 		this.image = image;
+		this.pendingImage = null;
+		this.buttons = null;
+	}
+
+	public PayloadRowView (final TextView main, final PendingImage pendingImage) {
+		this.main = main;
+		this.secondary = null;
+		this.tertiary = null;
+		this.image = null;
+		this.pendingImage = pendingImage;
 		this.buttons = null;
 	}
 
@@ -46,6 +59,7 @@ class PayloadRowView {
 		this.secondary = null;
 		this.tertiary = null;
 		this.image = null;
+		this.pendingImage = null;
 		this.buttons = Collections.unmodifiableList(new ArrayList<Button>(buttons));
 	}
 
@@ -72,6 +86,7 @@ class PayloadRowView {
 	}
 
 	public ImageView getImage () {
+		if (this.pendingImage != null) return this.pendingImage.getImage();
 		return this.image;
 	}
 
