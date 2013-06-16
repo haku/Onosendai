@@ -124,6 +124,7 @@
 			android:id="@+id/tweetListStatus"
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
+			android:maxLines="5"
 			android:layout_alignParentBottom="true"
 			android:paddingTop="5dip"
 			android:paddingBottom="5dip"
