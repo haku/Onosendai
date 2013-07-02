@@ -2,7 +2,14 @@ package com.vaguehope.onosendai.ui.pref;
 
 import java.util.List;
 
+import org.acra.ACRA;
+
+import android.os.Bundle;
 import android.preference.PreferenceActivity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.storage.DbClient;
@@ -12,6 +19,24 @@ import com.vaguehope.onosendai.util.LogWrapper;
 public class OsPreferenceActivity extends PreferenceActivity {
 
 	private static final LogWrapper LOG = new LogWrapper("PRA");
+
+	@Override
+	protected void onCreate (final Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		if (hasHeaders()) {
+			final LayoutInflater inflater = LayoutInflater.from(this);
+			final Button btn = (Button) inflater.inflate(R.layout.buttonbarbutton, null, false);
+			btn.setText("Report a problem");
+			btn.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick (final View v) {
+					ACRA.getErrorReporter().handleException(null);
+				}
+			});
+			setListFooter(btn);
+		}
+	}
 
 	@Override
 	public void onBuildHeaders (final List<Header> target) {
