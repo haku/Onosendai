@@ -447,12 +447,11 @@ public class TweetListFragment extends Fragment {
 	}
 
 	private void showPost (final Tweet tweetToQuote) {
-		final Intent intent = new Intent(getActivity(), PostActivity.class)
-				.putExtra(PostActivity.ARG_ACCOUNT_ID, getColumnAccount().getId());
-		if (tweetToQuote != null) {
-			intent.putExtra(PostActivity.ARG_BODY,
-					String.format("RT @%s %s", tweetToQuote.getUsername(), tweetToQuote.getBody()));
-		}
+		final Intent intent = new Intent(getActivity(), PostActivity.class);
+		final Account columnAccount = getColumnAccount();
+		if (columnAccount != null) intent.putExtra(PostActivity.ARG_ACCOUNT_ID, columnAccount.getId());
+		if (tweetToQuote != null) intent.putExtra(PostActivity.ARG_BODY,
+				String.format("RT @%s %s", tweetToQuote.getUsername(), tweetToQuote.getBody()));
 		startActivity(intent);
 	}
 
