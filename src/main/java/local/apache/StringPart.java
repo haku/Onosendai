@@ -52,7 +52,7 @@ public class StringPart extends PartBase {
     public static final String DEFAULT_CONTENT_TYPE = "text/plain";
 
     /** Default charset of string parameters*/
-    public static final String DEFAULT_CHARSET = "US-ASCII";
+    public static final String DEFAULT_CHARSET = "UTF-8";
 
     /** Default transfer encoding of string parameters*/
     public static final String DEFAULT_TRANSFER_ENCODING = "8bit";
