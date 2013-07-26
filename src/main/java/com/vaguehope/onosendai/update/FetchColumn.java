@@ -21,7 +21,7 @@ import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-class FetchColumn implements Callable<Void> {
+public class FetchColumn implements Callable<Void> {
 
 	protected static final LogWrapper LOG = new LogWrapper("FC");
 
@@ -111,6 +111,10 @@ class FetchColumn implements Callable<Void> {
 
 	private static void storeError (final DbInterface db, final Column column, final String msg) {
 		storeResult(db, column, msg);
+	}
+
+	public static void storeDismiss(final DbInterface db, final Column column) {
+		storeResult(db, column, null);
 	}
 
 	private static void storeResult (final DbInterface db, final Column column, final String result) {

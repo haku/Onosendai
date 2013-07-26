@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -54,10 +56,13 @@ import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
 import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
+import com.vaguehope.onosendai.update.FetchColumn;
 import com.vaguehope.onosendai.update.KvKeys;
 import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.DialogHelper;
+import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.Titleable;
 import com.vaguehope.onosendai.widget.ScrollIndicator;
 import com.vaguehope.onosendai.widget.SidebarLayout;
 import com.vaguehope.onosendai.widget.SidebarLayout.SidebarListener;
@@ -163,6 +168,7 @@ public class TweetListFragment extends Fragment {
 		ScrollIndicator.attach(getActivity(), tweetListView, this.tweetList);
 
 		this.tweetListStatus = (TextView) rootView.findViewById(R.id.tweetListStatus);
+		this.tweetListStatus.setOnClickListener(this.tweetListStatusClickListener);
 
 		return rootView;
 	}
@@ -639,5 +645,55 @@ public class TweetListFragment extends Fragment {
 			this.tweetListStatus.setText("");
 		}
 	}
+
+	protected void dismissLastUpdateError() {
+		FetchColumn.storeDismiss(getDb(), getColumn());
+		redrawLastUpdateError();
+	}
+
+	protected void copyLastUpdateError() {
+		final ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+		clipboard.setPrimaryClip(ClipData.newPlainText("Message", this.tweetListStatus.getText().toString()));
+	}
+
+	private enum ErrorMessageAction implements Titleable {
+		COPY("Copy") {
+			@Override
+			public void onClick (final TweetListFragment tlf) {
+				tlf.copyLastUpdateError();
+			}
+		},
+		DISMISS("Dismiss") {
+			@Override
+			public void onClick (final TweetListFragment tlf) {
+				tlf.dismissLastUpdateError();
+			}
+		};
+
+		private final String title;
+
+		private ErrorMessageAction (final String title) {
+			this.title = title;
+		}
+
+		@Override
+		public String getUiTitle () {
+			return this.title;
+		}
+
+		public abstract void onClick (TweetListFragment tlf);
+	}
+
+	private final OnClickListener tweetListStatusClickListener = new OnClickListener() {
+		@Override
+		public void onClick (final View v) {
+			DialogHelper.askItem(getActivity(), "Message", ErrorMessageAction.values(), new Listener<ErrorMessageAction>() {
+				@Override
+				public void onAnswer (final ErrorMessageAction answer) {
+					answer.onClick(TweetListFragment.this);
+				}
+			});
+		}
+	};
 
 }
