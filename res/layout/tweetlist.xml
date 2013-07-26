@@ -131,7 +131,8 @@
 			android:paddingLeft="10dip"
 			android:paddingRight="10dip"
 			android:background="@drawable/warning_border"
-			android:visibility="gone" />
+			android:visibility="gone"
+			android:clickable="true" />
 
 	</RelativeLayout>
 
