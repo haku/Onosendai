@@ -45,6 +45,13 @@ public class TweetListAdapter extends BaseAdapter {
 		return this.listData.getTweet(position);
 	}
 
+
+	public Tweet getTweet(final int position) {
+		if (this.listData == null) return null;
+		if (position >= this.listData.count()) return null;
+		return this.listData.getTweet(position);
+	}
+
 	@Override
 	public long getItemId (final int position) {
 		if (this.listData == null) return -1;

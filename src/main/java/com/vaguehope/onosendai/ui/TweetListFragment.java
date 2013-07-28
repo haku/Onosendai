@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.ui;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import android.app.AlertDialog;
 import android.content.ClipData;
@@ -19,6 +20,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
@@ -28,6 +31,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
@@ -59,6 +63,7 @@ import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
 import com.vaguehope.onosendai.update.FetchColumn;
 import com.vaguehope.onosendai.update.KvKeys;
 import com.vaguehope.onosendai.update.UpdateService;
+import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -90,6 +95,7 @@ public class TweetListFragment extends Fragment {
 	private MainActivity mainActivity;
 	private SidebarLayout sidebar;
 	private ProgressBar prgUpdating;
+	private Button btnColumnTitle;
 	private ListView tweetList;
 	private TextView tweetListStatus;
 
@@ -137,9 +143,10 @@ public class TweetListFragment extends Fragment {
 
 		((Button) rootView.findViewById(R.id.tweetListGoto)).setOnClickListener(new GotoMenu(this.mainActivity));
 
-		Button btnColumnTitle = (Button) rootView.findViewById(R.id.tweetListTitle);
-		btnColumnTitle.setText(getArguments().getString(ARG_COLUMN_TITLE));
-		btnColumnTitle.setOnClickListener(this.columnTitleClickListener);
+		this.btnColumnTitle = (Button) rootView.findViewById(R.id.tweetListTitle);
+		this.btnColumnTitle.setTag(getArguments().getString(ARG_COLUMN_TITLE));
+		this.btnColumnTitle.setOnClickListener(this.columnTitleClickListener);
+		updateScrollLabelToIdle();
 
 		this.prgUpdating = (ProgressBar) rootView.findViewById(R.id.tweetListPrg);
 
@@ -165,7 +172,7 @@ public class TweetListFragment extends Fragment {
 		this.btnDetailsLater = (Button) rootView.findViewById(R.id.tweetDetailLater);
 
 		final ViewGroup tweetListView = (ViewGroup) rootView.findViewById(R.id.tweetListView);
-		ScrollIndicator.attach(getActivity(), tweetListView, this.tweetList);
+		ScrollIndicator.attach(getActivity(), tweetListView, this.tweetList, this.tweetListScrollListener);
 
 		this.tweetListStatus = (TextView) rootView.findViewById(R.id.tweetListStatus);
 		this.tweetListStatus.setOnClickListener(this.tweetListStatusClickListener);
@@ -394,6 +401,20 @@ public class TweetListFragment extends Fragment {
 		}
 	};
 
+	private final OnScrollListener tweetListScrollListener = new OnScrollListener() {
+		private boolean scrolling = false;
+
+		@Override
+		public void onScrollStateChanged (final AbsListView view, final int scrollState) {
+			this.scrolling = (scrollState != OnScrollListener.SCROLL_STATE_IDLE);
+		}
+
+		@Override
+		public void onScroll (final AbsListView view, final int firstVisibleItem, final int visibleItemCount, final int totalItemCount) {
+			if (this.scrolling) onTweetListScroll();
+		}
+	};
+
 	private final PayloadClickListener payloadClickListener = new PayloadClickListener() {
 
 		@Override
@@ -407,6 +428,8 @@ public class TweetListFragment extends Fragment {
 		}
 
 	};
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	protected boolean payloadClick (final Payload payload) {
 		if (payload.getType() == PayloadType.INREPLYTO) {
@@ -566,6 +589,7 @@ public class TweetListFragment extends Fragment {
 	private static final int MSG_REFRESH = 1;
 	private static final int MSG_UPDATE_RUNNING = 2;
 	private static final int MSG_UPDATE_OVER = 3;
+	private static final int MSG_STILL_SCROLLING_CHECK = 4;
 
 	protected void refreshUi () {
 		this.refreshUiHandler.sendEmptyMessage(MSG_REFRESH);
@@ -610,6 +634,9 @@ public class TweetListFragment extends Fragment {
 				this.prgUpdating.setVisibility(View.GONE);
 				redrawLastUpdateError();
 				break;
+			case MSG_STILL_SCROLLING_CHECK:
+				checkIfTweetListStillScrolling();
+				break;
 			default:
 		}
 	}
@@ -629,6 +656,37 @@ public class TweetListFragment extends Fragment {
 		}
 	}
 
+	private long lastScrollFirstVisiblePosition = -1;
+	private long lastScrollTime = 0L;
+
+	protected void onTweetListScroll () {
+		final int position = this.tweetList.getFirstVisiblePosition();
+		if (position < 0 || position == this.lastScrollFirstVisiblePosition) return;
+		this.lastScrollFirstVisiblePosition = position;
+
+		final long now = System.currentTimeMillis();
+		this.lastScrollTime = now;
+		this.refreshUiHandler.sendEmptyMessageDelayed(MSG_STILL_SCROLLING_CHECK, C.SCROLL_TIME_LABEL_TIMEOUT_MILLIS);
+
+		final Tweet tweet = this.adapter.getTweet(position);
+		if (tweet != null) {
+			this.btnColumnTitle.setText(DateHelper.friendlyAbsoluteDate(getActivity(), now, TimeUnit.SECONDS.toMillis(tweet.getTime())));
+		}
+	}
+
+	private void checkIfTweetListStillScrolling () {
+		if (this.lastScrollTime < 1L || System.currentTimeMillis() - this.lastScrollTime >= C.SCROLL_TIME_LABEL_TIMEOUT_MILLIS) {
+			updateScrollLabelToIdle();
+		}
+	}
+
+	private void updateScrollLabelToIdle () {
+		this.btnColumnTitle.setText(String.valueOf(this.btnColumnTitle.getTag()));
+		this.lastScrollFirstVisiblePosition = -1;
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	private void redrawLastUpdateError () {
 		final DbInterface db = getDb();
 		if (db == null) {
@@ -646,12 +704,12 @@ public class TweetListFragment extends Fragment {
 		}
 	}
 
-	protected void dismissLastUpdateError() {
+	protected void dismissLastUpdateError () {
 		FetchColumn.storeDismiss(getDb(), getColumn());
 		redrawLastUpdateError();
 	}
 
-	protected void copyLastUpdateError() {
+	protected void copyLastUpdateError () {
 		final ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
 		clipboard.setPrimaryClip(ClipData.newPlainText("Message", this.tweetListStatus.getText().toString()));
 	}
