@@ -21,7 +21,7 @@ public final class ScrollIndicator {
 		throw new AssertionError();
 	}
 
-	public static void attach (final Context context, final ViewGroup rootView, final ListView tweetList) {
+	public static void attach (final Context context, final ViewGroup rootView, final ListView tweetList, final OnScrollListener onScrollListener) {
 		final AbsoluteShape bar = new AbsoluteShape(context);
 		bar.layoutForce(0, 0, 0, 0);
 		bar.setBackgroundColor(COLOUR);
@@ -31,7 +31,7 @@ public final class ScrollIndicator {
 		final float pxPerUnit = dipToPixels(context, 1); // Perhaps this should be a % of list height?
 		final int barWidth = (int) dipToPixels(context, BAR_WIDTH_DIP);
 
-		tweetList.setOnScrollListener(new BarMovingScrollListener(bar, pxPerUnit, barWidth));
+		tweetList.setOnScrollListener(new BarMovingScrollListener(bar, pxPerUnit, barWidth, onScrollListener));
 	}
 
 	private static float dipToPixels (final Context context, final int a) {
@@ -60,17 +60,18 @@ public final class ScrollIndicator {
 		private final AbsoluteShape bar;
 		private final float pxPerUnit;
 		private final int barWidth;
+		private final OnScrollListener delagate;
 
 		private int lastPosition = -1;
 
-		public BarMovingScrollListener (final AbsoluteShape bar, final float pxPerUnit, final int barWidth) {
+		public BarMovingScrollListener (final AbsoluteShape bar, final float pxPerUnit, final int barWidth, final OnScrollListener delagate) {
 			this.bar = bar;
 			this.pxPerUnit = pxPerUnit;
 			this.barWidth = barWidth;
+			this.delagate = delagate;
 		}
 
-		@Override
-		public void onScrollStateChanged (final AbsListView view, final int scrollStateFlag) {
+		private void updateBar (final AbsListView view) {
 			final int position = view.getFirstVisiblePosition();
 			if (position != this.lastPosition) {
 				final int h = (int) ((position
@@ -83,8 +84,15 @@ public final class ScrollIndicator {
 		}
 
 		@Override
+		public void onScrollStateChanged (final AbsListView view, final int scrollStateFlag) {
+			updateBar(view);
+			this.delagate.onScrollStateChanged(view, scrollStateFlag);
+		}
+
+		@Override
 		public void onScroll (final AbsListView view, final int firstVisibleItem, final int visibleItemCount, final int totalItemCount) {
-			onScrollStateChanged(view, 0);
+			updateBar(view);
+			this.delagate.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
 		}
 
 	}

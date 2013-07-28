@@ -26,4 +26,7 @@ public interface C {
 	// Form main activity.
 	int IMAGE_LOADER_MAX_THREADS = 3;
 
+	// Tweet Lists.
+	long SCROLL_TIME_LABEL_TIMEOUT_MILLIS = 3000L;
+
 }
