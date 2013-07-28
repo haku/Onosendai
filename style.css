@@ -28,8 +28,8 @@ body {
 	background-image: linear-gradient(top, #1A2940 0%, #000000 100%);
 }
 
-#title h1, #title p {
-	color: #8380E6
+#title h1, #title p, #footer {
+	color: #B3B1E8;
 }
 .menu {
 	background: #211B25;
@@ -51,11 +51,10 @@ a:active, a:hover {
 body {
 	margin: 0;
 	padding: 0;
-	text-align: center;
 	font-family: Arial, sans-serif;
 }
 
-#background0, #background1, #mountains {
+#background0, #background1 {
 	position: absolute;
 	width: 100%;
 	z-index: -1;
@@ -92,6 +91,10 @@ body {
   font-style:italic
 }
 
+.content {
+	text-align: center;
+}
+
 .menu {
 	display: inline-block;
 	margin: 0 auto; /* Make div centre. */
@@ -119,4 +122,24 @@ body {
   width: auto;
   max-width: 900px;
 
+}
+
+#footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 7%;
+  overflow: hidden;
+  display: table;
+  text-align: center;
+}
+
+#footer .wrapper {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+#footer p {
+  padding: 0;
+  margin: 0;
 }
