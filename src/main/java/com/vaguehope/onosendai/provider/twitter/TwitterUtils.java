@@ -78,6 +78,7 @@ public final class TwitterUtils {
 		}
 
 		addMedia(s, metas);
+		checkUrlsForMedia(s, metas);
 		addHashtags(s, metas);
 		addMentions(s, metas);
 
@@ -103,13 +104,15 @@ public final class TwitterUtils {
 	private static URLEntity[] mergeArrays (final URLEntity[]... urlss) {
 		int count = 0;
 		for (final URLEntity[] urls : urlss) {
-			count += urls.length;
+			if (urls !=null) count += urls.length;
 		}
 		final URLEntity[] ret = new URLEntity[count];
 		int x = 0;
 		for (final URLEntity[] urls : urlss) {
-			System.arraycopy(urls, 0, ret, x, urls.length);
-			x += urls.length;
+			if (urls !=null) {
+				System.arraycopy(urls, 0, ret, x, urls.length);
+				x += urls.length;
+			}
 		}
 		Arrays.sort(ret, URLENTITY_COMP);
 		return ret;
@@ -138,6 +141,10 @@ public final class TwitterUtils {
 		for (int i = 0; i < mes.length; i++) {
 			metas.add(new Meta(MetaType.MEDIA, mes[i].getMediaURLHttps()));
 		}
+	}
+
+	private static void checkUrlsForMedia (final Status s, final List<Meta> metas) {
+		// TODO
 	}
 
 	private static void addHashtags (final Status s, final List<Meta> metas) {
