@@ -22,6 +22,7 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.util.ImageHostHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public final class TwitterUtils {
@@ -144,7 +145,11 @@ public final class TwitterUtils {
 	}
 
 	private static void checkUrlsForMedia (final Status s, final List<Meta> metas) {
-		// TODO
+		for (final URLEntity url : s.getURLEntities()) {
+			final String fullUrl = url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL();
+			final String thumbUrl = ImageHostHelper.thumbUrl(fullUrl);
+			if (thumbUrl != null) metas.add(new Meta(MetaType.MEDIA, thumbUrl));
+		}
 	}
 
 	private static void addHashtags (final Status s, final List<Meta> metas) {

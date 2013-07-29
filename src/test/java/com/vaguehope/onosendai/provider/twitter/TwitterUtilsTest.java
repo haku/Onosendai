@@ -42,8 +42,23 @@ public class TwitterUtilsTest {
 	}
 
 	@Test
-	public void itExpandsImgurUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://i.imgur.com/oxyFqMy.jpg", "http://i.imgur.com/oxyFqMyl.jpg");
+	public void itExpandsImgurPageUrlsToMedia () throws Exception {
+		testPictureUrlExpansion("http://imgur.com/oxyFqMy", "http://i.imgur.com/oxyFqMyl.jpg");
+	}
+
+	@Test
+	public void itConvertsImgurJpgUrlsToMedia () throws Exception {
+		testPictureUrlExpansion("http://i.imgur.com/dhadb0b.jpg", "http://i.imgur.com/dhadb0bl.jpg");
+	}
+
+	@Test
+	public void itConvertsImgurPngUrlsToMedia () throws Exception {
+		testPictureUrlExpansion("http://i.imgur.com/SOLlJFo.png", "http://i.imgur.com/SOLlJFol.jpg");
+	}
+
+	@Test
+	public void itConvertsImgurGifUrlsToMedia () throws Exception {
+		testPictureUrlExpansion("http://i.imgur.com/AyLnEoz.gif", "http://i.imgur.com/AyLnEozl.jpg");
 	}
 
 	private void testPictureUrlExpansion (final String fromUrl, final String toUrl) {
