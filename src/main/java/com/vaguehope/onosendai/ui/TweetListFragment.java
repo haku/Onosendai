@@ -704,6 +704,10 @@ public class TweetListFragment extends Fragment {
 		}
 	}
 
+	protected void popupLastUpdateError () {
+		DialogHelper.alert(getActivity(), this.tweetListStatus.getText().toString());
+	}
+
 	protected void dismissLastUpdateError () {
 		FetchColumn.storeDismiss(getDb(), getColumn());
 		redrawLastUpdateError();
@@ -711,10 +715,16 @@ public class TweetListFragment extends Fragment {
 
 	protected void copyLastUpdateError () {
 		final ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-		clipboard.setPrimaryClip(ClipData.newPlainText("Message", this.tweetListStatus.getText().toString()));
+		clipboard.setPrimaryClip(ClipData.newPlainText("Error Message", this.tweetListStatus.getText().toString()));
 	}
 
 	private enum ErrorMessageAction implements Titleable {
+		VIEW("View") {
+			@Override
+			public void onClick (final TweetListFragment tlf) {
+				tlf.popupLastUpdateError();
+			}
+		},
 		COPY("Copy") {
 			@Override
 			public void onClick (final TweetListFragment tlf) {
