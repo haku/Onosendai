@@ -72,7 +72,19 @@ body {
 }
 
 #title {
-	padding: 0.5em 3em;
+	padding: 0.5em;
+	text-align: center;
+}
+
+#title .icon {
+  width: 4em;
+  height: 4em;
+  display: inline-block;
+}
+
+#title .titlecontainer {
+  display: inline-block;
+  vertical-align: top;
 }
 
 #title h1 {
