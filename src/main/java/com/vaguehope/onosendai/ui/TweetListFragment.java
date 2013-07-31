@@ -103,6 +103,7 @@ public class TweetListFragment extends Fragment {
 	private Button btnDetailsLater;
 
 	private ScrollState scrollState;
+	private ScrollIndicator scrollIndicator;
 	private TweetListAdapter adapter;
 	private DbClient bndDb;
 
@@ -171,8 +172,9 @@ public class TweetListFragment extends Fragment {
 		((Button) rootView.findViewById(R.id.tweetDetailClose)).setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
 		this.btnDetailsLater = (Button) rootView.findViewById(R.id.tweetDetailLater);
 
-		final ViewGroup tweetListView = (ViewGroup) rootView.findViewById(R.id.tweetListView);
-		ScrollIndicator.attach(getActivity(), tweetListView, this.tweetList, this.tweetListScrollListener);
+		this.scrollIndicator = ScrollIndicator.attach(getActivity(),
+				(ViewGroup) rootView.findViewById(R.id.tweetListView),
+				this.tweetList, this.tweetListScrollListener);
 
 		this.tweetListStatus = (TextView) rootView.findViewById(R.id.tweetListStatus);
 		this.tweetListStatus.setOnClickListener(this.tweetListStatusClickListener);
@@ -253,7 +255,7 @@ public class TweetListFragment extends Fragment {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	protected ScrollState getCurrentScroll () {
-		return ScrollState.from(this.tweetList);
+		return ScrollState.from(this.tweetList, this.scrollIndicator);
 	}
 
 	private void saveScroll () {
@@ -271,7 +273,7 @@ public class TweetListFragment extends Fragment {
 
 	private void restoreScroll () {
 		if (this.scrollState == null) return;
-		this.scrollState.applyTo(this.tweetList);
+		this.scrollState.applyTo(this.tweetList, this.scrollIndicator);
 		this.log.d("Restored scroll: %s", this.scrollState);
 		this.scrollState = null;
 	}
