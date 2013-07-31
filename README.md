@@ -14,25 +14,26 @@ Features
 * De-duplicate: filter the items in one column out of another.
 * Read Later column: any tweet can be saved locally for reading later.
 * Background feed fetching and caching.
-* Inline image previews (currently only for twimg.com but others on the TODO list).
+* In-line image previews from Twitter, Instagram, Twitpic and Imgur.
 
 Supported Services
 ------------------
 
-* Twitter columns are supported directly (bring your own API key).
+* Twitter columns are supported directly.
 * Twitter and Facebook columns via [SuccessWhale](http://successwhale.com).
-* Posting to [Buffer](https://bufferapp.com).
+* Posting to [Buffer](https://bufferapp.com) (currently requires advanced config to add account).
 
 Download
 --------
 
 Currently there are no 'official' releases of Onosendai.
-Recent snapshot builds can be downloaded from http://karasu.vaguehope.com/onosendai.
+Recent snapshot builds can be downloaded from http://builds.onosendai.mobi
 
 Advanced Configuration
 ----------------------
 
-Advanced configuration (not using the UI) is available.
+Advanced configuration (not using the UI) is available but not recommended for typical users.
+It is both a legacy feature and a useful development hook when testing new features.
 This is via the `deck.conf` file that lives in the root of the external storage device, typically `/sdcard/deck.conf`.
 If this file does not exist a template can be created by the welcome screen for you to edit.
 
@@ -145,7 +146,7 @@ You must first install [maven-android-sdk-deployer](https://github.com/mosabua/m
 mvn clean install android:deploy android:run
 ```
 
-The apk can be made smaller using ProGuard.  This project is configured to only shrink the output, not obfuscate.  Use this to make a release build.
+The APK can be made smaller using ProGuard.  This project is configured to only shrink the output, not obfuscate.  Use this to make a release build.
 
 ```sh
 mvn clean install -P release
