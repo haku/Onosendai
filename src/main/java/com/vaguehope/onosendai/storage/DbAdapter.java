@@ -29,7 +29,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 11;
+	private static final int DB_VERSION = 12;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -89,6 +89,10 @@ public class DbAdapter implements DbInterface {
 				if (oldVersion < 11) { // NOSONAR not a magic number.
 					this.log.w("Adding column %s...", TBL_SC_TIME);
 					db.execSQL("ALTER TABLE " + TBL_SC + " ADD COLUMN " + TBL_SC_TIME + " integer;");
+				}
+				if (oldVersion < 12) { // NOSONAR not a magic number.
+					this.log.w("Adding column %s...", TBL_SC_UNREAD);
+					db.execSQL("ALTER TABLE " + TBL_SC + " ADD COLUMN " + TBL_SC_UNREAD + " integer;");
 				}
 			}
 		}
@@ -511,6 +515,7 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_SC_ITEMID = "itemid";
 	private static final String TBL_SC_TOP = "top";
 	private static final String TBL_SC_TIME = "time";
+	private static final String TBL_SC_UNREAD = "unread";
 
 	private static final String TBL_SC_CREATE = "create table " + TBL_SC + " ("
 			+ TBL_SC_ID + " integer primary key autoincrement,"
@@ -518,6 +523,7 @@ public class DbAdapter implements DbInterface {
 			+ TBL_SC_ITEMID + " integer,"
 			+ TBL_SC_TOP + " integer,"
 			+ TBL_SC_TIME + " integer,"
+			+ TBL_SC_UNREAD + " integer,"
 			+ "UNIQUE(" + TBL_SC_COLID + ") ON CONFLICT REPLACE" +
 			");";
 
@@ -532,6 +538,7 @@ public class DbAdapter implements DbInterface {
 			values.put(TBL_SC_ITEMID, state.getItemId());
 			values.put(TBL_SC_TOP, state.getTop());
 			values.put(TBL_SC_TIME, state.getItemTime());
+			values.put(TBL_SC_UNREAD, state.getUnreadTime());
 			this.mDb.insertWithOnConflict(TBL_SC, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 			this.mDb.setTransactionSuccessful();
 		}
@@ -548,7 +555,7 @@ public class DbAdapter implements DbInterface {
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_SC,
-					new String[] { TBL_SC_ITEMID, TBL_SC_TOP, TBL_SC_TIME },
+					new String[] { TBL_SC_ITEMID, TBL_SC_TOP, TBL_SC_TIME, TBL_SC_UNREAD },
 					TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) },
 					null, null, null, null);
 
@@ -556,11 +563,13 @@ public class DbAdapter implements DbInterface {
 				final int colItemId = c.getColumnIndex(TBL_SC_ITEMID);
 				final int colTop = c.getColumnIndex(TBL_SC_TOP);
 				final int colTime = c.getColumnIndex(TBL_SC_TIME);
+				final int colUnread = c.getColumnIndex(TBL_SC_UNREAD);
 
 				final long itemId = c.getLong(colItemId);
 				final int top = c.getInt(colTop);
 				final long time = c.getLong(colTime);
-				ret = new ScrollState(itemId, top, time);
+				final long unread = c.getLong(colUnread);
+				ret = new ScrollState(itemId, top, time, unread);
 			}
 		}
 		finally {
