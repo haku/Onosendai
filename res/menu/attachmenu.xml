@@ -6,6 +6,10 @@
 			android:title="Change" />
 
 		<item
+			android:id="@+id/mnuShrink"
+			android:title="Shrink" />
+
+		<item
 			android:id="@+id/mnuRemove"
 			android:title="Remove" />
 
