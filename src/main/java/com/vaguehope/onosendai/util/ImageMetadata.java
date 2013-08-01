@@ -7,6 +7,8 @@ import java.io.InputStream;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore.MediaColumns;
 
@@ -19,6 +21,8 @@ public class ImageMetadata implements Titleable {
 	private final Uri uri;
 	private final long size;
 	private final String name;
+
+	private Bitmap bitmap;
 
 	public ImageMetadata (final Context context, final Uri uri) {
 		this.context = context;
@@ -82,6 +86,25 @@ public class ImageMetadata implements Titleable {
 		if (SCHEME_FILE.equals(this.uri.getScheme())) return new FileInputStream(new File(this.uri.getPath()));
 		if (SCHEME_CONTENT.equals(this.uri.getScheme())) return this.context.getContentResolver().openInputStream(this.uri);
 		throw new IllegalArgumentException("Unknown resource type: " + this.uri);
+	}
+
+	public Bitmap readBitmap () throws IOException {
+		if (this.bitmap == null) {
+			final InputStream in = open();
+			try {
+				this.bitmap = BitmapFactory.decodeStream(in);
+			}
+			finally {
+				IoHelper.closeQuietly(in);
+			}
+		}
+		return this.bitmap;
+	}
+
+	public void recycle () {
+		if (this.bitmap == null) return;
+		this.bitmap.recycle();
+		this.bitmap = null;
 	}
 
 	@Override

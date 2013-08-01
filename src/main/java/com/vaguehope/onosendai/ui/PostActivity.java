@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.ui;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -463,6 +464,9 @@ public class PostActivity extends Activity implements ImageLoader {
 			case R.id.mnuChange:
 				askChoosePicture();
 				return true;
+			case R.id.mnuShrink:
+				askShrinkPicture();
+				return true;
 			case R.id.mnuRemove:
 				this.attachment = null;
 				redrawAttachment();
@@ -479,6 +483,44 @@ public class PostActivity extends Activity implements ImageLoader {
 				"Select Picture")
 				//.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { new Intent(MediaStore.ACTION_IMAGE_CAPTURE) })
 				, SELECT_PICTURE);
+	}
+
+	private void askShrinkPicture () {
+		try {
+			final PictureResizeDialog dlg = new PictureResizeDialog(this, this.attachment);
+			final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(this);
+			dlgBuilder.setTitle(dlg.getUiTitle());
+			dlgBuilder.setView(dlg.getRootView());
+			dlgBuilder.setPositiveButton(android.R.string.ok, new android.content.DialogInterface.OnClickListener() {
+				@Override
+				public void onClick (final DialogInterface dialog, final int which) {
+					resizeAttachedPicture(dlg);
+					dialog.dismiss();
+					dlg.recycle();
+				}
+			});
+			dlgBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick (final DialogInterface dialog, final int whichButton) {
+					dialog.cancel();
+					dlg.recycle();
+				}
+			});
+			dlgBuilder.create().show();
+		}
+		catch (IOException e) {
+			DialogHelper.alert(this, e);
+		}
+	}
+
+	protected void resizeAttachedPicture (final PictureResizeDialog dlg) {
+		try {
+			this.attachment = dlg.resizeToTempFile();
+			redrawAttachment();
+		}
+		catch (IOException e) {
+			DialogHelper.alert(this, e);
+		}
 	}
 
 	@Override

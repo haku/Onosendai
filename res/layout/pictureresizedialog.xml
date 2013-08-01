@@ -1,0 +1,50 @@
+<TableLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:padding="5dip">
+
+	<TableRow
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+
+		<TextView
+			android:paddingRight="10dp"
+			android:text="Scale" />
+
+		<Spinner
+			android:id="@+id/spnScale"
+			android:layout_weight="1" />
+
+	</TableRow>
+
+	<TableRow
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+
+		<TextView
+			android:paddingRight="10dp"
+			android:text="Quality" />
+
+		<Spinner
+			android:id="@+id/spnQuality"
+			android:layout_weight="1" />
+
+	</TableRow>
+
+	<TableRow
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+
+		<TextView
+			android:id="@+id/txtSummary"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_span="2"
+			android:layout_weight="1"
+			android:layout_gravity="center"
+			android:padding="10dip" />
+
+	</TableRow>
+
+</TableLayout>
