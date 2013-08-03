@@ -37,19 +37,39 @@ public final class IoHelper {
 		try {
 			c.close();
 		}
-		catch (IOException e) {/**/} // NOSONAR this is intentional, is in the name of the method.
+		catch (final IOException e) {/**/} // NOSONAR this is intentional, is in the name of the method.
 	}
 
 	public static String readableFileSize (final long size) {
 		// http://stackoverflow.com/questions/3263892/format-file-size-as-mb-gb-etc
 		if (size <= 0) return "0";
 		final String[] units = new String[] { "B", "KB", "MB", "GB", "TB" };
-		int digitGroups = (int) (Math.log10(size) / Math.log10(I_1024));
+		final int digitGroups = (int) (Math.log10(size) / Math.log10(I_1024));
 		return new DecimalFormat("#,##0.#").format(size / Math.pow(I_1024, digitGroups)) + " " + units[digitGroups];
 	}
 
+	public static long copy (final File source, final File sink) throws IOException {
+		final OutputStream out = new FileOutputStream(sink);
+		try {
+			return copy(source, out);
+		}
+		finally {
+			closeQuietly(out);
+		}
+	}
+
+	public static long copy (final File source, final OutputStream sink) throws IOException {
+		final InputStream in = new FileInputStream(source);
+		try {
+			return copy(in, sink);
+		}
+		finally {
+			closeQuietly(in);
+		}
+	}
+
 	public static long copy (final InputStream source, final OutputStream sink) throws IOException {
-		byte[] buffer = new byte[COPY_BUFFER_SIZE];
+		final byte[] buffer = new byte[COPY_BUFFER_SIZE];
 		long bytesReadTotal = 0L;
 		int bytesRead;
 		while ((bytesRead = source.read(buffer)) != -1) {
