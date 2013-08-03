@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.ui;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.MenuItem;
@@ -51,6 +53,7 @@ import com.vaguehope.onosendai.provider.EnabledServiceRefs;
 import com.vaguehope.onosendai.provider.PostTask;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
 import com.vaguehope.onosendai.provider.ServiceRef;
+import com.vaguehope.onosendai.storage.AttachmentStorage;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.DialogHelper;
@@ -69,6 +72,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	public static final String ARG_BODY = "body"; // If present mentions will not be prepended to body.
 	public static final String ARG_SVCS = "svcs";
 	public static final String ARG_ATTACHMENT = "post_attachment_uri";
+	private static final String ARG_TMP_ATTACHMENT = "post_tmp_attachment_uri";
 
 	protected static final LogWrapper LOG = new LogWrapper("PA");
 
@@ -92,6 +96,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	private final EnabledServiceRefs enabledPostToAccounts = new EnabledServiceRefs();
 	private boolean askAccountOnActivate;
 	private Uri attachment;
+	private Uri tmpAttachment;
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -149,6 +154,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		outState.putString(ARG_ACCOUNT_ID, getSelectedAccount().getId());
 		this.enabledPostToAccounts.addToBundle(outState);
 		outState.putParcelable(ARG_ATTACHMENT, this.attachment);
+		outState.putParcelable(ARG_TMP_ATTACHMENT, this.tmpAttachment);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -215,7 +221,10 @@ public class PostActivity extends Activity implements ImageLoader {
 	}
 
 	private void setupAttachemnt (final Bundle savedInstanceState) {
-		if (savedInstanceState != null) this.attachment = savedInstanceState.getParcelable(ARG_ATTACHMENT);
+		if (savedInstanceState != null) {
+			this.attachment = savedInstanceState.getParcelable(ARG_ATTACHMENT);
+			this.tmpAttachment = savedInstanceState.getParcelable(ARG_TMP_ATTACHMENT);
+		}
 		if (this.attachment == null) this.attachment = this.intentExtras.getParcelable(ARG_ATTACHMENT);
 		if (this.attachment == null && Intent.ACTION_SEND.equals(getIntent().getAction())
 				&& getIntent().getType() != null
@@ -481,11 +490,15 @@ public class PostActivity extends Activity implements ImageLoader {
 	}
 
 	private void askChoosePicture () {
-		startActivityForResult(Intent.createChooser(new Intent(Intent.ACTION_GET_CONTENT)
-				.setType("image/*")
-				.addCategory(Intent.CATEGORY_OPENABLE),
+		this.tmpAttachment = Uri.fromFile(AttachmentStorage.getExternalTempFile(".jpg"));
+		startActivityForResult(Intent.createChooser(
+				new Intent(Intent.ACTION_GET_CONTENT)
+						.setType("image/*")
+						.addCategory(Intent.CATEGORY_OPENABLE),
 				"Select Picture")
-				//.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { new Intent(MediaStore.ACTION_IMAGE_CAPTURE) })
+				.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {
+						new Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+								.putExtra(MediaStore.EXTRA_OUTPUT, this.tmpAttachment) })
 				, SELECT_PICTURE);
 	}
 
@@ -528,25 +541,40 @@ public class PostActivity extends Activity implements ImageLoader {
 	}
 
 	@Override
-	protected void onActivityResult (final int requestCode, final int resultCode, final Intent imageReturnedIntent) {
-		super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
+	protected void onActivityResult (final int requestCode, final int resultCode, final Intent intent) {
+		super.onActivityResult(requestCode, resultCode, intent);
 		switch (requestCode) {
 			case SELECT_PICTURE:
-				if (resultCode == RESULT_OK) onPictureChosen(imageReturnedIntent);
+				if (resultCode == RESULT_OK) onPictureChosen(intent);
 				break;
 			default:
 		}
 	}
 
-	private void onPictureChosen (final Intent imageReturnedIntent) {
-		final Uri uri = imageReturnedIntent.getData();
-		if (ImageMetadata.isUnderstoodResource(uri)) {
-			this.attachment = uri;
-			final ImageMetadata metadata = redrawAttachment();
-			if (metadata.getSize() > PROMPT_RESIZE_MIN_SIZE) askShrinkPicture(metadata);
+	private void onPictureChosen (final Intent intent) {
+		try {
+			Uri uri;
+			if (intent != null) {
+				uri = intent.getData();
+			}
+			else if (this.tmpAttachment != null) {
+				uri = Uri.fromFile(AttachmentStorage.moveToInternalStorage(this, new File(this.tmpAttachment.getPath())));
+			}
+			else {
+				DialogHelper.alert(this, "Media is missing from response intent.");
+				return;
+			}
+			if (ImageMetadata.isUnderstoodResource(uri)) {
+				this.attachment = uri;
+				final ImageMetadata metadata = redrawAttachment();
+				if (metadata.getSize() > PROMPT_RESIZE_MIN_SIZE) askShrinkPicture(metadata);
+			}
+			else {
+				DialogHelper.alert(this, "Unknown resource:\n" + uri);
+			}
 		}
-		else {
-			DialogHelper.alert(this, "Unknown resource:\n" + uri);
+		catch (IOException e) {
+			DialogHelper.alert(this, e);
 		}
 	}
 
