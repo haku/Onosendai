@@ -12,7 +12,7 @@ public class BootReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive (Context context, Intent intent) {
 		Log.i(C.TAG, "BootReceiver invoked.");
-		AlarmReceiver.configureAlarm(context);
+		AlarmReceiver.configureAlarms(context);
 	}
 
 }

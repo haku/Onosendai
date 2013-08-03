@@ -2,7 +2,9 @@
 <resources>
 
 	<string name="app_name">Onosendai</string>
-	<string name="service_label">Onosendai update service</string>
+	<string name="update_service_label">Onosendai update service</string>
+	<string name="storage_service_label">Onosendai storage service</string>
+	<string name="cleanup_service_label">Onosendai cleanup service</string>
 
 	<string name="crash_dialog_title">CSI Onosendai</string>
 	<string name="crash_dialog_text">Thank you for crash testing Onosendai.  Please email a bug report.</string>

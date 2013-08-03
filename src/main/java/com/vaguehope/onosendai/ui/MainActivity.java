@@ -88,7 +88,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		this.viewPager.setOnPageChangeListener(this.pageSelectionListener);
 		showPageFromIntent(getIntent());
 
-		AlarmReceiver.configureAlarm(this); // FIXME be more smart about this?
+		AlarmReceiver.configureAlarms(this); // FIXME be more smart about this?
 	}
 
 	@Override
