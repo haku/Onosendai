@@ -39,7 +39,7 @@ public final class Notifications {
 		for (Column col : columns) {
 			if (!col.isNotify()) continue;
 			final int nId = BASE_NOTIFICATION_ID + col.getId();
-			final int count = db.getScrollUpCount(col);
+			final int count = db.getUnreadCount(col);
 			if (count > 0) {
 				final Intent intent = new Intent(context, MainActivity.class)
 						.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)

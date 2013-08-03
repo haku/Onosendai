@@ -438,12 +438,46 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public int getUnreadCount (final Column column) {
+		return getUpCount(UpCountType.UNREAD, column);
+	}
+
+	@Override
+	public int getUnreadCount (final int columnId, final Set<Integer> excludeColumnIds, final ScrollState scroll) {
+		return getUpCount(UpCountType.UNREAD, columnId, excludeColumnIds, scroll);
+	}
+
+	@Override
 	public int getScrollUpCount (final Column column) {
-		return getScrollUpCount(column.getId(), column.getExcludeColumnIds(), null);
+		return getUpCount(UpCountType.SCROLL, column);
 	}
 
 	@Override
 	public int getScrollUpCount (final int columnId, final Set<Integer> excludeColumnIds, final ScrollState scroll) {
+		return getUpCount(UpCountType.SCROLL, columnId, excludeColumnIds, scroll);
+	}
+
+	private static enum UpCountType {
+		UNREAD {
+			@Override
+			public long getTime (final ScrollState ss) {
+				return ss.getUnreadTime();
+			}
+		},
+		SCROLL {
+			@Override
+			public long getTime (final ScrollState ss) {
+				return ss.getItemTime();
+			}
+		};
+		public abstract long getTime (ScrollState ss);
+	}
+
+	public int getUpCount (final UpCountType type, final Column column) {
+		return getUpCount(type, column.getId(), column.getExcludeColumnIds(), null);
+	}
+
+	public int getUpCount (final UpCountType type, final int columnId, final Set<Integer> excludeColumnIds, final ScrollState scroll) {
 		if (!checkDbOpen()) return -1;
 
 		final StringBuilder where = new StringBuilder()
@@ -456,9 +490,9 @@ public class DbAdapter implements DbInterface {
 		// TODO integrate into query?
 		final ScrollState fscroll = scroll != null ? scroll : getScroll(columnId);
 		if (fscroll == null) return 0; // Columns is probably empty.
-		final Tweet tweet = getTweetDetails(fscroll.getItemId());
-		if (tweet == null) return 0; // Columns is probably empty.
-		whereArgs[1] = String.valueOf(tweet.getTime());
+		final long time = type.getTime(fscroll);
+		if (time < 1L) return 0;
+		whereArgs[1] = String.valueOf(time);
 
 		if (excludeColumnIds != null && excludeColumnIds.size() > 0) {
 			where.append(" AND ").append(TBL_TW_SID)
