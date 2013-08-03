@@ -98,6 +98,7 @@ public class PictureResizeDialog implements Titleable {
 		}
 		finally {
 			IoHelper.closeQuietly(tgtOut);
+			if (shrunk != src) shrunk.recycle();
 		}
 	}
 
@@ -127,9 +128,14 @@ public class PictureResizeDialog implements Titleable {
 			s.append(" --> ").append(w).append(" x ").append(h);
 
 			final Bitmap shrunk = Bitmap.createScaledBitmap(src, w, h, true);
-			final CountingDevNull cdn = new CountingDevNull();
-			shrunk.compress(Bitmap.CompressFormat.JPEG, getQuality().getPercentage(), cdn);
-			s.append(" (").append(IoHelper.readableFileSize(cdn.getCount())).append(")");
+			try {
+				final CountingDevNull cdn = new CountingDevNull();
+				shrunk.compress(Bitmap.CompressFormat.JPEG, getQuality().getPercentage(), cdn);
+				s.append(" (").append(IoHelper.readableFileSize(cdn.getCount())).append(")");
+			}
+			finally {
+				if (shrunk != src) shrunk.recycle();
+			}
 		}
 		catch (final IOException e) {
 			s.delete(0, s.length());
