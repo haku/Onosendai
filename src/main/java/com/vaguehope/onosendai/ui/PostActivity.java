@@ -57,6 +57,7 @@ import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.ImageMetadata;
+import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class PostActivity extends Activity implements ImageLoader {
@@ -70,6 +71,8 @@ public class PostActivity extends Activity implements ImageLoader {
 	public static final String ARG_ATTACHMENT = "post_attachment_uri";
 
 	protected static final LogWrapper LOG = new LogWrapper("PA");
+
+	private static final int PROMPT_RESIZE_MIN_SIZE = 512 * 1024;
 
 	private Bundle intentExtras;
 	private long inReplyToUid;
@@ -426,11 +429,12 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	private static final int SELECT_PICTURE = 105340; // NOSONAR Just a number.
 
-	private void redrawAttachment () {
+	private ImageMetadata redrawAttachment () {
 		final ImageMetadata metadata = new ImageMetadata(this, this.attachment);
 		final TextView txtAttached = (TextView) findViewById(R.id.txtAttached);
 		txtAttached.setText(String.format("Attachment: %s", metadata.getUiTitle()));
 		txtAttached.setVisibility(metadata.exists() ? View.VISIBLE : View.GONE);
+		return metadata;
 	}
 
 	private final OnClickListener attachClickListener = new OnClickListener() {
@@ -465,7 +469,7 @@ public class PostActivity extends Activity implements ImageLoader {
 				askChoosePicture();
 				return true;
 			case R.id.mnuShrink:
-				askShrinkPicture();
+				showShrinkPictureDlg();
 				return true;
 			case R.id.mnuRemove:
 				this.attachment = null;
@@ -485,7 +489,7 @@ public class PostActivity extends Activity implements ImageLoader {
 				, SELECT_PICTURE);
 	}
 
-	private void askShrinkPicture () {
+	protected void showShrinkPictureDlg () {
 		try {
 			final PictureResizeDialog dlg = new PictureResizeDialog(this, this.attachment);
 			final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(this);
@@ -538,11 +542,23 @@ public class PostActivity extends Activity implements ImageLoader {
 		final Uri uri = imageReturnedIntent.getData();
 		if (ImageMetadata.isUnderstoodResource(uri)) {
 			this.attachment = uri;
-			redrawAttachment();
+			final ImageMetadata metadata = redrawAttachment();
+			if (metadata.getSize() > PROMPT_RESIZE_MIN_SIZE) askShrinkPicture(metadata);
 		}
 		else {
 			DialogHelper.alert(this, "Unknown resource:\n" + uri);
 		}
+	}
+
+	private void askShrinkPicture (final ImageMetadata metadata) {
+		DialogHelper.askYesNo(this,
+				"Picture is " + IoHelper.readableFileSize(metadata.getSize())
+				, "Shrink...", "Full Size", new Runnable() {
+					@Override
+					public void run () {
+						showShrinkPictureDlg();
+					}
+				});
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
