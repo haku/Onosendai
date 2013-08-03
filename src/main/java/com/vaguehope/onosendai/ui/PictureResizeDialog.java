@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import local.apache.ByteArrayOutputStream;
 import android.content.Context;
@@ -26,15 +25,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.storage.AttachmentStorage;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.IoHelper;
-import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.Titleable;
 
 public class PictureResizeDialog implements Titleable {
-
-	private static final long TMP_SCALED_IMG_EXPIRY_MILLIS = TimeUnit.DAYS.toMillis(7);
-	private static final LogWrapper LOG = new LogWrapper("PRD");
 
 	private static final List<Scale> SCALES = Scale.setOf(100, 75, 50, 25);
 	private static final int DEFAULT_SCALES_POS = 0;
@@ -100,7 +96,7 @@ public class PictureResizeDialog implements Titleable {
 
 	public Uri resizeToTempFile () throws IOException {
 		final Bitmap src = this.srcMetadata.readBitmap();
-		final File tgt = getTempOutputFile();
+		final File tgt = AttachmentStorage.getTempFile(this.context, "shrunk_" + this.srcMetadata.getName());
 		final Bitmap shrunk = Bitmap.createScaledBitmap(src,
 				scaleDimension(src.getWidth()),
 				scaleDimension(src.getHeight()), true);
@@ -133,41 +129,10 @@ public class PictureResizeDialog implements Titleable {
 		new PreviewResizeTask(this.txtSummary, this.imgPreview, this.prgRedrawing, this.srcMetadata, this).execute();
 	}
 
-	private File getTempOutputFile () {
-		final File baseDir = getTempOutputDir(this.context);
-		if (!baseDir.exists() && !baseDir.mkdirs()) throw new IllegalStateException("Failed to create temp directory: " + baseDir.getAbsolutePath());
-		final String name = "shrunk_" + this.srcMetadata.getName();
-		return new File(baseDir, name);
-	}
-
 	protected int scaleDimension (final int from) {
 		final Scale s = getScale();
 		if (s.getPercentage() == 100) return from;
 		return (int) (from * s.getPercentage() / 100d);
-	}
-
-	private static File getTempOutputDir (final Context context) {
-		return new File(context.getCacheDir(), "scaled");
-	}
-
-	public static void cleanTempOutputDir (final Context context) {
-		final File dir = getTempOutputDir(context);
-		long bytesFreed = 0L;
-		if (dir.exists()) {
-			final long now = System.currentTimeMillis();
-			for (final File f : dir.listFiles()) {
-				if (now - f.lastModified() > TMP_SCALED_IMG_EXPIRY_MILLIS) {
-					final long fLength = f.length();
-					if (f.delete()) {
-						bytesFreed += fLength;
-					}
-					else {
-						LOG.w("Failed to delete expired file: '%s'.", f.getAbsolutePath());
-					}
-				}
-			}
-		}
-		LOG.i("Freed %s bytes of temp files.", bytesFreed);
 	}
 
 	public static class Scale {

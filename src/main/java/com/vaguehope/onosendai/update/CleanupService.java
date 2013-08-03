@@ -3,7 +3,7 @@ package com.vaguehope.onosendai.update;
 import android.app.IntentService;
 import android.content.Intent;
 
-import com.vaguehope.onosendai.ui.PictureResizeDialog;
+import com.vaguehope.onosendai.storage.AttachmentStorage;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class CleanupService extends IntentService {
@@ -16,7 +16,7 @@ public class CleanupService extends IntentService {
 
 	@Override
 	protected void onHandleIntent (final Intent i) {
-		PictureResizeDialog.cleanTempOutputDir(this);
+		AttachmentStorage.cleanTempOutputDir(this);
 		// TODO also clean out old cached images.
 	}
 
