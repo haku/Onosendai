@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.payload;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -100,6 +101,7 @@ public final class PayloadUtils {
 	}
 
 	private static void extractUrls (final Tweet tweet, final Set<Payload> ret) {
+		if (collectionContainsType(ret, PayloadType.LINK)) return;
 		String text = tweet.getBody();
 		if (text == null || text.isEmpty()) return;
 		Matcher m = URL_PATTERN.matcher(text);
@@ -111,6 +113,7 @@ public final class PayloadUtils {
 	}
 
 	private static void extractHashTags (final Tweet tweet, final Set<Payload> set) {
+		if (collectionContainsType(set, PayloadType.HASHTAG)) return;
 		String text = tweet.getBody();
 		if (text == null || text.isEmpty()) return;
 		Matcher m = HASHTAG_PATTERN.matcher(text);
@@ -121,6 +124,7 @@ public final class PayloadUtils {
 	}
 
 	private static void extractMentions (final Account account, final Tweet tweet, final Set<Payload> set) {
+		if (collectionContainsType(set, PayloadType.MENTION)) return;
 		if (tweet.getUsername() != null) set.add(new MentionPayload(account, tweet, tweet.getUsername()));
 		List<String> allMentions = null;
 		String text = tweet.getBody();
@@ -133,6 +137,13 @@ public final class PayloadUtils {
 			allMentions.add(g);
 		}
 		if (allMentions != null && tweet.getUsername() != null) set.add(new MentionPayload(account, tweet, tweet.getUsername(), allMentions.toArray(new String[allMentions.size()])));
+	}
+
+	private static boolean collectionContainsType(final Collection<Payload> col, final PayloadType type) {
+		for (Payload p : col) {
+			if (type == p.getType()) return true;
+		}
+		return false;
 	}
 
 }
