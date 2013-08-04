@@ -88,7 +88,11 @@ public class FetchColumn implements Callable<Void> {
 					successWhaleProvider.addAccount(account);
 					SuccessWhaleFeed feed = new SuccessWhaleFeed(column);
 
-					TweetList tweets = successWhaleProvider.getTweets(feed, account);
+					String sinceId = null;
+					List<Tweet> existingTweets = db.getTweets(column.getId(), 1);
+					if (existingTweets.size() > 0) sinceId = existingTweets.get(existingTweets.size() - 1).getSid();
+
+					TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId);
 					db.storeTweets(column, tweets.getTweets());
 
 					storeSuccess(db, column);
