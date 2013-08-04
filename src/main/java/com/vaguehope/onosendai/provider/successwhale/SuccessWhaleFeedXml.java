@@ -89,6 +89,8 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	private String stashedLinkTitle;
 	private String stashedFetchedForUserid;
 	private String stashedService;
+	private String stashedUserName;
+	private String stashedHashtagText;
 
 	private final DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 
@@ -163,6 +165,14 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.stashedLinkExpandedUrl = null;
 				this.stashedLinkTitle = null;
 			}
+			if ("username".equals(elementName)) {
+				this.currentItem.meta(MetaType.MENTION, this.stashedUserName);
+				this.stashedUserName = null;
+			}
+			if ("hashtag".equals(elementName)) {
+				this.currentItem.meta(MetaType.HASHTAG, this.stashedHashtagText);
+				this.stashedHashtagText = null;
+			}
 			else if ("comment".equals(elementName)) {
 				this.tweets.add(this.currentComment.build());
 				this.addThisItem = false;
@@ -181,6 +191,12 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			}
 			else if ("preview".equals(elementName)) {
 				this.currentItem.meta(MetaType.MEDIA, this.currentText.toString());
+			}
+			else if ("user".equals(elementName)) {
+				this.stashedUserName = this.currentText.toString();
+			}
+			else if ("text".equals(elementName)) {
+				this.stashedHashtagText = this.currentText.toString();
 			}
 			else if ("id".equals(elementName)) {
 				this.currentComment.id(this.currentText.toString());
