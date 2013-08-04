@@ -49,8 +49,8 @@ public class SuccessWhaleProvider {
 		return getAccount(account).getSources();
 	}
 
-	public TweetList getTweets (final SuccessWhaleFeed feed, final Account account) throws SuccessWhaleException {
-		return fetchSuccessWhaleFeed(getAccount(account), feed);
+	public TweetList getTweets (final SuccessWhaleFeed feed, final Account account, final String sinceId) throws SuccessWhaleException {
+		return fetchSuccessWhaleFeed(getAccount(account), feed, sinceId);
 	}
 
 	/**
@@ -86,9 +86,9 @@ public class SuccessWhaleProvider {
 		this.httpClientFactory.shutdown();
 	}
 
-	private static TweetList fetchSuccessWhaleFeed (final SuccessWhale sw, final SuccessWhaleFeed feed) throws SuccessWhaleException {
+	private static TweetList fetchSuccessWhaleFeed (final SuccessWhale sw, final SuccessWhaleFeed feed, final String sinceId) throws SuccessWhaleException {
 		// TODO paging, etc.
-		return sw.getFeed(feed);
+		return sw.getFeed(feed, sinceId);
 	}
 
 }

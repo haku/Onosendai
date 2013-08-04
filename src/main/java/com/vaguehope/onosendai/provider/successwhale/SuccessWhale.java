@@ -187,13 +187,14 @@ public class SuccessWhale {
 		});
 	}
 
-	public TweetList getFeed (final SuccessWhaleFeed feed) throws SuccessWhaleException {
+	public TweetList getFeed (final SuccessWhaleFeed feed, final String sinceId) throws SuccessWhaleException {
 		return authenticated(new SwCall<TweetList>() {
 			private String url;
 
 			@Override
 			public TweetList invoke (final HttpClient client) throws SuccessWhaleException, IOException {
 				this.url = makeAuthedUrl(API_FEED, "&sources=", URLEncoder.encode(feed.getSources(), "UTF-8"));
+				if (sinceId != null) this.url += "&since_id=" + sinceId;
 				final HttpGet req = new HttpGet(this.url);
 				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
 				return client.execute(req, new FeedHandler(getAccount()));
@@ -454,7 +455,7 @@ public class SuccessWhale {
 			checkReponseCode(response);
 			try {
 				final HttpEntity entity = response.getEntity();
-				LOG.i("Feed content encoding: '%s', headers: %s.", entity.getContentEncoding(), Arrays.asList(response.getAllHeaders()));
+				LOG.d("Feed content encoding: '%s', headers: %s.", entity.getContentEncoding(), Arrays.asList(response.getAllHeaders()));
 				return new SuccessWhaleFeedXml(this.account, AndroidHttpClient.getUngzippedContent(entity)).getTweets();
 			}
 			catch (final SAXException e) {
