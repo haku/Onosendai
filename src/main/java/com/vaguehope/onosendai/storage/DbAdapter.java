@@ -20,6 +20,7 @@ import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.model.OutboxTweet;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.IoHelper;
@@ -29,7 +30,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 12;
+	private static final int DB_VERSION = 13;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -93,6 +94,10 @@ public class DbAdapter implements DbInterface {
 				if (oldVersion < 12) { // NOSONAR not a magic number.
 					this.log.w("Adding column %s...", TBL_SC_UNREAD);
 					db.execSQL("ALTER TABLE " + TBL_SC + " ADD COLUMN " + TBL_SC_UNREAD + " integer;");
+				}
+				if (oldVersion < 13) { // NOSONAR not a magic number.
+					this.log.w("Creating table %s...", TBL_OB);
+					db.execSQL(TBL_OB_CREATE);
 				}
 			}
 		}
@@ -612,6 +617,99 @@ public class DbAdapter implements DbInterface {
 
 		this.log.d("Read scroll for col %d: %s", columnId, ret);
 		return ret;
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//	Outbox.
+
+	private static final String TBL_OB = "ob";
+	private static final String TBL_OB_ID = "_id";
+	private static final String TBL_OB_ACCOUNT_ID = "actid";
+	private static final String TBL_OB_SERVICES = "svcs";
+	private static final String TBL_OB_BODY = "body";
+	private static final String TBL_OB_IN_REPLY_TO_SID = "repsid";
+	private static final String TBL_OB_ATTACHMENT = "atch";
+
+	private static final String TBL_OB_CREATE = "create table " + TBL_OB + " ("
+			+ TBL_OB_ID + " integer primary key autoincrement,"
+			+ TBL_OB_ACCOUNT_ID + " text,"
+			+ TBL_OB_SERVICES + " text,"
+			+ TBL_OB_BODY + " text,"
+			+ TBL_OB_IN_REPLY_TO_SID + " text,"
+			+ TBL_OB_ATTACHMENT + " text"
+			+ ");";
+
+	@Override
+	public void addPostToOutput (final OutboxTweet ot) {
+		this.mDb.beginTransaction();
+		try {
+			final ContentValues values = new ContentValues();
+			values.put(TBL_OB_ACCOUNT_ID, ot.getAccountId());
+			values.put(TBL_OB_SERVICES, ot.getSvcMetasStr());
+			values.put(TBL_OB_BODY, ot.getBody());
+			values.put(TBL_OB_IN_REPLY_TO_SID, ot.getInReplyToSid());
+			values.put(TBL_OB_ATTACHMENT, ot.getAttachmentStr());
+			this.mDb.insert(TBL_OB, null, values);
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+		this.log.d("Stored in outbox: %s", ot);
+	}
+
+	@Override
+	public List<OutboxTweet> getOutboxEntries () {
+		if (!checkDbOpen()) return null;
+		Cursor c = null;
+		try {
+			c = this.mDb.query(true, TBL_OB,
+					new String[] { TBL_OB_ID, TBL_OB_ACCOUNT_ID, TBL_OB_SERVICES, TBL_OB_BODY, TBL_OB_IN_REPLY_TO_SID, TBL_OB_ATTACHMENT },
+					null, null,
+					null, null,
+					TBL_OB_ID + " asc", null);
+
+			if (c != null && c.moveToFirst()) {
+				final int colId = c.getColumnIndex(TBL_OB_ID);
+				final int colAccountId = c.getColumnIndex(TBL_OB_ACCOUNT_ID);
+				final int colServices = c.getColumnIndex(TBL_OB_SERVICES);
+				final int colBody = c.getColumnIndex(TBL_OB_BODY);
+				final int colInReplyToSid = c.getColumnIndex(TBL_OB_IN_REPLY_TO_SID);
+				final int colAttachment = c.getColumnIndex(TBL_OB_ATTACHMENT);
+
+				final List<OutboxTweet> ret = new ArrayList<OutboxTweet>();
+				do {
+					final long uid = c.getLong(colId);
+					final String accountId = c.getString(colAccountId);
+					final String svcMetas = c.getString(colServices);
+					final String body = c.getString(colBody);
+					final String inReplyToSid = c.getString(colInReplyToSid);
+					final String attachment = c.getString(colAttachment);
+					ret.add(new OutboxTweet(uid, accountId, svcMetas, body, inReplyToSid, attachment));
+				}
+				while (c.moveToNext());
+				return ret;
+			}
+			return Collections.EMPTY_LIST;
+		}
+		finally {
+			IoHelper.closeQuietly(c);
+		}
+	}
+
+	@Override
+	public void deleteFromOutbox (final OutboxTweet ot) {
+		final Long uid = ot.getUid();
+		if (uid == null) throw new IllegalArgumentException("Must specify UID to delete from outbox.");
+		this.mDb.beginTransaction();
+		try {
+			this.mDb.delete(TBL_OB, TBL_OB_ID + "=?", new String[] { String.valueOf(uid) });
+			this.log.d("Deleted OutboxTweet uid=%s from %s.", uid, TBL_OB);
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

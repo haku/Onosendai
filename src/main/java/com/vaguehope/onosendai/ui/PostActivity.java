@@ -49,6 +49,7 @@ import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.model.OutboxTweet;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.EnabledServiceRefs;
 import com.vaguehope.onosendai.provider.PostTask;
@@ -383,7 +384,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			default:
 				msg = String.format("Post to %s?", account.getUiTitle());
 		}
-		if (viaOutbox) msg = "WARNING: posting via outbox is a BETA feature desu~\n\n" + msg;
+		if (viaOutbox) msg = "WARNING: posting via outbox is an INCOMPLETE ALPHA feature desu~ Go back and short-press the Post button.\n\n" + msg;
 		dlgBld.setMessage(msg);
 
 		dlgBld.setPositiveButton("Post", new DialogInterface.OnClickListener() {
@@ -428,7 +429,9 @@ public class PostActivity extends Activity implements ImageLoader {
 	}
 
 	protected void submitPostToOutput(final Account account, final Set<ServiceRef> svcs) {
-		DialogHelper.alert(this, "TODO: submit to outbox no implemented.");
+		getDb().addPostToOutput(new OutboxTweet(account, svcs, this.txtBody.getText().toString(), this.inReplyToSid, this.attachment));
+		DialogHelper.alert(this, "TODO: invoke outbox sending service.");
+		finish();
 	}
 
 	private final OnItemSelectedListener accountOnItemSelectedListener = new OnItemSelectedListener() {

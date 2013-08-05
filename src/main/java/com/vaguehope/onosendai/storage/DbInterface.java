@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.model.OutboxTweet;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 
@@ -46,5 +47,9 @@ public interface DbInterface extends KvStore {
 		void columnChanged(int columnId);
 		void columnStatus(int columnId, ColumnState state);
 	}
+
+	void addPostToOutput (OutboxTweet ot);
+	List<OutboxTweet> getOutboxEntries();
+	void deleteFromOutbox(OutboxTweet ot);
 
 }
