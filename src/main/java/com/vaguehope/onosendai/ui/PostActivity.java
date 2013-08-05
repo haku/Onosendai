@@ -26,6 +26,7 @@ import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -266,7 +267,15 @@ public class PostActivity extends Activity implements ImageLoader {
 		((Button) findViewById(R.id.btnPost)).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick (final View v) {
-				askPost();
+				askPost(false);
+			}
+		});
+
+		if (Config.isConfigFilePresent()) ((Button) findViewById(R.id.btnPost)).setOnLongClickListener(new OnLongClickListener() {
+			@Override
+			public boolean onLongClick (final View v) {
+				askPost(true);
+				return true;
 			}
 		});
 	}
@@ -360,7 +369,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	}
 
-	protected void askPost () {
+	protected void askPost (final boolean viaOutbox) {
 		final Account account = getSelectedAccount();
 		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(this);
@@ -374,12 +383,18 @@ public class PostActivity extends Activity implements ImageLoader {
 			default:
 				msg = String.format("Post to %s?", account.getUiTitle());
 		}
+		if (viaOutbox) msg = "WARNING: posting via outbox is a BETA feature desu~\n\n" + msg;
 		dlgBld.setMessage(msg);
 
 		dlgBld.setPositiveButton("Post", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
-				submitPost(account, svcs);
+				if (viaOutbox) {
+					submitPostToOutput(account, svcs);
+				}
+				else {
+					submitPost(account, svcs);
+				}
 			}
 		});
 
@@ -410,6 +425,10 @@ public class PostActivity extends Activity implements ImageLoader {
 
 		new PostTask(getApplicationContext(), new PostRequest(account, svcs, body, this.inReplyToSid, this.attachment, recoveryIntent)).execute();
 		finish();
+	}
+
+	protected void submitPostToOutput(final Account account, final Set<ServiceRef> svcs) {
+		DialogHelper.alert(this, "TODO: submit to outbox no implemented.");
 	}
 
 	private final OnItemSelectedListener accountOnItemSelectedListener = new OnItemSelectedListener() {
