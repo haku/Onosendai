@@ -25,7 +25,11 @@ public class SendOutboxService extends DbBindingService {
 		if (!waitForDbReady()) return;
 
 		final List<OutboxTweet> entries = getDb().getOutboxEntries();
-		LOG.d("Entries to send: %s.", entries.size());
+		if (entries.size() < 1) {
+			LOG.d("Outbox is empty.");
+			return;
+		}
+		LOG.d("Entries to send: %s...", entries.size());
 
 		Config conf;
 		try {
