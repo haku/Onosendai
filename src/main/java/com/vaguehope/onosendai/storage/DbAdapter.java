@@ -42,6 +42,7 @@ public class DbAdapter implements DbInterface {
 
 	private final Map<Integer, ColumnState> columnStates = new ConcurrentHashMap<Integer, ColumnState>();
 	private final List<TwUpdateListener> twUpdateListeners = new ArrayList<TwUpdateListener>();
+	private final List<OutboxListener> outboxListeners = new ArrayList<OutboxListener>();
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -660,6 +661,7 @@ public class DbAdapter implements DbInterface {
 			this.mDb.endTransaction();
 		}
 		this.log.d("Stored in outbox: %s", ot);
+		notifyOutboxListeners();
 	}
 
 	@Override
@@ -683,6 +685,7 @@ public class DbAdapter implements DbInterface {
 			this.mDb.endTransaction();
 		}
 		this.log.d("Updated in outbox: %s", ot);
+		notifyOutboxListeners();
 	}
 
 	@Override
@@ -739,6 +742,23 @@ public class DbAdapter implements DbInterface {
 		finally {
 			this.mDb.endTransaction();
 		}
+		notifyOutboxListeners();
+	}
+
+	private void notifyOutboxListeners () {
+		for (final OutboxListener l : this.outboxListeners) {
+			l.outboxChanged();
+		}
+	}
+
+	@Override
+	public void addOutboxListener (final OutboxListener listener) {
+		this.outboxListeners.add(listener);
+	}
+
+	@Override
+	public void removeOutboxListener (final OutboxListener listener) {
+		this.outboxListeners.remove(listener);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
