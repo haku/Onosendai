@@ -11,6 +11,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.vaguehope.onosendai.C;
+import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class AlarmReceiver extends BroadcastReceiver {
@@ -35,6 +36,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 				final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
 				wl.acquire(TEMP_WAKELOCK_TIMEOUT_MILLIS);
 				context.startService(new Intent(context, UpdateService.class));
+				context.startService(new Intent(context, SendOutboxService.class));
 				break;
 			case ACTION_CLEANUP:
 				context.startService(new Intent(context, CleanupService.class));
