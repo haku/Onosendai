@@ -28,7 +28,7 @@ public class OutboxTweet {
 	}
 
 	public OutboxTweet (final Long uid, final String accountId, final String svcMetas, final String body, final String inReplyToSid, final String attachment, final String lastError) {
-		this(uid, accountId, svcsStrToList(svcMetas), body, inReplyToSid, Uri.parse(attachment), lastError);
+		this(uid, accountId, svcsStrToList(svcMetas), body, inReplyToSid, safeParseUri(attachment), lastError);
 	}
 
 	public OutboxTweet (final OutboxTweet ot, final String lastError) {
@@ -78,7 +78,7 @@ public class OutboxTweet {
 	}
 
 	public String getAttachmentStr () {
-		return this.attachment.toString();
+		return this.attachment != null ? this.attachment.toString() : null;
 	}
 
 	@Override
@@ -91,6 +91,11 @@ public class OutboxTweet {
 				.append(",").append(this.inReplyToSid)
 				.append(",").append(this.getAttachmentStr())
 				.append("}").toString();
+	}
+
+	private static Uri safeParseUri (final String s) {
+		if (s == null) return null;
+		return Uri.parse(s);
 	}
 
 	private static List<String> svcsToList (final Set<ServiceRef> svcs) {
@@ -109,7 +114,7 @@ public class OutboxTweet {
 		return Arrays.asList(svcMetasStr.split("\\|"));
 	}
 
-	private static Set<ServiceRef> svcsListToParsed(final List<String> svcList) {
+	private static Set<ServiceRef> svcsListToParsed (final List<String> svcList) {
 		final Set<ServiceRef> ret = new HashSet<ServiceRef>();
 		for (String meta : svcList) {
 			ret.add(ServiceRef.parseServiceMeta(meta));
