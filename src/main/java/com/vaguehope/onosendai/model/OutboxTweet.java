@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -60,6 +61,10 @@ public class OutboxTweet {
 		return svcsListToStr(this.svcMetas);
 	}
 
+	public Set<ServiceRef> getSvcMetasParsed () {
+		return svcsListToParsed(getSvcMetasList());
+	}
+
 	public String getBody () {
 		return this.body;
 	}
@@ -102,6 +107,14 @@ public class OutboxTweet {
 
 	private static List<String> svcsStrToList (final String svcMetasStr) {
 		return Arrays.asList(svcMetasStr.split("\\|"));
+	}
+
+	private static Set<ServiceRef> svcsListToParsed(final List<String> svcList) {
+		final Set<ServiceRef> ret = new HashSet<ServiceRef>();
+		for (String meta : svcList) {
+			ret.add(ServiceRef.parseServiceMeta(meta));
+		}
+		return ret;
 	}
 
 	public String getLastError () {

@@ -6,13 +6,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
 
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationCompat.Builder;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
@@ -136,17 +136,25 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 	protected void onPostExecute (final PostResult res) {
 		if (!res.isSuccess()) {
 			LOG.w("Post failed.", res.getE());
-			final PendingIntent contentIntent = PendingIntent.getActivity(getContext(), this.notificationId, this.req.getRecoveryIntent(), PendingIntent.FLAG_CANCEL_CURRENT);
-			final Notification n = new NotificationCompat.Builder(getContext())
+
+			final Builder nBld = new NotificationCompat.Builder(getContext())
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
-					.setContentTitle(String.format("Tap to retry post to %s.", this.req.getAccount().getUiTitle()))
 					.setContentText(res.getEmsg())
-					.setContentIntent(contentIntent)
 					.setAutoCancel(true)
 					.setUsesChronometer(false)
-					.setWhen(System.currentTimeMillis())
-					.build();
-			this.notificationMgr.notify(this.notificationId, n);
+					.setWhen(System.currentTimeMillis());
+
+			final Intent recoveryIntent = this.req.getRecoveryIntent();
+			if (recoveryIntent != null) {
+				final PendingIntent contentIntent = PendingIntent.getActivity(getContext(), this.notificationId, recoveryIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+				nBld.setContentIntent(contentIntent)
+						.setContentTitle(String.format("Tap to retry post to %s.", this.req.getAccount().getUiTitle()));
+			}
+			else {
+				nBld.setContentTitle(String.format("Post to %s will be retried in background.", this.req.getAccount().getUiTitle()));
+			}
+
+			this.notificationMgr.notify(this.notificationId, nBld.build());
 		}
 		else {
 			this.notificationMgr.cancel(this.notificationId);
@@ -161,6 +169,10 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 		private final String inReplyToSid;
 		private final Uri attachment;
 		private final Intent recoveryIntent;
+
+		public PostRequest (final Account account, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final Uri attachment) {
+			this(account, postToSvc, body, inReplyToSid, attachment, null);
+		}
 
 		public PostRequest (final Account account, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final Uri attachment, final Intent recoveryIntent) {
 			this.account = account;
