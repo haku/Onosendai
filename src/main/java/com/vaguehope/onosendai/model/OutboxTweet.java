@@ -90,6 +90,7 @@ public class OutboxTweet {
 				.append(",").append(this.body)
 				.append(",").append(this.inReplyToSid)
 				.append(",").append(this.getAttachmentStr())
+				.append(",").append(this.getLastError())
 				.append("}").toString();
 	}
 
