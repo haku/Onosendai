@@ -6,13 +6,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationCompat.Builder;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
@@ -23,6 +23,7 @@ import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.ui.OutboxActivity;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -136,25 +137,28 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 	protected void onPostExecute (final PostResult res) {
 		if (!res.isSuccess()) {
 			LOG.w("Post failed.", res.getE());
-
-			final Builder nBld = new NotificationCompat.Builder(getContext())
+			Intent intent;
+			String title;
+			if (this.req.getRecoveryIntent() != null) {
+				intent = this.req.getRecoveryIntent();
+				title = String.format("Tap to retry post to %s.", this.req.getAccount().getUiTitle());
+			}
+			else {
+				intent = new Intent(getContext(), OutboxActivity.class);
+				title = String.format("Post to %s will be retried in background.", this.req.getAccount().getUiTitle());
+			}
+			final PendingIntent contentIntent = PendingIntent.getActivity(getContext(), this.notificationId,
+					intent, PendingIntent.FLAG_CANCEL_CURRENT);
+			final Notification n = new NotificationCompat.Builder(getContext())
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
 					.setContentText(res.getEmsg())
 					.setAutoCancel(true)
 					.setUsesChronometer(false)
-					.setWhen(System.currentTimeMillis());
-
-			final Intent recoveryIntent = this.req.getRecoveryIntent();
-			if (recoveryIntent != null) {
-				final PendingIntent contentIntent = PendingIntent.getActivity(getContext(), this.notificationId, recoveryIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-				nBld.setContentIntent(contentIntent)
-						.setContentTitle(String.format("Tap to retry post to %s.", this.req.getAccount().getUiTitle()));
-			}
-			else {
-				nBld.setContentTitle(String.format("Post to %s will be retried in background.", this.req.getAccount().getUiTitle()));
-			}
-
-			this.notificationMgr.notify(this.notificationId, nBld.build());
+					.setWhen(System.currentTimeMillis())
+					.setContentIntent(contentIntent)
+					.setContentTitle(title)
+					.build();
+			this.notificationMgr.notify(this.notificationId, n);
 		}
 		else {
 			this.notificationMgr.cancel(this.notificationId);
