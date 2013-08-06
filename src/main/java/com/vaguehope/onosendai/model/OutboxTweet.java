@@ -86,7 +86,7 @@ public class OutboxTweet {
 		return new StringBuilder()
 				.append("OutboxTweet{").append(this.uid)
 				.append(",").append(this.accountId)
-				.append(",").append(this.getAttachmentStr())
+				.append(",").append(this.getSvcMetasStr())
 				.append(",").append(this.body)
 				.append(",").append(this.inReplyToSid)
 				.append(",").append(this.getAttachmentStr())
