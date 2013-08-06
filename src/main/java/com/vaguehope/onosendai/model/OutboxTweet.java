@@ -20,22 +20,28 @@ public class OutboxTweet {
 	private final String body;
 	private final String inReplyToSid;
 	private final Uri attachment;
+	private final String lastError;
 
 	public OutboxTweet (final Account account, final Set<ServiceRef> svcs, final String body, final String inReplyToSid, final Uri attachment) {
-		this(null, account.getId(), svcsToList(svcs), body, inReplyToSid, attachment);
+		this(null, account.getId(), svcsToList(svcs), body, inReplyToSid, attachment, null);
 	}
 
-	public OutboxTweet (final Long uid, final String accountId, final String svcMetas, final String body, final String inReplyToSid, final String attachment) {
-		this(uid, accountId, svcsStrToList(svcMetas), body, inReplyToSid, Uri.parse(attachment));
+	public OutboxTweet (final Long uid, final String accountId, final String svcMetas, final String body, final String inReplyToSid, final String attachment, final String lastError) {
+		this(uid, accountId, svcsStrToList(svcMetas), body, inReplyToSid, Uri.parse(attachment), lastError);
 	}
 
-	public OutboxTweet (final Long uid, final String accountId, final List<String> svcMetas, final String body, final String inReplyToSid, final Uri attachment) {
+	public OutboxTweet (final OutboxTweet ot, final String lastError) {
+		this(ot.getUid(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), ot.getAttachment(), lastError);
+	}
+
+	private OutboxTweet (final Long uid, final String accountId, final List<String> svcMetas, final String body, final String inReplyToSid, final Uri attachment, final String lastError) {
 		this.uid = uid;
 		this.accountId = accountId;
 		this.svcMetas = Collections.unmodifiableList(svcMetas);
 		this.body = body;
 		this.inReplyToSid = inReplyToSid;
 		this.attachment = attachment;
+		this.lastError = lastError;
 	}
 
 	public Long getUid () {
@@ -73,7 +79,8 @@ public class OutboxTweet {
 	@Override
 	public String toString () {
 		return new StringBuilder()
-				.append("OutboxTweet{").append(this.accountId)
+				.append("OutboxTweet{").append(this.uid)
+				.append(",").append(this.accountId)
 				.append(",").append(this.getAttachmentStr())
 				.append(",").append(this.body)
 				.append(",").append(this.inReplyToSid)
@@ -95,6 +102,10 @@ public class OutboxTweet {
 
 	private static List<String> svcsStrToList (final String svcMetasStr) {
 		return Arrays.asList(svcMetasStr.split("\\|"));
+	}
+
+	public String getLastError () {
+		return this.lastError;
 	}
 
 }

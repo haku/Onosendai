@@ -160,6 +160,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public void updateOutboxEntry (final OutboxTweet ot) {
+		this.dbAdaptor.updateOutboxEntry(ot);
+	}
+
+	@Override
 	public List<OutboxTweet> getOutboxEntries () {
 		return this.dbAdaptor.getOutboxEntries();
 	}
