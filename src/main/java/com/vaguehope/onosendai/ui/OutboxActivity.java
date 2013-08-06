@@ -4,14 +4,19 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.model.OutboxTweet;
+import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.OutboxListener;
@@ -36,6 +41,13 @@ public class OutboxActivity extends Activity {
 
 		this.adaptor = new ArrayAdapter<OutboxTweet>(this, R.layout.numberspinneritem); // TODO own layout.
 		outboxList.setAdapter(this.adaptor);
+
+		((Button) findViewById(R.id.syncOutbox)).setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick (final View v) {
+				scheduleSync();
+			}
+		});
 	}
 
 	@Override
@@ -153,6 +165,12 @@ public class OutboxActivity extends Activity {
 		else {
 			LOG.w("Failed to refresh outbox as DB was not bound.");
 		}
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	protected void scheduleSync() {
+		startService(new Intent(this, SendOutboxService.class));
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
