@@ -7,7 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,11 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
 
-import android.app.IntentService;
-import android.content.Context;
 import android.content.Intent;
-import android.os.PowerManager;
-import android.os.PowerManager.WakeLock;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
@@ -29,86 +24,27 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.ProviderMgr;
-import com.vaguehope.onosendai.storage.DbClient;
-import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbBindingService;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.NetHelper;
 
-public class UpdateService extends IntentService {
+public class UpdateService extends DbBindingService {
 
 	public static final String ARG_COLUMN_ID = "column_id";
 	public static final String ARG_IS_MANUAL = "is_manual";
 
 	protected static final LogWrapper LOG = new LogWrapper("US");
 
-	private final CountDownLatch dbReadyLatch = new CountDownLatch(1);
-	private DbClient bndDb;
-
 	public UpdateService () {
-		super("OnosendaiUpdateService");
+		super("OnosendaiUpdateService", LOG);
 	}
 
 	@Override
-	public void onCreate () {
-		super.onCreate();
-		connectDb();
-	}
-
-	@Override
-	public void onDestroy () {
-		disconnectDb();
-		super.onDestroy();
-	}
-
-	@Override
-	protected void onHandleIntent (final Intent i) {
-		final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
-		wl.acquire();
-		try {
-			final int columnId = i.getIntExtra(ARG_COLUMN_ID, Integer.MIN_VALUE);
-			final boolean manual = i.getBooleanExtra(ARG_IS_MANUAL, false);
-			LOG.i("UpdateService invoked (column_id=%d, is_manual=%b).", columnId, manual);
-			doWork(columnId, manual);
-		}
-		finally {
-			wl.release();
-		}
-	}
-
-//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	private void connectDb () {
-		LOG.d("Binding DB service...");
-		final CountDownLatch latch = this.dbReadyLatch;
-		this.bndDb = new DbClient(getApplicationContext(), LOG.getPrefix(), new Runnable() {
-			@Override
-			public void run () {
-				latch.countDown();
-				LOG.d("DB service bound.");
-			}
-		});
-	}
-
-	private void disconnectDb () {
-		this.bndDb.dispose();
-		LOG.d("DB service rebound.");
-	}
-
-	private boolean waitForDbReady () {
-		boolean dbReady = false;
-		try {
-			dbReady = this.dbReadyLatch.await(C.DB_CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-		}
-		catch (final InterruptedException e) {/**/}
-		if (!dbReady) LOG.e("Not updateing: Time out waiting for DB service to connect.");
-		return dbReady;
-	}
-
-	protected DbInterface getDb () {
-		final DbClient d = this.bndDb;
-		if (d == null) return null;
-		return d.getDb();
+	protected void doWork (final Intent i) {
+		final int columnId = i.getIntExtra(ARG_COLUMN_ID, Integer.MIN_VALUE);
+		final boolean manual = i.getBooleanExtra(ARG_IS_MANUAL, false);
+		LOG.i("UpdateService invoked (column_id=%d, is_manual=%b).", columnId, manual);
+		doWork(columnId, manual);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
