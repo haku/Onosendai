@@ -175,6 +175,16 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public void addOutboxListener (final OutboxListener listener) {
+		this.dbAdaptor.addOutboxListener(listener);
+	}
+
+	@Override
+	public void removeOutboxListener (final OutboxListener listener) {
+		this.dbAdaptor.removeOutboxListener(listener);
+	}
+
+	@Override
 	public String getValue (final String key) {
 		return this.dbAdaptor.getValue(key);
 	}

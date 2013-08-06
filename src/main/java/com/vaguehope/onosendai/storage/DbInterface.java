@@ -53,4 +53,11 @@ public interface DbInterface extends KvStore {
 	List<OutboxTweet> getOutboxEntries();
 	void deleteFromOutbox(OutboxTweet ot);
 
+	void addOutboxListener (OutboxListener listener);
+	void removeOutboxListener (OutboxListener listener);
+
+	interface OutboxListener {
+		void outboxChanged();
+	}
+
 }
