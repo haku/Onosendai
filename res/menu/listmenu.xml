@@ -6,6 +6,10 @@
 			android:title="@string/menu_post" />
 
 		<item
+			android:id="@+id/mnuOutbox"
+			android:title="@string/menu_outbox" />
+
+		<item
 			android:id="@+id/mnuRefreshColumnNow"
 			android:title="@string/menu_refresh_column" />
 
