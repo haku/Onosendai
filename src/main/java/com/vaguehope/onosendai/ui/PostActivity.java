@@ -36,6 +36,7 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
@@ -54,6 +55,7 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.EnabledServiceRefs;
 import com.vaguehope.onosendai.provider.PostTask;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
+import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.AttachmentStorage;
 import com.vaguehope.onosendai.storage.DbClient;
@@ -430,7 +432,8 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	protected void submitPostToOutput(final Account account, final Set<ServiceRef> svcs) {
 		getDb().addPostToOutput(new OutboxTweet(account, svcs, this.txtBody.getText().toString(), this.inReplyToSid, this.attachment));
-		DialogHelper.alert(this, "TODO: invoke outbox sending service.");
+		startService(new Intent(this, SendOutboxService.class));
+		Toast.makeText(this, "Posted via Outbox", Toast.LENGTH_SHORT).show();
 		finish();
 	}
 

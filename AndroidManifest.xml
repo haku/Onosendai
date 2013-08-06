@@ -93,6 +93,9 @@
 			android:name=".storage.DbService"
 			android:label="@string/storage_service_label" />
 		<service
+			android:name=".provider.SendOutboxService"
+			android:label="@string/send_outbox_service_label" />
+		<service
 			android:name=".update.CleanupService"
 			android:label="@string/cleanup_service_label" />
 
