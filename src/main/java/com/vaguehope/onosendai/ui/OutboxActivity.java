@@ -244,7 +244,7 @@ public class OutboxActivity extends Activity {
 	protected void resetPermanentFailures () {
 		for (final OutboxTweet ot : getDb().getOutboxEntries()) {
 			if (ot.getStatus() != OutboxTweetStatus.PENDING) {
-				getDb().updateOutboxEntry(ot.resetToPending(ot));
+				getDb().updateOutboxEntry(ot.resetToPending());
 			}
 		}
 	}

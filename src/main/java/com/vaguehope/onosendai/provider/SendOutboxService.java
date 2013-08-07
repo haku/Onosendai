@@ -53,11 +53,11 @@ public class SendOutboxService extends DbBindingService {
 					getDb().deleteFromOutbox(ot);
 				}
 				else {
-					otStat = ot.tempFailure(ot, res.getEmsg());
+					otStat = addFailureType(ot, res.getEmsg(), res.getE());
 				}
 			}
 			catch (final Exception e) { // NOSONAR report all errors.
-				otStat = ot.tempFailure(ot, e.toString());
+				otStat = addFailureType(ot, e.toString(), e);
 			}
 			if (otStat != null) {
 				LOG.w("Post failed: %s", otStat.getLastError());
@@ -72,6 +72,11 @@ public class SendOutboxService extends DbBindingService {
 				ot.getBody(),
 				ot.getInReplyToSid(),
 				ot.getAttachment());
+	}
+
+	private static OutboxTweet addFailureType(final OutboxTweet ot, final String msg, final Exception e) {
+		if (TaskUtils.isFailurePermanent(e)) return ot.permFailure(msg);
+		return ot.tempFailure(msg);
 	}
 
 }

@@ -12,6 +12,7 @@ import android.net.Uri;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.util.ArrayHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class OutboxTweet {
 
@@ -153,16 +154,16 @@ public class OutboxTweet {
 		return this.lastError;
 	}
 
-	public OutboxTweet permFailure (final OutboxTweet ot, final String error) {
-		return new OutboxTweet(ot, OutboxTweetStatus.PERMANENTLY_FAILED, ot.getAttemptCount() + 1, error);
+	public OutboxTweet permFailure (final String error) {
+		return new OutboxTweet(this, OutboxTweetStatus.PERMANENTLY_FAILED, getAttemptCount() + 1, error);
 	}
 
-	public OutboxTweet tempFailure (final OutboxTweet ot, final String error) {
-		return new OutboxTweet(ot, OutboxTweetStatus.PENDING, ot.getAttemptCount() + 1, error);
+	public OutboxTweet tempFailure (final String error) {
+		return new OutboxTweet(this, OutboxTweetStatus.PENDING, getAttemptCount() + 1, error);
 	}
 
-	public OutboxTweet resetToPending (final OutboxTweet ot) {
-		return new OutboxTweet(ot, OutboxTweetStatus.PENDING, ot.getAttemptCount(), ot.getLastError());
+	public OutboxTweet resetToPending () {
+		return new OutboxTweet(this, OutboxTweetStatus.PENDING, getAttemptCount(), getLastError());
 	}
 
 	@Override
@@ -196,6 +197,7 @@ public class OutboxTweet {
 	}
 
 	private static List<String> svcsStrToList (final String svcMetasStr) {
+		if (StringHelper.isEmpty(svcMetasStr)) return Collections.emptyList();
 		return Arrays.asList(svcMetasStr.split("\\|"));
 	}
 
