@@ -274,7 +274,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			}
 		});
 
-		if (Config.isConfigFilePresent()) ((Button) findViewById(R.id.btnPost)).setOnLongClickListener(new OnLongClickListener() {
+		((Button) findViewById(R.id.btnPost)).setOnLongClickListener(new OnLongClickListener() {
 			@Override
 			public boolean onLongClick (final View v) {
 				askPost(true);
