@@ -386,7 +386,8 @@ public class PostActivity extends Activity implements ImageLoader {
 			default:
 				msg = String.format("Post to %s?", account.getUiTitle());
 		}
-		if (viaOutbox) msg = "WARNING: posting via outbox is an INCOMPLETE ALPHA feature desu~ Go back and short-press the Post button.\n\n" + msg;
+		if (viaOutbox) msg = "You long-pressed the Post button.  This will post via the Outbox." +
+				"  Outbox is a BETA feature desu~ so may not work as expected.\n\n" + msg;
 		dlgBld.setMessage(msg);
 
 		dlgBld.setPositiveButton("Post", new DialogInterface.OnClickListener() {
@@ -430,7 +431,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		finish();
 	}
 
-	protected void submitPostToOutput(final Account account, final Set<ServiceRef> svcs) {
+	protected void submitPostToOutput (final Account account, final Set<ServiceRef> svcs) {
 		getDb().addPostToOutput(new OutboxTweet(account, svcs, this.txtBody.getText().toString(), this.inReplyToSid, this.attachment));
 		startService(new Intent(this, SendOutboxService.class));
 		Toast.makeText(this, "Posted via Outbox", Toast.LENGTH_SHORT).show();
