@@ -15,33 +15,80 @@ import com.vaguehope.onosendai.util.ArrayHelper;
 
 public class OutboxTweet {
 
+	public enum OutboxTweetStatus {
+		UNKNOWN(0),
+		PENDING(1),
+		PERMANENTLY_FAILED(2);
+
+		private final int code;
+
+		private OutboxTweetStatus (final int code) {
+			this.code = code;
+		}
+
+		public int getCode () {
+			return this.code;
+		}
+
+		public static OutboxTweetStatus parseCode (final Integer code) {
+			if (code == null) return UNKNOWN;
+			switch (code) {
+				case 0:
+					return UNKNOWN;
+				case 1:
+					return PENDING;
+				case 2:
+					return PERMANENTLY_FAILED;
+				default:
+					return null;
+			}
+		}
+	}
+
 	private final Long uid;
 	private final String accountId;
 	private final List<String> svcMetas;
 	private final String body;
 	private final String inReplyToSid;
 	private final Uri attachment;
+	private final OutboxTweetStatus status;
+	private final Integer attemptCount;
 	private final String lastError;
 
+	/**
+	 * Initial.
+	 */
 	public OutboxTweet (final Account account, final Set<ServiceRef> svcs, final String body, final String inReplyToSid, final Uri attachment) {
-		this(null, account.getId(), svcsToList(svcs), body, inReplyToSid, attachment, null);
+		this(null, account.getId(), svcsToList(svcs), body, inReplyToSid, attachment, OutboxTweetStatus.PENDING, 0, null);
 	}
 
-	public OutboxTweet (final Long uid, final String accountId, final String svcMetas, final String body, final String inReplyToSid, final String attachment, final String lastError) {
-		this(uid, accountId, svcsStrToList(svcMetas), body, inReplyToSid, safeParseUri(attachment), lastError);
+	/**
+	 * From DB.
+	 */
+	public OutboxTweet (final Long uid, final String accountId, final String svcMetas, final String body, final String inReplyToSid, final String attachment,
+			final Integer statusCode, final Integer attemptCount, final String lastError) {
+		this(uid, accountId, svcsStrToList(svcMetas), body, inReplyToSid, safeParseUri(attachment),
+				OutboxTweetStatus.parseCode(statusCode), attemptCount, lastError);
 	}
 
-	public OutboxTweet (final OutboxTweet ot, final String lastError) {
-		this(ot.getUid(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), ot.getAttachment(), lastError);
+	/**
+	 * Add error details.
+	 */
+	private OutboxTweet (final OutboxTweet ot, final OutboxTweetStatus status, final Integer attemptCount, final String lastError) {
+		this(ot.getUid(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), ot.getAttachment(),
+				status, attemptCount, lastError);
 	}
 
-	private OutboxTweet (final Long uid, final String accountId, final List<String> svcMetas, final String body, final String inReplyToSid, final Uri attachment, final String lastError) {
+	private OutboxTweet (final Long uid, final String accountId, final List<String> svcMetas, final String body, final String inReplyToSid, final Uri attachment,
+			final OutboxTweetStatus status, final Integer attemptCount, final String lastError) {
 		this.uid = uid;
 		this.accountId = accountId;
 		this.svcMetas = Collections.unmodifiableList(svcMetas);
 		this.body = body;
 		this.inReplyToSid = inReplyToSid;
 		this.attachment = attachment;
+		this.status = status;
+		this.attemptCount = attemptCount;
 		this.lastError = lastError;
 	}
 
@@ -79,6 +126,32 @@ public class OutboxTweet {
 
 	public String getAttachmentStr () {
 		return this.attachment != null ? this.attachment.toString() : null;
+	}
+
+	public OutboxTweetStatus getStatus () {
+		return this.status;
+	}
+
+	public Integer getStatusCode () {
+		if (this.status == null) return null;
+		return this.status.getCode();
+	}
+
+	public int getAttemptCount () {
+		if (this.attemptCount == null) return 0;
+		return this.attemptCount.intValue();
+	}
+
+	public String getLastError () {
+		return this.lastError;
+	}
+
+	public OutboxTweet permFailure (final OutboxTweet ot, final String error) {
+		return new OutboxTweet(ot, OutboxTweetStatus.PERMANENTLY_FAILED, ot.getAttemptCount() + 1, error);
+	}
+
+	public OutboxTweet tempFailure (final OutboxTweet ot, final String error) {
+		return new OutboxTweet(ot, OutboxTweetStatus.PENDING, ot.getAttemptCount() + 1, error);
 	}
 
 	@Override
@@ -121,10 +194,6 @@ public class OutboxTweet {
 			ret.add(ServiceRef.parseServiceMeta(meta));
 		}
 		return ret;
-	}
-
-	public String getLastError () {
-		return this.lastError;
 	}
 
 }
