@@ -7,6 +7,7 @@ import android.content.Intent;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.model.OutboxTweet;
+import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
 import com.vaguehope.onosendai.provider.PostTask.PostResult;
 import com.vaguehope.onosendai.storage.DbBindingService;
@@ -24,9 +25,9 @@ public class SendOutboxService extends DbBindingService {
 	protected void doWork (final Intent i) {
 		if (!waitForDbReady()) return;
 
-		final List<OutboxTweet> entries = getDb().getOutboxEntries();
+		final List<OutboxTweet> entries = getDb().getOutboxEntries(OutboxTweetStatus.PENDING);
 		if (entries.size() < 1) {
-			LOG.d("Outbox is empty.");
+			LOG.d("No pending tweets to send.");
 			return;
 		}
 		LOG.d("Entries to send: %s...", entries.size());
@@ -52,11 +53,11 @@ public class SendOutboxService extends DbBindingService {
 					getDb().deleteFromOutbox(ot);
 				}
 				else {
-					otStat = new OutboxTweet(ot, res.getEmsg());
+					otStat = ot.tempFailure(ot, res.getEmsg());
 				}
 			}
 			catch (final Exception e) { // NOSONAR report all errors.
-				otStat = new OutboxTweet(ot, e.toString());
+				otStat = ot.tempFailure(ot, e.toString());
 			}
 			if (otStat != null) {
 				LOG.w("Post failed: %s", otStat.getLastError());
