@@ -41,5 +41,4 @@
 		android:textSize="14sp"
 		android:gravity="right" />
 
-
 </LinearLayout>
