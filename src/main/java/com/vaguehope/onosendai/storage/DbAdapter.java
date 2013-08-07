@@ -662,6 +662,8 @@ public class DbAdapter implements DbInterface {
 			values.put(TBL_OB_BODY, ot.getBody());
 			values.put(TBL_OB_IN_REPLY_TO_SID, ot.getInReplyToSid());
 			values.put(TBL_OB_ATTACHMENT, ot.getAttachmentStr());
+			values.put(TBL_OB_STATUS, ot.getStatusCode());
+			values.put(TBL_OB_ATTEMPT_COUNT, ot.getAttemptCount());
 			values.put(TBL_OB_LAST_ERROR, ot.getLastError());
 			this.mDb.insert(TBL_OB, null, values);
 			this.mDb.setTransactionSuccessful();

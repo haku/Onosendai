@@ -10,17 +10,25 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.config.Config;
+import com.vaguehope.onosendai.config.Prefs;
+import com.vaguehope.onosendai.model.OutboxAdapter;
 import com.vaguehope.onosendai.model.OutboxTweet;
+import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
 import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.OutboxListener;
+import com.vaguehope.onosendai.util.DialogHelper;
+import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.Titleable;
 
 public class OutboxActivity extends Activity {
 
@@ -28,24 +36,41 @@ public class OutboxActivity extends Activity {
 
 	private DbClient bndDb;
 	private RefreshUiHandler refreshUiHandler;
-	private ArrayAdapter<OutboxTweet> adaptor;
+	private OutboxAdapter adaptor;
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.outbox);
 
+		Config conf;
+		try {
+			final Prefs prefs = new Prefs(getBaseContext());
+			conf = prefs.asConfig();
+		}
+		catch (final Exception e) { // No point continuing if any exception.
+			DialogHelper.alertAndClose(this, e);
+			return;
+		}
+
 		this.refreshUiHandler = new RefreshUiHandler(this);
 
 		final ListView outboxList = (ListView) findViewById(R.id.outboxList);
 
-		this.adaptor = new ArrayAdapter<OutboxTweet>(this, R.layout.numberspinneritem); // TODO own layout.
+		this.adaptor = new OutboxAdapter(this, conf);
 		outboxList.setAdapter(this.adaptor);
+		outboxList.setOnItemClickListener(this.listClickListener);
 
-		((Button) findViewById(R.id.syncOutbox)).setOnClickListener(new OnClickListener() {
+		((Button) findViewById(R.id.resetPermanentFailures)).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick (final View v) {
-				scheduleSync();
+				resetPermanentFailures();
+			}
+		});
+		((Button) findViewById(R.id.sendPending)).setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick (final View v) {
+				scheduleSend();
 			}
 		});
 	}
@@ -72,6 +97,10 @@ public class OutboxActivity extends Activity {
 
 	protected LogWrapper getLog () {
 		return LOG;
+	}
+
+	protected OutboxAdapter getAdaptor () {
+		return this.adaptor;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -159,8 +188,7 @@ public class OutboxActivity extends Activity {
 		final DbInterface db = getDb();
 		if (db != null) {
 			final List<OutboxTweet> entries = db.getOutboxEntries();
-			this.adaptor.clear();
-			this.adaptor.addAll(entries);
+			this.adaptor.setInputData(entries);
 		}
 		else {
 			LOG.w("Failed to refresh outbox as DB was not bound.");
@@ -169,7 +197,59 @@ public class OutboxActivity extends Activity {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	protected void scheduleSync() {
+	private final OnItemClickListener listClickListener = new OnItemClickListener() {
+		@Override
+		public void onItemClick (final AdapterView<?> parent, final View view, final int position, final long id) {
+			itemClicked(getAdaptor().getInputData().get(position));
+		}
+	};
+
+	private enum OutboxItemAction implements Titleable {
+		VIEW_ERROR("View Error") {
+			@Override
+			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
+				DialogHelper.alert(oa, ot.getLastError());
+			}
+		},
+		DELETE("Delete") {
+			@Override
+			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
+				oa.getDb().deleteFromOutbox(ot);
+			}
+		};
+
+		private final String title;
+
+		private OutboxItemAction (final String title) {
+			this.title = title;
+		}
+
+		@Override
+		public String getUiTitle () {
+			return this.title;
+		}
+
+		public abstract void onClick (OutboxActivity oa, OutboxTweet ot);
+	}
+
+	protected void itemClicked(final OutboxTweet ot) {
+		DialogHelper.askItem(this, "Outbox Item", OutboxItemAction.values(), new Listener<OutboxItemAction>() {
+			@Override
+			public void onAnswer (final OutboxItemAction answer) {
+				answer.onClick(OutboxActivity.this, ot);
+			}
+		});
+	}
+
+	protected void resetPermanentFailures () {
+		for (final OutboxTweet ot : getDb().getOutboxEntries()) {
+			if (ot.getStatus() != OutboxTweetStatus.PENDING) {
+				getDb().updateOutboxEntry(ot.resetToPending(ot));
+			}
+		}
+	}
+
+	protected void scheduleSend () {
 		startService(new Intent(this, SendOutboxService.class));
 	}
 

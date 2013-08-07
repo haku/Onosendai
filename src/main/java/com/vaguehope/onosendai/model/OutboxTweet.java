@@ -16,18 +16,25 @@ import com.vaguehope.onosendai.util.ArrayHelper;
 public class OutboxTweet {
 
 	public enum OutboxTweetStatus {
-		UNKNOWN(0),
-		PENDING(1),
-		PERMANENTLY_FAILED(2);
+		UNKNOWN(0, "Unknown"),
+		PENDING(1, "Pending"),
+		PERMANENTLY_FAILED(2, "Failed");
 
 		private final int code;
+		private final String name;
 
-		private OutboxTweetStatus (final int code) {
+		private OutboxTweetStatus (final int code, final String name) {
 			this.code = code;
+			this.name = name;
 		}
 
 		public int getCode () {
 			return this.code;
+		}
+
+		@Override
+		public String toString () {
+			return this.name;
 		}
 
 		public static OutboxTweetStatus parseCode (final Integer code) {
@@ -40,7 +47,7 @@ public class OutboxTweet {
 				case 2:
 					return PERMANENTLY_FAILED;
 				default:
-					return null;
+					return UNKNOWN;
 			}
 		}
 	}
@@ -152,6 +159,10 @@ public class OutboxTweet {
 
 	public OutboxTweet tempFailure (final OutboxTweet ot, final String error) {
 		return new OutboxTweet(ot, OutboxTweetStatus.PENDING, ot.getAttemptCount() + 1, error);
+	}
+
+	public OutboxTweet resetToPending (final OutboxTweet ot) {
+		return new OutboxTweet(ot, OutboxTweetStatus.PENDING, ot.getAttemptCount(), ot.getLastError());
 	}
 
 	@Override
