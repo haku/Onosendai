@@ -97,13 +97,10 @@ public class DbAdapter implements DbInterface {
 					this.log.w("Adding column %s...", TBL_SC_UNREAD);
 					db.execSQL("ALTER TABLE " + TBL_SC + " ADD COLUMN " + TBL_SC_UNREAD + " integer;");
 				}
-				if (oldVersion < 13) { // NOSONAR not a magic number.
+				// 13 got merged into 14.
+				if (oldVersion < 14) { // NOSONAR not a magic number.
 					this.log.w("Creating table %s...", TBL_OB);
 					db.execSQL(TBL_OB_CREATE);
-				}
-				if (oldVersion < 14) { // NOSONAR not a magic number.
-					db.execSQL("ALTER TABLE " + TBL_OB + " ADD COLUMN " + TBL_OB_STATUS + " integer;");
-					db.execSQL("ALTER TABLE " + TBL_OB + " ADD COLUMN " + TBL_OB_ATTEMPT_COUNT + " integer;");
 				}
 			}
 		}
