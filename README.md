@@ -155,6 +155,11 @@ mvn clean install -P release
 Logging
 -------
 
+Logcat via ADB:
+```sh
+adb logcat -s "onosendai:I"
+```
+
 Run these commands on the device either via a local shell (e.g. Connect Bot) or `adb shell`.
 
 Capture last 1000 lines of log at INFO level to a file with:
