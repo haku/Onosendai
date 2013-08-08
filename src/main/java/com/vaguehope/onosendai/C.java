@@ -28,4 +28,9 @@ public interface C {
 	// Tweet Lists.
 	long SCROLL_TIME_LABEL_TIMEOUT_MILLIS = 3000L;
 
+	// Updates.
+	float MIN_BAT_UPDATE = 0.30f;
+	float MIN_BAT_SEND = 0.20f;
+	float MIN_BAT_CLEANUP = 0.50f;
+
 }
