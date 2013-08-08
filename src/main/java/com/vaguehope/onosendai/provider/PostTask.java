@@ -16,6 +16,7 @@ import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.notifications.NotificationIds;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.PostTask.PostResult;
 import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
@@ -40,7 +41,12 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 	public PostTask (final Context context, final PostRequest req) {
 		super(context);
 		this.req = req;
-		this.notificationId = (int) System.currentTimeMillis(); // Probably unique.
+		if (req.getRecoveryIntent() != null) {
+			this.notificationId = (int) System.currentTimeMillis(); // Probably unique.
+		}
+		else {
+			this.notificationId = NotificationIds.OUTBOX_NOTIFICATION_ID;
+		}
 	}
 
 	@Override
@@ -146,6 +152,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 			else {
 				intent = new Intent(getContext(), OutboxActivity.class);
 				title = String.format("Post to %s will be retried in background.", this.req.getAccount().getUiTitle());
+				// TODO only one notification for all outbox issues!
 			}
 			final PendingIntent contentIntent = PendingIntent.getActivity(getContext(), this.notificationId,
 					intent, PendingIntent.FLAG_CANCEL_CURRENT);

@@ -17,7 +17,6 @@ import com.vaguehope.onosendai.ui.MainActivity;
 
 public final class Notifications {
 
-	private static final int BASE_NOTIFICATION_ID = 12000;
 	private static final Random RAND = new Random(System.currentTimeMillis());
 
 	private Notifications () {
@@ -38,7 +37,7 @@ public final class Notifications {
 		final NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		for (Column col : columns) {
 			if (!col.isNotify()) continue;
-			final int nId = BASE_NOTIFICATION_ID + col.getId();
+			final int nId = NotificationIds.BASE_NOTIFICATION_ID + col.getId();
 			final int count = db.getUnreadCount(col);
 			if (count > 0) {
 				final Intent intent = new Intent(context, MainActivity.class)
