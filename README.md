@@ -29,6 +29,17 @@ Download
 Currently there are no 'official' releases of Onosendai.
 Recent snapshot builds can be downloaded from http://builds.onosendai.mobi
 
+Background Tasks
+----------------
+
+Note that background tasks will run based on battery level.
+
+| Task             | Min battery |
+| ---------------- | ----------- |
+| Fetch tweets     |         30% |
+| Send outbox      |         20% |
+| Clean temp files |         50% |
+
 Advanced Configuration
 ----------------------
 
