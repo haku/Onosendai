@@ -382,6 +382,9 @@ public class TweetListFragment extends Fragment {
 			case R.id.mnuPost:
 				showPost();
 				return true;
+			case R.id.mnuOutbox:
+				showOutbox();
+				return true;
 			case R.id.mnuRefreshColumnNow:
 				scheduleRefresh(false);
 				return true;
@@ -484,6 +487,10 @@ public class TweetListFragment extends Fragment {
 		if (tweetToQuote != null) intent.putExtra(PostActivity.ARG_BODY,
 				String.format("RT @%s %s", tweetToQuote.getUsername(), tweetToQuote.getBody()));
 		startActivity(intent);
+	}
+
+	private void showOutbox () {
+		startActivity(new Intent(getActivity(), OutboxActivity.class));
 	}
 
 	private void askRt (final Tweet tweet) {

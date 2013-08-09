@@ -16,6 +16,7 @@ import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.notifications.NotificationIds;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.PostTask.PostResult;
 import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
@@ -23,6 +24,7 @@ import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.ui.OutboxActivity;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -39,7 +41,12 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 	public PostTask (final Context context, final PostRequest req) {
 		super(context);
 		this.req = req;
-		this.notificationId = (int) System.currentTimeMillis(); // Probably unique.
+		if (req.getRecoveryIntent() != null) {
+			this.notificationId = (int) System.currentTimeMillis(); // Probably unique.
+		}
+		else {
+			this.notificationId = NotificationIds.OUTBOX_NOTIFICATION_ID;
+		}
 	}
 
 	@Override
@@ -136,15 +143,27 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 	protected void onPostExecute (final PostResult res) {
 		if (!res.isSuccess()) {
 			LOG.w("Post failed.", res.getE());
-			final PendingIntent contentIntent = PendingIntent.getActivity(getContext(), this.notificationId, this.req.getRecoveryIntent(), PendingIntent.FLAG_CANCEL_CURRENT);
+			Intent intent;
+			String title;
+			if (this.req.getRecoveryIntent() != null) {
+				intent = this.req.getRecoveryIntent();
+				title = String.format("Tap to retry post to %s.", this.req.getAccount().getUiTitle());
+			}
+			else {
+				intent = new Intent(getContext(), OutboxActivity.class);
+				title = String.format("Post to %s will be retried in background.", this.req.getAccount().getUiTitle());
+				// TODO only one notification for all outbox issues!
+			}
+			final PendingIntent contentIntent = PendingIntent.getActivity(getContext(), this.notificationId,
+					intent, PendingIntent.FLAG_CANCEL_CURRENT);
 			final Notification n = new NotificationCompat.Builder(getContext())
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
-					.setContentTitle(String.format("Tap to retry post to %s.", this.req.getAccount().getUiTitle()))
 					.setContentText(res.getEmsg())
-					.setContentIntent(contentIntent)
 					.setAutoCancel(true)
 					.setUsesChronometer(false)
 					.setWhen(System.currentTimeMillis())
+					.setContentIntent(contentIntent)
+					.setContentTitle(title)
 					.build();
 			this.notificationMgr.notify(this.notificationId, n);
 		}
@@ -161,6 +180,10 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 		private final String inReplyToSid;
 		private final Uri attachment;
 		private final Intent recoveryIntent;
+
+		public PostRequest (final Account account, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final Uri attachment) {
+			this(account, postToSvc, body, inReplyToSid, attachment, null);
+		}
 
 		public PostRequest (final Account account, final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final Uri attachment, final Intent recoveryIntent) {
 			this.account = account;

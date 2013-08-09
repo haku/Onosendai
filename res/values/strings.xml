@@ -4,6 +4,7 @@
 	<string name="app_name">Onosendai</string>
 	<string name="update_service_label">Onosendai update service</string>
 	<string name="storage_service_label">Onosendai storage service</string>
+	<string name="send_outbox_service_label">Onosendai send outbox service</string>
 	<string name="cleanup_service_label">Onosendai cleanup service</string>
 
 	<string name="crash_dialog_title">CSI Onosendai</string>
@@ -53,6 +54,7 @@
 		${conf_path}
 	</string>
 
+	<string name="outbox_title">Onosendai Outbox</string>
 	<string name="preferences_title">Onosendai Preferences</string>
 
 	<string name="btn_goto">goto</string>
@@ -60,6 +62,7 @@
 	<string name="btn_menu">menu</string>
 
 	<string name="menu_post">Post</string>
+	<string name="menu_outbox">Outbox</string>
 	<string name="menu_refresh_column">Refresh Column</string>
 	<string name="menu_refresh_all">Refresh All</string>
 	<string name="menu_preferences">Preferences</string>
