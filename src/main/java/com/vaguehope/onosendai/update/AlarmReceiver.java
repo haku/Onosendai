@@ -11,6 +11,8 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.vaguehope.onosendai.C;
+import com.vaguehope.onosendai.provider.SendOutboxService;
+import com.vaguehope.onosendai.util.BatteryHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class AlarmReceiver extends BroadcastReceiver {
@@ -27,17 +29,22 @@ public class AlarmReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive (final Context context, final Intent intent) {
 		final int action = intent.getExtras().getInt(KEY_ACTION, -1);
-		LOG.i("AlarmReceiver invoked: action=%s.", action);
-
+		final float bl = BatteryHelper.level(context);
+		LOG.i("AlarmReceiver invoked: action=%s bl=%s.", action, bl);
 		switch (action) {
 			case ACTION_UPDATE:
-				final PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-				final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
-				wl.acquire(TEMP_WAKELOCK_TIMEOUT_MILLIS);
-				context.startService(new Intent(context, UpdateService.class));
+				final boolean doUpdate = (bl > C.MIN_BAT_UPDATE);
+				final boolean doSend = (bl > C.MIN_BAT_SEND);
+				if (doUpdate || doSend) {
+					final PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+					final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
+					wl.acquire(TEMP_WAKELOCK_TIMEOUT_MILLIS);
+				}
+				if (doUpdate) context.startService(new Intent(context, UpdateService.class));
+				if (doSend) context.startService(new Intent(context, SendOutboxService.class));
 				break;
 			case ACTION_CLEANUP:
-				context.startService(new Intent(context, CleanupService.class));
+				if (bl > C.MIN_BAT_CLEANUP) context.startService(new Intent(context, CleanupService.class));
 				break;
 			default:
 				LOG.e("Unknown action: '%s'.", action);

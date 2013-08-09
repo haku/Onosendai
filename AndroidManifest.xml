@@ -62,6 +62,12 @@
 		</activity>
 
 		<activity
+			android:name=".ui.OutboxActivity"
+			android:label="@string/outbox_title"
+			android:theme="@android:style/Theme.Holo">
+		</activity>
+
+		<activity
 			android:name=".ui.SetupActivity"
 			android:label="@string/setup_title"
 			android:theme="@android:style/Theme.Holo">
@@ -92,6 +98,9 @@
 		<service
 			android:name=".storage.DbService"
 			android:label="@string/storage_service_label" />
+		<service
+			android:name=".provider.SendOutboxService"
+			android:label="@string/send_outbox_service_label" />
 		<service
 			android:name=".update.CleanupService"
 			android:label="@string/cleanup_service_label" />

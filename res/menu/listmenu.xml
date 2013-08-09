@@ -14,6 +14,10 @@
 			android:title="@string/menu_refresh_all" />
 
 		<item
+			android:id="@+id/mnuOutbox"
+			android:title="@string/menu_outbox" />
+
+		<item
 			android:id="@+id/mnuPreferences"
 			android:title="@string/menu_preferences" />
 

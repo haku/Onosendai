@@ -107,6 +107,9 @@ public class SuccessWhale {
 				return call.invoke(getHttpClient());
 			}
 		}
+		catch (final InvalidRequestException e) {
+			throw new SuccessWhaleException(call.describeFailure(e), e, true);
+		}
 		catch (final IOException e) {
 			throw new SuccessWhaleException(call.describeFailure(e), e);
 		}
@@ -126,11 +129,11 @@ public class SuccessWhale {
 		if (code == 401) { // NOSONAR not a magic number.
 			throw new NotAuthorizedException();
 		}
+		else if (code >= 400 && code < 500) { // NOSONAR not a magic number.
+			throw new InvalidRequestException(response);
+		}
 		else if (code < 200 || code >= 300) { // NOSONAR not a magic number.
-			throw new IOException(String.format("HTTP %s %s: %s",
-					code, response.getStatusLine().getReasonPhrase(),
-					IoHelper.toString(AndroidHttpClient.getUngzippedContent(response.getEntity()))
-					));
+			throw new HttpRequestException(response);
 		}
 	}
 

@@ -20,6 +20,8 @@ import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.model.OutboxTweet;
+import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.IoHelper;
@@ -29,7 +31,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 12;
+	private static final int DB_VERSION = 14;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -41,6 +43,7 @@ public class DbAdapter implements DbInterface {
 
 	private final Map<Integer, ColumnState> columnStates = new ConcurrentHashMap<Integer, ColumnState>();
 	private final List<TwUpdateListener> twUpdateListeners = new ArrayList<TwUpdateListener>();
+	private final List<OutboxListener> outboxListeners = new ArrayList<OutboxListener>();
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -93,6 +96,11 @@ public class DbAdapter implements DbInterface {
 				if (oldVersion < 12) { // NOSONAR not a magic number.
 					this.log.w("Adding column %s...", TBL_SC_UNREAD);
 					db.execSQL("ALTER TABLE " + TBL_SC + " ADD COLUMN " + TBL_SC_UNREAD + " integer;");
+				}
+				// 13 got merged into 14.
+				if (oldVersion < 14) { // NOSONAR not a magic number.
+					this.log.w("Creating table %s...", TBL_OB);
+					db.execSQL(TBL_OB_CREATE);
 				}
 			}
 		}
@@ -612,6 +620,171 @@ public class DbAdapter implements DbInterface {
 
 		this.log.d("Read scroll for col %d: %s", columnId, ret);
 		return ret;
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//	Outbox.
+
+	private static final String TBL_OB = "ob";
+	private static final String TBL_OB_ID = "_id";
+	private static final String TBL_OB_ACCOUNT_ID = "actid";
+	private static final String TBL_OB_SERVICES = "svcs";
+	private static final String TBL_OB_BODY = "body";
+	private static final String TBL_OB_IN_REPLY_TO_SID = "repsid";
+	private static final String TBL_OB_ATTACHMENT = "atch";
+	private static final String TBL_OB_STATUS = "stat";
+	private static final String TBL_OB_ATTEMPT_COUNT = "atct";
+	private static final String TBL_OB_LAST_ERROR = "err";
+
+	private static final String TBL_OB_CREATE = "create table " + TBL_OB + " ("
+			+ TBL_OB_ID + " integer primary key autoincrement,"
+			+ TBL_OB_ACCOUNT_ID + " text,"
+			+ TBL_OB_SERVICES + " text,"
+			+ TBL_OB_BODY + " text,"
+			+ TBL_OB_IN_REPLY_TO_SID + " text,"
+			+ TBL_OB_ATTACHMENT + " text,"
+			+ TBL_OB_STATUS + " integer,"
+			+ TBL_OB_ATTEMPT_COUNT + " integer,"
+			+ TBL_OB_LAST_ERROR + " text"
+			+ ");";
+
+	@Override
+	public void addPostToOutput (final OutboxTweet ot) {
+		if (ot.getUid() != null) throw new IllegalArgumentException("Can not add entry that is already in DB.");
+		this.mDb.beginTransaction();
+		try {
+			final ContentValues values = new ContentValues();
+			values.put(TBL_OB_ACCOUNT_ID, ot.getAccountId());
+			values.put(TBL_OB_SERVICES, ot.getSvcMetasStr());
+			values.put(TBL_OB_BODY, ot.getBody());
+			values.put(TBL_OB_IN_REPLY_TO_SID, ot.getInReplyToSid());
+			values.put(TBL_OB_ATTACHMENT, ot.getAttachmentStr());
+			values.put(TBL_OB_STATUS, ot.getStatusCode());
+			values.put(TBL_OB_ATTEMPT_COUNT, ot.getAttemptCount());
+			values.put(TBL_OB_LAST_ERROR, ot.getLastError());
+			this.mDb.insert(TBL_OB, null, values);
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+		this.log.d("Stored in outbox: %s", ot);
+		notifyOutboxListeners();
+	}
+
+	@Override
+	public void updateOutboxEntry (final OutboxTweet ot) {
+		final Long uid = ot.getUid();
+		if (uid == null) throw new IllegalArgumentException("Can not update entry that is not already in DB.");
+		this.mDb.beginTransaction();
+		try {
+			final ContentValues values = new ContentValues();
+			values.put(TBL_OB_ACCOUNT_ID, ot.getAccountId());
+			values.put(TBL_OB_SERVICES, ot.getSvcMetasStr());
+			values.put(TBL_OB_BODY, ot.getBody());
+			values.put(TBL_OB_IN_REPLY_TO_SID, ot.getInReplyToSid());
+			values.put(TBL_OB_ATTACHMENT, ot.getAttachmentStr());
+			values.put(TBL_OB_STATUS, ot.getStatusCode());
+			values.put(TBL_OB_ATTEMPT_COUNT, ot.getAttemptCount());
+			values.put(TBL_OB_LAST_ERROR, ot.getLastError());
+			final int affected = this.mDb.update(TBL_OB, values, TBL_OB_ID + "=?", new String[] { String.valueOf(uid) });
+			if (affected != 1) throw new IllegalStateException("Updated affected " + affected + " rows, expected 1.");
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+		this.log.d("Updated in outbox: %s", ot);
+		notifyOutboxListeners();
+	}
+
+	@Override
+	public List<OutboxTweet> getOutboxEntries () {
+		return getOutboxEntries(null, null);
+	}
+
+	@Override
+	public List<OutboxTweet> getOutboxEntries (final OutboxTweetStatus status) {
+		if (status == null) throw new IllegalArgumentException("status can not be null.");
+		return getOutboxEntries(TBL_OB_STATUS + "=?", new String[] { String.valueOf(status.getCode()) });
+	}
+
+	private List<OutboxTweet> getOutboxEntries (final String where, final String[] whereArgs) {
+		if (!checkDbOpen()) return null;
+		Cursor c = null;
+		try {
+			c = this.mDb.query(true, TBL_OB,
+					new String[] { TBL_OB_ID, TBL_OB_ACCOUNT_ID, TBL_OB_SERVICES, TBL_OB_BODY, TBL_OB_IN_REPLY_TO_SID, TBL_OB_ATTACHMENT,
+							TBL_OB_STATUS, TBL_OB_ATTEMPT_COUNT, TBL_OB_LAST_ERROR },
+					where, whereArgs,
+					null, null,
+					TBL_OB_ID + " asc", null);
+
+			if (c != null && c.moveToFirst()) {
+				final int colId = c.getColumnIndex(TBL_OB_ID);
+				final int colAccountId = c.getColumnIndex(TBL_OB_ACCOUNT_ID);
+				final int colServices = c.getColumnIndex(TBL_OB_SERVICES);
+				final int colBody = c.getColumnIndex(TBL_OB_BODY);
+				final int colInReplyToSid = c.getColumnIndex(TBL_OB_IN_REPLY_TO_SID);
+				final int colAttachment = c.getColumnIndex(TBL_OB_ATTACHMENT);
+				final int colStatus = c.getColumnIndex(TBL_OB_STATUS);
+				final int colAttemptCount = c.getColumnIndex(TBL_OB_ATTEMPT_COUNT);
+				final int colLastError = c.getColumnIndex(TBL_OB_LAST_ERROR);
+
+				final List<OutboxTweet> ret = new ArrayList<OutboxTweet>();
+				do {
+					final long uid = c.getLong(colId);
+					final String accountId = c.getString(colAccountId);
+					final String svcMetas = c.getString(colServices);
+					final String body = c.getString(colBody);
+					final String inReplyToSid = c.getString(colInReplyToSid);
+					final String attachment = c.getString(colAttachment);
+					final Integer status = c.getInt(colStatus);
+					final Integer attemptCount = c.getInt(colAttemptCount);
+					final String lastError = c.getString(colLastError);
+					ret.add(new OutboxTweet(uid, accountId, svcMetas, body, inReplyToSid, attachment,
+							status, attemptCount, lastError));
+				}
+				while (c.moveToNext());
+				return ret;
+			}
+			return Collections.EMPTY_LIST;
+		}
+		finally {
+			IoHelper.closeQuietly(c);
+		}
+	}
+
+	@Override
+	public void deleteFromOutbox (final OutboxTweet ot) {
+		final Long uid = ot.getUid();
+		if (uid == null) throw new IllegalArgumentException("Must specify UID to delete from outbox.");
+		this.mDb.beginTransaction();
+		try {
+			this.mDb.delete(TBL_OB, TBL_OB_ID + "=?", new String[] { String.valueOf(uid) });
+			this.log.d("Deleted OutboxTweet uid=%s from %s.", uid, TBL_OB);
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+		notifyOutboxListeners();
+	}
+
+	private void notifyOutboxListeners () {
+		for (final OutboxListener l : this.outboxListeners) {
+			l.outboxChanged();
+		}
+	}
+
+	@Override
+	public void addOutboxListener (final OutboxListener listener) {
+		this.outboxListeners.add(listener);
+	}
+
+	@Override
+	public void removeOutboxListener (final OutboxListener listener) {
+		this.outboxListeners.remove(listener);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

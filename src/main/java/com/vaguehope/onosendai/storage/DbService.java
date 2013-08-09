@@ -10,6 +10,8 @@ import android.os.IBinder;
 
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.model.OutboxTweet;
+import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 
@@ -151,6 +153,41 @@ public class DbService extends Service implements DbInterface {
 	@Override
 	public void notifyTwListenersColumnState (final int columnId, final ColumnState eventType) {
 		this.dbAdaptor.notifyTwListenersColumnState(columnId, eventType);
+	}
+
+	@Override
+	public void addPostToOutput (final OutboxTweet ot) {
+		this.dbAdaptor.addPostToOutput(ot);
+	}
+
+	@Override
+	public void updateOutboxEntry (final OutboxTweet ot) {
+		this.dbAdaptor.updateOutboxEntry(ot);
+	}
+
+	@Override
+	public List<OutboxTweet> getOutboxEntries () {
+		return this.dbAdaptor.getOutboxEntries();
+	}
+
+	@Override
+	public List<OutboxTweet> getOutboxEntries (final OutboxTweetStatus status) {
+		return this.dbAdaptor.getOutboxEntries(status);
+	}
+
+	@Override
+	public void deleteFromOutbox (final OutboxTweet ot) {
+		this.dbAdaptor.deleteFromOutbox(ot);
+	}
+
+	@Override
+	public void addOutboxListener (final OutboxListener listener) {
+		this.dbAdaptor.addOutboxListener(listener);
+	}
+
+	@Override
+	public void removeOutboxListener (final OutboxListener listener) {
+		this.dbAdaptor.removeOutboxListener(listener);
 	}
 
 	@Override

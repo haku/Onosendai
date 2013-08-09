@@ -26,6 +26,7 @@ import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -35,6 +36,7 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
@@ -48,10 +50,12 @@ import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.model.OutboxTweet;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.EnabledServiceRefs;
 import com.vaguehope.onosendai.provider.PostTask;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
+import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.AttachmentStorage;
 import com.vaguehope.onosendai.storage.DbClient;
@@ -266,7 +270,15 @@ public class PostActivity extends Activity implements ImageLoader {
 		((Button) findViewById(R.id.btnPost)).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick (final View v) {
-				askPost();
+				askPost(false);
+			}
+		});
+
+		((Button) findViewById(R.id.btnPost)).setOnLongClickListener(new OnLongClickListener() {
+			@Override
+			public boolean onLongClick (final View v) {
+				askPost(true);
+				return true;
 			}
 		});
 	}
@@ -360,7 +372,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	}
 
-	protected void askPost () {
+	protected void askPost (final boolean viaOutbox) {
 		final Account account = getSelectedAccount();
 		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(this);
@@ -374,12 +386,19 @@ public class PostActivity extends Activity implements ImageLoader {
 			default:
 				msg = String.format("Post to %s?", account.getUiTitle());
 		}
+		if (viaOutbox) msg = "You long-pressed the Post button.  This will post via the Outbox." +
+				"  Outbox is a BETA feature desu~ so may not work as expected.\n\n" + msg;
 		dlgBld.setMessage(msg);
 
 		dlgBld.setPositiveButton("Post", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
-				submitPost(account, svcs);
+				if (viaOutbox) {
+					submitPostToOutput(account, svcs);
+				}
+				else {
+					submitPost(account, svcs);
+				}
 			}
 		});
 
@@ -409,6 +428,13 @@ public class PostActivity extends Activity implements ImageLoader {
 		recoveryIntent.putStringArrayListExtra(ARG_SVCS, svcsLst);
 
 		new PostTask(getApplicationContext(), new PostRequest(account, svcs, body, this.inReplyToSid, this.attachment, recoveryIntent)).execute();
+		finish();
+	}
+
+	protected void submitPostToOutput (final Account account, final Set<ServiceRef> svcs) {
+		getDb().addPostToOutput(new OutboxTweet(account, svcs, this.txtBody.getText().toString(), this.inReplyToSid, this.attachment));
+		startService(new Intent(this, SendOutboxService.class));
+		Toast.makeText(this, "Posted via Outbox", Toast.LENGTH_SHORT).show();
 		finish();
 	}
 
