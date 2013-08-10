@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai;
 
+import java.util.concurrent.TimeUnit;
+
 
 public interface C {
 
@@ -33,4 +35,8 @@ public interface C {
 	float MIN_BAT_SEND = 0.20f;
 	float MIN_BAT_CLEANUP = 0.50f;
 
+	// Disc caches.
+	long IMAGE_DISC_CACHE_TOUCH_AFTER_MILLIS = TimeUnit.DAYS.toMillis(5);
+	long IMAGE_DISC_CACHE_EXPIRY_MILLIS = TimeUnit.DAYS.toMillis(10);
+	long TMP_SCALED_IMG_EXPIRY_MILLIS = TimeUnit.DAYS.toMillis(7);
 }

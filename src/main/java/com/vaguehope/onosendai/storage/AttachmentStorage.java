@@ -2,11 +2,11 @@ package com.vaguehope.onosendai.storage;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.os.Environment;
 
+import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -14,7 +14,6 @@ public final class AttachmentStorage {
 
 	private static final String DIR_NAME = "attachments";
 	private static final String EXT_TMP_PREFIX = "onosendai_";
-	private static final long TMP_SCALED_IMG_EXPIRY_MILLIS = TimeUnit.DAYS.toMillis(7);
 	private static final LogWrapper LOG = new LogWrapper("AS");
 
 	private AttachmentStorage () {
@@ -43,7 +42,7 @@ public final class AttachmentStorage {
 		if (dir.exists()) {
 			final long now = System.currentTimeMillis();
 			for (final File f : dir.listFiles()) {
-				if (now - f.lastModified() > TMP_SCALED_IMG_EXPIRY_MILLIS) {
+				if (now - f.lastModified() > C.TMP_SCALED_IMG_EXPIRY_MILLIS) {
 					final long fLength = f.length();
 					if (f.delete()) {
 						bytesFreed += fLength;
@@ -54,7 +53,7 @@ public final class AttachmentStorage {
 				}
 			}
 		}
-		LOG.i("Freed %s bytes of temp files.", bytesFreed);
+		LOG.i("Freed %s bytes of temp attachment files.", bytesFreed);
 	}
 
 	private static File getBaseDir (final Context context) {
