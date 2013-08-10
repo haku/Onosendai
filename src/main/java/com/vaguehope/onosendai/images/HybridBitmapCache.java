@@ -10,6 +10,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.util.HashHelper;
 import com.vaguehope.onosendai.util.HttpHelper.HttpStreamHandler;
@@ -30,7 +31,7 @@ public class HybridBitmapCache {
 	public HybridBitmapCache (final Context context, final int maxMemorySizeBytes) {
 		this.context = context;
 		this.memCache = new MemoryBitmapCache<String>(maxMemorySizeBytes);
-		this.baseDir = new File(context.getCacheDir(), "images");
+		this.baseDir = getBaseDir(context);
 		if (!this.baseDir.exists() && !this.baseDir.mkdirs()) throw new IllegalStateException("Failed to create cache directory: " + this.baseDir.getAbsolutePath());
 		this.syncMgr = new SyncMgr();
 	}
@@ -68,6 +69,7 @@ public class HybridBitmapCache {
 			throw new UnrederableException(file);
 		}
 		this.memCache.put(key, bmp);
+		refreshFileTimestamp(file);
 		return bmp;
 	}
 
@@ -77,6 +79,43 @@ public class HybridBitmapCache {
 
 	public SyncMgr getSyncMgr () {
 		return this.syncMgr;
+	}
+
+	private static void refreshFileTimestamp (final File f) {
+		final long now = System.currentTimeMillis();
+		final long lastModified = f.lastModified();
+		if (lastModified != 0) {
+			if (now - lastModified > C.IMAGE_DISC_CACHE_TOUCH_AFTER_MILLIS) {
+				if (!f.setLastModified(now)) LOG.w("Failed to update last modified date for '%s'.", f.getAbsolutePath());
+			}
+		}
+		else {
+			LOG.w("Failed to read last modified date for '%s'.", f.getAbsolutePath());
+		}
+	}
+
+	public static void cleanCacheDir (final Context context) {
+		final File dir = getBaseDir(context);
+		long bytesFreed = 0L;
+		if (dir.exists()) {
+			final long now = System.currentTimeMillis();
+			for (final File f : dir.listFiles()) {
+				if (now - f.lastModified() > C.IMAGE_DISC_CACHE_EXPIRY_MILLIS) {
+					final long fLength = f.length();
+					if (f.delete()) {
+						bytesFreed += fLength;
+					}
+					else {
+						LOG.w("Failed to delete expired file: '%s'.", f.getAbsolutePath());
+					}
+				}
+			}
+		}
+		LOG.i("Freed %s bytes of cached image files.", bytesFreed);
+	}
+
+	private static File getBaseDir (final Context context) {
+		return new File(context.getCacheDir(), "images");
 	}
 
 	private static class DiscCacheHandler implements HttpStreamHandler<Bitmap, RuntimeException> {
@@ -96,7 +135,7 @@ public class HybridBitmapCache {
 			try {
 				IoHelper.copy(is, os);
 			}
-			catch (IOException e) {
+			catch (final IOException e) {
 				if (!f.delete()) LOG.e("Failed to delete incomplete download '" + f.getAbsolutePath() + "': " + e.toString());
 				throw e;
 			}

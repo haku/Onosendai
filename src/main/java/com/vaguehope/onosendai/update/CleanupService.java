@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.update;
 import android.app.IntentService;
 import android.content.Intent;
 
+import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.storage.AttachmentStorage;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -19,9 +20,9 @@ public class CleanupService extends IntentService {
 
 	@Override
 	protected void onHandleIntent (final Intent i) {
-		// TODO what if attachment in use in Outbox?
+		// FIXME what if attachment in use in Outbox?
 		AttachmentStorage.cleanTempOutputDir(this);
-		// TODO also clean out old cached images.
+		HybridBitmapCache.cleanCacheDir(this);
 	}
 
 }
