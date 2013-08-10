@@ -59,7 +59,7 @@ public final class AttachmentStorage {
 
 	private static File getBaseDir (final Context context) {
 		final File baseDir = new File(context.getCacheDir(), DIR_NAME);
-		if (!baseDir.exists()) baseDir.mkdirs();
+		if (!baseDir.exists()) baseDir.mkdirs(); // NOSONAR Not ignoring exceptional return value, result checked in next line.
 		if (!baseDir.exists()) throw new IllegalStateException("Failed to create temp directory: " + baseDir.getAbsolutePath());
 		return baseDir;
 	}

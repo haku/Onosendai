@@ -107,7 +107,7 @@ public class PictureResizeDialog implements Titleable {
 		}
 		finally {
 			IoHelper.closeQuietly(tgtOut);
-			if (shrunk != src) shrunk.recycle();
+			if (shrunk != src) shrunk.recycle(); // NOSONAR intentional identity comparison.
 		}
 	}
 
@@ -131,8 +131,8 @@ public class PictureResizeDialog implements Titleable {
 
 	protected int scaleDimension (final int from) {
 		final Scale s = getScale();
-		if (s.getPercentage() == 100) return from;
-		return (int) (from * s.getPercentage() / 100d);
+		if (s.getPercentage() == 100) return from; // NOSONAR 100 not magic number, its how percentage works.
+		return (int) (from * s.getPercentage() / 100d); // NOSONAR 100 not magic number, its how percentage works.
 	}
 
 	public static class Scale {
