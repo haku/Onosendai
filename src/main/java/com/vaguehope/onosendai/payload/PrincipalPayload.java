@@ -15,7 +15,7 @@ import com.vaguehope.onosendai.model.Tweet;
 
 public class PrincipalPayload extends Payload {
 
-	private static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance();
+	private final DateFormat dateFormat = DateFormat.getDateTimeInstance();
 
 	public PrincipalPayload (final Tweet tweet) {
 		super(tweet, PayloadType.PRINCIPAL);
@@ -46,7 +46,7 @@ public class PrincipalPayload extends Payload {
 
 		rowView.setText(tweet.getBody());
 		rowView.setSecondaryText(tweet.getFullname());
-		rowView.setTertiaryText(DATE_FORMAT.format(new Date(TimeUnit.SECONDS.toMillis(tweet.getTime()))));
+		rowView.setTertiaryText(this.dateFormat.format(new Date(TimeUnit.SECONDS.toMillis(tweet.getTime()))));
 
 		final String avatarUrl = tweet.getAvatarUrl();
 		if (avatarUrl != null) {
