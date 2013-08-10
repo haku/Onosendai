@@ -61,6 +61,11 @@ public class TwitterUtilsTest {
 		testPictureUrlExpansion("http://i.imgur.com/AyLnEoz.gif", "http://i.imgur.com/AyLnEozl.jpg");
 	}
 
+	@Test
+	public void itConvertsYfrogUrlsToMedia () throws Exception {
+		testPictureUrlExpansion("http://yfrog.com/oehccwlqj", "http://yfrog.com/oehccwlqj:small");
+	}
+
 	private void testPictureUrlExpansion (final String fromUrl, final String toUrl) {
 		final Status s = mockTweetWithUrl(fromUrl);
 		final Tweet t = TwitterUtils.convertTweet(this.account, s);

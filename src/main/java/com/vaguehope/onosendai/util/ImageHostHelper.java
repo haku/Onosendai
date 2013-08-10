@@ -8,6 +8,7 @@ public final class ImageHostHelper {
 	private static final Pattern INSTAGRAM_URL = Pattern.compile("^http://instagram.com/p/(.+)/$");
 	private static final Pattern TWITPIC_URL = Pattern.compile("^http://twitpic.com/(.+)$");
 	private static final Pattern IMGUR_URL = Pattern.compile("^http://(?:i\\.)?imgur.com/(.+?)(?:\\..+)?$");
+	private static final Pattern YFROG_URL = Pattern.compile("^http://yfrog.com/(.+)$");
 
 	private ImageHostHelper () {
 		throw new AssertionError();
@@ -27,6 +28,11 @@ public final class ImageHostHelper {
 		{
 			final Matcher m = IMGUR_URL.matcher(linkUrl);
 			if (m.matches()) return "http://i.imgur.com/" + m.group(1) + "l.jpg";
+		}
+
+		{
+			final Matcher m = YFROG_URL.matcher(linkUrl);
+			if (m.matches()) return "http://yfrog.com/" + m.group(1) + ":small";
 		}
 
 		return null;
