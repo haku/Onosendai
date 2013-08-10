@@ -27,7 +27,7 @@ public final class TaskUtils {
 			if (te.isCausedByNetworkIssue()) return false;
 			if (te.exceededRateLimitation()) return false;
 			final int code = te.getStatusCode();
-			return code >= 400 && code < 500;
+			return code >= 400 && code < 500; // NOSONAR not magic numbers, this is HTTP spec.
 		}
 		else if (e instanceof SuccessWhaleException) {
 			return ((SuccessWhaleException) e).isPermanent();
