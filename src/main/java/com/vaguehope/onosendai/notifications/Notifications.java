@@ -34,32 +34,48 @@ public final class Notifications {
 	}
 
 	public static void update (final Context context, final DbInterface db, final Collection<Column> columns) {
-		final NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-		for (Column col : columns) {
+		final NotificationManager nm = getManager(context);
+		for (final Column col : columns) {
 			if (!col.isNotify()) continue;
-			final int nId = NotificationIds.BASE_NOTIFICATION_ID + col.getId();
-			final int count = db.getUnreadCount(col);
-			if (count > 0) {
-				final Intent intent = new Intent(context, MainActivity.class)
-						.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-						.putExtra(MainActivity.ARG_FOCUS_COLUMN_ID, col.getId());
-				final PendingIntent pendingIntent = PendingIntent.getActivity(context, col.getId(), intent, PendingIntent.FLAG_CANCEL_CURRENT);
-				final Notification n = new NotificationCompat.Builder(context)
-						.setOnlyAlertOnce(true)
-						.setSmallIcon(notificationIcon())
-						.setContentTitle(col.getTitle())
-						.setContentText(String.format("%d new updates.", count))
-						.setNumber(count)
-						.setContentIntent(pendingIntent)
-						.setAutoCancel(true)
-						.setWhen(System.currentTimeMillis())
-						.build();
-				nm.notify(nId, n);
-			}
-			else {
-				nm.cancel(nId);
-			}
+			updateColumn(context, db, col, nm);
 		}
+	}
+
+	public static void clearColumn (final Context context, final Column col) {
+		getManager(context).cancel(idForColumn(col));
+	}
+
+	private static NotificationManager getManager (final Context context) {
+		return (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+	}
+
+	private static void updateColumn (final Context context, final DbInterface db, final Column col, final NotificationManager nm) {
+		final int nId = idForColumn(col);
+		final int count = db.getUnreadCount(col);
+		if (count > 0) {
+			final Intent intent = new Intent(context, MainActivity.class)
+					.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+					.putExtra(MainActivity.ARG_FOCUS_COLUMN_ID, col.getId());
+			final PendingIntent pendingIntent = PendingIntent.getActivity(context, col.getId(), intent, PendingIntent.FLAG_CANCEL_CURRENT);
+			final Notification n = new NotificationCompat.Builder(context)
+					.setOnlyAlertOnce(true)
+					.setSmallIcon(notificationIcon())
+					.setContentTitle(col.getTitle())
+					.setContentText(String.format("%d new updates.", count))
+					.setNumber(count)
+					.setContentIntent(pendingIntent)
+					.setAutoCancel(true)
+					.setWhen(System.currentTimeMillis())
+					.build();
+			nm.notify(nId, n);
+		}
+		else {
+			nm.cancel(nId);
+		}
+	}
+
+	private static int idForColumn (final Column col) {
+		return NotificationIds.BASE_NOTIFICATION_ID + col.getId();
 	}
 
 }

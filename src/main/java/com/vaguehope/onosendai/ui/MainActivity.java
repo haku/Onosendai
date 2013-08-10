@@ -4,6 +4,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -27,6 +28,7 @@ import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.model.ScrollState;
+import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
@@ -34,6 +36,7 @@ import com.vaguehope.onosendai.update.AlarmReceiver;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.MultiplexingOnPageChangeListener;
 
 public class MainActivity extends FragmentActivity implements ImageLoader, OnSharedPreferenceChangeListener {
 
@@ -85,7 +88,9 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		this.viewPager = (ViewPager) findViewById(R.id.pager);
 		this.viewPager.setAdapter(sectionsPagerAdapter);
 		this.pageSelectionListener = new VisiblePageSelectionListener(columnWidth);
-		this.viewPager.setOnPageChangeListener(this.pageSelectionListener);
+		this.viewPager.setOnPageChangeListener(new MultiplexingOnPageChangeListener(
+				this.pageSelectionListener,
+				new NotificationClearingPageSelectionListener(this, this.conf)));
 		showPageFromIntent(getIntent());
 
 		AlarmReceiver.configureAlarms(this); // FIXME be more smart about this?
@@ -285,6 +290,24 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 
 		public boolean isVisible (final int position) {
 			return position >= this.selectedPagePosition && position < this.selectedPagePosition + this.visiblePages;
+		}
+
+	}
+
+	private static class NotificationClearingPageSelectionListener extends SimpleOnPageChangeListener {
+
+		private final Context context;
+		private final Config conf;
+
+		public NotificationClearingPageSelectionListener (final Context context, final Config conf) {
+			this.context = context;
+			this.conf = conf;
+		}
+
+		@Override
+		public void onPageSelected (final int position) {
+			final Column col = this.conf.getColumnByPosition(position);
+			Notifications.clearColumn(this.context, col);
 		}
 
 	}
