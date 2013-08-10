@@ -89,7 +89,6 @@ public class TweetListFragment extends Fragment {
 	private int columnPosition = -1;
 	private boolean isLaterColumn;
 	private Config conf;
-	private ImageLoader imageLoader;
 	private RefreshUiHandler refreshUiHandler;
 
 	private MainActivity mainActivity;
@@ -123,7 +122,7 @@ public class TweetListFragment extends Fragment {
 
 		this.mainActivity = (MainActivity) getActivity();
 		this.conf = this.mainActivity.getConf();
-		this.imageLoader = ImageLoaderUtils.fromActivity(getActivity());
+		final ImageLoader imageLoader = ImageLoaderUtils.fromActivity(getActivity());
 
 		/*
 		 * Fragment life cycles are strange. onCreateView() is called multiple
@@ -160,12 +159,12 @@ public class TweetListFragment extends Fragment {
 		}
 
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
-		this.adapter = new TweetListAdapter(container.getContext(), this.imageLoader);
+		this.adapter = new TweetListAdapter(container.getContext(), imageLoader);
 		this.tweetList.setAdapter(this.adapter);
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
 		this.refreshUiHandler = new RefreshUiHandler(this);
 
-		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), this.imageLoader, this.payloadClickListener);
+		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), imageLoader, this.payloadClickListener);
 		final ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
 		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
 		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(this.payloadClickListener));
