@@ -197,7 +197,10 @@ public class SuccessWhale {
 			@Override
 			public TweetList invoke (final HttpClient client) throws SuccessWhaleException, IOException {
 				this.url = makeAuthedUrl(API_FEED, "&sources=", URLEncoder.encode(feed.getSources(), "UTF-8"));
-				if (sinceId != null) this.url += "&since_id=" + sinceId;
+
+				// FIXME disabling this until SW finds a way to accept it on mixed feeds [issue 89].
+//				if (sinceId != null) this.url += "&since_id=" + sinceId;
+
 				final HttpGet req = new HttpGet(this.url);
 				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
 				return client.execute(req, new FeedHandler(getAccount()));
