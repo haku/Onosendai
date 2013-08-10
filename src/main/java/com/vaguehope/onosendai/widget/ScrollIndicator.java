@@ -12,7 +12,7 @@ import android.widget.ListView;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetListAdapter;
 
-public class ScrollIndicator {
+public final class ScrollIndicator {
 
 	private static final int ACCEL_STOP_1 = 5;
 	private static final int ACCEL_STOP_2 = 15;
