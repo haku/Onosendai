@@ -71,7 +71,7 @@ class ColumnDialog {
 		this(context, prefs,
 				initialValue != null ? initialValue.getId() : null,
 				initialValue != null ? initialValue.getAccountId() : null,
-				initialValue);
+				initialValue); // NOSONAR Sonar things there is a Possible null pointer dereference.  I disagree.
 	}
 
 	private ColumnDialog (final Context context, final Prefs prefs, final int id, final String accountId, final Column initialValue) {
