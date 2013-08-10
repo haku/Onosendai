@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.provider.SendOutboxService;
@@ -56,7 +55,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 		final AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 		scheduleUpdates(context, am);
 		scheduleCleanups(context, am);
-		Log.i(C.TAG, "Alarm service configured.");
+		LOG.i("Alarm service configured.");
 	}
 
 	private static void scheduleUpdates (final Context context, final AlarmManager am) {
