@@ -408,6 +408,7 @@ public class TweetListFragment extends Fragment {
 
 	private final OnScrollListener tweetListScrollListener = new OnScrollListener() {
 		private boolean scrolling = false;
+		private int lastFirstVisibleItem = -1;
 
 		@Override
 		public void onScrollStateChanged (final AbsListView view, final int scrollState) {
@@ -416,7 +417,10 @@ public class TweetListFragment extends Fragment {
 
 		@Override
 		public void onScroll (final AbsListView view, final int firstVisibleItem, final int visibleItemCount, final int totalItemCount) {
-			if (this.scrolling) onTweetListScroll();
+			if (this.scrolling || firstVisibleItem != this.lastFirstVisibleItem) {
+				onTweetListScroll();
+				this.lastFirstVisibleItem = firstVisibleItem;
+			}
 		}
 	};
 
