@@ -173,9 +173,9 @@ adb logcat -s "onosendai:I"
 
 Run these commands on the device either via a local shell (e.g. Connect Bot) or `adb shell`.
 
-Capture last 1000 lines of log at INFO level to a file with:
+Capture last 10000 lines of Onosendai's log at INFO level to a file with:
 ```sh
-logcat -b main -t 1000 -f /sdcard/log.txt *:I
+logcat -b main -t 10000 -f /sdcard/onosendai.log -v time -s onosendai:I
 ```
 
 Enable debug level logging for Onosendai with:

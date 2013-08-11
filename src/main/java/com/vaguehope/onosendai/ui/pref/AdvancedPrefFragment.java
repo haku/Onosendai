@@ -1,6 +1,9 @@
 package com.vaguehope.onosendai.ui.pref;
 
+import java.io.File;
+
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceFragment;
@@ -10,6 +13,7 @@ import com.vaguehope.onosendai.config.ConfigBuilder;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.LogcatHelper;
 
 public class AdvancedPrefFragment extends PreferenceFragment {
 
@@ -41,12 +45,26 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 			pref.setEnabled(false);
 		}
 		getPreferenceScreen().addPreference(pref);
+
+		final Preference dumpLogPref = new Preference(getActivity());
+		dumpLogPref.setTitle("Dump log");
+		dumpLogPref.setSummary("Write app log to /sdcard/onosendai-<time>.log");
+		dumpLogPref.setOnPreferenceClickListener(this.dumpLogsClickListener);
+		getPreferenceScreen().addPreference(dumpLogPref);
 	}
 
 	private final OnPreferenceClickListener importClickListener = new OnPreferenceClickListener() {
 		@Override
 		public boolean onPreferenceClick (final Preference preference) {
 			askImport();
+			return true;
+		}
+	};
+
+	private final OnPreferenceClickListener dumpLogsClickListener = new OnPreferenceClickListener() {
+		@Override
+		public boolean onPreferenceClick (final Preference preference) {
+			dumpLogs();
 			return true;
 		}
 	};
@@ -72,6 +90,18 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		catch (final Exception e) { // NOSONAR show user all errors.
 			LOG.e("Failed to import configuration.", e);
 			DialogHelper.alertAndClose(getActivity(), e);
+		}
+	}
+
+	protected void dumpLogs () {
+		try {
+			final File file = new File(Environment.getExternalStorageDirectory(), "onosendai-" + System.currentTimeMillis() + ".log");
+			LogcatHelper.dumpLog(file);
+			DialogHelper.alert(getActivity(), "Log written to:\n" + file.getAbsolutePath());
+		}
+		catch (final Exception e) { // NOSONAR show user all errors.
+			LOG.e("Failed to dump log.", e);
+			DialogHelper.alert(getActivity(), e);
 		}
 	}
 
