@@ -1,11 +1,12 @@
 package com.vaguehope.onosendai.payload;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -21,13 +22,14 @@ import com.vaguehope.onosendai.model.TweetBuilder;
 public class PayloadUtilsTest {
 
 	private static final String ACCOUNT_ID = "ac0";
+	private static final Account ACCOUNT = new Account(ACCOUNT_ID, null, null, null, null, null, null);
 
 	private Config conf;
 
 	@Before
 	public void before () throws Exception {
 		this.conf = mock(Config.class);
-		when(this.conf.getAccount(ACCOUNT_ID)).thenReturn(new Account(ACCOUNT_ID, null, null, null, null, null, null));
+		when(this.conf.getAccount(ACCOUNT_ID)).thenReturn(ACCOUNT);
 	}
 
 	@Test
@@ -120,12 +122,17 @@ public class PayloadUtilsTest {
 
 	@Test
 	public void itExtractsMention () throws Exception {
-		testMentionExtraction("@auser how are you?", "@auser");
+		testMentionExtraction("@auser how are you?", "auser");
 	}
 
 	@Test
 	public void itExtractsMentions () throws Exception {
-		testMentionExtraction("@auser where is @buser?", "@auser", "@buser");
+		testMentionExtraction("@auser where is @buser?", "auser", "buser");
+	}
+
+	@Test
+	public void itExtractsAndDedupsMentions () throws Exception {
+		testMentionExtraction("RT @auser: @user where is @buser?", "auser", "buser");
 	}
 
 	private void testLinkExtraction (final String body, final String... expectedUrls) {
@@ -158,26 +165,16 @@ public class PayloadUtilsTest {
 		PayloadList payloadList = PayloadUtils.makePayloads(this.conf, tweet);
 		payloadList = removeNotOfType(PayloadType.MENTION, payloadList);
 
-		StringBuilder replyAllMention = new StringBuilder();
-		replyAllMention.append("@user");
-		for (String m : expectedMentions) {
-			replyAllMention.append(", ").append(m);
+		List<Payload> expected = new ArrayList<Payload>();
+		expected.add(new MentionPayload(ACCOUNT, tweet, "user"));
+		for (String expectedMention : expectedMentions) {
+			expected.add(new MentionPayload(ACCOUNT, tweet, expectedMention));
 		}
-
-		List<String> expected = new ArrayList<String>();
-		expected.add("@user");
-		expected.addAll(Arrays.asList(expectedMentions));
-		expected.add(replyAllMention.toString());
-
-		assertEquals(expected.size(), payloadList.size());
-		for (int i = 0; i < expected.size(); i++) {
-			Payload payload = payloadList.getPayload(i);
-			assertEquals(PayloadType.MENTION, payload.getType());
-			assertEquals(expected.get(i), ((MentionPayload) payload).getTitle());
-		}
+		expected.add(new MentionPayload(ACCOUNT, tweet, "user", expectedMentions));
+		assertThat(payloadList.getPayloads(), containsInAnyOrder(expected.toArray()));
 	}
 
-	private static PayloadList removeNotOfType(final PayloadType type, final PayloadList payloadList) {
+	private static PayloadList removeNotOfType (final PayloadType type, final PayloadList payloadList) {
 		List<Payload> ret = new ArrayList<Payload>();
 		for (Payload p : payloadList.getPayloads()) {
 			if (p.getType() == type) ret.add(p);

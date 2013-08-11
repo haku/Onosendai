@@ -17,6 +17,7 @@ import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.ServiceRef;
+import com.vaguehope.onosendai.util.EqualHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public final class PayloadUtils {
@@ -39,11 +40,12 @@ public final class PayloadUtils {
 
 		final Set<Payload> set = new LinkedHashSet<Payload>();
 		set.add(new PrincipalPayload(tweet));
+		replyToOwner(account, tweet, set);
 		if (account != null) convertMeta(account, tweet, set);
 		extractUrls(tweet, set);
 		extractHashTags(tweet, set);
 		if (account != null) {
-			extractMentions(account, tweet, set);
+			repliesAndExtractMentions(account, tweet, set);
 			addShareOptions(account, tweet, set);
 		}
 
@@ -72,10 +74,10 @@ public final class PayloadUtils {
 	}
 
 	private static void convertMeta (final Account account, final Tweet tweet, final Set<Payload> ret) {
-		List<Meta> metas = tweet.getMetas();
+		final List<Meta> metas = tweet.getMetas();
 		if (metas == null) return;
-		for (Meta meta : metas) {
-			Payload payload = metaToPayload(account, tweet, meta);
+		for (final Meta meta : metas) {
+			final Payload payload = metaToPayload(account, tweet, meta);
 			if (payload != null) ret.add(payload);
 		}
 	}
@@ -101,10 +103,10 @@ public final class PayloadUtils {
 	}
 
 	private static void extractUrls (final Tweet tweet, final Set<Payload> ret) {
-		if (collectionContainsType(ret, PayloadType.LINK)) return;
-		String text = tweet.getBody();
+		if (payloadsContainsType(ret, PayloadType.LINK)) return;
+		final String text = tweet.getBody();
 		if (text == null || text.isEmpty()) return;
-		Matcher m = URL_PATTERN.matcher(text);
+		final Matcher m = URL_PATTERN.matcher(text);
 		while (m.find()) {
 			String g = m.group();
 			if (g.startsWith("(") && g.endsWith(")")) g = g.substring(1, g.length() - 1);
@@ -113,34 +115,57 @@ public final class PayloadUtils {
 	}
 
 	private static void extractHashTags (final Tweet tweet, final Set<Payload> set) {
-		if (collectionContainsType(set, PayloadType.HASHTAG)) return;
-		String text = tweet.getBody();
+		if (payloadsContainsType(set, PayloadType.HASHTAG)) return;
+		final String text = tweet.getBody();
 		if (text == null || text.isEmpty()) return;
-		Matcher m = HASHTAG_PATTERN.matcher(text);
+		final Matcher m = HASHTAG_PATTERN.matcher(text);
 		while (m.find()) {
-			String g = m.group();
+			final String g = m.group();
 			set.add(new HashTagPayload(tweet, g));
 		}
 	}
 
-	private static void extractMentions (final Account account, final Tweet tweet, final Set<Payload> set) {
-		if (collectionContainsType(set, PayloadType.MENTION)) return;
+	private static void replyToOwner (final Account account, final Tweet tweet, final Set<Payload> set) {
 		if (tweet.getUsername() != null) set.add(new MentionPayload(account, tweet, tweet.getUsername()));
-		List<String> allMentions = null;
-		String text = tweet.getBody();
-		if (text == null || text.isEmpty()) return;
-		Matcher m = MENTIONS_PATTERN.matcher(text);
-		while (m.find()) {
-			String g = m.group(1);
-			set.add(new MentionPayload(account, tweet, g));
-			if (allMentions == null) allMentions = new ArrayList<String>();
-			allMentions.add(g);
-		}
-		if (allMentions != null && tweet.getUsername() != null) set.add(new MentionPayload(account, tweet, tweet.getUsername(), allMentions.toArray(new String[allMentions.size()])));
 	}
 
-	private static boolean collectionContainsType(final Collection<Payload> col, final PayloadType type) {
-		for (Payload p : col) {
+	private static void repliesAndExtractMentions (final Account account, final Tweet tweet, final Set<Payload> set) {
+		List<String> allMentions = null;
+		if (metasHasType(tweet.getMetas(), MetaType.MENTION)) {
+			for (final Meta meta : tweet.getMetas()) {
+				if (meta.getType() == MetaType.MENTION && !EqualHelper.equal(tweet.getUsername(), meta.getData())) {
+					if (allMentions == null) allMentions = new ArrayList<String>();
+					allMentions.add(meta.getData());
+				}
+			}
+		}
+		else {
+			final String text = tweet.getBody();
+			if (text == null || text.isEmpty()) return;
+			final Matcher m = MENTIONS_PATTERN.matcher(text);
+			while (m.find()) {
+				final String g = m.group(1);
+				if (!EqualHelper.equal(tweet.getUsername(), g)) {
+					set.add(new MentionPayload(account, tweet, g));
+					if (allMentions == null) allMentions = new ArrayList<String>();
+					allMentions.add(g);
+				}
+			}
+		}
+		if (allMentions != null && tweet.getUsername() != null) {
+			set.add(new MentionPayload(account, tweet, tweet.getUsername(), allMentions.toArray(new String[allMentions.size()])));
+		}
+	}
+
+	private static boolean metasHasType (final List<Meta> metas, final MetaType type) {
+		for (Meta meta : metas) {
+			if (type == meta.getType()) return true;
+		}
+		return false;
+	}
+
+	private static boolean payloadsContainsType (final Collection<Payload> col, final PayloadType type) {
+		for (final Payload p : col) {
 			if (type == p.getType()) return true;
 		}
 		return false;
