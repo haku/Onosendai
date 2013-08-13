@@ -36,7 +36,7 @@ public abstract class DbBindingService extends IntentService {
 	}
 
 	@Override
-	protected void onHandleIntent (final Intent i) {
+	protected final void onHandleIntent (final Intent i) {
 		final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
 		wl.acquire();

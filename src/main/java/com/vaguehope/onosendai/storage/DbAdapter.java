@@ -854,4 +854,12 @@ public class DbAdapter implements DbInterface {
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@Override
+	public void vacuum () {
+		if (!checkDbOpen()) return;
+		this.mDb.execSQL("VACUUM");
+		this.log.i("DB vacuumed.");
+	}
+
 }
