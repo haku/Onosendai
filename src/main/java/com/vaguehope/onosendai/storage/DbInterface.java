@@ -62,4 +62,6 @@ public interface DbInterface extends KvStore {
 		void outboxChanged();
 	}
 
+	void vacuum ();
+
 }

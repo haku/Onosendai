@@ -200,5 +200,10 @@ public class DbService extends Service implements DbInterface {
 		this.dbAdaptor.storeValue(key, value);
 	}
 
+	@Override
+	public void vacuum () {
+		this.dbAdaptor.vacuum();
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
