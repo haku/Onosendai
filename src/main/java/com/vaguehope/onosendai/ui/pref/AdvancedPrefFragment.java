@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.Preference;
@@ -90,7 +92,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 	private final OnPreferenceClickListener dumpLogsClickListener = new OnPreferenceClickListener() {
 		@Override
 		public boolean onPreferenceClick (final Preference preference) {
-			dumpLogs();
+			dumpLog();
 			return true;
 		}
 	};
@@ -127,11 +129,10 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		}
 	}
 
-	protected void dumpLogs () {
+	protected void dumpLog () {
 		try {
 			final File file = new File(Environment.getExternalStorageDirectory(), "onosendai-" + System.currentTimeMillis() + ".log");
-			LogcatHelper.dumpLog(file);
-			DialogHelper.alert(getActivity(), "Log written to:\n" + file.getAbsolutePath());
+			new DumpLog(getActivity(), file).execute();
 		}
 		catch (final Exception e) { // NOSONAR show user all errors.
 			LOG.e("Failed to dump log.", e);
@@ -150,10 +151,54 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		}
 	}
 
+	private static class DumpLog extends AsyncTask<Void, Void, Exception> {
+
+		private final Context context;
+		private final File file;
+
+		private ProgressDialog dialog;
+
+		public DumpLog (final Context context, final File file) {
+			this.context = context;
+			this.file = file;
+		}
+
+		@Override
+		protected void onPreExecute () {
+			this.dialog = ProgressDialog.show(this.context, "Log", "Saving...", true);
+		}
+
+		@Override
+		protected Exception doInBackground (final Void... params) {
+			try {
+				LogcatHelper.dumpLog(this.file);
+				return null;
+			}
+			catch (final Exception e) { // NOSONAR show user all errors.
+				return e;
+			}
+		}
+
+		@Override
+		protected void onPostExecute (final Exception result) {
+			this.dialog.dismiss();
+			if (result == null) {
+				DialogHelper.alert(this.context, "Log written to:\n" + this.file.getAbsolutePath());
+			}
+			else {
+				LOG.e("Failed to dump read later.", result);
+				DialogHelper.alert(this.context, result);
+			}
+		}
+
+	}
+
 	private static class DumpReadLater extends DbBindingAsyncTask<Void, Void, Exception> {
 
 		private final Config conf;
 		private final File file;
+
+		private ProgressDialog dialog;
 
 		public DumpReadLater (final Context context, final Config config, final File file) {
 			super(context);
@@ -164,6 +209,11 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		@Override
 		protected LogWrapper getLog () {
 			return LOG;
+		}
+
+		@Override
+		protected void onPreExecute () {
+			this.dialog = ProgressDialog.show(getContext(), "Read Later", "Saving...", true);
 		}
 
 		@Override
@@ -196,6 +246,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 
 		@Override
 		protected void onPostExecute (final Exception result) {
+			this.dialog.dismiss();
 			if (result == null) {
 				DialogHelper.alert(getContext(), "Read later column written to:\n" + this.file.getAbsolutePath());
 			}
