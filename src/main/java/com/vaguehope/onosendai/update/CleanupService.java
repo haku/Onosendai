@@ -20,10 +20,16 @@ public class CleanupService extends DbBindingService {
 
 	@Override
 	protected void doWork (final Intent i) {
-		AttachmentStorage.cleanTempOutputDir(this); // FIXME what if attachment in use in Outbox?
-		HybridBitmapCache.cleanCacheDir(this);
-		waitForDbReady();
-		getDb().vacuum();
+		try {
+			AttachmentStorage.cleanTempOutputDir(this); // FIXME what if attachment in use in Outbox?
+			HybridBitmapCache.cleanCacheDir(this);
+			if (!waitForDbReady()) return;
+			getDb().vacuum();
+			LOG.i("Clean up complete.");
+		}
+		catch (final Exception e) { // NOSONAR want to log all errors.
+			LOG.e("Clean up failed.", e);
+		}
 	}
 
 }
