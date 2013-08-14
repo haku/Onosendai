@@ -201,8 +201,8 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public void vacuum () {
-		this.dbAdaptor.vacuum();
+	public void housekeep () {
+		this.dbAdaptor.housekeep();
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

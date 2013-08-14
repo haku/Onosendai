@@ -865,17 +865,28 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	@Override
-	public void vacuum () {
+	public void housekeep () {
 		if (!checkDbOpen()) return;
+		pruneMetadataTable();
+		vacuum();
+	}
+
+	private void pruneMetadataTable () {
 		this.mDb.beginTransaction();
 		try {
-			this.mDb.execSQL("VACUUM");
-			this.log.i("DB vacuumed.");
+			this.mDb.execSQL("DELETE FROM " + TBL_TM + " WHERE " + TBL_TM_TWID +
+					" NOT IN (SELECT " + TBL_TW + "." + TBL_TW_ID + " FROM " + TBL_TW + ");");
 			this.mDb.setTransactionSuccessful();
+			this.log.i("Pruned table '%s'.", TBL_TM);
 		}
 		finally {
 			this.mDb.endTransaction();
 		}
+	}
+
+	private void vacuum () {
+		this.mDb.execSQL("VACUUM");
+		this.log.i("Vacuumed.");
 	}
 
 }
