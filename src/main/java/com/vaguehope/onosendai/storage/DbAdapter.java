@@ -105,6 +105,15 @@ public class DbAdapter implements DbInterface {
 			}
 		}
 
+		@Override
+		public void onOpen (final SQLiteDatabase db) {
+			super.onOpen(db);
+			if (!db.isReadOnly()) {
+				db.execSQL("PRAGMA foreign_keys=ON;");
+				this.log.i("foreign_keys=ON");
+			}
+		}
+
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
