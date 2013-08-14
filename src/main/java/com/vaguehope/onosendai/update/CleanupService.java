@@ -24,7 +24,7 @@ public class CleanupService extends DbBindingService {
 			AttachmentStorage.cleanTempOutputDir(this); // FIXME what if attachment in use in Outbox?
 			HybridBitmapCache.cleanCacheDir(this);
 			if (!waitForDbReady()) return;
-//			getDb().vacuum();
+			getDb().housekeep();
 			LOG.i("Clean up complete.");
 		}
 		catch (final Exception e) { // NOSONAR want to log all errors.

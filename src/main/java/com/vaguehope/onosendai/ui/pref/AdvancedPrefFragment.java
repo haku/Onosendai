@@ -6,6 +6,7 @@ import java.util.List;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -22,6 +23,7 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.update.CleanupService;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -49,6 +51,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		addImportConfPref();
 		addDumpLogPref();
 		addDumpReadLaterPref();
+		addHousekeepPref();
 	}
 
 	private void addImportConfPref () {
@@ -81,6 +84,15 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		getPreferenceScreen().addPreference(pref);
 	}
 
+	private void addHousekeepPref () {
+		if (!Config.isConfigFilePresent()) return;
+		final Preference pref = new Preference(getActivity());
+		pref.setTitle("Housekeep");
+		pref.setSummary("Housekeep things now.  Underwhelming.");
+		pref.setOnPreferenceClickListener(this.housekeepListener);
+		getPreferenceScreen().addPreference(pref);
+	}
+
 	private final OnPreferenceClickListener importClickListener = new OnPreferenceClickListener() {
 		@Override
 		public boolean onPreferenceClick (final Preference preference) {
@@ -101,6 +113,14 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		@Override
 		public boolean onPreferenceClick (final Preference preference) {
 			dumpReadLater();
+			return true;
+		}
+	};
+
+	private final OnPreferenceClickListener housekeepListener = new OnPreferenceClickListener() {
+		@Override
+		public boolean onPreferenceClick (final Preference preference) {
+			housekeep();
 			return true;
 		}
 	};
@@ -149,6 +169,11 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 			LOG.e("Failed to dump read later.", e);
 			DialogHelper.alert(getActivity(), e);
 		}
+	}
+
+	protected void housekeep () {
+		getActivity().startService(new Intent(getActivity(), CleanupService.class));
+		DialogHelper.alert(getActivity(), "Check logs for results.");
 	}
 
 	private static class DumpLog extends AsyncTask<Void, Void, Exception> {
