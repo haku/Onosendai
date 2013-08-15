@@ -1,9 +1,5 @@
 package com.vaguehope.onosendai.ui.pref;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import org.json.JSONException;
 
 import android.app.AlertDialog;
@@ -18,21 +14,14 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumnsFetcher;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleSource;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleSources;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleSourcesFetcher;
-import com.vaguehope.onosendai.provider.twitter.TwitterColumnType;
-import com.vaguehope.onosendai.provider.twitter.TwitterListsFetcher;
 import com.vaguehope.onosendai.storage.DbInterface;
-import com.vaguehope.onosendai.util.CollectionHelper;
+import com.vaguehope.onosendai.ui.pref.ColumnChooser.ColumnChoiceListener;
 import com.vaguehope.onosendai.util.DialogHelper;
-import com.vaguehope.onosendai.util.DialogHelper.Listener;
 
 public class ColumnsPrefFragment extends PreferenceFragment {
 
 	private Prefs prefs;
+	private ColumnChooser columnChooser;
 
 	@Override
 	public void onCreate (final Bundle savedInstanceState) {
@@ -40,6 +29,7 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		setPreferenceScreen(getPreferenceManager().createPreferenceScreen(getActivity()));
 		this.prefs = new Prefs(getPreferenceManager());
 		refreshColumnsList();
+		this.columnChooser = new ColumnChooser(getActivity(), this.prefs, this.columnChoiceListener);
 	}
 
 	protected Prefs getPrefs () {
@@ -67,135 +57,15 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		}
 	}
 
+	private final ColumnChoiceListener columnChoiceListener = new ColumnChoiceListener() {
+		@Override
+		public void onColumn (final Account account, final String resource, final String title) {
+			promptAddColumn(account, resource, title);
+		}
+	};
+
 	protected void promptAddColumn () {
-		final List<Account> items = readAccountsOrAlert();
-		if (items == null) return;
-		DialogHelper.askItem(getActivity(), "Account", items, new Listener<Account>() {
-			@Override
-			public void onAnswer (final Account account) {
-				promptAddColumn(account);
-			}
-		});
-	}
-
-	protected void promptAddColumn (final Account account) {
-		switch (account.getProvider()) {
-			case TWITTER:
-				promptAddTwitterColumn(account);
-				break;
-			case SUCCESSWHALE:
-				promptAddSuccessWhaleColumn(account);
-				break;
-			default:
-				promptAddColumn(account, (String) null);
-				break;
-		}
-	}
-
-	protected void promptAddTwitterColumn (final Account account) {
-		DialogHelper.askItem(getActivity(), "Twitter Columns", TwitterColumnType.values(), new Listener<TwitterColumnType>() {
-			@Override
-			public void onAnswer (final TwitterColumnType type) {
-				promptAddTwitterColumn(account, type);
-			}
-		});
-	}
-
-	protected void promptAddTwitterColumn (final Account account, final TwitterColumnType type) {
-		switch (type) {
-			case LIST:
-				promptAddTwitterListColumn(account);
-				break;
-			case SEARCH:
-				promptAddTwitterSearchColumn(account);
-				break;
-			default:
-				promptAddColumn(account, type.getResource());
-		}
-	}
-
-	protected void promptAddTwitterListColumn (final Account account) {
-		new TwitterListsFetcher(getActivity(), account, new Listener<List<String>>() {
-			@Override
-			public void onAnswer (final List<String> lists) {
-				promptAddTwitterListColumn(account, lists);
-			}
-		}).execute();
-	}
-
-	protected void promptAddTwitterListColumn (final Account account, final List<String> listSlugs) {
-		DialogHelper.askStringItem(getActivity(), "Twitter Lists", listSlugs, new Listener<String>() {
-			@Override
-			public void onAnswer (final String answer) {
-				promptAddColumn(account, TwitterColumnType.LIST.getResource() + answer);
-			}
-		});
-	}
-
-	protected void promptAddTwitterSearchColumn (final Account account) {
-		DialogHelper.askString(getActivity(), "Search term:", new Listener<String>() {
-			@Override
-			public void onAnswer (final String answer) {
-				promptAddColumn(account, TwitterColumnType.SEARCH.getResource() + answer);
-			}
-		});
-	}
-
-	protected void promptAddSuccessWhaleColumn (final Account account) {
-		final String existing = "Existing Column";
-		final String custom = "Custom Source Mix";
-		DialogHelper.askStringItem(getActivity(), "Column Type", CollectionHelper.listOf(existing, custom), new Listener<String>() {
-			@Override
-			public void onAnswer (final String answer) {
-				if (existing.equals(answer)) {
-					promptAddSuccessWhaleExistingColumn(account);
-				}
-				else {
-					promptAddSuccessWhaleCustomColumn(account);
-				}
-			}
-		});
-	}
-
-	protected void promptAddSuccessWhaleExistingColumn (final Account account) {
-		new SuccessWhaleColumnsFetcher(getActivity(), account, new Listener<SuccessWhaleColumns>() {
-			@Override
-			public void onAnswer (final SuccessWhaleColumns columns) {
-				promptAddSuccessWhaleColumn(account, columns);
-			}
-		}).execute();
-	}
-
-	protected void promptAddSuccessWhaleColumn (final Account account, final SuccessWhaleColumns columns) {
-		// TODO allow multi selection.
-		DialogHelper.askItem(getActivity(), "SuccessWhale Columns", columns.getColumns(), new Listener<Column>() {
-			@Override
-			public void onAnswer (final Column column) {
-				promptAddColumn(account, column.getResource(), column.getTitle());
-			}
-		});
-	}
-
-	protected void promptAddSuccessWhaleCustomColumn (final Account account) {
-		new SuccessWhaleSourcesFetcher(getActivity(), account, new Listener<SuccessWhaleSources>() {
-			@Override
-			public void onAnswer (final SuccessWhaleSources sources) {
-				promptAddSuccessWhaleColumn(account, sources);
-			}
-		}).execute();
-	}
-
-	protected void promptAddSuccessWhaleColumn (final Account account, final SuccessWhaleSources sources) {
-		DialogHelper.askItems(getActivity(), "SuccessWhale Sources", sources.getSources(), new Listener<Set<SuccessWhaleSource>>() {
-			@Override
-			public void onAnswer (final Set<SuccessWhaleSource> anwer) {
-				promptAddColumn(account, SuccessWhaleSources.toResource(anwer));
-			}
-		});
-	}
-
-	protected void promptAddColumn (final Account account, final String resource) {
-		promptAddColumn(account, resource, null);
+		this.columnChooser.promptAddColumn();
 	}
 
 	protected void promptAddColumn (final Account account, final String resource, final String title) {
@@ -253,16 +123,6 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 			return;
 		}
 		db.deleteTweets(column);
-	}
-
-	private List<Account> readAccountsOrAlert () {
-		try {
-			return new ArrayList<Account>(this.prefs.readAccounts());
-		}
-		catch (final JSONException e) {
-			DialogHelper.alert(getActivity(), "Failed to read accounts.", e);
-			return null;
-		}
 	}
 
 	private static class AddAcountClickListener implements OnPreferenceClickListener {

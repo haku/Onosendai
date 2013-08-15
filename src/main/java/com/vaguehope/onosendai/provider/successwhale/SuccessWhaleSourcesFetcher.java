@@ -1,7 +1,7 @@
 package com.vaguehope.onosendai.provider.successwhale;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.AsyncTask;
 
 import com.vaguehope.onosendai.config.Account;
@@ -15,21 +15,21 @@ public class SuccessWhaleSourcesFetcher extends AsyncTask<Void, Void, Result<Suc
 
 	private static final LogWrapper LOG = new LogWrapper("SWSF");
 
-	private final Activity activity;
+	private final Context context;
 	private final Account account;
 	private final Listener<SuccessWhaleSources> onSources;
 
 	private ProgressDialog dialog;
 
-	public SuccessWhaleSourcesFetcher (final Activity activity, final Account account, final Listener<SuccessWhaleSources> onSources) {
-		this.activity = activity;
+	public SuccessWhaleSourcesFetcher (final Context context, final Account account, final Listener<SuccessWhaleSources> onSources) {
+		this.context = context;
 		this.account = account;
 		this.onSources = onSources;
 	}
 
 	@Override
 	protected void onPreExecute () {
-		this.dialog = ProgressDialog.show(this.activity, "SuccessWhale", "Fetching sources...", true);
+		this.dialog = ProgressDialog.show(this.context, "SuccessWhale", "Fetching sources...", true);
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class SuccessWhaleSourcesFetcher extends AsyncTask<Void, Void, Result<Suc
 		else {
 			this.dialog.dismiss();
 			LOG.e("Failed fetch SuccessWhale sources.", result.getE());
-			DialogHelper.alert(this.activity, result.getE());
+			DialogHelper.alert(this.context, result.getE());
 		}
 	}
 

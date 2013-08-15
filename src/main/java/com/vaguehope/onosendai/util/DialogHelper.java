@@ -11,6 +11,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnMultiChoiceClickListener;
+import android.text.InputType;
 import android.view.WindowManager.BadTokenException;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
@@ -97,11 +98,20 @@ public final class DialogHelper {
 	}
 
 	public static void askString (final Context context, final String msg, final Listener<String> onString) {
+		askString(context, msg, null, false, true, onString);
+	}
+
+	// FIXME tidy this method signature.
+	public static void askString (final Context context, final String msg,
+			final String oldValue, final boolean multiLine, final boolean spellCheck,
+			final Listener<String> onString) {
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(context);
 		dlgBld.setMessage(msg);
 		final EditText editText = new EditText(context);
 		editText.setSelectAllOnFocus(true);
-		editText.setSingleLine();
+		if (oldValue != null) editText.setText(oldValue);
+		if (!multiLine) editText.setSingleLine();
+		if (!spellCheck) editText.setInputType(editText.getInputType() | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
 		editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
 		dlgBld.setView(editText);
 		dlgBld.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -158,8 +168,8 @@ public final class DialogHelper {
 	}
 
 	private static <T> void askItems (final Context context, final String title, final List<T> list, final String[] labels, final boolean[] checked, final Listener<Set<T>> onItems) {
-		if(labels.length != list.size()) throw new IllegalArgumentException("List and titles array must be same length.");
-		if(checked != null && checked.length != list.size()) throw new IllegalArgumentException("List and checed array must be same length.");
+		if (labels.length != list.size()) throw new IllegalArgumentException("List and titles array must be same length.");
+		if (checked != null && checked.length != list.size()) throw new IllegalArgumentException("List and checed array must be same length.");
 
 		final AlertDialog.Builder bld = new AlertDialog.Builder(context);
 		bld.setTitle(title);

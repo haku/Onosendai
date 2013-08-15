@@ -14,6 +14,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -21,14 +22,16 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Prefs;
+import com.vaguehope.onosendai.ui.pref.ColumnChooser.ColumnChoiceListener;
 import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.DialogHelper.Question;
 import com.vaguehope.onosendai.util.EqualHelper;
-import com.vaguehope.onosendai.util.StringHelper;
 
 class ColumnDialog {
 
@@ -51,16 +54,19 @@ class ColumnDialog {
 	private final int id;
 	private final String accountId;
 	private final Column initialValue;
+	private final Account account;
+	private final Prefs prefs;
 
 	private final View llParent;
 	private final EditText txtTitle;
 	private final Spinner spnPosition;
-	private final EditText txtResource;
+	private final Button btnResource;
 	private final Button btnExclude;
 	private final Spinner spnRefresh;
 	private final CheckBox chkNotify;
 	private final CheckBox chkDelete;
 
+	private String resource;
 	private final Set<Integer> excludes = new HashSet<Integer>();
 
 	public ColumnDialog (final Context context, final Prefs prefs, final int id, final String accountId) {
@@ -69,7 +75,7 @@ class ColumnDialog {
 
 	public ColumnDialog (final Context context, final Prefs prefs, final Column initialValue) {
 		this(context, prefs, // NOSONAR Sonar things there is a Possible null pointer dereference.  I disagree.
-				initialValue != null ? initialValue.getId() : null,
+		initialValue != null ? initialValue.getId() : null,
 				initialValue != null ? initialValue.getAccountId() : null,
 				initialValue);
 	}
@@ -81,23 +87,25 @@ class ColumnDialog {
 		if (initialValue != null && initialValue.getId() != id) throw new IllegalStateException("ID and initialValue ID do not match.");
 		if (initialValue != null && !EqualHelper.equal(initialValue.getAccountId(), accountId)) throw new IllegalStateException("Account ID and initialValue account ID do not match.");
 
+		this.id = id;
+		this.accountId = accountId;
+		this.initialValue = initialValue;
+		this.prefs = prefs;
+
 		try {
 			this.allColumns = Collections.unmodifiableMap(prefs.readColumnsAsMap());
+			this.account = prefs.readAccount(accountId);
 		}
 		catch (final JSONException e) {
 			throw new IllegalStateException(e); // FIXME
 		}
-
-		this.id = id;
-		this.accountId = accountId;
-		this.initialValue = initialValue;
 
 		final LayoutInflater inflater = LayoutInflater.from(context);
 		this.llParent = inflater.inflate(R.layout.columndialog, null);
 
 		this.txtTitle = (EditText) this.llParent.findViewById(R.id.txtTitle);
 		this.spnPosition = (Spinner) this.llParent.findViewById(R.id.spnPosition);
-		this.txtResource = (EditText) this.llParent.findViewById(R.id.txtResource);
+		this.btnResource = (Button) this.llParent.findViewById(R.id.btnResource);
 		this.btnExclude = (Button) this.llParent.findViewById(R.id.btnExclude);
 		this.spnRefresh = (Spinner) this.llParent.findViewById(R.id.spnRefresh);
 		this.chkNotify = (CheckBox) this.llParent.findViewById(R.id.chkNotify);
@@ -107,6 +115,8 @@ class ColumnDialog {
 		posAdapter.addAll(CollectionHelper.sequence(1, prefs.readColumnIds().size() + (initialValue == null ? 1 : 0)));
 		this.spnPosition.setAdapter(posAdapter);
 
+		this.btnResource.setOnClickListener(this.btnResourceClickListener);
+		this.btnResource.setOnLongClickListener(this.btnResourceLongClickListener);
 		this.btnExclude.setOnClickListener(this.btnExcludeClickListener);
 
 		final ArrayAdapter<Duration> refAdapter = new ArrayAdapter<Duration>(context, R.layout.numberspinneritem);
@@ -118,10 +128,10 @@ class ColumnDialog {
 		if (initialValue != null) {
 			this.txtTitle.setText(initialValue.getTitle());
 			this.spnPosition.setSelection(posAdapter.getPosition(Integer.valueOf(prefs.readColumnPosition(initialValue.getId()) + 1)));
-			this.txtResource.setText(initialValue.getResource());
+			setResource(initialValue.getResource());
 			setExcludeIds(initialValue.getExcludeColumnIds());
 			setDurationSpinner(initialValue.getRefreshIntervalMins(), refAdapter);
-			if (StringHelper.isEmpty(accountId)) this.spnRefresh.setEnabled(false);
+			if (this.account == null) this.spnRefresh.setEnabled(false);
 			this.chkNotify.setChecked(initialValue.isNotify());
 			this.chkDelete.setVisibility(View.VISIBLE);
 		}
@@ -138,6 +148,13 @@ class ColumnDialog {
 			ids.add(Integer.valueOf(column.getId()));
 		}
 		setExcludeIds(ids);
+	}
+
+	public void setResource (final String resource) {
+		this.resource = resource;
+		this.btnResource.setText(String.valueOf(resource).replace(':', '\n'));
+		final AccountProvider provider = this.account != null ? this.account.getProvider() : null;
+		this.btnResource.setEnabled(provider == AccountProvider.TWITTER || provider == AccountProvider.SUCCESSWHALE);
 	}
 
 	private void setExcludeIds (final Set<Integer> excludes) {
@@ -160,12 +177,46 @@ class ColumnDialog {
 		this.btnExclude.setText(s.toString());
 	}
 
+	private final OnClickListener btnResourceClickListener = new OnClickListener() {
+		@Override
+		public void onClick (final View v) {
+			btnResourceClick();
+		}
+	};
+
+	private final OnLongClickListener btnResourceLongClickListener = new OnLongClickListener() {
+		@Override
+		public boolean onLongClick (final View v) {
+			btnResourceLongClick();
+			return true;
+		}
+	};
+
 	private final OnClickListener btnExcludeClickListener = new OnClickListener() {
 		@Override
 		public void onClick (final View v) {
 			btnExcludeClick();
 		}
 	};
+
+	protected void btnResourceClick () {
+		new ColumnChooser(this.context, this.prefs, new ColumnChoiceListener() {
+			@Override
+			public void onColumn (final Account unused, final String newResource, final String title) {
+				if (newResource != null) setResource(newResource);
+				if (title != null) setTitle(title);
+			}
+		}).promptAddColumn(this.account); // TODO pass in existing resource value.
+	}
+
+	protected void btnResourceLongClick () {
+		DialogHelper.askString(this.context, "Resource:", this.resource, true, false, new Listener<String>() {
+			@Override
+			public void onAnswer (final String newResource) {
+				if (newResource != null) setResource(newResource);
+			}
+		});
+	}
 
 	protected void btnExcludeClick () {
 		final List<Column> columns = new ArrayList<Column>(this.allColumns.values());
@@ -203,10 +254,6 @@ class ColumnDialog {
 		return this.llParent;
 	}
 
-	public void setResource (final String resource) {
-		this.txtResource.setText(resource);
-	}
-
 	public void setTitle (final String title) {
 		this.txtTitle.setText(title);
 	}
@@ -226,7 +273,7 @@ class ColumnDialog {
 		return new Column(this.id,
 				this.txtTitle.getText().toString(),
 				this.accountId,
-				this.txtResource.getText().toString(),
+				this.resource,
 				((Duration) this.spnRefresh.getSelectedItem()).getMins(),
 				this.excludes.size() > 0 ? this.excludes : null,
 				this.chkNotify.isChecked());

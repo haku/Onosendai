@@ -1,7 +1,7 @@
 package com.vaguehope.onosendai.provider.successwhale;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.AsyncTask;
 
 import com.vaguehope.onosendai.config.Account;
@@ -15,21 +15,21 @@ public class SuccessWhaleColumnsFetcher extends AsyncTask<Void, Void, Result<Suc
 
 	private static final LogWrapper LOG = new LogWrapper("SWCF");
 
-	private final Activity activity;
+	private final Context context;
 	private final Account account;
 	private final Listener<SuccessWhaleColumns> onColumns;
 
 	private ProgressDialog dialog;
 
-	public SuccessWhaleColumnsFetcher (final Activity activity, final Account account, final Listener<SuccessWhaleColumns> onColumns) {
-		this.activity = activity;
+	public SuccessWhaleColumnsFetcher (final Context context, final Account account, final Listener<SuccessWhaleColumns> onColumns) {
+		this.context = context;
 		this.account = account;
 		this.onColumns = onColumns;
 	}
 
 	@Override
 	protected void onPreExecute () {
-		this.dialog = ProgressDialog.show(this.activity, "SuccessWhale", "Fetching columns...", true);
+		this.dialog = ProgressDialog.show(this.context, "SuccessWhale", "Fetching columns...", true);
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class SuccessWhaleColumnsFetcher extends AsyncTask<Void, Void, Result<Suc
 		else {
 			this.dialog.dismiss();
 			LOG.e("Failed fetch SuccessWhale columns.", result.getE());
-			DialogHelper.alert(this.activity, result.getE());
+			DialogHelper.alert(this.context, result.getE());
 		}
 	}
 

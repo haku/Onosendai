@@ -2,8 +2,8 @@ package com.vaguehope.onosendai.provider.twitter;
 
 import java.util.List;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.AsyncTask;
 
 import com.vaguehope.onosendai.config.Account;
@@ -16,21 +16,21 @@ public class TwitterListsFetcher extends AsyncTask<Void, Void, Result<List<Strin
 
 	private static final LogWrapper LOG = new LogWrapper("TLF");
 
-	private final Activity activity;
+	private final Context context;
 	private final Account account;
 	private final Listener<List<String>> onLists;
 
 	private ProgressDialog dialog;
 
-	public TwitterListsFetcher (final Activity host, final Account account, final Listener<List<String>> onLists) {
-		this.activity = host;
+	public TwitterListsFetcher (final Context context, final Account account, final Listener<List<String>> onLists) {
+		this.context = context;
 		this.account = account;
 		this.onLists = onLists;
 	}
 
 	@Override
 	protected void onPreExecute () {
-		this.dialog = ProgressDialog.show(this.activity, "Twitter", "Fetching lists...", true);
+		this.dialog = ProgressDialog.show(this.context, "Twitter", "Fetching lists...", true);
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class TwitterListsFetcher extends AsyncTask<Void, Void, Result<List<Strin
 		}
 		else {
 			LOG.e("Failed to fetch Lists.", result.getE());
-			DialogHelper.alert(this.activity, result.getE());
+			DialogHelper.alert(this.context, result.getE());
 		}
 	}
 
