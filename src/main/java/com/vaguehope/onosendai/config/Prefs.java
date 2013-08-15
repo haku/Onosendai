@@ -17,6 +17,7 @@ import android.preference.PreferenceManager;
 
 import com.vaguehope.onosendai.util.ArrayHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class Prefs {
 
@@ -82,6 +83,7 @@ public class Prefs {
 	}
 
 	public Account readAccount (final String id) throws JSONException {
+		if (StringHelper.isEmpty(id)) return null;
 		final String raw = this.sharedPreferences.getString(id, null);
 		if (raw == null) return null;
 		return Account.parseJson(raw);

@@ -43,12 +43,11 @@
 			android:paddingRight="10dp"
 			android:text="Resource" />
 
-		<EditText
-			android:id="@+id/txtResource"
+		<Button
+			android:id="@+id/btnResource"
 			android:layout_weight="1"
-			android:singleLine="true"
-			android:selectAllOnFocus="true"
-			android:hint="e.g. TIMELINE" />
+			android:textSize="14sp"
+			android:maxLines="5" />
 
 	</TableRow>
 
