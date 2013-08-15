@@ -868,7 +868,7 @@ public class DbAdapter implements DbInterface {
 	public void housekeep () {
 		if (!checkDbOpen()) return;
 		pruneMetadataTable();
-//		vacuum();
+		vacuum();
 	}
 
 	private void pruneMetadataTable () {

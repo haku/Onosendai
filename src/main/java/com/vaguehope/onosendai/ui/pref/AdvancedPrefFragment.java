@@ -6,7 +6,6 @@ import java.util.List;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -85,7 +84,6 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 	}
 
 	private void addHousekeepPref () {
-		if (!Config.isConfigFilePresent()) return;
 		final Preference pref = new Preference(getActivity());
 		pref.setTitle("Housekeep");
 		pref.setSummary("Housekeep things now.  Underwhelming.");
@@ -172,8 +170,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 	}
 
 	protected void housekeep () {
-		getActivity().startService(new Intent(getActivity(), CleanupService.class));
-		DialogHelper.alert(getActivity(), "Check logs for results.");
+		new Housekeep(getActivity()).execute();
 	}
 
 	private static class DumpLog extends AsyncTask<Void, Void, Exception> {
@@ -277,6 +274,50 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 			}
 			else {
 				LOG.e("Failed to dump read later.", result);
+				DialogHelper.alert(getContext(), result);
+			}
+		}
+
+	}
+
+	private static class Housekeep extends DbBindingAsyncTask<Void, Void, Exception> {
+
+		private ProgressDialog dialog;
+
+		public Housekeep (final Context context) {
+			super(context);
+		}
+
+		@Override
+		protected LogWrapper getLog () {
+			return LOG;
+		}
+
+		@Override
+		protected void onPreExecute () {
+			this.dialog = ProgressDialog.show(getContext(), "Housekeep", "Please wait...", true);
+		}
+
+		@Override
+		protected Exception doInBackgroundWithDb (final DbInterface db, final Void... params) {
+			try {
+				CleanupService.clean(getContext());
+				db.housekeep();
+				return null;
+			}
+			catch (final Exception e) { // NOSONAR show user all errors.
+				return e;
+			}
+		}
+
+		@Override
+		protected void onPostExecute (final Exception result) {
+			this.dialog.dismiss();
+			if (result == null) {
+				DialogHelper.alert(getContext(), "Housekeep complete.");
+			}
+			else {
+				LOG.e("Failed to housekeep.", result);
 				DialogHelper.alert(getContext(), result);
 			}
 		}
