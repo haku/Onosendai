@@ -18,6 +18,8 @@ import com.vaguehope.onosendai.util.Titleable;
 
 public class Column implements Titleable {
 
+	public static final int ID_CACHED = -101;
+
 	private static final String KEY_ID = "id";
 	private static final String KEY_TITLE = "title";
 	private static final String KEY_ACCOUNT = "account";
@@ -171,7 +173,9 @@ public class Column implements Titleable {
 	}
 
 	public static Column parseJson (final JSONObject json) throws JSONException {
-		final int id = json.getInt(KEY_ID);
+		final int id = json.optInt(KEY_ID, Integer.MIN_VALUE);
+		if (id < 0) throw new JSONException("Column ID must be positive a integer.");
+
 		final String title = json.getString(KEY_TITLE);
 		final String account = json.has(KEY_ACCOUNT) ? json.getString(KEY_ACCOUNT) : null;
 		final String resource = json.getString(KEY_RESOURCE);

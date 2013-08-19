@@ -13,6 +13,7 @@ import com.vaguehope.onosendai.model.Tweet;
 public interface DbInterface extends KvStore {
 
 	void storeTweets(Column column, List<Tweet> tweets);
+	void storeTweets(int columnId, List<Tweet> tweets);
 	void deleteTweet(Column column, Tweet tweet);
 	void deleteTweets(Column column);
 

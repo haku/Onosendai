@@ -55,6 +55,7 @@ If this file does not exist a template can be created by the welcome screen for 
 **Account IDs and Feed IDs**: These are used to separate data in the DB.
 The are arbitrary and do not have to be in order.
 If you remove an account or column it may be best not to reuse the ID as strange things may happen.
+Column IDs must be positive integers.
 
 **SuccessWhale feeds**: Refer to [SuccessWhale docs](https://github.com/ianrenton/successwhale-api/blob/master/docs/feed-get.md) for the format of the 'resource' field.
 

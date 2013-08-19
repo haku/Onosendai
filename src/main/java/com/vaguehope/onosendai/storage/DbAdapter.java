@@ -196,6 +196,11 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public void storeTweets (final Column column, final List<Tweet> tweets) {
+		storeTweets(column.getId(), tweets);
+	}
+
+	@Override
+	public void storeTweets (final int columnId, final List<Tweet> tweets) {
 		// Clear old data.
 		this.mDb.beginTransaction();
 		try {
@@ -204,9 +209,9 @@ public class DbAdapter implements DbInterface {
 							" WHERE " + TBL_TW_COLID + "=?" +
 							" ORDER BY " + TBL_TW_TIME +
 							" DESC LIMIT " + C.DATA_TW_MAX_COL_ENTRIES + ")",
-					new String[] { String.valueOf(column.getId()), String.valueOf(column.getId()) });
+					new String[] { String.valueOf(columnId), String.valueOf(columnId) });
 
-			this.log.d("Deleted %d rows from %s column %d.", n, TBL_TW, column.getId());
+			this.log.d("Deleted %d rows from %s column %d.", n, TBL_TW, columnId);
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
@@ -218,7 +223,7 @@ public class DbAdapter implements DbInterface {
 			final ContentValues values = new ContentValues();
 			for (final Tweet tweet : tweets) {
 				values.clear();
-				values.put(TBL_TW_COLID, column.getId());
+				values.put(TBL_TW_COLID, columnId);
 				values.put(TBL_TW_SID, tweet.getSid());
 				values.put(TBL_TW_TIME, tweet.getTime());
 				values.put(TBL_TW_USERNAME, tweet.getUsername());
@@ -245,7 +250,7 @@ public class DbAdapter implements DbInterface {
 			this.mDb.endTransaction();
 		}
 
-		notifyTwListenersColumnChanged(column.getId());
+		notifyTwListenersColumnChanged(columnId);
 	}
 
 	@Override
