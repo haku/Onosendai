@@ -8,6 +8,7 @@ import twitter4j.TwitterException;
 import android.os.AsyncTask;
 
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
@@ -73,7 +74,10 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 
 		try {
 			final Tweet inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(account, Long.parseLong(inReplyToMeta.getData()));
-			if (inReplyToTweet != null) return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
+			if (inReplyToTweet != null) {
+				cacheInReplyTos(Collections.singletonList(inReplyToTweet));
+				return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
+			}
 		}
 		catch (TwitterException e) {
 			LOG.w("Failed to retrieve tweet %s: %s", inReplyToMeta.getData(), e.toString());
@@ -94,7 +98,10 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 		if (serviceMeta != null) {
 			try {
 				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
-				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
+				if (thread != null && thread.count() > 0) {
+					cacheInReplyTos(thread.getTweets());
+					return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
+				}
 			}
 			catch (SuccessWhaleException e) {
 				LOG.w("Failed to retrieve thread %s: %s", inReplyToMeta.getData(), e.toString());
@@ -144,6 +151,10 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 			ret.add(new InReplyToPayload(startingTweet, tweet));
 		}
 		return ret;
+	}
+
+	private void cacheInReplyTos (final List<Tweet> tweets) {
+		this.db.storeTweets(Column.ID_CACHED, tweets);
 	}
 
 	@Override

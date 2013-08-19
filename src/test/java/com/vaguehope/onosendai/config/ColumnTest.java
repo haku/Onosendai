@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import org.json.JSONException;
 import org.junit.Test;
 
 import com.vaguehope.onosendai.util.CollectionHelper;
@@ -35,6 +36,16 @@ public class ColumnTest {
 	public void itEqualsChecksNotify () throws Exception {
 		Column c = new Column(12, "title", "accountid", "resource", 15, CollectionHelper.setOf(1, 2), true);
 		assertFalse(c.equals(new Column(12, "title", "accountid", "resource", 15, CollectionHelper.setOf(1, 2), false)));
+	}
+
+	@Test
+	public void itDoesNotAllowNegativeIdsWhenParsingJson () throws Exception {
+		try {
+			Column.parseJson(new Column(-1, "title", "accountid", "resource", 15, null, true).toJson().toString(2));
+		}
+		catch (JSONException e) {
+			assertEquals("Column ID must be positive a integer.", e.getMessage());
+		}
 	}
 
 }
