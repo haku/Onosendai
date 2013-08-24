@@ -468,7 +468,7 @@ public class TweetListFragment extends Fragment {
 
 		// FIXME use specific executor?
 		new ReplyLoaderTask(getActivity(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
-		new InReplyToLoaderTask(getConf(), getProviderMgr(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
+		new InReplyToLoaderTask(getActivity().getApplicationContext(), getConf(), getProviderMgr(), this.lstTweetPayloadAdaptor).execute(tweet);
 
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
