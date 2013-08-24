@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import twitter4j.TwitterException;
-import android.os.AsyncTask;
+import android.content.Context;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
@@ -20,26 +20,30 @@ import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
+import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResult> {
+public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLoaderResult> {
 
 	private static final LogWrapper LOG = new LogWrapper("RL");
 
 	private final Config conf;
 	private final ProviderMgr provMgr;
-	private final DbInterface db;
 	private final PayloadListAdapter payloadListAdapter;
 	private final Payload placeholderPayload;
 
-	public InReplyToLoaderTask (final Config conf, final ProviderMgr provMgr, final DbInterface db, final PayloadListAdapter payloadListAdapter) {
-		super();
+	public InReplyToLoaderTask (final Context context, final Config conf, final ProviderMgr provMgr, final PayloadListAdapter payloadListAdapter) {
+		super(context);
 		this.conf = conf;
 		this.provMgr = provMgr;
-		this.db = db;
 		this.payloadListAdapter = payloadListAdapter;
 		this.placeholderPayload = new PlaceholderPayload(null, "Fetching conversation...", true);
+	}
+
+	@Override
+	protected LogWrapper getLog () {
+		return LOG;
 	}
 
 	@Override
@@ -48,7 +52,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 	}
 
 	@Override
-	protected ReplyLoaderResult doInBackground (final Tweet... params) {
+	protected ReplyLoaderResult doInBackgroundWithDb (final DbInterface db, final Tweet... params) {
 		if (params.length != 1) throw new IllegalArgumentException("Only one param per task.");
 		final Tweet startingTweet = params[0];
 
@@ -56,26 +60,26 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 		if (account != null) {
 			switch (account.getProvider()) {
 				case TWITTER:
-					return twitter(account, startingTweet);
+					return twitter(db, account, startingTweet);
 				case SUCCESSWHALE:
-					return successWhale(account, startingTweet);
+					return successWhale(db, account, startingTweet);
 				default:
 			}
 		}
-		return generic(startingTweet);
+		return generic(db, startingTweet);
 	}
 
-	private ReplyLoaderResult twitter (final Account account, final Tweet startingTweet) {
+	private ReplyLoaderResult twitter (final DbInterface db, final Account account, final Tweet startingTweet) {
 		final Meta inReplyToMeta = startingTweet.getFirstMetaOfType(MetaType.INREPLYTO);
 		if (inReplyToMeta == null) return null;
 
-		final ReplyLoaderResult fromCache = fetchFromCache(startingTweet, inReplyToMeta.getData());
+		final ReplyLoaderResult fromCache = fetchFromCache(db, startingTweet, inReplyToMeta.getData());
 		if (fromCache != null) return fromCache;
 
 		try {
 			final Tweet inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(account, Long.parseLong(inReplyToMeta.getData()));
 			if (inReplyToTweet != null) {
-				cacheInReplyTos(Collections.singletonList(inReplyToTweet));
+				cacheInReplyTos(db, Collections.singletonList(inReplyToTweet));
 				return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
 			}
 		}
@@ -87,11 +91,11 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 		return null;
 	}
 
-	private ReplyLoaderResult successWhale (final Account account, final Tweet startingTweet) {
+	private ReplyLoaderResult successWhale (final DbInterface db, final Account account, final Tweet startingTweet) {
 		final Meta inReplyToMeta = startingTweet.getFirstMetaOfType(MetaType.INREPLYTO);
 		if (inReplyToMeta == null) return fetchComments(account, startingTweet);
 
-		final ReplyLoaderResult fromCache = fetchFromCache(startingTweet, inReplyToMeta.getData());
+		final ReplyLoaderResult fromCache = fetchFromCache(db, startingTweet, inReplyToMeta.getData());
 		if (fromCache != null) return fromCache;
 
 		final Meta serviceMeta = startingTweet.getFirstMetaOfType(MetaType.SERVICE);
@@ -99,7 +103,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 			try {
 				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
 				if (thread != null && thread.count() > 0) {
-					cacheInReplyTos(thread.getTweets());
+					cacheInReplyTos(db, thread.getTweets());
 					return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
 				}
 			}
@@ -112,18 +116,18 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 		return null;
 	}
 
-	private ReplyLoaderResult generic (final Tweet startingTweet) {
+	private static ReplyLoaderResult generic (final DbInterface db, final Tweet startingTweet) {
 		final Meta inReplyToMeta = startingTweet.getFirstMetaOfType(MetaType.INREPLYTO);
 		if (inReplyToMeta == null) return null;
 
-		final ReplyLoaderResult fromCache = fetchFromCache(startingTweet, inReplyToMeta.getData());
+		final ReplyLoaderResult fromCache = fetchFromCache(db, startingTweet, inReplyToMeta.getData());
 		if (fromCache != null) return fromCache;
 
 		return null;
 	}
 
-	private ReplyLoaderResult fetchFromCache (final Tweet startingTweet, final String inReplyToSid) {
-		final Tweet inReplyToTweet = this.db.getTweetDetails(inReplyToSid);
+	private static ReplyLoaderResult fetchFromCache (final DbInterface db, final Tweet startingTweet, final String inReplyToSid) {
+		final Tweet inReplyToTweet = db.getTweetDetails(inReplyToSid);
 		if (inReplyToTweet != null) return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
 		return null;
 	}
@@ -153,8 +157,8 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 		return ret;
 	}
 
-	private void cacheInReplyTos (final List<Tweet> tweets) {
-		this.db.storeTweets(Column.ID_CACHED, tweets);
+	private static void cacheInReplyTos (final DbInterface db, final List<Tweet> tweets) {
+		db.storeTweets(Column.ID_CACHED, tweets);
 	}
 
 	@Override
@@ -165,7 +169,7 @@ public class InReplyToLoaderTask extends AsyncTask<Tweet, Void, ReplyLoaderResul
 		}
 		this.payloadListAdapter.replaceItem(this.placeholderPayload, result.getPayloads());
 		if (result.checkAgain()) {
-			new InReplyToLoaderTask(this.conf, this.provMgr, this.db, this.payloadListAdapter).execute(result.getFirstTweet());
+			new InReplyToLoaderTask(getContext(), this.conf, this.provMgr, this.payloadListAdapter).execute(result.getFirstTweet());
 		}
 	}
 
