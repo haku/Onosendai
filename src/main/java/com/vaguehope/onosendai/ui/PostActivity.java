@@ -26,7 +26,6 @@ import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -270,15 +269,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		((Button) findViewById(R.id.btnPost)).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick (final View v) {
-				askPost(false);
-			}
-		});
-
-		((Button) findViewById(R.id.btnPost)).setOnLongClickListener(new OnLongClickListener() {
-			@Override
-			public boolean onLongClick (final View v) {
-				askPost(true);
-				return true;
+				askPost();
 			}
 		});
 	}
@@ -372,7 +363,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	}
 
-	protected void askPost (final boolean viaOutbox) {
+	protected void askPost () {
 		final Account account = getSelectedAccount();
 		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(this);
@@ -386,19 +377,12 @@ public class PostActivity extends Activity implements ImageLoader {
 			default:
 				msg = String.format("Post to %s?", account.getUiTitle());
 		}
-		if (viaOutbox) msg = "You long-pressed the Post button.  This will post via the Outbox." +
-				"  Outbox is a BETA feature desu~ so may not work as expected.\n\n" + msg;
 		dlgBld.setMessage(msg);
 
 		dlgBld.setPositiveButton("Post", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
-				if (viaOutbox) {
-					submitPostToOutput(account, svcs);
-				}
-				else {
-					submitPost(account, svcs);
-				}
+				submitPostToOutput(account, svcs);
 			}
 		});
 
@@ -412,6 +396,10 @@ public class PostActivity extends Activity implements ImageLoader {
 		dlgBld.show();
 	}
 
+	/**
+	 * @deprecated
+	 */
+	@Deprecated
 	protected void submitPost (final Account account, final Set<ServiceRef> svcs) {
 		final String body = this.txtBody.getText().toString();
 		final Intent recoveryIntent = new Intent(getBaseContext(), PostActivity.class)
