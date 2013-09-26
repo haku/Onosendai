@@ -12,6 +12,8 @@ import local.apache.ByteArrayOutputStream;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapRegionDecoder;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.view.LayoutInflater;
@@ -28,6 +30,7 @@ import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.storage.AttachmentStorage;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.IoHelper;
+import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.Titleable;
 
 public class PictureResizeDialog implements Titleable {
@@ -37,6 +40,8 @@ public class PictureResizeDialog implements Titleable {
 
 	private static final List<Scale> QUALITIES = Scale.setOf(100, 95, 90, 80, 70, 50, 30, 10);
 	private static final int DEFAULT_QUALITY_POS = 2;
+
+	private static final LogWrapper LOG = new LogWrapper("PRD");
 
 	private final Context context;
 	private final ImageMetadata srcMetadata;
@@ -94,6 +99,9 @@ public class PictureResizeDialog implements Titleable {
 		return (Scale) this.spnQuality.getSelectedItem();
 	}
 
+	/*
+	 * TODO FIXME do this in a BG thread with waiting dlg.
+	 */
 	public Uri resizeToTempFile () throws IOException {
 		final Bitmap src = this.srcMetadata.readBitmap();
 		final File tgt = AttachmentStorage.getTempFile(this.context, "shrunk_" + this.srcMetadata.getName());
@@ -125,7 +133,13 @@ public class PictureResizeDialog implements Titleable {
 		public void onNothingSelected (final AdapterView<?> arg0) {/**/}
 	};
 
+	private Scale lastScale = null;
+	private Scale lastQuality = null;
+
 	protected void updateSummary () {
+		if (this.lastScale == getScale() && this.lastQuality == getQuality()) return;
+		this.lastScale = getScale();
+		this.lastQuality = getQuality();
 		new PreviewResizeTask(this.txtSummary, this.imgPreview, this.prgRedrawing, this.srcMetadata, this).execute();
 	}
 
@@ -189,6 +203,7 @@ public class PictureResizeDialog implements Titleable {
 
 		@Override
 		protected Bitmap doInBackground (final Void... params) {
+			LOG.i("Generating preview: s=%s q=%s.", this.dlg.getScale(), this.dlg.getQuality());
 			try {
 				final Bitmap src = this.srcMetadata.readBitmap();
 				final int w = this.dlg.scaleDimension(src.getWidth());
@@ -202,7 +217,22 @@ public class PictureResizeDialog implements Titleable {
 								.append(" (").append(IoHelper.readableFileSize(this.srcMetadata.getSize())).append(")")
 								.append(" --> ").append(w).append(" x ").append(h)
 								.append(" (").append(IoHelper.readableFileSize(compOut.size())).append(")");
-						return BitmapFactory.decodeStream(compOut.toBufferedInputStream());
+						final BitmapRegionDecoder dec = BitmapRegionDecoder.newInstance(compOut.toBufferedInputStream(), true);
+						try {
+							final int srcW = dec.getWidth();
+							final int srcH = dec.getHeight();
+							final int tgtW = this.dlg.getRootView().getWidth(); // FIXME Workaround for ImageView width issue.  Fix properly with something like FixedWidthImageView.
+							final int tgtH = this.imgPreview.getHeight();
+							final int left = srcW > tgtW ? (srcW - tgtW) / 2 : 0;
+							final int top = srcH > tgtH ? (srcH - tgtH) / 2 : 0;
+							final BitmapFactory.Options options = new BitmapFactory.Options();
+							options.inPurgeable = true;
+							options.inInputShareable = true;
+							return dec.decodeRegion(new Rect(left, top, left + tgtW, top + tgtH), options);
+						}
+						finally {
+							dec.recycle();
+						}
 					}
 					this.summary.append("Failed to compress image.");
 					return null;
