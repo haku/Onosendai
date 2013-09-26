@@ -11,12 +11,12 @@
 		android:padding="5dip">
 
 		<TableRow
-			android:layout_width="fill_parent"
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content">
 
 			<ImageView
 				android:id="@+id/imgPreview"
-				android:layout_width="fill_parent"
+				android:layout_width="match_parent"
 				android:layout_height="200dip"
 				android:scaleType="center"
 				android:layout_span="2"
@@ -27,7 +27,7 @@
 		</TableRow>
 
 		<TableRow
-			android:layout_width="fill_parent"
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content">
 
 			<TextView
@@ -41,7 +41,7 @@
 		</TableRow>
 
 		<TableRow
-			android:layout_width="fill_parent"
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content">
 
 			<TextView
@@ -55,7 +55,7 @@
 		</TableRow>
 
 		<TableRow
-			android:layout_width="fill_parent"
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content">
 
 			<ProgressBar
@@ -69,7 +69,7 @@
 
 			<TextView
 				android:id="@+id/txtSummary"
-				android:layout_width="fill_parent"
+				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:layout_weight="1"
 				android:layout_gravity="center"

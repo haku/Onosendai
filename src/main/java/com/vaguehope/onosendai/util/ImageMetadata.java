@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.SoftReference;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -22,7 +23,7 @@ public class ImageMetadata implements Titleable {
 	private final long size;
 	private final String name;
 
-	private Bitmap bitmap;
+	private SoftReference<Bitmap> bitmapRef;
 
 	public ImageMetadata (final Context context, final Uri uri) {
 		this.context = context;
@@ -88,23 +89,28 @@ public class ImageMetadata implements Titleable {
 		throw new IllegalArgumentException("Unknown resource type: " + this.uri);
 	}
 
-	public Bitmap readBitmap () throws IOException {
-		if (this.bitmap == null) {
+	public synchronized Bitmap readBitmap () throws IOException {
+		final Bitmap cached = this.bitmapRef == null ? null : this.bitmapRef.get();
+		if (cached == null) {
 			final InputStream in = open();
 			try {
-				this.bitmap = BitmapFactory.decodeStream(in);
+				final Bitmap fresh = BitmapFactory.decodeStream(in);
+				this.bitmapRef = new SoftReference<Bitmap>(fresh);
+				return fresh;
 			}
 			finally {
 				IoHelper.closeQuietly(in);
 			}
 		}
-		return this.bitmap;
+		return cached;
 	}
 
-	public void recycle () {
-		if (this.bitmap == null) return;
-		this.bitmap.recycle();
-		this.bitmap = null;
+	public synchronized void recycle () {
+		if (this.bitmapRef == null) return;
+		final Bitmap cached = this.bitmapRef.get();
+		if (cached == null) return;
+		cached.recycle();
+		this.bitmapRef = null;
 	}
 
 	@Override
