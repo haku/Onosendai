@@ -31,7 +31,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 14;
+	private static final int DB_VERSION = 15;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -62,6 +62,7 @@ public class DbAdapter implements DbInterface {
 			db.execSQL(TBL_TM_CREATE);
 			db.execSQL(TBL_TM_CREATE_INDEX);
 			db.execSQL(TBL_SC_CREATE);
+			db.execSQL(TBL_OB_CREATE);
 			db.execSQL(TBL_KV_CREATE);
 			db.execSQL(TBL_KV_CREATE_INDEX);
 		}
@@ -97,10 +98,10 @@ public class DbAdapter implements DbInterface {
 					this.log.w("Adding column %s...", TBL_SC_UNREAD);
 					db.execSQL("ALTER TABLE " + TBL_SC + " ADD COLUMN " + TBL_SC_UNREAD + " integer;");
 				}
-				// 13 got merged into 14.
-				if (oldVersion < 14) { // NOSONAR not a magic number.
+				// 13 and 14 got merged into 15.
+				if (oldVersion < 15) { // NOSONAR not a magic number.
 					this.log.w("Creating table %s...", TBL_OB);
-					db.execSQL(TBL_OB_CREATE);
+					if (!isTableExists(db, TBL_OB)) db.execSQL(TBL_OB_CREATE);
 				}
 			}
 		}
@@ -111,6 +112,18 @@ public class DbAdapter implements DbInterface {
 			if (!db.isReadOnly()) {
 				db.execSQL("PRAGMA foreign_keys=ON;");
 				this.log.i("foreign_keys=ON");
+			}
+		}
+
+		private static boolean isTableExists (final SQLiteDatabase db, final String tableName) {
+			Cursor c = null;
+			try {
+				c = db.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master WHERE tbl_name=?", new String[] { tableName });
+				if (c.getCount() > 0) return true;
+				return false;
+			}
+			finally {
+				IoHelper.closeQuietly(c);
 			}
 		}
 
