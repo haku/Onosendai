@@ -75,5 +75,53 @@
         </links>
       </content>
     </item>
+    <item>
+      <service>facebook</service>
+      <fetchedforuserid>532423349</fetchedforuserid>
+      <content>
+        <id>723423452_10152608678789223</id>
+        <type>facebook_status</type>
+        <fromuserid>1456098452</fromuserid>
+        <fromusername>Will Brown</fromusername>
+        <fromuseravatar>http://graph.facebook.com/1456098452/picture</fromuseravatar>
+        <numcomments type="integer">0</numcomments>
+        <numlikes type="integer">0</numlikes>
+        <text>happy birthday m8</text>
+        <time type="datetime">2013-11-24T00:48:18+00:00</time>
+        <replytoid>723423452_10152608678789223</replytoid>
+        <tousername>Rich Green</tousername>
+        <links type="array"/>
+        <actions type="array">
+          <action>
+            <name>reply</name>
+            <path>/item</path>
+            <params>
+              <service>facebook</service>
+              <uid>532423349</uid>
+              <replytoid>723423452_10152608678789223</replytoid>
+            </params>
+          </action>
+          <action>
+            <name>conversation</name>
+            <path>/thread</path>
+            <params>
+              <service>facebook</service>
+              <uid>532423349</uid>
+              <postid>723423452_10152608678789223</postid>
+            </params>
+          </action>
+          <action>
+            <name>like</name>
+            <path>/actions</path>
+            <params>
+              <service>facebook</service>
+              <uid>532423349</uid>
+              <action>like</action>
+              <postid>723423452_10152608678789223</postid>
+            </params>
+          </action>
+        </actions>
+      </content>
+    </item>
   </items>
 </feed>

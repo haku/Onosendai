@@ -83,6 +83,8 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	private final TweetBuilder currentItem = new TweetBuilder();
 	private final TweetBuilder currentComment = new TweetBuilder();
 	private boolean addThisItem = true;
+	private String stashedFromUserName;
+	private String stashedToUserName;
 	private String stashedFirstLinkTitle;
 	private String stashedLinkUrl;
 	private String stashedLinkExpandedUrl;
@@ -108,10 +110,15 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 		if (this.stack.size() == 3 && elementName.equals("item")) { // NOSONAR not a magic number.
 			if (this.addThisItem) {
 				this.currentItem.bodyIfAbsent(this.stashedFirstLinkTitle);
+				this.currentItem.fullname(this.stashedToUserName != null
+						? this.stashedFromUserName + " > " + this.stashedToUserName
+						: this.stashedFromUserName);
 				this.currentItem.meta(MetaType.ACCOUNT, this.account.getId());
 				this.currentItem.meta(MetaType.SERVICE, ServiceRef.createServiceMeta(this.stashedService, this.stashedFetchedForUserid));
 				this.tweets.add(this.currentItem.build());
 			}
+			this.stashedFromUserName = null;
+			this.stashedToUserName = null;
 			this.stashedFirstLinkTitle = null;
 			this.stashedFetchedForUserid = null;
 			this.stashedService = null;
@@ -133,7 +140,10 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.currentItem.username(this.currentText.toString());
 			}
 			else if ("fromusername".equals(elementName)) {
-				this.currentItem.fullname(this.currentText.toString());
+				this.stashedFromUserName = this.currentText.toString();
+			}
+			else if ("tousername".equals(elementName)) {
+				this.stashedToUserName = this.currentText.toString();
 			}
 			else if ("text".equals(elementName)) {
 				this.currentItem.body(this.currentText.toString());
