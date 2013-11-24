@@ -99,7 +99,7 @@ public class SuccessWhaleFeedXmlTest {
 	public void itParsesFacebookHomeFeedEntryWithUrl () throws Exception {
 		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_fb_home.xml"));
 		TweetList tweets = feed.getTweets();
-		assertEquals(3, tweets.count());
+		assertEquals(4, tweets.count());
 
 		Tweet t = tweets.getTweet(0);
 		assertEquals("Some User shared a link.", t.getBody());
@@ -121,7 +121,7 @@ public class SuccessWhaleFeedXmlTest {
 	public void itParsesFacebookHomeFeedEntryWithUrlAndNoText () throws Exception {
 		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_fb_home.xml"));
 		TweetList tweets = feed.getTweets();
-		assertEquals(3, tweets.count());
+		assertEquals(4, tweets.count());
 
 		Tweet t = tweets.getTweet(2);
 		assertEquals("A Link with a Page Title", t.getBody());
@@ -132,6 +132,24 @@ public class SuccessWhaleFeedXmlTest {
 
 		assertEquals(3, t.getMetas().size());
 		assertHasMeta(t.getMetas(), new Meta(MetaType.URL, "http://apps.facebook.com/daily_photos_plus/y/the&other&args", "A Link with a Page Title"));
+		assertHasMeta(t.getMetas(), new Meta(MetaType.SERVICE, "facebook:532423349"));
+		assertHasMeta(t.getMetas(), new Meta(MetaType.ACCOUNT, ACCOUNT_ID));
+	}
+
+	@Test
+	public void itParsesFacebookHomeFeedEntryDirectedToAnotherUser () throws Exception {
+		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_fb_home.xml"));
+		TweetList tweets = feed.getTweets();
+		assertEquals(4, tweets.count());
+
+		Tweet t = tweets.getTweet(3);
+		assertEquals("happy birthday m8", t.getBody());
+		assertEquals("723423452_10152608678789223", t.getSid());
+		assertEquals(null, t.getUsername());
+		assertEquals("Will Brown > Rich Green", t.getFullname());
+		assertEquals(1385254098L, t.getTime());
+
+		assertEquals(2, t.getMetas().size());
 		assertHasMeta(t.getMetas(), new Meta(MetaType.SERVICE, "facebook:532423349"));
 		assertHasMeta(t.getMetas(), new Meta(MetaType.ACCOUNT, ACCOUNT_ID));
 	}
