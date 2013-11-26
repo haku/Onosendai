@@ -177,6 +177,27 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals("http://graph.facebook.com/523049849/picture", t1.getAvatarUrl());
 	}
 
+	@Test
+	public void itParsesFacebookNotificationsFeed () throws Exception {
+		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_fb_notifications.xml"));
+		TweetList tweets = feed.getTweets();
+		assertEquals(1, tweets.count());
+
+		Tweet t = tweets.getTweet(0);
+		assertEquals("Henry Yellow, Ben Red and 4 others asked to join ThingSoc @ City University.", t.getBody());
+		assertEquals("notif_569999649_420557727", t.getSid());
+		assertEquals(null, t.getUsername());
+		assertEquals("Henry Yellow", t.getFullname());
+		assertEquals(1385031318L, t.getTime());
+		assertEquals("http://graph.facebook.com/100009999760444/picture", t.getAvatarUrl());
+
+		assertHasMeta(t.getMetas(), new Meta(MetaType.SERVICE, "facebook:569999649"));
+		assertHasMeta(t.getMetas(), new Meta(MetaType.ACCOUNT, ACCOUNT_ID));
+		assertHasMeta(t.getMetas(), new Meta(MetaType.URL, "http://www.facebook.com/groups/2299996853/requests/", "")); // XXX Empty title could be better?
+		assertHasMeta(t.getMetas(), new Meta(MetaType.REPLYTO, "2299996853"));
+		assertEquals(4, t.getMetas().size());
+	}
+
 	private static void assertHasMeta (final List<Meta> metas, final Meta m) {
 		assertThat(metas, hasItem(m));
 	}

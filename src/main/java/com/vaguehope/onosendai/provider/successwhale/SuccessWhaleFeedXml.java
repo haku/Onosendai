@@ -162,6 +162,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				final String v = this.currentText.toString();
 				this.currentItem.meta(MetaType.MENTION, v, String.format("RT by @%s", v));
 			}
+			else if ("replytoid".equals(elementName)) {
+				this.currentItem.replyToId(this.currentText.toString());
+			}
 		}
 		else if (this.stack.size() == 6) { // NOSONAR not a magic number.
 			if ("link".equals(elementName)) {

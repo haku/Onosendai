@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.ui.PostActivity;
 import com.vaguehope.onosendai.util.EqualHelper;
@@ -33,6 +35,10 @@ public class AddCommentPayload extends Payload {
 		intent.putExtra(PostActivity.ARG_ACCOUNT_ID, this.account.getId());
 		intent.putExtra(PostActivity.ARG_IN_REPLY_TO_UID, getOwnerTweet().getUid());
 		intent.putExtra(PostActivity.ARG_IN_REPLY_TO_SID, getOwnerTweet().getSid());
+
+		final Meta replyToId = getOwnerTweet().getFirstMetaOfType(MetaType.REPLYTO);
+		if (replyToId != null) intent.putExtra(PostActivity.ARG_ALT_REPLY_TO_SID, replyToId.getData());
+
 		return intent;
 	}
 
