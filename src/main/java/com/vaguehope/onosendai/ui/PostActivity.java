@@ -65,12 +65,14 @@ import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class PostActivity extends Activity implements ImageLoader {
 
 	public static final String ARG_ACCOUNT_ID = "account_id";
 	public static final String ARG_IN_REPLY_TO_SID = "in_reply_to_sid";
 	public static final String ARG_IN_REPLY_TO_UID = "in_reply_to_uid";
+	public static final String ARG_ALT_REPLY_TO_SID = "reply_to_sid";
 	public static final String ARG_ALSO_MENTIONS = "also_mentions";
 	public static final String ARG_BODY = "body"; // If present mentions will not be prepended to body.
 	public static final String ARG_SVCS = "svcs";
@@ -84,6 +86,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	private Bundle intentExtras;
 	private long inReplyToUid;
 	private String inReplyToSid;
+	private String altReplyToSid;
 	private String[] alsoMentions;
 
 	private DbClient bndDb;
@@ -124,8 +127,10 @@ public class PostActivity extends Activity implements ImageLoader {
 		this.intentExtras = getIntent().getExtras();
 		this.inReplyToUid = this.intentExtras.getLong(ARG_IN_REPLY_TO_UID);
 		this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
+		this.altReplyToSid = this.intentExtras.getString(ARG_ALT_REPLY_TO_SID);
 		this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
-		LOG.i("inReplyToUid=%d inReplyToSid=%s alsoMentions=%s", this.inReplyToUid, this.inReplyToSid, Arrays.toString(this.alsoMentions));
+		LOG.i("inReplyToUid=%d inReplyToSid=%s altReplyToSid=%s alsoMentions=%s",
+				this.inReplyToUid, this.inReplyToSid, this.altReplyToSid, Arrays.toString(this.alsoMentions));
 
 		setupAccounts(savedInstanceState, accounts, conf);
 		setupAttachemnt(savedInstanceState);
@@ -396,6 +401,11 @@ public class PostActivity extends Activity implements ImageLoader {
 		dlgBld.show();
 	}
 
+	private String getReplyToSidToSubmit() {
+		if (!StringHelper.isEmpty(this.altReplyToSid)) return this.altReplyToSid;
+		return this.inReplyToSid;
+	}
+
 	/**
 	 * @deprecated
 	 */
@@ -406,6 +416,7 @@ public class PostActivity extends Activity implements ImageLoader {
 				.putExtra(ARG_ACCOUNT_ID, account.getId())
 				.putExtra(ARG_IN_REPLY_TO_UID, this.inReplyToUid)
 				.putExtra(ARG_IN_REPLY_TO_SID, this.inReplyToSid)
+				.putExtra(ARG_ALT_REPLY_TO_SID, this.altReplyToSid)
 				.putExtra(ARG_ATTACHMENT, this.attachment)
 				.putExtra(ARG_BODY, body);
 
@@ -415,12 +426,12 @@ public class PostActivity extends Activity implements ImageLoader {
 		}
 		recoveryIntent.putStringArrayListExtra(ARG_SVCS, svcsLst);
 
-		new PostTask(getApplicationContext(), new PostRequest(account, svcs, body, this.inReplyToSid, this.attachment, recoveryIntent)).execute();
+		new PostTask(getApplicationContext(), new PostRequest(account, svcs, body, getReplyToSidToSubmit(), this.attachment, recoveryIntent)).execute();
 		finish();
 	}
 
 	protected void submitPostToOutput (final Account account, final Set<ServiceRef> svcs) {
-		getDb().addPostToOutput(new OutboxTweet(account, svcs, this.txtBody.getText().toString(), this.inReplyToSid, this.attachment));
+		getDb().addPostToOutput(new OutboxTweet(account, svcs, this.txtBody.getText().toString(), getReplyToSidToSubmit(), this.attachment));
 		startService(new Intent(this, SendOutboxService.class));
 		Toast.makeText(this, "Posted via Outbox", Toast.LENGTH_SHORT).show();
 		finish();

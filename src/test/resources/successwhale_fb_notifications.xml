@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed>
+  <success type="boolean">true</success>
+  <request type="array">
+    <request>
+      <service>facebook</service>
+      <uid>569999649</uid>
+      <url>me/notifications</url>
+    </request>
+  </request>
+  <items type="array">
+    <item>
+      <service>facebook</service>
+      <fetchedforuserid>569999649</fetchedforuserid>
+      <content>
+        <id>notif_569999649_420557727</id>
+        <type>facebook_notification</type>
+        <fromuserid>100009999760444</fromuserid>
+        <fromusername>Henry Yellow</fromusername>
+        <fromuseravatar>http://graph.facebook.com/100009999760444/picture</fromuseravatar>
+        <numcomments type="integer">0</numcomments>
+        <numlikes type="integer">0</numlikes>
+        <text>Henry Yellow, Ben Red and 4 others asked to join ThingSoc @ City University.</text>
+        <unread type="integer">0</unread>
+        <time type="datetime">2013-11-21T10:55:18+00:00</time>
+        <sourceid>2299996853</sourceid>
+        <replytoid>2299996853</replytoid>
+        <links type="array">
+          <link>
+            <url>http://www.facebook.com/groups/2299996853/requests/</url>
+            <title nil="true"/>
+          </link>
+        </links>
+        <actions type="array">
+          <action>
+            <name>reply</name>
+            <path>/item</path>
+            <params>
+              <service>facebook</service>
+              <uid>569999649</uid>
+              <replytoid>2299996853</replytoid>
+            </params>
+          </action>
+          <action>
+            <name>conversation</name>
+            <path>/thread</path>
+            <params>
+              <service>facebook</service>
+              <uid>569999649</uid>
+              <postid>2299996853</postid>
+            </params>
+          </action>
+        </actions>
+      </content>
+    </item>
+  </items>
+</feed>

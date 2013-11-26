@@ -14,7 +14,12 @@ public enum MetaType {
 	/**
 	 * Account (as appears in deck.conf).
 	 */
-	ACCOUNT(7);
+	ACCOUNT(7),
+	/**
+	 * The Service provided ID (SID) to reply to if different from the item SID.
+	 * e.g. Facebook notifications.
+	 */
+	REPLYTO(8);
 
 	private final int id;
 
@@ -42,6 +47,8 @@ public enum MetaType {
 				return SERVICE;
 			case 7: // NOSONAR 7 is not magical.
 				return ACCOUNT;
+			case 8:
+				return REPLYTO;
 			default:
 				return null;
 		}

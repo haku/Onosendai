@@ -11,6 +11,7 @@ public class TweetBuilder {
 	private String body;
 	private long unitTimeSeconds;
 	private String avatarUrl;
+	private String replyToId;
 	private List<Meta> metas;
 
 	public TweetBuilder () {
@@ -62,6 +63,10 @@ public class TweetBuilder {
 		return this;
 	}
 
+	public void replyToId (final String v) {
+		this.replyToId = v;
+	}
+
 	public TweetBuilder meta (final Meta v) {
 		if (this.metas == null) this.metas = new ArrayList<Meta>();
 		this.metas.add(v);
@@ -77,6 +82,7 @@ public class TweetBuilder {
 	}
 
 	public Tweet build () {
+		if (this.replyToId != null && !this.replyToId.equals(this.id)) meta(MetaType.REPLYTO, this.replyToId);
 		Tweet t = new Tweet(this.id, this.username, this.fullname, this.body, this.unitTimeSeconds, this.avatarUrl, this.metas);
 		reset();
 		return t;
