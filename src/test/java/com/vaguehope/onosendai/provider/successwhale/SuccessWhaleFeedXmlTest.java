@@ -99,7 +99,7 @@ public class SuccessWhaleFeedXmlTest {
 	public void itParsesFacebookHomeFeedEntryWithUrl () throws Exception {
 		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_fb_home.xml"));
 		TweetList tweets = feed.getTweets();
-		assertEquals(4, tweets.count());
+		assertEquals(5, tweets.count());
 
 		Tweet t = tweets.getTweet(0);
 		assertEquals("Some User shared a link.", t.getBody());
@@ -121,7 +121,7 @@ public class SuccessWhaleFeedXmlTest {
 	public void itParsesFacebookHomeFeedEntryWithUrlAndNoText () throws Exception {
 		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_fb_home.xml"));
 		TweetList tweets = feed.getTweets();
-		assertEquals(4, tweets.count());
+		assertEquals(5, tweets.count());
 
 		Tweet t = tweets.getTweet(2);
 		assertEquals("A Link with a Page Title", t.getBody());
@@ -140,14 +140,32 @@ public class SuccessWhaleFeedXmlTest {
 	public void itParsesFacebookHomeFeedEntryDirectedToAnotherUser () throws Exception {
 		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_fb_home.xml"));
 		TweetList tweets = feed.getTweets();
-		assertEquals(4, tweets.count());
+		assertEquals(5, tweets.count());
 
 		Tweet t = tweets.getTweet(3);
 		assertEquals("happy birthday m8", t.getBody());
 		assertEquals("723423452_10152608678789223", t.getSid());
 		assertEquals(null, t.getUsername());
-		assertEquals("Will Brown > Rich Green", t.getFullname());
+		assertEquals("Will Brown > Rich Green\n1 comment, 1 like", t.getFullname());
 		assertEquals(1385254098L, t.getTime());
+
+		assertEquals(2, t.getMetas().size());
+		assertHasMeta(t.getMetas(), new Meta(MetaType.SERVICE, "facebook:532423349"));
+		assertHasMeta(t.getMetas(), new Meta(MetaType.ACCOUNT, ACCOUNT_ID));
+	}
+
+	@Test
+	public void itParsesFacebookHomeFeedEntryWithLikesAndComments () throws Exception {
+		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_fb_home.xml"));
+		TweetList tweets = feed.getTweets();
+		assertEquals(5, tweets.count());
+
+		Tweet t = tweets.getTweet(4);
+		assertEquals("Fun feature of new mp3 player: the Nightwish track 'I Want My Tears Back' has been abbreviated to 'I Want My Tea'. :)", t.getBody());
+		assertEquals("799999161_19999992321999162", t.getSid());
+		assertEquals(null, t.getUsername());
+		assertEquals("Kerrith Orange\n6 comments, 8 likes", t.getFullname());
+		assertEquals(1385571037L, t.getTime());
 
 		assertEquals(2, t.getMetas().size());
 		assertHasMeta(t.getMetas(), new Meta(MetaType.SERVICE, "facebook:532423349"));

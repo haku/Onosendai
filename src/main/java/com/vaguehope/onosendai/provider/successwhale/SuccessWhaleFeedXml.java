@@ -18,6 +18,7 @@ package com.vaguehope.onosendai.provider.successwhale;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -77,6 +78,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private final MessageFormat likesMsgFmt = new MessageFormat("{0} {0,choice,0#likes|1#like|1<likes}");
+	private final MessageFormat commentsMsgFmt = new MessageFormat("{0} {0,choice,0#comments|1#comment|1<comments}");
 
 	private final Stack<String> stack = new Stack<String>();
 	private StringBuilder currentText;
@@ -164,6 +168,14 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			}
 			else if ("replytoid".equals(elementName)) {
 				this.currentItem.replyToId(this.currentText.toString());
+			}
+			else if ("numcomments".equals(elementName)) {
+				final int v = Integer.parseInt(this.currentText.toString());
+				if (v > 0) this.currentItem.subtitle(this.commentsMsgFmt.format(new Object[] { Integer.valueOf(v) }));
+			}
+			else if ("numlikes".equals(elementName)) {
+				final int v = Integer.parseInt(this.currentText.toString());
+				if (v > 0) this.currentItem.subtitle(this.likesMsgFmt.format(new Object[] { Integer.valueOf(v) }));
 			}
 		}
 		else if (this.stack.size() == 6) { // NOSONAR not a magic number.

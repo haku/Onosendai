@@ -84,8 +84,14 @@
         <fromuserid>1456098452</fromuserid>
         <fromusername>Will Brown</fromusername>
         <fromuseravatar>http://graph.facebook.com/1456098452/picture</fromuseravatar>
-        <numcomments type="integer">0</numcomments>
-        <numlikes type="integer">0</numlikes>
+        <numcomments type="integer">1</numcomments>
+        <numlikes type="integer">1</numlikes>
+        <likes type="array">
+          <like>
+            <id>199999939935226</id>
+            <name>Lewis Red</name>
+          </like>
+        </likes>
         <text>happy birthday m8</text>
         <time type="datetime">2013-11-24T00:48:18+00:00</time>
         <replytoid>723423452_10152608678789223</replytoid>
@@ -118,6 +124,87 @@
               <uid>532423349</uid>
               <action>like</action>
               <postid>723423452_10152608678789223</postid>
+            </params>
+          </action>
+        </actions>
+      </content>
+    </item>
+    <item>
+      <service>facebook</service>
+      <fetchedforuserid>532423349</fetchedforuserid>
+      <content>
+        <id>799999161_19999992321999162</id>
+        <type>facebook_status</type>
+        <fromuserid>799999161</fromuserid>
+        <fromusername>Kerrith Orange</fromusername>
+        <fromuseravatar>http://graph.facebook.com/799999161/picture</fromuseravatar>
+        <numcomments type="integer">6</numcomments>
+        <numlikes type="integer">8</numlikes>
+        <likes type="array">
+          <like>
+            <id>199999939935226</id>
+            <name>Lewis Red</name>
+          </like>
+          <like>
+            <id>599999953</id>
+            <name>Stephen Yellow</name>
+          </like>
+          <like>
+            <id>699999900</id>
+            <name>Ian Green</name>
+          </like>
+          <like>
+            <id>299999943</id>
+            <name>Harriet Blue</name>
+          </like>
+          <like>
+            <id>599999970</id>
+            <name>Cat Smith</name>
+          </like>
+          <like>
+            <id>799999964</id>
+            <name>Seth Grey</name>
+          </like>
+          <like>
+            <id>299999933</id>
+            <name>Fay Purple</name>
+          </like>
+          <like>
+            <id>599999975</id>
+            <name>Isa Maroon</name>
+          </like>
+        </likes>
+        <text>Fun feature of new mp3 player: the Nightwish track 'I Want My Tears Back' has been abbreviated to 'I Want My Tea'. :)</text>
+        <time type="datetime">2013-11-27T16:50:37+00:00</time>
+        <replytoid>799999161_19999992321999162</replytoid>
+        <links type="array"/>
+        <actions type="array">
+          <action>
+            <name>reply</name>
+            <path>/item</path>
+            <params>
+              <service>facebook</service>
+              <uid>532423349</uid>
+              <replytoid>799999161_19999992321999162</replytoid>
+            </params>
+          </action>
+          <action>
+            <name>conversation</name>
+            <path>/thread</path>
+            <params>
+              <service>facebook</service>
+              <uid>532423349</uid>
+              <postid>799999161_19999992321999162</postid>
+            </params>
+          </action>
+          <action>
+            <name>like</name>
+            <path>/actions</path>
+            <params>
+              <service>facebook</service>
+              <uid>532423349</uid>
+              <action>like</action>
+              <postid>799999161_19999992321999162</postid>
             </params>
           </action>
         </actions>
