@@ -13,6 +13,7 @@ public class TweetBuilder {
 	private String avatarUrl;
 	private String replyToId;
 	private List<Meta> metas;
+	private StringBuilder subTitles;
 
 	public TweetBuilder () {
 		reset();
@@ -26,6 +27,8 @@ public class TweetBuilder {
 		this.unitTimeSeconds = 0L;
 		this.avatarUrl = null;
 		this.metas = null;
+		this.replyToId = null;
+		this.subTitles = null;
 	}
 
 	public TweetBuilder id (final String v) {
@@ -81,9 +84,21 @@ public class TweetBuilder {
 		return meta(new Meta(type, data, title));
 	}
 
+	public TweetBuilder subtitle (final String subTitle) {
+		if (this.subTitles == null) {
+			this.subTitles = new StringBuilder(subTitle);
+		}
+		else {
+			this.subTitles.append(", ").append(subTitle);
+		}
+		return this;
+	}
+
 	public Tweet build () {
 		if (this.replyToId != null && !this.replyToId.equals(this.id)) meta(MetaType.REPLYTO, this.replyToId);
-		Tweet t = new Tweet(this.id, this.username, this.fullname, this.body, this.unitTimeSeconds, this.avatarUrl, this.metas);
+		Tweet t = new Tweet(this.id, this.username,
+				this.subTitles != null ? this.fullname + "\n" + this.subTitles.toString() : this.fullname,
+				this.body, this.unitTimeSeconds, this.avatarUrl, this.metas);
 		reset();
 		return t;
 	}
