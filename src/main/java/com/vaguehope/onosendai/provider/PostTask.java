@@ -16,6 +16,7 @@ import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.TaskOutcome;
 import com.vaguehope.onosendai.notifications.NotificationIds;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.PostTask.PostResult;
@@ -141,34 +142,36 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 
 	@Override
 	protected void onPostExecute (final PostResult res) {
-		if (!res.isSuccess()) {
-			LOG.w("Post failed.", res.getE());
-			Intent intent;
-			String title;
-			if (this.req.getRecoveryIntent() != null) {
-				intent = this.req.getRecoveryIntent();
-				title = String.format("Tap to retry post to %s.", this.req.getAccount().getUiTitle());
-			}
-			else {
-				intent = new Intent(getContext(), OutboxActivity.class);
-				title = String.format("Post to %s will be retried in background.", this.req.getAccount().getUiTitle());
-				// TODO only one notification for all outbox issues!
-			}
-			final PendingIntent contentIntent = PendingIntent.getActivity(getContext(), this.notificationId,
-					intent, PendingIntent.FLAG_CANCEL_CURRENT);
-			final Notification n = new NotificationCompat.Builder(getContext())
-					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
-					.setContentText(res.getEmsg())
-					.setAutoCancel(true)
-					.setUsesChronometer(false)
-					.setWhen(System.currentTimeMillis())
-					.setContentIntent(contentIntent)
-					.setContentTitle(title)
-					.build();
-			this.notificationMgr.notify(this.notificationId, n);
-		}
-		else {
-			this.notificationMgr.cancel(this.notificationId);
+		switch (res.getOutcome()) {
+			case SUCCESS:
+			case PREVIOUS_ATTEMPT_SUCCEEDED:
+				this.notificationMgr.cancel(this.notificationId);
+				break;
+			default:
+				LOG.w("Post failed (" + res.getOutcome() + ").", res.getE());
+				Intent intent;
+				String title;
+				if (this.req.getRecoveryIntent() != null) {
+					intent = this.req.getRecoveryIntent();
+					title = String.format("Tap to retry post to %s.", this.req.getAccount().getUiTitle());
+				}
+				else {
+					intent = new Intent(getContext(), OutboxActivity.class);
+					title = String.format("Post to %s will be retried in background.", this.req.getAccount().getUiTitle());
+					// TODO only one notification for all outbox issues!
+				}
+				final PendingIntent contentIntent = PendingIntent.getActivity(getContext(), this.notificationId,
+						intent, PendingIntent.FLAG_CANCEL_CURRENT);
+				final Notification n = new NotificationCompat.Builder(getContext())
+						.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
+						.setContentText(res.getEmsg())
+						.setAutoCancel(true)
+						.setUsesChronometer(false)
+						.setWhen(System.currentTimeMillis())
+						.setContentIntent(contentIntent)
+						.setContentTitle(title)
+						.build();
+				this.notificationMgr.notify(this.notificationId, n);
 		}
 	}
 
@@ -237,24 +240,24 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 
 	protected static class PostResult {
 
-		private final boolean success;
+		private final TaskOutcome outcome;
 		private final PostRequest request;
 		private final Exception e;
 
 		public PostResult (final PostRequest request) {
-			this.success = true;
+			this.outcome = TaskOutcome.SUCCESS;
 			this.request = request;
 			this.e = null;
 		}
 
 		public PostResult (final PostRequest request, final Exception e) {
-			this.success = false;
+			this.outcome = TaskUtils.failureType(e);
 			this.request = request;
 			this.e = e;
 		}
 
-		public boolean isSuccess () {
-			return this.success;
+		public TaskOutcome getOutcome () {
+			return this.outcome;
 		}
 
 		public PostRequest getRequest () {

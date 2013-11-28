@@ -48,16 +48,27 @@ public class SendOutboxService extends DbBindingService {
 			OutboxTweet otStat = null;
 			try {
 				final PostResult res = task.get();
-				if (res.isSuccess()) {
-					LOG.i("Posted: %s", ot);
-					getDb().deleteFromOutbox(ot);
-				}
-				else {
-					otStat = addFailureType(ot, res.getEmsg(), res.getE());
+				switch (res.getOutcome()) {
+					case SUCCESS:
+					case PREVIOUS_ATTEMPT_SUCCEEDED:
+						LOG.i("Posted (%s): %s", res.getOutcome(), ot);
+						getDb().deleteFromOutbox(ot);
+						break;
+					case TEMPORARY_FAILURE:
+						otStat = ot.tempFailure(res.getEmsg());
+						break;
+					default:
+						otStat = ot.permFailure(res.getEmsg());
 				}
 			}
 			catch (final Exception e) { // NOSONAR report all errors.
-				otStat = addFailureType(ot, e.toString(), e);
+				switch (TaskUtils.failureType(e)) {
+					case TEMPORARY_FAILURE:
+						otStat = ot.tempFailure(e.toString());
+						break;
+					default:
+						otStat = ot.permFailure(e.toString());
+				}
 			}
 			if (otStat != null) {
 				LOG.w("Post failed: %s", otStat.getLastError());
@@ -72,11 +83,6 @@ public class SendOutboxService extends DbBindingService {
 				ot.getBody(),
 				ot.getInReplyToSid(),
 				ot.getAttachment());
-	}
-
-	private static OutboxTweet addFailureType(final OutboxTweet ot, final String msg, final Exception e) {
-		if (TaskUtils.isFailurePermanent(e)) return ot.permFailure(msg);
-		return ot.tempFailure(msg);
 	}
 
 }
