@@ -168,7 +168,8 @@ class ColumnDialog {
 		if (this.excludes.size() > 0) {
 			for (final Integer exId : this.excludes) {
 				if (s.length() > 0) s.append(", ");
-				s.append(this.allColumns.get(exId).getUiTitle());
+				final Column exCol = this.allColumns.get(exId);
+				s.append(exCol != null ? exCol.getUiTitle() : "(" + exId + ")");
 			}
 		}
 		else {
