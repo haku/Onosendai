@@ -19,7 +19,7 @@ public final class ScrollIndicator {
 	private static final int ACCEL_STOP_3 = 100;
 	private static final int BAR_WIDTH_DIP = 7;
 	private static final int COLOUR_BAR = Color.GRAY;
-	private static final int COLOUR_UNREAD = Color.parseColor("#268bd2"); // Sonarized Blue.
+	private static final int COLOUR_UNREAD = Color.parseColor("#268bd2"); // Solarized Blue.
 
 	private final BarMover barMover;
 
