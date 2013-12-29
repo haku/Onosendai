@@ -13,7 +13,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
 import android.util.SparseArray;
 
@@ -37,6 +36,7 @@ import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.MultiplexingOnPageChangeListener;
+import com.vaguehope.onosendai.widget.SidebarAwareViewPager;
 
 public class MainActivity extends FragmentActivity implements ImageLoader, OnSharedPreferenceChangeListener {
 
@@ -50,7 +50,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 	private HybridBitmapCache imageCache;
 	private ExecutorService exec;
 
-	private ViewPager viewPager;
+	private SidebarAwareViewPager viewPager;
 	private VisiblePageSelectionListener pageSelectionListener;
 	private final SparseArray<TweetListFragment> activePages = new SparseArray<TweetListFragment>();
 
@@ -85,13 +85,14 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 
 		// If this becomes too memory intensive, switch to android.support.v4.app.FragmentStatePagerAdapter.
 		final SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), this.conf, columnWidth);
-		this.viewPager = (ViewPager) findViewById(R.id.pager);
-		this.viewPager.setAdapter(sectionsPagerAdapter);
+		this.viewPager = (SidebarAwareViewPager) findViewById(R.id.pager);
 		this.pageSelectionListener = new VisiblePageSelectionListener(columnWidth);
-		this.viewPager.setOnPageChangeListener(new MultiplexingOnPageChangeListener(
+		final MultiplexingOnPageChangeListener onPageChangeListener = new MultiplexingOnPageChangeListener(
 				this.pageSelectionListener,
-				new NotificationClearingPageSelectionListener(this, this.conf)));
-		showPageFromIntent(getIntent());
+				new NotificationClearingPageSelectionListener(this, this.conf));
+		this.viewPager.setOnPageChangeListener(onPageChangeListener);
+		this.viewPager.setAdapter(sectionsPagerAdapter);
+		if (!showPageFromIntent(getIntent())) onPageChangeListener.onPageSelected(this.viewPager.getCurrentItem());
 
 		AlarmReceiver.configureAlarms(this); // FIXME be more smart about this?
 	}
@@ -199,15 +200,20 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		ImageLoaderUtils.loadImage(this.imageCache, req, this.exec);
 	}
 
-	public void gotoPage (final int position) {
-		this.viewPager.setCurrentItem(position, false);
+	public boolean gotoPage (final int position) {
+		if (this.viewPager.getCurrentItem() != position) {
+			this.viewPager.setCurrentItem(position, false);
+			return true;
+		}
+		return false;
 	}
 
-	private void showPageFromIntent (final Intent intent) {
+	private boolean showPageFromIntent (final Intent intent) {
 		if (intent.hasExtra(ARG_FOCUS_COLUMN_ID)) {
 			final int pos = this.conf.getColumnPositionById(intent.getIntExtra(ARG_FOCUS_COLUMN_ID, 0));
-			if (pos >= 0) gotoPage(pos);
+			if (pos >= 0) return gotoPage(pos);
 		}
+		return false;
 	}
 
 	protected void onFragmentResumed (final int columnId, final TweetListFragment page) {

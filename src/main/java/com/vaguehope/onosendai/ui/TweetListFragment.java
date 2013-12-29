@@ -70,7 +70,6 @@ import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.Titleable;
 import com.vaguehope.onosendai.widget.ScrollIndicator;
 import com.vaguehope.onosendai.widget.SidebarLayout;
-import com.vaguehope.onosendai.widget.SidebarLayout.SidebarListener;
 
 /**
  * https://developer.android.com/intl/fr/guide/components/fragments.html#
@@ -135,7 +134,6 @@ public class TweetListFragment extends Fragment {
 
 		final View rootView = inflater.inflate(R.layout.tweetlist, container, false);
 		this.sidebar = (SidebarLayout) rootView.findViewById(R.id.tweetListLayout);
-		this.sidebar.setListener(this.sidebarListener);
 
 		rootView.setFocusableInTouchMode(true);
 		rootView.requestFocus();
@@ -560,21 +558,6 @@ public class TweetListFragment extends Fragment {
 			}
 		}
 	}
-
-	private final SidebarListener sidebarListener = new SidebarListener() {
-
-		@Override
-		public boolean onContentTouchedWhenOpening (final SidebarLayout sb) {
-			sb.closeSidebar();
-			return true;
-		}
-
-		@Override
-		public void onSidebarOpened (final SidebarLayout sb) {/* Unused. */}
-
-		@Override
-		public void onSidebarClosed (final SidebarLayout sb) {/* Unused. */}
-	};
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

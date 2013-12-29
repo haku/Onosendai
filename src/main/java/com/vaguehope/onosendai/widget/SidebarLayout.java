@@ -21,10 +21,12 @@ package com.vaguehope.onosendai.widget;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
@@ -37,10 +39,10 @@ public class SidebarLayout extends ViewGroup {
 	private static final int DEFAULT_SIDEBAR_WIDTH = 150;
 	private static final float SIDEBAR_MAX_WIDTH = 0.9f; // The max width of side bar is 90% of Parent.
 	private static final int SLIDE_DURATION = 200; // 0.2 seconds?
+	private static final double PROPORTION_THAT_COUNTS_AS_CLOSED = 0.25; // Consider closed if more that % dragged.
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //	properties.
-
 
 	private final int sidebarViewRes;
 	private final int hostViewRes;
@@ -52,7 +54,6 @@ public class SidebarLayout extends ViewGroup {
 //	state.
 
 	private boolean sidebarOpen;
-	private boolean pressed = false;
 	private int sidebarWidth = DEFAULT_SIDEBAR_WIDTH; // assign default value. It will be overwrite in onMeasure by Layout XML resource.
 	private Animation animation;
 	private OpenListener openListener;
@@ -115,25 +116,37 @@ public class SidebarLayout extends ViewGroup {
 		return this.sidebarOpen;
 	}
 
-	protected void setOpen (final boolean open) {
-		this.sidebarOpen = open;
+	protected boolean setOpen (final boolean open) {
+		if (this.sidebarOpen != open) {
+			this.sidebarOpen = open;
+			return true;
+		}
+		return false;
 	}
 
 	public void toggleSidebar () {
-		if (this.getHostView().getAnimation() != null) return;
+		animateSidebar(!this.sidebarOpen);
+	}
 
-		if (this.sidebarOpen) {
-			this.animation = new TranslateAnimation(0, this.sidebarWidth, 0, 0);
-			this.animation.setAnimationListener(this.closeListener);
-		}
-		else {
-			this.animation = new TranslateAnimation(0, -this.sidebarWidth, 0, 0);
+	protected void animateSidebar (final boolean gotoOpen) {
+		final View host = getHostView();
+		if (host.getAnimation() != null) return;
+
+		float deltaX;
+		if (gotoOpen) {
+			deltaX = host.getTranslationX() > 0 ? -host.getTranslationX() : -this.sidebarWidth;
+			this.animation = new TranslateAnimation(0, deltaX, 0, 0);
 			this.animation.setAnimationListener(this.openListener);
 		}
-		this.animation.setDuration(SLIDE_DURATION);
+		else {
+			deltaX = this.sidebarWidth - host.getTranslationX();
+			this.animation = new TranslateAnimation(0, deltaX, 0, 0);
+			this.animation.setAnimationListener(this.closeListener);
+		}
+		this.animation.setDuration((long) (SLIDE_DURATION * (Math.abs(deltaX) / this.sidebarWidth)));
 		this.animation.setFillAfter(true);
 		this.animation.setFillEnabled(true);
-		this.getHostView().startAnimation(this.animation);
+		host.startAnimation(this.animation);
 	}
 
 	public boolean openSidebar () {
@@ -159,6 +172,7 @@ public class SidebarLayout extends ViewGroup {
 		super.onFinishInflate();
 		this.openListener = new OpenListener(this);
 		this.closeListener = new CloseListener(this);
+		this.touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
 	}
 
 	@Override
@@ -192,39 +206,87 @@ public class SidebarLayout extends ViewGroup {
 		}
 	}
 
+	private boolean intercepting = false;
+	private int touchSlop;
+	private float touchStartX;
+	private float touchStartY;
+	private boolean dragging = false;
+	private boolean clicking = false;
+
 	@Override
 	public boolean onInterceptTouchEvent (final MotionEvent ev) {
 		if (!isOpen()) return false;
+		if (!eventWithinView(ev, getHostView())) return false;
 
-		int action = ev.getAction();
-		if (action != MotionEvent.ACTION_UP && action != MotionEvent.ACTION_DOWN) {
+		final int action = MotionEventCompat.getActionMasked(ev);
+		if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
+			this.intercepting = false;
 			return false;
 		}
-
-		// if user press and release both on Content while side bar is opening,
-		// call listener. otherwise, pass the event to child.
-		int x = (int) ev.getX();
-		int y = (int) ev.getY();
-		if (this.getHostView().getLeft() < x && this.getHostView().getRight() > x && this.getHostView().getTop() < y && this.getHostView().getBottom() > y) {
-			if (action == MotionEvent.ACTION_DOWN) {
-				this.pressed = true;
-			}
-
-			if (this.pressed && action == MotionEvent.ACTION_UP && this.listener != null) {
-				this.pressed = false;
-				return this.listener.onContentTouchedWhenOpening(SidebarLayout.this);
-			}
+		switch (action) {
+			case MotionEvent.ACTION_DOWN:
+			case MotionEvent.ACTION_MOVE:
+			case MotionEvent.ACTION_UP:
+				if (this.intercepting) return true;
+				if (eventWithinView(ev, getHostView())) {
+					this.intercepting = true;
+					return true;
+				}
+				break;
 		}
-		else {
-			this.pressed = false;
-		}
-
 		return false;
+	}
+
+	@Override
+	public boolean onTouchEvent (final MotionEvent ev) {
+		switch (MotionEventCompat.getActionMasked(ev)) {
+			case MotionEvent.ACTION_DOWN:
+				this.clicking = true;
+				this.dragging = false;
+				this.touchStartX = ev.getX();
+				this.touchStartY = ev.getY();
+				return true;
+			case MotionEvent.ACTION_MOVE:
+				getParent().requestDisallowInterceptTouchEvent(true);
+				if (!this.dragging && (
+						Math.abs(ev.getX() - this.touchStartX) > this.touchSlop
+						|| Math.abs(ev.getY() - this.touchStartY) > this.touchSlop)) {
+					this.clicking = false;
+					this.dragging = true;
+				}
+				if (this.dragging) {
+					final float x = ev.getX() - this.touchStartX - this.sidebarWidth;
+					if (x >= -this.sidebarWidth && x <= 0) this.getHostView().setX(x);
+				}
+				return true;
+			case MotionEvent.ACTION_UP:
+				if (this.clicking) {
+					closeSidebar();
+					return true;
+				}
+			case MotionEvent.ACTION_CANCEL:
+				if (ev.getX() >= (this.sidebarWidth * PROPORTION_THAT_COUNTS_AS_CLOSED)) {
+					closeSidebar();
+				}
+				else {
+					animateSidebar(true);
+				}
+				getParent().requestDisallowInterceptTouchEvent(false);
+				return true;
+			default:
+		}
+		return false;
+	}
+
+	private static boolean eventWithinView (final MotionEvent ev, final View view) {
+		final int x = (int) ev.getX();
+		final int y = (int) ev.getY();
+		return view.getLeft() < x && view.getRight() > x && view.getTop() < y && view.getBottom() > y;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private class OpenListener implements Animation.AnimationListener {
+	private static class OpenListener implements Animation.AnimationListener {
 
 		private final SidebarLayout sidebarLayout;
 
@@ -240,17 +302,20 @@ public class SidebarLayout extends ViewGroup {
 		@Override
 		public void onAnimationEnd (final Animation a) {
 			this.sidebarLayout.getHostView().clearAnimation();
-			setOpen(!isOpen());
-			requestLayout();
-			SidebarListener l = getListener();
-			if (l != null) l.onSidebarOpened(SidebarLayout.this);
+			this.sidebarLayout.getHostView().setTranslationX(0); // Clear offset from manual drag.
+			final boolean stateChanged = this.sidebarLayout.setOpen(true);
+			this.sidebarLayout.requestLayout();
+			if (stateChanged) {
+				final SidebarListener l = this.sidebarLayout.getListener();
+				if (l != null) l.onSidebarOpened(this.sidebarLayout);
+			}
 		}
 
 		@Override
 		public void onAnimationRepeat (final Animation a) {/* Unused. */}
 	}
 
-	private class CloseListener implements Animation.AnimationListener {
+	private static class CloseListener implements Animation.AnimationListener {
 
 		private final SidebarLayout sidebarLayout;
 
@@ -261,11 +326,14 @@ public class SidebarLayout extends ViewGroup {
 		@Override
 		public void onAnimationEnd (final Animation a) {
 			this.sidebarLayout.getHostView().clearAnimation();
+			this.sidebarLayout.getHostView().setTranslationX(0); // Clear offset from manual drag.
 			this.sidebarLayout.getSidebarView().setVisibility(View.INVISIBLE);
-			setOpen(!isOpen());
-			requestLayout();
-			SidebarListener l = getListener();
-			if (l != null) l.onSidebarClosed(SidebarLayout.this);
+			final boolean stateChanged = this.sidebarLayout.setOpen(false);
+			this.sidebarLayout.requestLayout();
+			if (stateChanged) {
+				final SidebarListener l = this.sidebarLayout.getListener();
+				if (l != null) l.onSidebarClosed(this.sidebarLayout);
+			}
 		}
 
 		@Override
@@ -282,8 +350,6 @@ public class SidebarLayout extends ViewGroup {
 		void onSidebarOpened (SidebarLayout sidebar);
 
 		void onSidebarClosed (SidebarLayout sidebar);
-
-		boolean onContentTouchedWhenOpening (SidebarLayout sidebar);
 
 	}
 
