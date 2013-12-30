@@ -112,6 +112,13 @@
 
 		</LinearLayout>
 
+		<Button
+			android:id="@+id/tweetListEmptyRefresh"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerInParent="true"
+			android:text="Refresh" />
+
 		<ListView
 			android:id="@+id/tweetListList"
 			android:layout_width="fill_parent"
