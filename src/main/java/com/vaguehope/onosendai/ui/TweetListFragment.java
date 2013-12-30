@@ -11,6 +11,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -67,6 +68,7 @@ import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.Result;
 import com.vaguehope.onosendai.util.Titleable;
 import com.vaguehope.onosendai.widget.ScrollIndicator;
 import com.vaguehope.onosendai.widget.SidebarLayout;
@@ -636,20 +638,52 @@ public class TweetListFragment extends Fragment {
 		}
 	}
 
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	private void refreshUiOnUiThread () {
-		final DbInterface db = getDb();
-		if (db != null) {
-			final List<Tweet> tweets = db.getTweets(this.columnId, 200, getColumn().getExcludeColumnIds()); // FIXME replace 200 with dynamic list.
-			saveScrollIfNotSaved();
-			this.adapter.setInputData(new TweetList(tweets));
-			this.log.d("Refreshed %d tweets.", tweets.size());
-			restoreScroll();
-			redrawLastUpdateError();
-		}
-		else {
-			this.log.w("Failed to refresh column as DB was not bound.");
-		}
+		new LoadTweets(this).execute();
 	}
+
+	private static class LoadTweets extends AsyncTask<Void, Void, Result<TweetList>> {
+
+		private final TweetListFragment host;
+
+		public LoadTweets (final TweetListFragment host) {
+			this.host = host;
+		}
+
+		@Override
+		protected void onPreExecute () {
+			// TODO
+		}
+
+		@Override
+		protected Result<TweetList> doInBackground (final Void... params) {
+			final DbInterface db = this.host.getDb();
+			if (db != null) {
+				final List<Tweet> tweets = db.getTweets(this.host.getColumnId(), 200, this.host.getColumn().getExcludeColumnIds()); // FIXME replace 200 with dynamic list.
+				return new Result<TweetList>(new TweetList(tweets));
+			}
+			return new Result<TweetList>(new IllegalStateException("Failed to refresh column as DB was not bound."));
+		}
+
+		@Override
+		protected void onPostExecute (final Result<TweetList> result) {
+			if (result.isSuccess()) {
+				this.host.saveScrollIfNotSaved();
+				this.host.getAdapter().setInputData(result.getData());
+				this.host.getLog().d("Refreshed %d tweets.", result.getData().count());
+				this.host.restoreScroll();
+				this.host.redrawLastUpdateError();
+			}
+			else {
+				this.host.getLog().w("Failed to refresh column: %s.", result.getE());
+			}
+		}
+
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private long lastScrollFirstVisiblePosition = -1;
 	private long lastScrollTime = 0L;
