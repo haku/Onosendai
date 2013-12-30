@@ -175,4 +175,8 @@ public final class TwitterUtils {
 		}
 	};
 
+	public static String friendlyExceptionMessage (final TwitterException e) {
+		return String.valueOf(e);
+	}
+
 }
