@@ -28,7 +28,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive (final Context context, final Intent intent) {
 		final int action = intent.getExtras().getInt(KEY_ACTION, -1);
-		final float bl = BatteryHelper.level(context);
+		final float bl = BatteryHelper.level(context.getApplicationContext());
 		LOG.i("AlarmReceiver invoked: action=%s bl=%s.", action, bl);
 		switch (action) {
 			case ACTION_UPDATE:
