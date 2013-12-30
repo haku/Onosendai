@@ -749,12 +749,15 @@ public class TweetListFragment extends Fragment {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void redrawLastUpdateError () {
+		final String msg;
 		final DbInterface db = getDb();
-		if (db == null) {
-			this.log.w("Can not get last update status; DB not connected.");
-			return;
+		if (db != null) {
+			msg = db.getValue(KvKeys.KEY_PREFIX_COL_LAST_REFRESH_ERROR + this.columnId);
 		}
-		final String msg = db.getValue(KvKeys.KEY_PREFIX_COL_LAST_REFRESH_ERROR + this.columnId);
+		else {
+			msg = "Can not get last update status; DB not connected.";
+			this.log.w(msg);
+		}
 		if (msg != null) {
 			this.tweetListStatus.setText(msg);
 			this.tweetListStatus.setVisibility(View.VISIBLE);
