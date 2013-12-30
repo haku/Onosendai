@@ -38,7 +38,7 @@ public class SidebarLayout extends ViewGroup {
 
 	private static final int DEFAULT_SIDEBAR_WIDTH = 150;
 	private static final float SIDEBAR_MAX_WIDTH = 0.9f; // The max width of side bar is 90% of Parent.
-	private static final int SLIDE_DURATION = 200; // 0.2 seconds?
+	private static final int SLIDE_DURATION = 200; // 0.2 seconds.
 	private static final double PROPORTION_THAT_COUNTS_AS_CLOSED = 0.25; // Consider closed if more that % dragged.
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -55,7 +55,6 @@ public class SidebarLayout extends ViewGroup {
 
 	private boolean sidebarOpen;
 	private int sidebarWidth = DEFAULT_SIDEBAR_WIDTH; // assign default value. It will be overwrite in onMeasure by Layout XML resource.
-	private Animation animation;
 	private OpenListener openListener;
 	private CloseListener closeListener;
 
@@ -132,21 +131,22 @@ public class SidebarLayout extends ViewGroup {
 		final View host = getHostView();
 		if (host.getAnimation() != null) return;
 
-		float deltaX;
+		final float deltaX;
+		final Animation animation;
 		if (gotoOpen) {
 			deltaX = host.getTranslationX() > 0 ? -host.getTranslationX() : -this.sidebarWidth;
-			this.animation = new TranslateAnimation(0, deltaX, 0, 0);
-			this.animation.setAnimationListener(this.openListener);
+			animation = new TranslateAnimation(0, deltaX, 0, 0);
+			animation.setAnimationListener(this.openListener);
 		}
 		else {
 			deltaX = this.sidebarWidth - host.getTranslationX();
-			this.animation = new TranslateAnimation(0, deltaX, 0, 0);
-			this.animation.setAnimationListener(this.closeListener);
+			animation = new TranslateAnimation(0, deltaX, 0, 0);
+			animation.setAnimationListener(this.closeListener);
 		}
-		this.animation.setDuration((long) (SLIDE_DURATION * (Math.abs(deltaX) / this.sidebarWidth)));
-		this.animation.setFillAfter(true);
-		this.animation.setFillEnabled(true);
-		host.startAnimation(this.animation);
+		animation.setDuration((long) (SLIDE_DURATION * (Math.abs(deltaX) / this.sidebarWidth)));
+		animation.setFillAfter(true);
+		animation.setFillEnabled(true);
+		host.startAnimation(animation);
 	}
 
 	public boolean openSidebar () {
