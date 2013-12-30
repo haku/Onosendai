@@ -1,7 +1,5 @@
 package com.vaguehope.onosendai.payload;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -120,21 +118,6 @@ public class PayloadUtilsTest {
 		testHashTagExtraction("this ＃ひらがな is a hashtag", "＃ひらがな");
 	}
 
-	@Test
-	public void itExtractsMention () throws Exception {
-		testMentionExtraction("@auser how are you?", "auser");
-	}
-
-	@Test
-	public void itExtractsMentions () throws Exception {
-		testMentionExtraction("@auser where is @buser?", "auser", "buser");
-	}
-
-	@Test
-	public void itExtractsAndDedupsMentions () throws Exception {
-		testMentionExtraction("RT @auser: @user where is @buser?", "auser", "buser");
-	}
-
 	private void testLinkExtraction (final String body, final String... expectedUrls) {
 		Tweet tweet = new TweetBuilder().body(body).meta(MetaType.ACCOUNT, ACCOUNT_ID).build();
 		PayloadList payloadList = PayloadUtils.makePayloads(this.conf, tweet);
@@ -158,20 +141,6 @@ public class PayloadUtilsTest {
 			assertEquals(PayloadType.HASHTAG, payload.getType());
 			assertEquals(expectedTags[i], ((HashTagPayload) payload).getTitle());
 		}
-	}
-
-	private void testMentionExtraction (final String body, final String... expectedMentions) {
-		Tweet tweet = new TweetBuilder().body(body).username("user").meta(MetaType.ACCOUNT, ACCOUNT_ID).build();
-		PayloadList payloadList = PayloadUtils.makePayloads(this.conf, tweet);
-		payloadList = removeNotOfType(PayloadType.MENTION, payloadList);
-
-		List<Payload> expected = new ArrayList<Payload>();
-		expected.add(new MentionPayload(ACCOUNT, tweet, "user"));
-		for (String expectedMention : expectedMentions) {
-			expected.add(new MentionPayload(ACCOUNT, tweet, expectedMention));
-		}
-		expected.add(new MentionPayload(ACCOUNT, tweet, "user", expectedMentions));
-		assertThat(payloadList.getPayloads(), containsInAnyOrder(expected.toArray()));
 	}
 
 	private static PayloadList removeNotOfType (final PayloadType type, final PayloadList payloadList) {

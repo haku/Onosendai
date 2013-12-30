@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.provider.twitter;
 
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -20,6 +21,7 @@ import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.URLEntity;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
@@ -72,23 +74,31 @@ public class TwitterUtilsTest {
 		testPictureUrlExpansion("http://yfrog.com/oehccwlqj", "http://yfrog.com/oehccwlqj:small");
 	}
 
+	@Test
+	public void itExtractsMentionsButDoesNotIncludeMentionsOfSelf () throws Exception {
+		final Status s = mockTweet("foo @twitter desu");
+
+		final UserMentionEntity ume1 = mockUserMentionEntity("twitter", 100L);
+		final UserMentionEntity ume2 = mockUserMentionEntity("self", 200L);
+		when(s.getUserMentionEntities()).thenReturn(new UserMentionEntity[] { ume1, ume2 });
+
+		final Tweet t1 = TwitterUtils.convertTweet(this.account, s, 201);
+		assertThat(t1.getMetas(), hasItem(new Meta(MetaType.MENTION, "twitter")));
+		assertThat(t1.getMetas(), hasItem(new Meta(MetaType.MENTION, "self")));
+
+		final Tweet t2 = TwitterUtils.convertTweet(this.account, s, 200);
+		assertThat(t2.getMetas(), hasItem(new Meta(MetaType.MENTION, "twitter")));
+		assertThat(t2.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "self"))));
+	}
+
 	private void testPictureUrlExpansion (final String fromUrl, final String toUrl) {
 		final Status s = mockTweetWithUrl(fromUrl);
-		final Tweet t = TwitterUtils.convertTweet(this.account, s);
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L);
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, toUrl)));
 	}
 
 	private static Status mockTweetWithUrl (final String url) {
-		final Status s = mock(Status.class);
-		when(s.getText()).thenReturn("link: " + url);
-
-		final User user = mock(User.class);
-		when(user.getName()).thenReturn("name");
-		when(user.getScreenName()).thenReturn("screenname");
-		when(user.getProfileImageURLHttps()).thenReturn("https://profile/image");
-		when(s.getUser()).thenReturn(user);
-
-		when(s.getCreatedAt()).thenReturn(new Date());
+		final Status s = mockTweet("link: " + url);
 
 		final URLEntity ue = mock(URLEntity.class);
 		when(ue.getExpandedURL()).thenReturn(url);
@@ -99,6 +109,27 @@ public class TwitterUtilsTest {
 		when(s.getURLEntities()).thenReturn(new URLEntity[] { ue });
 
 		return s;
+	}
+
+	private static Status mockTweet (final String msg) {
+		final Status s = mock(Status.class);
+		when(s.getText()).thenReturn(msg);
+		when(s.getCreatedAt()).thenReturn(new Date());
+
+		final User user = mock(User.class);
+		when(user.getName()).thenReturn("name");
+		when(user.getScreenName()).thenReturn("screenname");
+		when(user.getProfileImageURLHttps()).thenReturn("https://profile/image");
+		when(s.getUser()).thenReturn(user);
+
+		return s;
+	}
+
+	private static UserMentionEntity mockUserMentionEntity (final String screenname, final long id) {
+		final UserMentionEntity ume = mock(UserMentionEntity.class);
+		when(ume.getScreenName()).thenReturn(screenname);
+		when(ume.getId()).thenReturn(id);
+		return ume;
 	}
 
 	@Test

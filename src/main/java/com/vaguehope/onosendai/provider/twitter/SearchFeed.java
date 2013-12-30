@@ -39,7 +39,7 @@ class SearchFeed implements TwitterFeed {
 			result = t.search(query);
 			final List<Status> resTweets = result.getTweets();
 			LOG.i("Page %d of query '%s' contains %d items.", page, this.term, resTweets.size());
-			TwitterUtils.addTweetsToList(tweets, account, resTweets);
+			TwitterUtils.addTweetsToList(tweets, account, resTweets, t.getId());
 		}
 		while (tweets.size() < C.TWITTER_SEARCH_MAX_FETCH && (query = result.nextQuery()) != null); // NOSONAR I am ok with this inner assignment.
 		return new TweetList(tweets);

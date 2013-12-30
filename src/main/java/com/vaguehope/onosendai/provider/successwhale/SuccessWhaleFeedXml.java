@@ -43,6 +43,7 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetBuilder;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ServiceRef;
+import com.vaguehope.onosendai.util.EqualHelper;
 
 public class SuccessWhaleFeedXml implements ContentHandler {
 
@@ -96,13 +97,14 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	private String stashedFetchedForUserid;
 	private String stashedService;
 	private String stashedUserName;
+	private String stashedUserId;
 	private String stashedHashtagText;
 
 	private final DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 
 	@Override
 	public void startElement (final String uri, final String localName, final String qName, final Attributes attributes) throws SAXException {
-		this.stack.push(localName);
+		this.stack.push(!localName.isEmpty() ? localName : qName);
 		if (this.currentText == null || this.currentText.length() > 0) {
 			this.currentText = new StringBuilder();
 		}
@@ -191,8 +193,11 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.stashedLinkTitle = null;
 			}
 			if ("username".equals(elementName)) {
-				this.currentItem.meta(MetaType.MENTION, this.stashedUserName);
+				if (!EqualHelper.equal(this.stashedFetchedForUserid, this.stashedUserId)) {
+					this.currentItem.meta(MetaType.MENTION, this.stashedUserName);
+				}
 				this.stashedUserName = null;
+				this.stashedUserId = null;
 			}
 			if ("hashtag".equals(elementName)) {
 				this.currentItem.meta(MetaType.HASHTAG, this.stashedHashtagText);
@@ -204,41 +209,46 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			}
 		}
 		else if (this.stack.size() == 7) { // NOSONAR not a magic number.
-			if ("url".equals(elementName)) {
+			if ("url".equals(elementName) && "link".equals(this.stack.get(5))) {
 				this.stashedLinkUrl = this.currentText.toString();
 			}
-			else if ("expanded-url".equals(elementName)) {
+			else if ("expanded-url".equals(elementName) && "link".equals(this.stack.get(5))) {
 				this.stashedLinkExpandedUrl = this.currentText.toString();
 			}
-			else if ("title".equals(elementName)) {
+			else if ("title".equals(elementName) && "link".equals(this.stack.get(5))) {
 				this.stashedLinkTitle = this.currentText.toString();
 				if (this.stashedFirstLinkTitle == null) this.stashedFirstLinkTitle = this.stashedLinkTitle;
 			}
-			else if ("preview".equals(elementName)) {
+			else if ("preview".equals(elementName) && "link".equals(this.stack.get(5))) {
 				this.currentItem.meta(MetaType.MEDIA, this.currentText.toString());
 			}
-			else if ("user".equals(elementName)) {
-				this.stashedUserName = this.currentText.toString();
-			}
-			else if ("text".equals(elementName)) {
+			else if ("text".equals(elementName) && "hashtag".equals(this.stack.get(5))) {
 				this.stashedHashtagText = this.currentText.toString();
 			}
-			else if ("id".equals(elementName)) {
-				this.currentComment.id(this.currentText.toString());
+			else if ("user".equals(elementName) && "username".equals(this.stack.get(5))) {
+				this.stashedUserName = this.currentText.toString();
 			}
-			else if ("message".equals(elementName)) {
+			else if ("id".equals(elementName)) {
+				if ("username".equals(this.stack.get(5))) {
+					this.stashedUserId = this.currentText.toString();
+				}
+				else if ("comment".equals(this.stack.get(5))) {
+					this.currentComment.id(this.currentText.toString());
+				}
+			}
+			else if ("message".equals(elementName) && "comment".equals(this.stack.get(5))) {
 				this.currentComment.body(this.currentText.toString());
 			}
-			else if ("created-time".equals(elementName)) {
+			else if ("created-time".equals(elementName) && "comment".equals(this.stack.get(5))) {
 				final long millis = this.dateFormat.parseMillis(this.currentText.toString());
 				this.currentComment.unitTimeSeconds(TimeUnit.MILLISECONDS.toSeconds(millis));
 			}
 		}
 		else if (this.stack.size() == 8) { // NOSONAR not a magic number.
-			if ("name".equals(elementName)) {
+			if ("name".equals(elementName) && "comment".equals(this.stack.get(5))) {
 				this.currentComment.fullname(this.currentText.toString());
 			}
-			else if ("fromuseravatar".equals(elementName)) {
+			else if ("fromuseravatar".equals(elementName) && "comment".equals(this.stack.get(5))) {
 				this.currentComment.avatarUrl(this.currentText.toString());
 			}
 		}

@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.provider.successwhale;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class SuccessWhaleFeedXmlTest {
 	public void itParsesAllTweets () throws Exception {
 		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_tweets.xml"));
 		TweetList tweets = feed.getTweets();
-		assertEquals(3, tweets.count());
+		assertEquals(4, tweets.count());
 	}
 
 	@Test
@@ -93,6 +94,19 @@ public class SuccessWhaleFeedXmlTest {
 
 		assertHasMeta(t.getMetas(), new Meta(MetaType.MENTION, "testuser"));
 		assertHasMeta(t.getMetas(), new Meta(MetaType.HASHTAG, "retweeted"));
+	}
+
+	@Test
+	public void itIgnoresMentionsOfSelf () throws Exception {
+		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_tweets.xml"));
+		TweetList tweets = feed.getTweets();
+
+		Tweet t = tweets.getTweet(3);
+
+		assertEquals("@johndoe What is up?", t.getBody());
+		for (Meta m : t.getMetas()) {
+			if (m.getType() == MetaType.MENTION) fail("Expected no mentions in : " + t.getMetas());
+		}
 	}
 
 	@Test
