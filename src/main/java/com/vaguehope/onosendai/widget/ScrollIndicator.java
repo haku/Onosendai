@@ -1,7 +1,10 @@
 package com.vaguehope.onosendai.widget;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,16 +45,10 @@ public final class ScrollIndicator {
 		bar.bringToFront();
 		rootView.addView(bar);
 
-		final AbsoluteShape unread = new AbsoluteShape(context);
-		unread.layoutForce(0, 0, 0, 0);
-		unread.setBackgroundColor(COLOUR_UNREAD);
-		unread.bringToFront();
-		rootView.addView(unread);
-
 		final float pxPerUnit = dipToPixels(context, 1); // Perhaps this should be a % of list height?
 		final int barWidth = (int) dipToPixels(context, BAR_WIDTH_DIP);
 
-		final BarMover barMovingScrollListener = new BarMover(bar, unread, list, pxPerUnit, barWidth, onScrollListener);
+		final BarMover barMovingScrollListener = new BarMover(bar, list, pxPerUnit, barWidth, onScrollListener);
 		list.setOnScrollListener(barMovingScrollListener);
 
 		return new ScrollIndicator(barMovingScrollListener);
@@ -63,8 +60,19 @@ public final class ScrollIndicator {
 
 	private static class AbsoluteShape extends View {
 
+		private final Rect unreadRect;
+		private final Paint unreadPaint;
+
 		public AbsoluteShape (final Context context) {
 			super(context);
+			this.unreadRect = new Rect(0, 0, 1, 1);
+			this.unreadPaint = new Paint(0);
+			this.unreadPaint.setColor(COLOUR_UNREAD);
+		}
+
+		public void setUnreadSize (final int unreadHeight) {
+			this.unreadRect.bottom = unreadHeight;
+			invalidate();
 		}
 
 		@Override
@@ -76,12 +84,22 @@ public final class ScrollIndicator {
 			super.layout(l, t, r, b);
 		}
 
+		@Override
+		protected void onSizeChanged (final int w, final int h, final int oldw, final int oldh) {
+			this.unreadRect.right = w;
+		}
+
+		@Override
+		protected void onDraw (final Canvas canvas) {
+			super.onDraw(canvas);
+			canvas.drawRect(this.unreadRect, this.unreadPaint);
+		}
+
 	}
 
 	private static class BarMover implements OnScrollListener {
 
 		private final AbsoluteShape bar;
-		private final AbsoluteShape unread;
 		private final ListView list;
 		private final TweetListAdapter listAdaptor;
 		private final float pxPerUnit;
@@ -91,9 +109,8 @@ public final class ScrollIndicator {
 		private int lastPosition = -1;
 		private long unreadTime = -1;
 
-		public BarMover (final AbsoluteShape bar, final AbsoluteShape unread, final ListView list, final float pxPerUnit, final int barWidth, final OnScrollListener delagate) {
+		public BarMover (final AbsoluteShape bar, final ListView list, final float pxPerUnit, final int barWidth, final OnScrollListener delagate) {
 			this.bar = bar;
-			this.unread = unread;
 			this.list = list;
 			this.listAdaptor = (TweetListAdapter) list.getAdapter();
 			this.pxPerUnit = pxPerUnit;
@@ -131,7 +148,7 @@ public final class ScrollIndicator {
 		}
 
 		private void drawUnread (final int position) {
-			this.unread.layoutForce(this.list.getRight() - this.barWidth, this.list.getTop(), this.list.getRight(), this.list.getTop() + barHeight(position));
+			this.bar.setUnreadSize(barHeight(position));
 		}
 
 		private int barHeight (final int position) {
