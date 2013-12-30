@@ -17,6 +17,7 @@ import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeed;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeeds;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
+import com.vaguehope.onosendai.provider.twitter.TwitterUtils;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -79,7 +80,7 @@ public class FetchColumn implements Callable<Void> {
 				}
 				catch (TwitterException e) {
 					LOG.w("Failed to fetch from Twitter: %s", e.toString());
-					storeError(db, column, e.toString());
+					storeError(db, column, TwitterUtils.friendlyExceptionMessage(e));
 				}
 				break;
 			case SUCCESSWHALE:
