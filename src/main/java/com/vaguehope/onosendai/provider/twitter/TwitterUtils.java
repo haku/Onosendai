@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.provider.twitter;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -25,6 +27,7 @@ import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.ImageHostHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public final class TwitterUtils {
 
@@ -177,6 +180,18 @@ public final class TwitterUtils {
 	};
 
 	public static String friendlyExceptionMessage (final TwitterException e) {
+		final Throwable cause = e.getCause();
+		if (cause != null) {
+			if (cause instanceof UnknownHostException) {
+				return "Network error: " + cause.getMessage();
+			}
+			else if (cause instanceof IOException && StringHelper.safeContainsIgnoreCase(cause.getMessage(), "connection timed out")) {
+				return "Network error: Connection timed out.";
+			}
+			else if (cause instanceof IOException) {
+				return "Network error: " + String.valueOf(cause);
+			}
+		}
 		return ExcpetionHelper.causeTrace(e);
 	}
 

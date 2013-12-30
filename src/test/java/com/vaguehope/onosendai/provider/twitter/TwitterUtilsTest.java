@@ -2,16 +2,22 @@ package com.vaguehope.onosendai.provider.twitter;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.Date;
+
+import javax.net.ssl.SSLException;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import twitter4j.Status;
+import twitter4j.TwitterException;
 import twitter4j.URLEntity;
 import twitter4j.User;
 
@@ -93,6 +99,28 @@ public class TwitterUtilsTest {
 		when(s.getURLEntities()).thenReturn(new URLEntity[] { ue });
 
 		return s;
+	}
+
+	@Test
+	public void itMakesFriendlyErrorForHostNotFound () throws Exception {
+		final UnknownHostException uhe = new UnknownHostException("Unable to resolve host \"api.twitter.com\": No address associated with hostname");
+		final TwitterException te = new TwitterException("example", uhe);
+		assertEquals("Network error: Unable to resolve host \"api.twitter.com\": No address associated with hostname",
+				TwitterUtils.friendlyExceptionMessage(te));
+	}
+
+	@Test
+	public void itMakesFriendlyErrorForGenericIoException () throws Exception {
+		final IOException ioe = new IOException("OMG the network.");
+		final TwitterException te = new TwitterException("example", ioe);
+		assertEquals("Network error: java.io.IOException: OMG the network.", TwitterUtils.friendlyExceptionMessage(te));
+	}
+
+	@Test
+	public void itMakesFriendlyErrorForSslConnectionTimeout () throws Exception {
+		final SSLException se = new SSLException("Read error: ssl=0x5cbb0ce0: I/O error during system call, Connection timed out");
+		final TwitterException te = new TwitterException("example", se);
+		assertEquals("Network error: Connection timed out.", TwitterUtils.friendlyExceptionMessage(te));
 	}
 
 }
