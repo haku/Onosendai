@@ -56,7 +56,7 @@ public class OutboxActivity extends Activity {
 		this.refreshUiHandler = new RefreshUiHandler(this);
 
 		final ListView outboxList = (ListView) findViewById(R.id.outboxList);
-//		outboxList.setEmptyView(emptyView); // TODO
+		outboxList.setEmptyView(findViewById(R.id.empty));
 		this.adaptor = new OutboxAdapter(this, conf);
 		outboxList.setAdapter(this.adaptor);
 		outboxList.setOnItemClickListener(this.listClickListener);
