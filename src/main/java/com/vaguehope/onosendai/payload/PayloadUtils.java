@@ -27,7 +27,6 @@ public final class PayloadUtils {
 	private static final Pattern URL_PATTERN = Pattern.compile("\\(?\\b(https?://|www[.])[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]");
 	private static final Pattern HASHTAG_PATTERN = Pattern.compile(
 			"\\B([#|\uFF03][a-z0-9_\\u00c0-\\u00d6\\u00d8-\\u00f6\\u00f8-\\u00ff\\u3040-\\u309F\\u30A0-\\u30FF]+)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern MENTIONS_PATTERN = Pattern.compile("\\B@([a-zA-Z0-9_]{1,15})");
 
 	private static final LogWrapper LOG = new LogWrapper("PU");
 
@@ -131,37 +130,15 @@ public final class PayloadUtils {
 
 	private static void repliesAndExtractMentions (final Account account, final Tweet tweet, final Set<Payload> set) {
 		List<String> allMentions = null;
-		if (metasHasType(tweet.getMetas(), MetaType.MENTION)) {
-			for (final Meta meta : tweet.getMetas()) {
-				if (meta.getType() == MetaType.MENTION && !EqualHelper.equal(tweet.getUsername(), meta.getData())) {
-					if (allMentions == null) allMentions = new ArrayList<String>();
-					allMentions.add(meta.getData());
-				}
-			}
-		}
-		else {
-			final String text = tweet.getBody();
-			if (text == null || text.isEmpty()) return;
-			final Matcher m = MENTIONS_PATTERN.matcher(text);
-			while (m.find()) {
-				final String g = m.group(1);
-				if (!EqualHelper.equal(tweet.getUsername(), g)) {
-					set.add(new MentionPayload(account, tweet, g));
-					if (allMentions == null) allMentions = new ArrayList<String>();
-					allMentions.add(g);
-				}
+		for (final Meta meta : tweet.getMetas()) {
+			if (meta.getType() == MetaType.MENTION && !EqualHelper.equal(tweet.getUsername(), meta.getData())) {
+				if (allMentions == null) allMentions = new ArrayList<String>();
+				allMentions.add(meta.getData());
 			}
 		}
 		if (allMentions != null && tweet.getUsername() != null) {
 			set.add(new MentionPayload(account, tweet, tweet.getUsername(), allMentions.toArray(new String[allMentions.size()])));
 		}
-	}
-
-	private static boolean metasHasType (final List<Meta> metas, final MetaType type) {
-		for (Meta meta : metas) {
-			if (type == meta.getType()) return true;
-		}
-		return false;
 	}
 
 	private static boolean payloadsContainsType (final Collection<Payload> col, final PayloadType type) {

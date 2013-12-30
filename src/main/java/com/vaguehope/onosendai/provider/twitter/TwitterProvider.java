@@ -63,7 +63,8 @@ public class TwitterProvider {
 	}
 
 	public Tweet getTweet (final Account account, final long id) throws TwitterException {
-		return TwitterUtils.convertTweet(account, getTwitter(account).showStatus(id));
+		final Twitter t = getTwitter(account);
+		return TwitterUtils.convertTweet(account, t.showStatus(id), t.getId());
 	}
 
 	public void post (final Account account, final String body, final long inReplyTo, final ImageMetadata media) throws TwitterException, IOException {

@@ -55,20 +55,20 @@ public final class TwitterUtils {
 			final ResponseList<Status> timelinePage = getter.getTweets(t, paging);
 			LOG.i("Page %d of '%s' contains %d items.", page, getter.toString(), timelinePage.size());
 			if (timelinePage.size() < 1) break;
-			TwitterUtils.addTweetsToList(tweets, account, timelinePage);
+			addTweetsToList(tweets, account, timelinePage, t.getId());
 			minId = TwitterUtils.minIdOf(minId, timelinePage);
 			page++;
 		}
 		return new TweetList(tweets);
 	}
 
-	static void addTweetsToList (final List<Tweet> list, final Account account, final List<Status> tweets) {
+	static void addTweetsToList (final List<Tweet> list, final Account account, final List<Status> tweets, final long ownId) {
 		for (final Status status : tweets) {
-			list.add(convertTweet(account, status));
+			list.add(convertTweet(account, status, ownId));
 		}
 	}
 
-	static Tweet convertTweet (final Account account, final Status s) {
+	static Tweet convertTweet (final Account account, final Status s, final long ownId) {
 		final List<Meta> metas = new ArrayList<Meta>();
 		metas.add(new Meta(MetaType.ACCOUNT, account.getId()));
 
@@ -85,7 +85,7 @@ public final class TwitterUtils {
 		addMedia(s, metas);
 		checkUrlsForMedia(s, metas);
 		addHashtags(s, metas);
-		addMentions(s, metas);
+		addMentions(s, metas, ownId);
 
 		// https://dev.twitter.com/docs/user-profile-images-and-banners
 
@@ -142,14 +142,16 @@ public final class TwitterUtils {
 
 	private static void addMedia (final Status s, final List<Meta> metas) {
 		final MediaEntity[] mes = s.getMediaEntities();
-		if (mes == null || mes.length < 1) return;
-		for (int i = 0; i < mes.length; i++) {
-			metas.add(new Meta(MetaType.MEDIA, mes[i].getMediaURLHttps()));
+		if (mes == null) return;
+		for (final MediaEntity me : mes) {
+			metas.add(new Meta(MetaType.MEDIA, me.getMediaURLHttps()));
 		}
 	}
 
 	private static void checkUrlsForMedia (final Status s, final List<Meta> metas) {
-		for (final URLEntity url : s.getURLEntities()) {
+		final URLEntity[] urls = s.getURLEntities();
+		if (urls == null) return;
+		for (final URLEntity url : urls) {
 			final String fullUrl = url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL();
 			final String thumbUrl = ImageHostHelper.thumbUrl(fullUrl);
 			if (thumbUrl != null) metas.add(new Meta(MetaType.MEDIA, thumbUrl));
@@ -158,17 +160,17 @@ public final class TwitterUtils {
 
 	private static void addHashtags (final Status s, final List<Meta> metas) {
 		final HashtagEntity[] tags = s.getHashtagEntities();
-		if (tags == null || tags.length < 1) return;
-		for (int i = 0; i < tags.length; i++) {
-			metas.add(new Meta(MetaType.HASHTAG, tags[i].getText()));
+		if (tags == null) return;
+		for (final HashtagEntity tag : tags) {
+			metas.add(new Meta(MetaType.HASHTAG, tag.getText()));
 		}
 	}
 
-	private static void addMentions (final Status s, final List<Meta> metas) {
-		final UserMentionEntity[] ums = s.getUserMentionEntities();
-		if (ums == null || ums.length < 1) return;
-		for (int i = 0; i < ums.length; i++) {
-			metas.add(new Meta(MetaType.MENTION, ums[i].getScreenName()));
+	private static void addMentions (final Status s, final List<Meta> metas, final long ownId) {
+		final UserMentionEntity[] umes = s.getUserMentionEntities();
+		if (umes == null) return;
+		for (final UserMentionEntity ume : umes) {
+			if (ume.getId() != ownId) metas.add(new Meta(MetaType.MENTION, ume.getScreenName()));
 		}
 	}
 
