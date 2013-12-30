@@ -4,6 +4,9 @@ public enum MetaType {
 
 	MEDIA(1),
 	HASHTAG(2),
+	/**
+	 * Does not include preceding "@".
+	 */
 	MENTION(3),
 	URL(4),
 	INREPLYTO(5),
@@ -47,7 +50,7 @@ public enum MetaType {
 				return SERVICE;
 			case 7: // NOSONAR 7 is not magical.
 				return ACCOUNT;
-			case 8:
+			case 8: // NOSONAR 8 is not magical.
 				return REPLYTO;
 			default:
 				return null;
