@@ -98,6 +98,7 @@ public class TweetListFragment extends Fragment {
 	private Button btnColumnTitle;
 	private ListView tweetList;
 	private TextView tweetListStatus;
+	private Button tweetListEmptyRefresh;
 
 	private PayloadListAdapter lstTweetPayloadAdaptor;
 	private Button btnDetailsLater;
@@ -158,10 +159,14 @@ public class TweetListFragment extends Fragment {
 			btnMenu.setOnClickListener(this.menuClickListener);
 		}
 
+		this.tweetListEmptyRefresh = (Button) rootView.findViewById(R.id.tweetListEmptyRefresh);
+		this.tweetListEmptyRefresh.setOnClickListener(this.refreshClickListener);
+
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
 		this.adapter = new TweetListAdapter(container.getContext(), imageLoader);
 		this.tweetList.setAdapter(this.adapter);
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
+		this.tweetList.setEmptyView(this.tweetListEmptyRefresh);
 		this.refreshUiHandler = new RefreshUiHandler(this);
 
 		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), imageLoader, this.payloadClickListener);
@@ -340,7 +345,7 @@ public class TweetListFragment extends Fragment {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private void scheduleRefresh (final boolean all) {
+	protected void scheduleRefresh (final boolean all) {
 		final Intent intent = new Intent(getActivity(), UpdateService.class);
 		intent.putExtra(UpdateService.ARG_IS_MANUAL, true);
 		if (!all) intent.putExtra(UpdateService.ARG_COLUMN_ID, this.columnId);
@@ -410,8 +415,8 @@ public class TweetListFragment extends Fragment {
 		private int lastFirstVisibleItem = -1;
 
 		@Override
-		public void onScrollStateChanged (final AbsListView view, final int scrollState) {
-			this.scrolling = (scrollState != OnScrollListener.SCROLL_STATE_IDLE);
+		public void onScrollStateChanged (final AbsListView view, final int newScrollState) {
+			this.scrolling = (newScrollState != OnScrollListener.SCROLL_STATE_IDLE);
 		}
 
 		@Override
@@ -625,10 +630,12 @@ public class TweetListFragment extends Fragment {
 				refreshUiOnUiThread();
 				break;
 			case MSG_UPDATE_RUNNING:
-				this.prgUpdating.setVisibility(View.VISIBLE);
+				progressIndicator(true);
+				this.tweetListEmptyRefresh.setEnabled(false);
 				break;
 			case MSG_UPDATE_OVER:
-				this.prgUpdating.setVisibility(View.GONE);
+				progressIndicator(false);
+				this.tweetListEmptyRefresh.setEnabled(true);
 				redrawLastUpdateError();
 				break;
 			case MSG_STILL_SCROLLING_CHECK:
@@ -636,6 +643,16 @@ public class TweetListFragment extends Fragment {
 				break;
 			default:
 		}
+	}
+
+	private int progressIndicatorCounter = 0;
+
+	/**
+	 * Only call on UI thread.
+	 */
+	protected void progressIndicator(final boolean inProgress) {
+		this.progressIndicatorCounter += (inProgress ? 1 :-1);
+		this.prgUpdating.setVisibility(this.progressIndicatorCounter > 0 ? View.VISIBLE : View.GONE);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -654,17 +671,23 @@ public class TweetListFragment extends Fragment {
 
 		@Override
 		protected void onPreExecute () {
-			// TODO
+			this.host.progressIndicator(true);
+			this.host.tweetListEmptyRefresh.setEnabled(false);
 		}
 
 		@Override
 		protected Result<TweetList> doInBackground (final Void... params) {
-			final DbInterface db = this.host.getDb();
-			if (db != null) {
-				final List<Tweet> tweets = db.getTweets(this.host.getColumnId(), 200, this.host.getColumn().getExcludeColumnIds()); // FIXME replace 200 with dynamic list.
-				return new Result<TweetList>(new TweetList(tweets));
+			try {
+				final DbInterface db = this.host.getDb();
+				if (db != null) {
+					final List<Tweet> tweets = db.getTweets(this.host.getColumnId(), 200, this.host.getColumn().getExcludeColumnIds()); // FIXME replace 200 with dynamic list.
+					return new Result<TweetList>(new TweetList(tweets));
+				}
+				return new Result<TweetList>(new IllegalStateException("Failed to refresh column as DB was not bound."));
 			}
-			return new Result<TweetList>(new IllegalStateException("Failed to refresh column as DB was not bound."));
+			catch (Exception e) { // NOSONAR needed to report errors.
+				return new Result<TweetList>(e);
+			}
 		}
 
 		@Override
@@ -677,11 +700,20 @@ public class TweetListFragment extends Fragment {
 				this.host.redrawLastUpdateError();
 			}
 			else {
-				this.host.getLog().w("Failed to refresh column: %s.", result.getE());
+				this.host.getLog().w("Failed to refresh column.", result.getE());
 			}
+			this.host.progressIndicator(false);
+			this.host.tweetListEmptyRefresh.setEnabled(true);
 		}
 
 	}
+
+	private final OnClickListener refreshClickListener = new OnClickListener() {
+		@Override
+		public void onClick (final View v) {
+			scheduleRefresh(false);
+		}
+	};
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
