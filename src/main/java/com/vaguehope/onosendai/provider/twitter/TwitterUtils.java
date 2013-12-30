@@ -22,6 +22,7 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.ImageHostHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -176,7 +177,7 @@ public final class TwitterUtils {
 	};
 
 	public static String friendlyExceptionMessage (final TwitterException e) {
-		return String.valueOf(e);
+		return ExcpetionHelper.causeTrace(e);
 	}
 
 }
