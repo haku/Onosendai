@@ -19,34 +19,38 @@ public class MentionPayload extends Payload {
 
 	private final Account account;
 	private final String screenName;
+	private final String fullName;
 	private final String[] alsoMentions;
 
 	private String titleCache;
 
 	public MentionPayload (final Account account, final Tweet ownerTweet, final Meta meta) {
-		this(account, ownerTweet, meta.getData());
-		this.titleCache = meta.getTitle();
+		this(account, ownerTweet, meta.getData(), meta.getTitle());
 	}
 
-	public MentionPayload (final Account account, final Tweet ownerTweet, final String screenName) {
-		this(account, ownerTweet, screenName, (String[]) null);
+	public MentionPayload (final Account account, final Tweet ownerTweet, final String screenName, final String fullName) {
+		this(account, ownerTweet, screenName, fullName, (String[]) null);
 	}
 
-	public MentionPayload (final Account account, final Tweet ownerTweet, final String screenName, final String... alsoMentions) {
+	public MentionPayload (final Account account, final Tweet ownerTweet, final String screenName, final String fullName, final String... alsoMentions) {
 		super(ownerTweet, PayloadType.MENTION);
 		this.account = account;
 		this.screenName = screenName;
+		this.fullName = fullName;
 		this.alsoMentions = alsoMentions;
 	}
 
 	@Override
 	public String getTitle () {
 		if (this.titleCache == null) {
-			StringBuilder sb = new StringBuilder("@").append(this.screenName);
+			final StringBuilder sb = new StringBuilder("@").append(this.screenName);
 			if (this.alsoMentions != null) {
 				for (String mention : this.alsoMentions) {
 					sb.append(", @").append(mention);
 				}
+			}
+			else if (this.fullName != null) {
+				sb.append(" (").append(this.fullName).append(")");
 			}
 			this.titleCache = sb.toString();
 		}

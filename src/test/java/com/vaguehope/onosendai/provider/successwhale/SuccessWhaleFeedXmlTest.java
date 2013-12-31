@@ -92,7 +92,7 @@ public class SuccessWhaleFeedXmlTest {
 
 		Tweet t = tweets.getTweet(2);
 
-		assertHasMeta(t.getMetas(), new Meta(MetaType.MENTION, "testuser"));
+		assertHasMeta(t.getMetas(), new Meta(MetaType.MENTION, "testuser", null)); // TODO verify title is "Test User" once SW supports this.
 		assertHasMeta(t.getMetas(), new Meta(MetaType.HASHTAG, "retweeted"));
 	}
 

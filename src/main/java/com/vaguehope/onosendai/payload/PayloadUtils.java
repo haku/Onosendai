@@ -125,7 +125,7 @@ public final class PayloadUtils {
 	}
 
 	private static void replyToOwner (final Account account, final Tweet tweet, final Set<Payload> set) {
-		if (tweet.getUsername() != null) set.add(new MentionPayload(account, tweet, tweet.getUsername()));
+		if (tweet.getUsername() != null) set.add(new MentionPayload(account, tweet, tweet.getUsername(), tweet.getFullname()));
 	}
 
 	private static void repliesAndExtractMentions (final Account account, final Tweet tweet, final Set<Payload> set) {
@@ -137,7 +137,7 @@ public final class PayloadUtils {
 			}
 		}
 		if (allMentions != null && tweet.getUsername() != null) {
-			set.add(new MentionPayload(account, tweet, tweet.getUsername(), allMentions.toArray(new String[allMentions.size()])));
+			set.add(new MentionPayload(account, tweet, tweet.getUsername(), tweet.getFullname(), allMentions.toArray(new String[allMentions.size()])));
 		}
 	}
 

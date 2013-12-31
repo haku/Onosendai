@@ -2,13 +2,26 @@ package com.vaguehope.onosendai.model;
 
 public enum MetaType {
 
+	/**
+	 * Data is an image URL that can be shown as a preview.
+	 */
 	MEDIA(1),
+	/**
+	 * Data is the hashtag without the preceding "#".
+	 */
 	HASHTAG(2),
 	/**
-	 * Does not include preceding "@".
+	 * Data is the screenname without the preceding "@".
+	 * Title may be the full name.
 	 */
 	MENTION(3),
+	/**
+	 * Data is the full URL, title is the friendly presentation version.
+	 */
 	URL(4),
+	/**
+	 * The Service provided ID (SID) of the tweet that this tweet is a reply to.
+	 */
 	INREPLYTO(5),
 	/**
 	 * SuccessWhale sub-account type.
