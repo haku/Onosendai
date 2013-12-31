@@ -83,6 +83,7 @@ public class TweetListFragment extends Fragment {
 	static final String ARG_COLUMN_POSITION = "column_pos";
 	static final String ARG_COLUMN_TITLE = "column_title";
 	static final String ARG_COLUMN_IS_LATER = "column_is_later";
+	static final String ARG_COLUMN_SHOW_INLINEMEDIA = "column_show_inlinemedia";
 
 	private final LogWrapper log = new LogWrapper();
 
@@ -163,7 +164,7 @@ public class TweetListFragment extends Fragment {
 		this.tweetListEmptyRefresh.setOnClickListener(this.refreshClickListener);
 
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
-		this.adapter = new TweetListAdapter(container.getContext(), imageLoader);
+		this.adapter = new TweetListAdapter(container.getContext(), getArguments().getBoolean(ARG_COLUMN_SHOW_INLINEMEDIA, false), imageLoader);
 		this.tweetList.setAdapter(this.adapter);
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
 		this.tweetList.setEmptyView(this.tweetListEmptyRefresh);

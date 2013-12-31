@@ -27,6 +27,7 @@ public class Column implements Titleable {
 	private static final String KEY_REFRESH = "refresh";
 	private static final String KEY_EXCLUDE = "exclude";
 	private static final String KEY_NOTIFY = "notify";
+	private static final String KEY_INLINE_MEDIA = "inline_media";
 
 	private static final LogWrapper LOG = new LogWrapper("COL");
 
@@ -37,9 +38,10 @@ public class Column implements Titleable {
 	private final int refreshIntervalMins;
 	private final Set<Integer> excludeColumnIds;
 	private final boolean notify;
+	private final boolean inlineMedia;
 
 	public Column (final int id, final Column c) {
-		this(id, c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.isNotify());
+		this(id, c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.isNotify(), c.isInlineMedia());
 	}
 
 	public Column (
@@ -49,7 +51,8 @@ public class Column implements Titleable {
 			final String resource,
 			final int refreshIntervalMins,
 			final Set<Integer> excludeColumnIds,
-			final boolean notify) {
+			final boolean notify,
+			final boolean inlineMedia) {
 		this.id = id;
 		this.title = title;
 		this.accountId = accountId;
@@ -57,6 +60,7 @@ public class Column implements Titleable {
 		this.refreshIntervalMins = refreshIntervalMins;
 		this.excludeColumnIds = excludeColumnIds;
 		this.notify = notify;
+		this.inlineMedia = inlineMedia;
 	}
 
 	@Override
@@ -85,7 +89,8 @@ public class Column implements Titleable {
 				EqualHelper.equal(this.resource, that.resource) &&
 				this.refreshIntervalMins == that.refreshIntervalMins &&
 				EqualHelper.equal(this.excludeColumnIds, that.excludeColumnIds) &&
-				EqualHelper.equal(this.notify, that.notify);
+				EqualHelper.equal(this.notify, that.notify) &&
+				EqualHelper.equal(this.inlineMedia, that.inlineMedia);
 	}
 
 	@Override
@@ -105,6 +110,7 @@ public class Column implements Titleable {
 				.append(",").append(this.refreshIntervalMins)
 				.append(",").append(this.excludeColumnIds)
 				.append(",").append(this.notify)
+				.append(",").append(this.inlineMedia)
 				.append("}");
 		return s.toString();
 	}
@@ -137,6 +143,10 @@ public class Column implements Titleable {
 		return this.notify;
 	}
 
+	public boolean isInlineMedia () {
+		return this.inlineMedia;
+	}
+
 	public static List<String> titles (final Collection<Column> columns) {
 		if (columns == null) return null;
 		List<String> ret = new ArrayList<String>(columns.size());
@@ -155,6 +165,7 @@ public class Column implements Titleable {
 		json.put(KEY_REFRESH, getRefreshIntervalMins() + "mins");
 		json.put(KEY_EXCLUDE, toJsonArray(getExcludeColumnIds()));
 		json.put(KEY_NOTIFY, isNotify());
+		json.put(KEY_INLINE_MEDIA, isInlineMedia());
 		return json;
 	}
 
@@ -183,7 +194,8 @@ public class Column implements Titleable {
 		final int refreshIntervalMins = parseFeedRefreshInterval(refreshRaw, account, title);
 		final Set<Integer> excludeColumnIds = parseFeedExcludeColumns(json, title);
 		final boolean notify = json.optBoolean(KEY_NOTIFY, false);
-		return new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds, notify);
+		final boolean inlineMedia = json.optBoolean(KEY_INLINE_MEDIA, false);
+		return new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds, notify, inlineMedia);
 	}
 
 	private static int parseFeedRefreshInterval (final String refreshRaw, final String account, final String title) {

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical">
+
+	<RelativeLayout
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+
+		<ImageView
+			android:id="@+id/imgMain"
+			android:layout_width="48dip"
+			android:layout_height="48dip"
+			android:layout_alignParentTop="true"
+			android:layout_alignParentLeft="true"
+			android:layout_margin="10dip"
+			android:src="@drawable/question_blue"
+			android:scaleType="centerCrop" />
+
+		<TextView
+			android:id="@+id/txtTweet"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_alignParentTop="true"
+			android:layout_toRightOf="@id/imgMain"
+			android:layout_alignParentRight="true"
+			android:layout_marginLeft="0dip"
+			android:layout_marginTop="5dip"
+			android:layout_marginRight="10dip"
+			android:layout_marginBottom="1dip"
+			android:padding="0dip"
+			android:textSize="16sp" />
+
+		<TextView
+			android:id="@+id/txtName"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_below="@id/txtTweet"
+			android:layout_toRightOf="@id/imgMain"
+			android:layout_alignParentRight="true"
+			android:layout_marginLeft="0dip"
+			android:layout_marginTop="1dip"
+			android:layout_marginRight="10dip"
+			android:layout_marginBottom="10dip"
+			android:padding="0dip"
+			android:textColor="@android:color/darker_gray"
+			android:textSize="14sp" />
+
+	</RelativeLayout>
+
+	<com.vaguehope.onosendai.widget.PendingImage
+		android:id="@+id/imgMedia"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="3dip" />
+
+</LinearLayout>

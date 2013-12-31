@@ -31,7 +31,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 15;
+	private static final int DB_VERSION = 16;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -103,6 +103,10 @@ public class DbAdapter implements DbInterface {
 					this.log.w("Creating table %s...", TBL_OB);
 					if (!isTableExists(db, TBL_OB)) db.execSQL(TBL_OB_CREATE);
 				}
+				if (oldVersion < 16) { // NOSONAR not a magic number.
+					this.log.w("Adding column %s...", TBL_TW_INLINEMEDIA);
+					db.execSQL("ALTER TABLE " + TBL_TW + " ADD COLUMN " + TBL_TW_INLINEMEDIA + " text;");
+				}
 			}
 		}
 
@@ -171,6 +175,7 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_TW_FULLNAME = "fname";
 	private static final String TBL_TW_BODY = "body";
 	private static final String TBL_TW_AVATAR = "avatar";
+	private static final String TBL_TW_INLINEMEDIA = "imedia";
 
 	private static final String TBL_TW_CREATE = "create table " + TBL_TW + " ("
 			+ TBL_TW_ID + " integer primary key autoincrement,"
@@ -181,6 +186,7 @@ public class DbAdapter implements DbInterface {
 			+ TBL_TW_FULLNAME + " text,"
 			+ TBL_TW_BODY + " text,"
 			+ TBL_TW_AVATAR + " text,"
+			+ TBL_TW_INLINEMEDIA + " text,"
 			+ "UNIQUE(" + TBL_TW_COLID + ", " + TBL_TW_SID + ") ON CONFLICT REPLACE"
 			+ ");";
 
@@ -243,6 +249,7 @@ public class DbAdapter implements DbInterface {
 				values.put(TBL_TW_FULLNAME, tweet.getFullname());
 				values.put(TBL_TW_BODY, tweet.getBody());
 				values.put(TBL_TW_AVATAR, tweet.getAvatarUrl());
+				values.put(TBL_TW_INLINEMEDIA, tweet.getInlineMediaUrl());
 				final long uid = this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 
 				final List<Meta> metas = tweet.getMetas();
@@ -329,7 +336,7 @@ public class DbAdapter implements DbInterface {
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
+					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA },
 					where, whereArgs,
 					null, null,
 					TBL_TW_TIME + " desc", String.valueOf(numberOf));
@@ -349,6 +356,7 @@ public class DbAdapter implements DbInterface {
 			final int colBody = c.getColumnIndex(TBL_TW_BODY);
 			final int colTime = c.getColumnIndex(TBL_TW_TIME);
 			final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
+			final int colInlineMedia = c.getColumnIndex(TBL_TW_INLINEMEDIA);
 
 			final List<Tweet> ret = new ArrayList<Tweet>();
 			do {
@@ -359,7 +367,8 @@ public class DbAdapter implements DbInterface {
 				final String body = c.getString(colBody);
 				final long time = c.getLong(colTime);
 				final String avatar = c.getString(colAvatar);
-				ret.add(new Tweet(uid, sid, username, fullname, body, time, avatar, null));
+				final String inlineMedia = c.getString(colInlineMedia);
+				ret.add(new Tweet(uid, sid, username, fullname, body, time, avatar, inlineMedia, null));
 			}
 			while (c.moveToNext());
 			return ret;
@@ -376,7 +385,7 @@ public class DbAdapter implements DbInterface {
 			qb.setTables(TBL_TW + " INNER JOIN " + TBL_TM + " ON " + TBL_TW + "." + TBL_TW_ID + " = " + TBL_TM_TWID);
 			qb.setDistinct(true);
 			c = qb.query(this.mDb,
-					new String[] { TBL_TW + "." + TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
+					new String[] { TBL_TW + "." + TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA },
 					TBL_TW + "." + TBL_TW_ID + "=" + TBL_TM_TWID + " AND " + TBL_TM_TYPE + "=" + metaType.getId() + " AND " + TBL_TM_DATA + "=?",
 					new String[] { data },
 					TBL_TW_SID, null, TBL_TW_TIME + " desc", String.valueOf(numberOf));
@@ -415,7 +424,7 @@ public class DbAdapter implements DbInterface {
 		Cursor d = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR },
+					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA },
 					selection, selectionArgs,
 					null, null, null, null);
 
@@ -427,6 +436,7 @@ public class DbAdapter implements DbInterface {
 				final int colBody = c.getColumnIndex(TBL_TW_BODY);
 				final int colTime = c.getColumnIndex(TBL_TW_TIME);
 				final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
+				final int colInlineMedia = c.getColumnIndex(TBL_TW_INLINEMEDIA);
 
 				final long uid = c.getLong(colId);
 				final String sid = c.getString(colSid);
@@ -435,6 +445,7 @@ public class DbAdapter implements DbInterface {
 				final String body = c.getString(colBody);
 				final long time = c.getLong(colTime);
 				final String avatar = c.getString(colAvatar);
+				final String inlineMedia = c.getString(colInlineMedia);
 
 				List<Meta> metas = null;
 				try {
@@ -463,7 +474,7 @@ public class DbAdapter implements DbInterface {
 					IoHelper.closeQuietly(d);
 				}
 
-				ret = new Tweet(uid, sid, username, fullname, body, time, avatar, metas);
+				ret = new Tweet(uid, sid, username, fullname, body, time, avatar, inlineMedia, metas);
 			}
 		}
 		finally {

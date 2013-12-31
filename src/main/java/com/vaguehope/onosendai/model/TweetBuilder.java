@@ -11,8 +11,10 @@ public class TweetBuilder {
 	private String body;
 	private long unitTimeSeconds;
 	private String avatarUrl;
-	private String replyToId;
+	private String inlineMediaUrl;
 	private List<Meta> metas;
+
+	private String replyToId;
 	private StringBuilder subTitles;
 
 	public TweetBuilder () {
@@ -26,6 +28,7 @@ public class TweetBuilder {
 		this.body = null;
 		this.unitTimeSeconds = 0L;
 		this.avatarUrl = null;
+		this.inlineMediaUrl = null;
 		this.metas = null;
 		this.replyToId = null;
 		this.subTitles = null;
@@ -61,6 +64,11 @@ public class TweetBuilder {
 		return this;
 	}
 
+	public TweetBuilder inlineMediaUrl (final String v) {
+		this.inlineMediaUrl = v;
+		return this;
+	}
+
 	public TweetBuilder avatarUrl (final String v) {
 		this.avatarUrl = v;
 		return this;
@@ -81,6 +89,7 @@ public class TweetBuilder {
 	}
 
 	public TweetBuilder meta (final MetaType type, final String data, final String title) {
+		if (type == MetaType.MEDIA && this.inlineMediaUrl == null) this.inlineMediaUrl = data;
 		return meta(new Meta(type, data, title));
 	}
 
@@ -98,7 +107,7 @@ public class TweetBuilder {
 		if (this.replyToId != null && !this.replyToId.equals(this.id)) meta(MetaType.REPLYTO, this.replyToId);
 		Tweet t = new Tweet(this.id, this.username,
 				this.subTitles != null ? this.fullname + "\n" + this.subTitles.toString() : this.fullname,
-				this.body, this.unitTimeSeconds, this.avatarUrl, this.metas);
+				this.body, this.unitTimeSeconds, this.avatarUrl, this.inlineMediaUrl, this.metas);
 		reset();
 		return t;
 	}
