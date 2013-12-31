@@ -170,7 +170,7 @@ public final class TwitterUtils {
 		final UserMentionEntity[] umes = s.getUserMentionEntities();
 		if (umes == null) return;
 		for (final UserMentionEntity ume : umes) {
-			if (ume.getId() != ownId) metas.add(new Meta(MetaType.MENTION, ume.getScreenName()));
+			if (ume.getId() != ownId) metas.add(new Meta(MetaType.MENTION, ume.getScreenName(), ume.getName()));
 		}
 	}
 
