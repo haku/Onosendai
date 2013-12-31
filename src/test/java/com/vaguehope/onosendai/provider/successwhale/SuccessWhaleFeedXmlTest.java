@@ -62,6 +62,7 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals("some_other_user", t.getUsername());
 		assertEquals(1364374692L, t.getTime());
 		assertEquals("http://si0.twimg.com/profile_images/0983453383/e987609785a770b7ceeb476525435a1f_normal.jpeg", t.getAvatarUrl());
+		assertEquals("http://pbs.twimg.com/media/SDFLKsdflkjdfmG.jpg", t.getInlineMediaUrl());
 
 		assertEquals(4, t.getMetas().size());
 		assertHasMeta(t.getMetas(), new Meta(MetaType.MEDIA, "http://pbs.twimg.com/media/SDFLKsdflkjdfmG.jpg"));
@@ -121,6 +122,7 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals(null, t.getUsername());
 		assertEquals("Some User", t.getFullname());
 		assertEquals(1364295194L, t.getTime());
+		assertEquals("https://s-platform.ak.fbcdn.net/www/app_full_proxy.php?app=350685531728&v=1&size=z&cksum=1e87fdc3550bd207da99c7d631a82ae0&src=http%3A%2F%2Fnews.bbcimg.co.uk%2Fmedia%2Fimages%2F66629000%2Fjpg%2F_66629196_66629188.jpg", t.getInlineMediaUrl());
 
 		assertEquals(4, t.getMetas().size());
 		assertHasMeta(t.getMetas(), new Meta(MetaType.MEDIA, "https://s-platform.ak.fbcdn.net/www/app_full_proxy.php?app=350685531728&v=1&size=z&cksum=1e87fdc3550bd207da99c7d631a82ae0&src=http%3A%2F%2Fnews.bbcimg.co.uk%2Fmedia%2Fimages%2F66629000%2Fjpg%2F_66629196_66629188.jpg"));

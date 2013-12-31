@@ -14,13 +14,14 @@ public class Tweet {
 	private final String body;
 	private final long time;
 	private final String avatarUrl;
+	private final String inlineMediaUrl;
 	private final List<Meta> metas;
 
-	public Tweet (final String sid, final String username, final String fullname, final String body, final long unitTimeSeconds, final String avatarUrl, final List<Meta> metas) {
-		this(-1L, sid, username, fullname, body, unitTimeSeconds, avatarUrl, metas);
+	public Tweet (final String sid, final String username, final String fullname, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final List<Meta> metas) {
+		this(-1L, sid, username, fullname, body, unitTimeSeconds, avatarUrl, inlineMediaUrl, metas);
 	}
 
-	public Tweet (final long uid, final String sid, final String username, final String fullname, final String body, final long unitTimeSeconds, final String avatarUrl, final List<Meta> metas) {
+	public Tweet (final long uid, final String sid, final String username, final String fullname, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final List<Meta> metas) {
 		this.uid = uid;
 		this.sid = sid;
 		this.username = username;
@@ -28,6 +29,7 @@ public class Tweet {
 		this.body = body;
 		this.time = unitTimeSeconds;
 		this.avatarUrl = avatarUrl;
+		this.inlineMediaUrl = inlineMediaUrl;
 		this.metas = metas;
 	}
 
@@ -66,6 +68,10 @@ public class Tweet {
 		return this.avatarUrl;
 	}
 
+	public String getInlineMediaUrl () {
+		return this.inlineMediaUrl;
+	}
+
 	public List<Meta> getMetas () {
 		return this.metas;
 	}
@@ -95,6 +101,7 @@ public class Tweet {
 				.append(",").append(this.body)
 				.append(",").append(this.time)
 				.append(",").append(this.avatarUrl)
+				.append(",").append(this.inlineMediaUrl)
 				.append(",").append(this.metas)
 				.append("}").toString();
 	}
@@ -103,7 +110,7 @@ public class Tweet {
 	public int hashCode () {
 		return Arrays.hashCode(new Object[] {
 				this.uid, this.sid, this.username, this.fullname,
-				this.body, this.time, this.avatarUrl, this.metas });
+				this.body, this.time, this.avatarUrl, this.inlineMediaUrl, this.metas });
 	}
 
 	@Override
@@ -122,6 +129,7 @@ public class Tweet {
 				&& EqualHelper.equal(this.body, that.body)
 				&& this.time == that.time
 				&& EqualHelper.equal(this.avatarUrl, that.avatarUrl)
+				&& EqualHelper.equal(this.inlineMediaUrl, that.inlineMediaUrl)
 				&& EqualHelper.equal(this.metas, that.metas);
 	}
 

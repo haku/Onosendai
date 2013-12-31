@@ -85,6 +85,12 @@
 		android:orientation="horizontal">
 
 		<CheckBox
+			android:id="@+id/chkInlineMedia"
+			android:layout_width="0px"
+			android:layout_weight="1"
+			android:text="Media" />
+
+		<CheckBox
 			android:id="@+id/chkNotify"
 			android:layout_width="0px"
 			android:layout_weight="1"
@@ -95,7 +101,6 @@
 			android:layout_width="0px"
 			android:layout_weight="1"
 			android:text="Delete" />
-
 
 	</TableRow>
 

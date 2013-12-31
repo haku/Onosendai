@@ -22,6 +22,7 @@ import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
@@ -95,6 +96,7 @@ public final class TwitterUtils {
 				text,
 				TimeUnit.MILLISECONDS.toSeconds(s.getCreatedAt().getTime()),
 				s.getUser().getProfileImageURLHttps(),
+				MetaUtils.firstMetaOfTypesData(metas, MetaType.MEDIA),
 				metas);
 	}
 
