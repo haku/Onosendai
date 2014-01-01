@@ -72,7 +72,7 @@ public class FetchColumn implements Callable<Void> {
 					if (existingTweets.size() > 0) sinceId = Long.parseLong(existingTweets.get(existingTweets.size() - 1).getSid());
 
 					TweetList tweets = twitterProvider.getTweets(feed, account, sinceId);
-					db.storeTweets(column, tweets.getTweets());
+					if (tweets.count() > 0) db.storeTweets(column, tweets.getTweets());
 
 					storeSuccess(db, column);
 					long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
@@ -94,7 +94,7 @@ public class FetchColumn implements Callable<Void> {
 					if (existingTweets.size() > 0) sinceId = existingTweets.get(existingTweets.size() - 1).getSid();
 
 					TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId);
-					db.storeTweets(column, tweets.getTweets());
+					if (tweets.count() > 0) db.storeTweets(column, tweets.getTweets());
 
 					storeSuccess(db, column);
 					long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
