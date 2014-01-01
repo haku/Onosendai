@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res/com.vaguehope.onosendai"
 	android:layout_width="fill_parent"
 	android:layout_height="wrap_content"
 	android:orientation="vertical">
@@ -54,6 +55,7 @@
 		android:id="@+id/imgMedia"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="3dip" />
+		android:layout_marginTop="3dip"
+		app:maxHeight="150dip" />
 
 </LinearLayout>
