@@ -164,6 +164,16 @@ The APK can be made smaller using ProGuard.  This project is configured to only 
 mvn clean install -P release
 ```
 
+### Twitter OAuth key and secret
+
+Provide OAuth details build time using environment variables.
+The Maven build will then add these into the `.apk`.
+
+```sh
+export API_TWITTER_CONSUMER_KEY=1234567890abcdef
+export API_TWITTER_CONSUMER_SECRET=1234567890abcdef1234567890abcdef
+```
+
 Logging
 -------
 
