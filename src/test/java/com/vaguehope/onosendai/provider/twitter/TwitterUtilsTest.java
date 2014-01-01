@@ -54,6 +54,14 @@ public class TwitterUtilsTest {
 		testPictureUrlExpansion("http://imgur.com/oxyFqMy", "http://i.imgur.com/oxyFqMyl.jpg");
 	}
 
+	/**
+	 * Needs an Imgur API call to map album to thumb. :(
+	 */
+	@Test
+	public void itExpandsImgurAlbumUrlsToNull () throws Exception {
+		testPictureUrlNonExpansion("http://imgur.com/a/8PKUl");
+	}
+
 	@Test
 	public void itConvertsImgurJpgUrlsToMedia () throws Exception {
 		testPictureUrlExpansion("http://i.imgur.com/dhadb0b.jpg", "http://i.imgur.com/dhadb0bl.jpg");
@@ -95,6 +103,14 @@ public class TwitterUtilsTest {
 		final Status s = mockTweetWithUrl(fromUrl);
 		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L);
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, toUrl)));
+	}
+
+	private void testPictureUrlNonExpansion (final String fromUrl) {
+		final Status s = mockTweetWithUrl(fromUrl);
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L);
+		for (final Meta meta : t.getMetas()) {
+			if (meta.getType() == MetaType.MEDIA) throw new AssertionError("Unexpected MEDIA in " + t.getMetas());
+		}
 	}
 
 	private static Status mockTweetWithUrl (final String url) {

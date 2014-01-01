@@ -25,9 +25,13 @@ public final class ImageHostHelper {
 			if (m.matches()) return "http://twitpic.com/show/thumb/" + m.group(1) + ".jpg";
 		}
 
-		{
+		{ // https://api.imgur.com/models/image
 			final Matcher m = IMGUR_URL.matcher(linkUrl);
-			if (m.matches()) return "http://i.imgur.com/" + m.group(1) + "l.jpg";
+			if (m.matches()) {
+				final String imgId = m.group(1);
+				if (imgId.startsWith("a/")) return null;
+				return "http://i.imgur.com/" + imgId + "l.jpg";
+			}
 		}
 
 		{
