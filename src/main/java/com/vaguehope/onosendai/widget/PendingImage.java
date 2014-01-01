@@ -67,8 +67,8 @@ public class PendingImage extends FrameLayout {
 
 	protected static void setImageFullHeight (final FixedWidthImageView image) {
 		image.setMaxHeight(-1);
-		image.setClickable(false);
 		image.setOnClickListener(null);
+		image.setClickable(false);
 		image.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 		image.setScaleType(ScaleType.FIT_CENTER);
 		image.setAdjustViewBounds(true);
