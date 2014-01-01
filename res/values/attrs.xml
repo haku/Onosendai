@@ -6,4 +6,8 @@
         <attr name="hostView" format="reference" />
     </declare-styleable>
 
+    <declare-styleable name="PendingImage">
+        <attr name="maxHeight" format="dimension" />
+    </declare-styleable>
+
 </resources>

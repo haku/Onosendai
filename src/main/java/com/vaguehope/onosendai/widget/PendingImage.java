@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.widget;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -23,6 +24,10 @@ public class PendingImage extends FrameLayout {
 
 	public PendingImage (final Context context, final AttributeSet attrs, final int defStyle) {
 		super(context, attrs, defStyle);
+
+		TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.PendingImage);
+		final int maxHeightPixels = a.getDimensionPixelSize(R.styleable.PendingImage_maxHeight, -1);
+		a.recycle();
 
 		final ProgressBar prg = new ProgressBar(context);
 		prg.setIndeterminate(true);
@@ -54,9 +59,17 @@ public class PendingImage extends FrameLayout {
 			}
 
 		};
-		this.image.setScaleType(ScaleType.FIT_CENTER);
-		this.image.setAdjustViewBounds(true);
-		this.image.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+		if (maxHeightPixels > 0) {
+			this.image.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, maxHeightPixels));
+			this.image.setScaleType(ScaleType.CENTER_CROP);
+			this.image.setMaxHeight(maxHeightPixels);
+		}
+		else {
+			this.image.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+			this.image.setScaleType(ScaleType.FIT_CENTER);
+			this.image.setAdjustViewBounds(true);
+		}
 		this.image.setVisibility(View.GONE);
 		addView(this.image);
 	}
