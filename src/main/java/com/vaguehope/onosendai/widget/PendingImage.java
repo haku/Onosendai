@@ -34,48 +34,95 @@ public class PendingImage extends FrameLayout {
 		prg.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
 		addView(prg);
 
-		this.image = new FixedWidthImageView(context) {
-
-			// FIXME these are icky hacks to get 'show pending' and 'show image' events.
-
-			@Override
-			public void setImageResource (final int resId) {
-				if (resId == R.drawable.question_blue) {
-					setVisibility(View.GONE);
-					prg.setVisibility(View.VISIBLE);
-				}
-				else {
-					super.setImageResource(resId);
-					setVisibility(View.VISIBLE);
-					prg.setVisibility(View.GONE);
-				}
-			}
-
-			@Override
-			public void setImageBitmap (final Bitmap bm) {
-				super.setImageBitmap(bm);
-				setVisibility(View.VISIBLE);
-				prg.setVisibility(View.GONE);
-			}
-
-		};
-
-		if (maxHeightPixels > 0) {
-			this.image.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, maxHeightPixels));
-			this.image.setScaleType(ScaleType.CENTER_CROP);
-			this.image.setMaxHeight(maxHeightPixels);
-		}
-		else {
-			this.image.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-			this.image.setScaleType(ScaleType.FIT_CENTER);
-			this.image.setAdjustViewBounds(true);
-		}
+		this.image = new ProgressAwareFixedWidthImageView(context, prg, maxHeightPixels);
+		setupImageView(this.image, maxHeightPixels);
 		this.image.setVisibility(View.GONE);
 		addView(this.image);
 	}
 
 	public ImageView getImage () {
 		return this.image;
+	}
+
+	private static void setupImageView (final FixedWidthImageView image, final int maxHeightPixels) {
+		if (maxHeightPixels > 0) {
+			setImageLimitedHeight(image, maxHeightPixels);
+		}
+		else {
+			setImageFullHeight(image);
+		}
+	}
+
+	protected static void resetImageView (final FixedWidthImageView image, final int maxHeightPixels) {
+		if (maxHeightPixels > 0) setImageLimitedHeight(image, maxHeightPixels);
+	}
+
+	private static void setImageLimitedHeight (final FixedWidthImageView image, final int maxHeightPixels) {
+		image.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, maxHeightPixels));
+		image.setScaleType(ScaleType.CENTER_CROP);
+		image.setMaxHeight(maxHeightPixels);
+		image.setClickable(true);
+		image.setOnClickListener(new GoFullHeightListener(image));
+	}
+
+	protected static void setImageFullHeight (final FixedWidthImageView image) {
+		image.setMaxHeight(-1);
+		image.setClickable(false);
+		image.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+		image.setScaleType(ScaleType.FIT_CENTER);
+		image.setAdjustViewBounds(true);
+	}
+
+	private static class ProgressAwareFixedWidthImageView extends FixedWidthImageView {
+
+		private final ProgressBar prg;
+		private final int maxHeightPixels;
+
+		public ProgressAwareFixedWidthImageView (final Context context, final ProgressBar prg, final int maxHeightPixels) {
+			super(context);
+			this.maxHeightPixels = maxHeightPixels;
+			this.prg = prg;
+		}
+
+		// XXX these are icky hacks to get 'show pending' and 'show image' events.
+
+		@Override
+		public void setImageResource (final int resId) {
+			if (resId == R.drawable.question_blue) {
+				setVisibility(View.GONE);
+				this.prg.setVisibility(View.VISIBLE);
+			}
+			else {
+				resetImageView(this, this.maxHeightPixels);
+				super.setImageResource(resId);
+				setVisibility(View.VISIBLE);
+				this.prg.setVisibility(View.GONE);
+			}
+		}
+
+		@Override
+		public void setImageBitmap (final Bitmap bm) {
+			resetImageView(this, this.maxHeightPixels);
+			super.setImageBitmap(bm);
+			setVisibility(View.VISIBLE);
+			this.prg.setVisibility(View.GONE);
+		}
+
+	}
+
+	private static class GoFullHeightListener implements OnClickListener {
+
+		private final FixedWidthImageView image;
+
+		public GoFullHeightListener (final FixedWidthImageView image) {
+			this.image = image;
+		}
+
+		@Override
+		public void onClick (final View v) {
+			setImageFullHeight(this.image);
+		}
+
 	}
 
 }
