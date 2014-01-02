@@ -96,7 +96,8 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	private String stashedLinkTitle;
 	private String stashedFetchedForUserid;
 	private String stashedService;
-	private String stashedUserName;
+	private String stashedMentionUserName;
+	private String stashedMentionFullName;
 	private String stashedUserId;
 	private String stashedHashtagText;
 
@@ -194,9 +195,10 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			}
 			if ("username".equals(elementName)) {
 				if (!EqualHelper.equal(this.stashedFetchedForUserid, this.stashedUserId)) {
-					this.currentItem.meta(MetaType.MENTION, this.stashedUserName);
+					this.currentItem.meta(MetaType.MENTION, this.stashedMentionUserName, this.stashedMentionFullName);
 				}
-				this.stashedUserName = null;
+				this.stashedMentionUserName = null;
+				this.stashedMentionFullName = null;
 				this.stashedUserId = null;
 			}
 			if ("hashtag".equals(elementName)) {
@@ -226,7 +228,10 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.stashedHashtagText = this.currentText.toString();
 			}
 			else if ("user".equals(elementName) && "username".equals(this.stack.get(5))) {
-				this.stashedUserName = this.currentText.toString();
+				this.stashedMentionUserName = this.currentText.toString();
+			}
+			else if ("username".equals(elementName) && "username".equals(this.stack.get(5))) {
+				this.stashedMentionFullName = this.currentText.toString();
 			}
 			else if ("id".equals(elementName)) {
 				if ("username".equals(this.stack.get(5))) {

@@ -88,6 +88,7 @@
           <username>
             <id type="integer">79834598</id>
             <user>testuser</user>
+            <username>Test User</username>
             <indices type="array">
               <index type="integer">60</index>
               <index type="integer">69</index>
@@ -128,6 +129,7 @@
           <username>
             <id type="integer">09823422</id>
             <user>johndoe</user>
+            <username>John Doe</username>
             <indices type="array">
               <index type="integer">1</index>
               <index type="integer">8</index>
