@@ -105,10 +105,16 @@ public class Account implements Titleable {
 		return this.consumerSecret;
 	}
 
+	/**
+	 * Also used for username.
+	 */
 	public String getAccessToken () {
 		return this.accessToken;
 	}
 
+	/**
+	 * Also used for password.
+	 */
 	public String getAccessSecret () {
 		return this.accessSecret;
 	}
