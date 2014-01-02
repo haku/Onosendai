@@ -304,7 +304,7 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public List<Tweet> getTweets (final int columnId, final int numberOf) {
-		return getTweets(TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) }, numberOf);
+		return getTweets(TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) }, TBL_TW_TIME + " desc", numberOf);
 	}
 
 	@Override
@@ -328,10 +328,20 @@ public class DbAdapter implements DbInterface {
 			i++;
 		}
 		where.append(")");
-		return getTweets(where.toString(), whereArgs, numberOf);
+		return getTweets(where.toString(), whereArgs, TBL_TW_TIME + " desc", numberOf);
 	}
 
-	private List<Tweet> getTweets (final String where, final String[] whereArgs, final int numberOf) {
+	@Override
+	public List<Tweet> getTweetsSinceTime (final int columnId, final long earliestTime, final int numberOf) {
+		return getTweets(new StringBuilder()
+				.append(TBL_TW_COLID).append("=?")
+				.append(" AND ").append(TBL_TW_TIME).append(">?").toString(),
+				new String[] { String.valueOf(columnId), String.valueOf(earliestTime) },
+				TBL_TW_TIME + " asc",
+				numberOf);
+	}
+
+	private List<Tweet> getTweets (final String where, final String[] whereArgs, final String orderBy, final int numberOf) {
 		if (!checkDbOpen()) return null;
 		Cursor c = null;
 		try {
@@ -339,7 +349,7 @@ public class DbAdapter implements DbInterface {
 					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA },
 					where, whereArgs,
 					null, null,
-					TBL_TW_TIME + " desc", String.valueOf(numberOf));
+					orderBy, String.valueOf(numberOf));
 			return readTweets(c);
 		}
 		finally {

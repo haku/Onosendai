@@ -11,6 +11,7 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ProviderMgr;
+import com.vaguehope.onosendai.provider.instapaper.InstapaperProvider;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleFeed;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
@@ -20,6 +21,7 @@ import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterUtils;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
+import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class FetchColumn implements Callable<Void> {
@@ -65,6 +67,9 @@ public class FetchColumn implements Callable<Void> {
 				break;
 			case SUCCESSWHALE:
 				fetchSuccessWhaleColumn(db, account, column, providerMgr);
+				break;
+			case INSTAPAPER:
+				pushInstapaperColumn(db, account, column, providerMgr);
 				break;
 			default:
 				LOG.e("Unknown account type: %s", account.getProvider());
@@ -115,7 +120,40 @@ public class FetchColumn implements Callable<Void> {
 		}
 		catch (SuccessWhaleException e) {
 			LOG.w("Failed to fetch from SuccessWhale: %s", e.toString());
-			storeError(db, column, e.toString());
+			storeError(db, column, ExcpetionHelper.causeTrace(e));
+		}
+	}
+
+	private static void pushInstapaperColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr) {
+		final long startTime = System.nanoTime();
+		try {
+			final InstapaperProvider provider = providerMgr.getInstapaperProvider();
+
+			final String lastPushTimeRaw = db.getValue(KvKeys.KEY_PREFIX_COL_LAST_PUSH_TIME + column.getId());
+			final long lastPushTime = lastPushTimeRaw != null ? Long.parseLong(lastPushTimeRaw) : 0L;
+
+			LOG.i("Looking for items since t=%s to push...", lastPushTime);
+			final List<Tweet> tweets = db.getTweetsSinceTime(column.getId(), lastPushTime, 10); // XXX Arbitrary limit.
+
+			LOG.i("Pushing %s items...", tweets.size());
+			for (final Tweet tweet : tweets) {
+				provider.add(account,
+						// FIXME what about facebook, etc?
+						// FIXME move this generation somewhere nicer?
+						"https://twitter.com/" + tweet.getUsername() + "/status/" + tweet.getSid(),
+						"Tweet by " + tweet.getFullname() + "(@" + tweet.getUsername() + ")",
+						tweet.getBody());
+				db.storeValue(KvKeys.KEY_PREFIX_COL_LAST_PUSH_TIME + column.getId(), String.valueOf(tweet.getTime()));
+				LOG.i("Pushed item sid=%s.", tweet.getSid());
+			}
+
+			storeSuccess(db, column);
+			long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+			LOG.i("Pushed %d items for '%s' in %d millis.", tweets.size(), column.getTitle(), durationMillis);
+		}
+		catch (Exception e) {
+			LOG.w("Failed to push to Instapaper.", e);
+			storeError(db, column, ExcpetionHelper.causeTrace(e));
 		}
 	}
 

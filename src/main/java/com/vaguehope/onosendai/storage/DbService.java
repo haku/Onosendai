@@ -91,6 +91,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public List<Tweet> getTweetsSinceTime (final int columnId, final long earliestTime, final int numberOf) {
+		return this.dbAdaptor.getTweetsSinceTime(columnId, earliestTime, numberOf);
+	}
+
+	@Override
 	public List<Tweet> findTweetsWithMeta (final MetaType metaType, final String data, final int numberOf) {
 		return this.dbAdaptor.findTweetsWithMeta(metaType, data, numberOf);
 	}

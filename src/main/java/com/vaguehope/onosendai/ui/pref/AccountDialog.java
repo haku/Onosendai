@@ -47,14 +47,19 @@ class AccountDialog {
 
 		this.llParent.setOrientation(LinearLayout.VERTICAL);
 
-		if (this.accountProvider == AccountProvider.SUCCESSWHALE) {
-			this.txtUsername.setSelectAllOnFocus(true);
-			this.txtUsername.setHint("username");
-			this.llParent.addView(this.txtUsername);
+		switch (this.accountProvider) {
+			case SUCCESSWHALE:
+			case INSTAPAPER:
+				this.txtUsername.setSelectAllOnFocus(true);
+				this.txtUsername.setHint("username");
+				this.llParent.addView(this.txtUsername);
 
-			this.txtPassword.setSelectAllOnFocus(true);
-			this.txtPassword.setHint("password");
-			this.llParent.addView(this.txtPassword);
+				this.txtPassword.setSelectAllOnFocus(true);
+				this.txtPassword.setHint("password");
+				this.llParent.addView(this.txtPassword);
+
+				break;
+			default:
 		}
 
 		this.chkDelete.setText("delete");
@@ -83,16 +88,23 @@ class AccountDialog {
 	 * Will getValue() return something?
 	 */
 	public boolean isSaveable () {
-		return this.accountProvider == AccountProvider.SUCCESSWHALE;
+		switch (this.accountProvider) {
+			case SUCCESSWHALE:
+			case INSTAPAPER:
+				return true;
+			default:
+		}
+		return false;
 	}
 
 	public Account getValue () {
 		switch (this.accountProvider) {
 			case SUCCESSWHALE:
+			case INSTAPAPER:
 				final String username = this.txtUsername.getText().toString();
 				final String password = this.txtPassword.getText().toString();
 				return new Account(this.id, username,
-						AccountProvider.SUCCESSWHALE,
+						this.accountProvider,
 						null, null, username, password);
 			default:
 				return null;

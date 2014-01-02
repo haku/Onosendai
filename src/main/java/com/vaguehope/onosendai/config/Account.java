@@ -132,6 +132,7 @@ public class Account implements Titleable {
 				json.put(KEY_ACCESS_SECRET, this.accessSecret);
 				break;
 			case SUCCESSWHALE:
+			case INSTAPAPER:
 				json.put(KEY_USERNAME, this.accessToken);
 				json.put(KEY_PASSWORD, this.accessSecret);
 				break;
@@ -159,7 +160,10 @@ public class Account implements Titleable {
 				account = parseTwitterAccount(json, id);
 				break;
 			case SUCCESSWHALE:
-				account = parseSuccessWhaleAccount(json, id);
+				account = parseUsernamePasswordLikeAccount(json, id, AccountProvider.SUCCESSWHALE);
+				break;
+			case INSTAPAPER:
+				account = parseUsernamePasswordLikeAccount(json, id, AccountProvider.INSTAPAPER);
 				break;
 			case BUFFER:
 				account = parseBufferAccount(json, id);
@@ -179,11 +183,11 @@ public class Account implements Titleable {
 		return new Account(id, title, AccountProvider.TWITTER, consumerKey, consumerSecret, accessToken, accessSecret);
 	}
 
-	private static Account parseSuccessWhaleAccount (final JSONObject accountJson, final String id) throws JSONException {
+	private static Account parseUsernamePasswordLikeAccount (final JSONObject accountJson, final String id, final AccountProvider provider) throws JSONException {
 		final String accessToken = accountJson.getString(KEY_USERNAME);
 		final String accessSecret = accountJson.getString(KEY_PASSWORD);
 		final String title = accountJson.optString(KEY_TITLE, accessToken);
-		return new Account(id, title, AccountProvider.SUCCESSWHALE, null, null, accessToken, accessSecret);
+		return new Account(id, title, provider, null, null, accessToken, accessSecret);
 	}
 
 	private static Account parseBufferAccount (final JSONObject accountJson, final String id) throws JSONException {

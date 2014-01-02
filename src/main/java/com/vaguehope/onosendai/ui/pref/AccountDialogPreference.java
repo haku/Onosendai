@@ -30,6 +30,7 @@ public class AccountDialogPreference extends DialogPreference {
 		switch(account.getProvider()) {
 			case TWITTER:
 			case SUCCESSWHALE:
+			case INSTAPAPER:
 				break;
 			default:
 				setEnabled(false);

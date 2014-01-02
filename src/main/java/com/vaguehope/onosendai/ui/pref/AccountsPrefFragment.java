@@ -15,6 +15,8 @@ import android.preference.PreferenceFragment;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
+import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthCallback;
 import com.vaguehope.onosendai.util.DialogHelper;
@@ -45,7 +47,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 		final Preference pref = new Preference(getActivity());
 		pref.setTitle("Add Account");
-		pref.setSummary("Add a new Twitter or SuccessWhale account");
+		pref.setSummary("Add a new Twitter, SuccessWhale or Instapaper account");
 		pref.setOnPreferenceClickListener(new AddAcountClickListener(this));
 		getPreferenceScreen().addPreference(pref);
 
@@ -63,7 +65,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 	protected void promptNewAccountType () {
 		DialogHelper.askItem(getActivity(), "Account Type",
-				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.SUCCESSWHALE },
+				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.SUCCESSWHALE, AccountProvider.INSTAPAPER },
 				new Listener<AccountProvider>() {
 					@Override
 					public void onAnswer (final AccountProvider answer) {
@@ -78,7 +80,10 @@ public class AccountsPrefFragment extends PreferenceFragment {
 				promptAddTwitterAccount();
 				break;
 			case SUCCESSWHALE:
-				promptAddSuccessWhaleAccount();
+				promptAddUsernamePasswordLikeAccount(AccountProvider.SUCCESSWHALE);
+				break;
+			case INSTAPAPER:
+				promptAddUsernamePasswordLikeAccount(AccountProvider.INSTAPAPER);
 				break;
 			default:
 				DialogHelper.alert(getActivity(), "Do not know how to add account of type: " + accountProvider);
@@ -118,9 +123,9 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private void promptAddSuccessWhaleAccount () {
+	private void promptAddUsernamePasswordLikeAccount (final AccountProvider provider) {
 		final String id = getPrefs().getNextAccountId();
-		final AccountDialog dlg = new AccountDialog(getActivity(), id, AccountProvider.SUCCESSWHALE);
+		final AccountDialog dlg = new AccountDialog(getActivity(), id, provider);
 
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(getActivity());
 		dlgBuilder.setTitle("New Account (" + id + ")");
@@ -130,7 +135,9 @@ public class AccountsPrefFragment extends PreferenceFragment {
 			public void onClick (final DialogInterface dialog, final int which) {
 				dialog.dismiss();
 				try {
-					getPrefs().writeNewAccount(dlg.getValue());
+					final Account newAccount = dlg.getValue();
+					getPrefs().writeNewAccount(newAccount);
+					accountCreatedHook(newAccount);
 				}
 				catch (final JSONException e) {
 					DialogHelper.alert(getActivity(), "Failed to write new account: ", e);
@@ -140,6 +147,16 @@ public class AccountsPrefFragment extends PreferenceFragment {
 		});
 		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER);
 		dlgBuilder.create().show();
+	}
+
+	protected void accountCreatedHook (final Account account) throws JSONException {
+		if (account.getProvider() == AccountProvider.INSTAPAPER) {
+			final Column later = getPrefs().asConfig().findInternalColumn(InternalColumnType.LATER);
+			if (later != null) {
+				getPrefs().writeUpdatedColumn(new Column(account, later));
+				LOG.i("Updated column %s to use account %s.", later.getId(), account.getId());
+			}
+		}
 	}
 
 	protected void askDeleteAccount (final Account account) {

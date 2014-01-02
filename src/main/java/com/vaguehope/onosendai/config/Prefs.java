@@ -195,6 +195,14 @@ public class Prefs {
 		e.commit();
 	}
 
+	public void writeUpdatedColumn (final Column column) throws JSONException {
+		final String id = makeColumnId(column.getId());
+		final String json = column.toJson().toString();
+		final Editor e = this.sharedPreferences.edit();
+		e.putString(id, json);
+		e.commit();
+	}
+
 	public void moveColumnToPosition (final int id, final int position) {
 		moveColumnToPosition(makeColumnId(id), position);
 	}
