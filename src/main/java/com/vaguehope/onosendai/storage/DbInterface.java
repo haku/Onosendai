@@ -20,6 +20,7 @@ public interface DbInterface extends KvStore {
 	List<Tweet> getTweets(int columnId, int numberOf);
 	List<Tweet> getTweets(int columnId, int numberOf, Set<Integer> excludeColumnIds);
 
+	List<Tweet> getTweetsSinceTime (final int columnId, final long earliestTime, final int numberOf);
 	List<Tweet> findTweetsWithMeta (MetaType metaType, String data, final int numberOf);
 
 	Tweet getTweetDetails(int columnId, Tweet tweet);

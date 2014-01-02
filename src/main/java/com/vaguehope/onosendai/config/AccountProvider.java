@@ -7,6 +7,7 @@ import com.vaguehope.onosendai.util.Titleable;
 public enum AccountProvider implements Titleable {
 	TWITTER("Twitter"),
 	SUCCESSWHALE("SuccessWhale"),
+	INSTAPAPER("Instapaper"),
 	BUFFER("Buffer");
 
 	private final String humanName;

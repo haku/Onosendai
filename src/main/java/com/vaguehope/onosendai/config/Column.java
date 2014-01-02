@@ -44,6 +44,10 @@ public class Column implements Titleable {
 		this(id, c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.isNotify(), c.isInlineMedia());
 	}
 
+	public Column (final Account newAccount, final Column c) {
+		this(c.getId(), c.getTitle(), newAccount.getId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.isNotify(), c.isInlineMedia());
+	}
+
 	public Column (
 			final int id,
 			final String title,
