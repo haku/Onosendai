@@ -65,7 +65,7 @@ public class InstapaperProvider {
 		final String title = (linkMeta != null && !StringHelper.isEmpty(linkMeta.getTitle())
 				? linkMeta.getTitle() + " via "
 				: (networkType == NetworkType.FACEBOOK ? "Post" : "Tweet") + " by ")
-				+ tweet.getFullname() + (tweet.getUsername() != null ? " (@" + tweet.getUsername() + ")" : "");
+				+ StringHelper.firstLine(tweet.getFullname()) + (tweet.getUsername() != null ? " (@" + tweet.getUsername() + ")" : "");
 
 		final String summary = url.equals(tweetUrl)
 				? tweet.getBody()

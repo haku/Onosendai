@@ -25,4 +25,10 @@ public final class StringHelper {
 		return s.toLowerCase(Locale.UK).contains(lookFor.toLowerCase(Locale.UK));
 	}
 
+	public static String firstLine(final String s) {
+		if (s == null) return s;
+		int x = s.indexOf("\n");
+		return x >= 0 ? s.substring(0, x) : s;
+	}
+
 }

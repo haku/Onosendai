@@ -51,7 +51,7 @@ public class InstapaperProviderTest {
 	public void itConvertsFacebookUpdate () throws Exception {
 		final List<Meta> metas = new ArrayList<Meta>();
 		metas.add(new Meta(MetaType.SERVICE, "facebook:1234567"));
-		final Tweet tweet = new Tweet("1234567_sid", null, "fullname", "body", System.currentTimeMillis(), "avatarUrl", "inlineMediaUrl", metas);
+		final Tweet tweet = new Tweet("1234567_sid", null, "fullname\n1like 2 comments", "body", System.currentTimeMillis(), "avatarUrl", "inlineMediaUrl", metas);
 
 		this.undertest.add(this.account, tweet);
 
