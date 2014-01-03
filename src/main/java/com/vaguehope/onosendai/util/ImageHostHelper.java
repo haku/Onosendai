@@ -29,7 +29,7 @@ public final class ImageHostHelper {
 			final Matcher m = IMGUR_URL.matcher(linkUrl);
 			if (m.matches()) {
 				final String imgId = m.group(1);
-				if (imgId.startsWith("a/")) return null;
+				if (imgId.startsWith("a/") || imgId.startsWith("gallery/")) return null;
 				return "http://i.imgur.com/" + imgId + "l.jpg";
 			}
 		}

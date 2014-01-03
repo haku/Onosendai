@@ -60,6 +60,7 @@ public class TwitterUtilsTest {
 	@Test
 	public void itExpandsImgurAlbumUrlsToNull () throws Exception {
 		testPictureUrlNonExpansion("http://imgur.com/a/8PKUl");
+		testPictureUrlNonExpansion("http://imgur.com/gallery/FpZwD");
 	}
 
 	@Test
