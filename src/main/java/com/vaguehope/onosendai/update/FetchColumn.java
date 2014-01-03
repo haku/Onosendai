@@ -137,12 +137,8 @@ public class FetchColumn implements Callable<Void> {
 
 			LOG.i("Pushing %s items...", tweets.size());
 			for (final Tweet tweet : tweets) {
-				provider.add(account,
-						// FIXME what about facebook, etc?
-						// FIXME move this generation somewhere nicer?
-						"https://twitter.com/" + tweet.getUsername() + "/status/" + tweet.getSid(),
-						"Tweet by " + tweet.getFullname() + "(@" + tweet.getUsername() + ")",
-						tweet.getBody());
+				final Tweet fullTweet = db.getTweetDetails(column.getId(), tweet);
+				provider.add(account, fullTweet);
 				db.storeValue(KvKeys.KEY_PREFIX_COL_LAST_PUSH_TIME + column.getId(), String.valueOf(tweet.getTime()));
 				LOG.i("Pushed item sid=%s.", tweet.getSid());
 			}
