@@ -35,7 +35,12 @@ public enum MetaType {
 	 * The Service provided ID (SID) to reply to if different from the item SID.
 	 * e.g. Facebook notifications.
 	 */
-	REPLYTO(8);
+	REPLYTO(8),
+	/**
+	 * Data is the real time the Tweet was posted if Tweet.getTime() has been overwritten.
+	 * Title is unused.
+	 */
+	POST_TIME(9);
 
 	private final int id;
 
@@ -65,6 +70,8 @@ public enum MetaType {
 				return ACCOUNT;
 			case 8: // NOSONAR 8 is not magical.
 				return REPLYTO;
+			case 9: // NOSONAR 9 is not magical.
+				return POST_TIME;
 			default:
 				return null;
 		}

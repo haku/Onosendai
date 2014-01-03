@@ -1,7 +1,9 @@
 package com.vaguehope.onosendai.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.vaguehope.onosendai.util.EqualHelper;
 
@@ -82,6 +84,13 @@ public class Tweet {
 			if (type == meta.getType()) return meta;
 		}
 		return null;
+	}
+
+	public Tweet cloneWithCurrentTimestamp() {
+		final long utime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
+		final List<Meta> newMetas = new ArrayList<Meta>(this.metas);
+		newMetas.add(new Meta(MetaType.POST_TIME, String.valueOf(this.time)));
+		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.body, utime, this.avatarUrl, this.inlineMediaUrl, newMetas);
 	}
 
 	@Override

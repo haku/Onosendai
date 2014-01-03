@@ -11,6 +11,8 @@ import android.widget.TextView;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
+import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 
 public class PrincipalPayload extends Payload {
@@ -46,7 +48,10 @@ public class PrincipalPayload extends Payload {
 
 		rowView.setText(tweet.getBody());
 		rowView.setSecondaryText(tweet.getFullname());
-		rowView.setTertiaryText(this.dateFormat.format(new Date(TimeUnit.SECONDS.toMillis(tweet.getTime()))));
+
+		final Meta postTimeMeta = tweet.getFirstMetaOfType(MetaType.POST_TIME);
+		final long tweetTime = postTimeMeta != null ? Long.parseLong(postTimeMeta.getData()) : tweet.getTime();
+		rowView.setTertiaryText(this.dateFormat.format(new Date(TimeUnit.SECONDS.toMillis(tweetTime))));
 
 		final String avatarUrl = tweet.getAvatarUrl();
 		if (avatarUrl != null) {

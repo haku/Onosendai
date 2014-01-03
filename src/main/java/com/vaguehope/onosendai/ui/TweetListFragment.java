@@ -556,7 +556,7 @@ public class TweetListFragment extends Fragment {
 					Toast.makeText(this.context, "Removed.", Toast.LENGTH_SHORT).show();
 				}
 				else {
-					this.tweetListFragment.getDb().storeTweets(col, Collections.singletonList(this.tweet));
+					this.tweetListFragment.getDb().storeTweets(col, Collections.singletonList(this.tweet.cloneWithCurrentTimestamp()));
 					Toast.makeText(this.context, "Saved for later.", Toast.LENGTH_SHORT).show();
 				}
 				this.tweetListFragment.setReadLaterButton(this.tweet, !this.isLaterColumn);
