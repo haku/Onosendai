@@ -41,15 +41,16 @@ public class InstapaperProvider {
 		final NetworkType networkType = serviceRef != null ? serviceRef.getType() : null;
 
 		final String tweetUrl;
-		if (serviceRef != null && networkType == NetworkType.FACEBOOK) {
-			final String serviceUid = serviceRef.getUid();
+		if (networkType == NetworkType.FACEBOOK) {
 			final String tweetSid = tweet.getSid();
-			if (tweetSid.length() > serviceUid.length() + 2 && tweetSid.startsWith(serviceUid + "_")) {
-				final String statusId = tweetSid.substring(serviceUid.length() + 1);
-				tweetUrl = "https://www.facebook.com/" + serviceUid + "/post/" + statusId;
+			final int x = tweetSid.indexOf("_");
+			if (x > 0) {
+				final String userId = tweetSid.substring(0, x);
+				final String statusId = tweetSid.substring(x + 1);
+				tweetUrl = "https://www.facebook.com/" + userId + "/posts/" + statusId;
 			}
 			else {
-				tweetUrl = "http://example.com/" + serviceRef.getRawType() + "/uid/" + tweet.getSid();
+				tweetUrl = "http://localhost/invalidfacebookpostid/uid/" + tweet.getSid();
 			}
 		}
 		else {
