@@ -80,16 +80,16 @@ public class Tweet {
 
 	public Meta getFirstMetaOfType (final MetaType type) {
 		if (this.metas == null) return null;
-		for (Meta meta : this.metas) {
+		for (final Meta meta : this.metas) {
 			if (type == meta.getType()) return meta;
 		}
 		return null;
 	}
 
-	public Tweet cloneWithCurrentTimestamp() {
+	public Tweet cloneWithCurrentTimestamp () {
 		final long utime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
 		final List<Meta> newMetas = new ArrayList<Meta>(this.metas);
-		newMetas.add(new Meta(MetaType.POST_TIME, String.valueOf(this.time)));
+		if (getFirstMetaOfType(MetaType.POST_TIME) == null) newMetas.add(new Meta(MetaType.POST_TIME, String.valueOf(this.time)));
 		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.body, utime, this.avatarUrl, this.inlineMediaUrl, newMetas);
 	}
 
