@@ -121,12 +121,12 @@ public class UpdateService extends DbBindingService {
 		final long now = System.currentTimeMillis();
 		while (colItr.hasNext()) {
 			final Column column = colItr.next();
+			final int refIntMins = column.getRefreshIntervalMins();
+			if (refIntMins < 1) colItr.remove(); // Do not refresh columns not configured to refresh.
 			final String lastTimeRaw = getDb().getValue(KvKeys.KEY_PREFIX_COL_LAST_REFRESH_TIME + column.getId());
 			if (lastTimeRaw == null) continue; // Never refreshed.
 			final long lastTime = Long.parseLong(lastTimeRaw);
 			if (lastTime <= 0L) continue; // Probably never refreshed.
-			int refIntMins = column.getRefreshIntervalMins();
-			if (refIntMins < 1) colItr.remove(); // Do not refresh columns not configured to refresh.
 			if (now - lastTime < TimeUnit.MINUTES.toMillis(refIntMins)) colItr.remove(); // No not refresh up to date columns.
 		}
 	}
