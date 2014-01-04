@@ -171,4 +171,11 @@ public class TwitterUtilsTest {
 		assertEquals("Network error: Connection timed out.", TwitterUtils.friendlyExceptionMessage(te));
 	}
 
+	@Test
+	public void itMakesFriendlyErrorForInternalJsonError () throws Exception {
+		twitter4j.internal.org.json.JSONException je = new twitter4j.internal.org.json.JSONException("Expected a ',' or '}' at 7733 [character 7734 line 1]");
+		final TwitterException te = new TwitterException(je);
+		assertEquals("Network error: Invalid or incomplete data received.", TwitterUtils.friendlyExceptionMessage(te));
+	}
+
 }

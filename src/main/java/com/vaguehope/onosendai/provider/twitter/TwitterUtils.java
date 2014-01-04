@@ -195,6 +195,9 @@ public final class TwitterUtils {
 			else if (cause instanceof IOException) {
 				return "Network error: " + String.valueOf(cause);
 			}
+			else if (cause instanceof twitter4j.internal.org.json.JSONException) {
+				return "Network error: Invalid or incomplete data received.";
+			}
 		}
 		return ExcpetionHelper.causeTrace(e);
 	}
