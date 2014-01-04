@@ -77,7 +77,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLo
 		if (fromCache != null) return fromCache;
 
 		try {
-			final Tweet inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(account, Long.parseLong(inReplyToMeta.getData()));
+			final Tweet inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(account, inReplyToMeta.toLong(0L));
 			if (inReplyToTweet != null) {
 				cacheInReplyTos(db, Collections.singletonList(inReplyToTweet));
 				return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);

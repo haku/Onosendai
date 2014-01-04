@@ -50,7 +50,7 @@ public class PrincipalPayload extends Payload {
 		rowView.setSecondaryText(tweet.getFullname());
 
 		final Meta postTimeMeta = tweet.getFirstMetaOfType(MetaType.POST_TIME);
-		final long tweetTime = postTimeMeta != null ? Long.parseLong(postTimeMeta.getData()) : tweet.getTime();
+		final long tweetTime = postTimeMeta != null ? postTimeMeta.toLong(0L) : tweet.getTime();
 		rowView.setTertiaryText(this.dateFormat.format(new Date(TimeUnit.SECONDS.toMillis(tweetTime))));
 
 		final String avatarUrl = tweet.getAvatarUrl();

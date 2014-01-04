@@ -59,7 +59,7 @@ public class InstapaperProvider {
 
 		final Meta linkMeta = tweet.getFirstMetaOfType(MetaType.URL);
 
-		final String url = linkMeta != null && !StringHelper.isEmpty(linkMeta.getData())
+		final String url = linkMeta != null && linkMeta.hasData()
 				? linkMeta.getData()
 				: tweetUrl;
 
