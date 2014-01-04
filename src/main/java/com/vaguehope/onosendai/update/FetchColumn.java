@@ -95,7 +95,7 @@ public class FetchColumn implements Callable<Void> {
 			LOG.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
 		}
 		catch (TwitterException e) {
-			LOG.w("Failed to fetch from Twitter: %s", e.toString());
+			LOG.w("Failed to fetch from Twitter: %s", ExcpetionHelper.causeTrace(e));
 			storeError(db, column, TwitterUtils.friendlyExceptionMessage(e));
 		}
 	}
@@ -119,8 +119,8 @@ public class FetchColumn implements Callable<Void> {
 			LOG.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
 		}
 		catch (SuccessWhaleException e) {
-			LOG.w("Failed to fetch from SuccessWhale: %s", e.toString());
-			storeError(db, column, ExcpetionHelper.causeTrace(e));
+			LOG.w("Failed to fetch from SuccessWhale: %s", ExcpetionHelper.causeTrace(e));
+			storeError(db, column, e.friendlyMessage());
 		}
 	}
 
@@ -148,7 +148,7 @@ public class FetchColumn implements Callable<Void> {
 			LOG.i("Pushed %d items for '%s' in %d millis.", tweets.size(), column.getTitle(), durationMillis);
 		}
 		catch (Exception e) {
-			LOG.w("Failed to push to Instapaper.", e);
+			LOG.w("Failed to push to Instapaper: %s", ExcpetionHelper.causeTrace(e));
 			storeError(db, column, ExcpetionHelper.causeTrace(e));
 		}
 	}
