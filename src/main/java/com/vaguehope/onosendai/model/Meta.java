@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.model;
 import java.util.Arrays;
 
 import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class Meta {
 
@@ -30,6 +31,15 @@ public class Meta {
 
 	public String getTitle () {
 		return this.title;
+	}
+
+	public boolean hasData() {
+		return !StringHelper.isEmpty(this.data);
+	}
+
+	public long toLong (final long defaultValue) {
+		if (!hasData()) return defaultValue;
+		return Long.parseLong(this.data);
 	}
 
 	@Override
