@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.provider.instapaper;
 
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.startsWith;
 import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
@@ -18,6 +20,7 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.model.TweetBuilder;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Instapaper.class, InstapaperProvider.class })
@@ -69,6 +72,32 @@ public class InstapaperProviderTest {
 
 		verify(this.mockInstapaper).add("http://example.com/thing",
 				"Thing! via fullname (@username)", "body\n[https://twitter.com/username/status/sid]");
+	}
+
+	@Test
+	public void itHandlesFateTweetsFromPostTask () throws Exception {
+		final String body = "just some plain text.";
+
+		final TweetBuilder b = new TweetBuilder();
+		b.body(body);
+
+		this.undertest.add(this.account, b.build());
+
+		verify(this.mockInstapaper).add(startsWith("http://localhost/nourl/"),
+				eq("Text saved by you"), eq(body));
+	}
+
+	@Test
+	public void itHandlesFateTweetsFromPostTaskWithUrl () throws Exception {
+		final String body = "just some plain text.  http://example.com/foo/bar?bat=boo&a=1 and more text.";
+
+		final TweetBuilder b = new TweetBuilder();
+		b.body(body);
+
+		this.undertest.add(this.account, b.build());
+
+		verify(this.mockInstapaper).add("http://example.com/foo/bar?bat=boo&a=1",
+				null, body); // null title means Instapaper fills it in.
 	}
 
 }

@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.provider.instapaper;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
@@ -22,6 +23,10 @@ public class InstapaperProvider {
 		this.httpClientFactory = new HttpClientFactory();
 	}
 
+	public void shutdown () {
+		this.httpClientFactory.shutdown();
+	}
+
 	private Instapaper getAccount (final Account account) {
 		final Instapaper client = this.clientRef.get();
 		if (client != null && client.getAccount().equals(account)) {
@@ -36,47 +41,73 @@ public class InstapaperProvider {
 	}
 
 	public void add (final Account account, final Tweet tweet) throws IOException {
-		final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
-		final ServiceRef serviceRef = svcMeta != null ? ServiceRef.parseServiceMeta(svcMeta) : null;
-		final NetworkType networkType = serviceRef != null ? serviceRef.getType() : null;
+		final Meta linkMeta = findLink(tweet);
+		final String linkUrl = linkMeta != null && linkMeta.hasData() ? linkMeta.getData() : null;
+		final String linkTitle = linkMeta != null && linkMeta.hasTitle() ? linkMeta.getTitle() : null;
 
+		final NetworkType networkType = findNetworkType(tweet);
+		final String title;
 		final String tweetUrl;
 		if (networkType == NetworkType.FACEBOOK) {
-			final String tweetSid = tweet.getSid();
-			final int x = tweetSid.indexOf("_");
-			if (x > 0) {
-				final String userId = tweetSid.substring(0, x);
-				final String statusId = tweetSid.substring(x + 1);
-				tweetUrl = "https://www.facebook.com/" + userId + "/posts/" + statusId;
-			}
-			else {
-				tweetUrl = "http://localhost/invalidfacebookpostid/uid/" + tweet.getSid();
-			}
+			title = (linkTitle != null ? linkTitle + " via " : "Post by ")
+					+ StringHelper.firstLine(tweet.getFullname());
+			tweetUrl = facebookUrlOf(tweet);
+		}
+		else if (tweet.getSid() != null) {
+			title = (linkTitle != null ? linkTitle + " via " : "Tweet by ")
+					+ StringHelper.firstLine(tweet.getFullname()) + " (@" + tweet.getUsername() + ")";
+			tweetUrl = twitterUrlOf(tweet);
 		}
 		else {
-			tweetUrl = "https://twitter.com/" + tweet.getUsername() + "/status/" + tweet.getSid();
+			title = linkUrl != null ? linkTitle : "Text saved by you"; // Leave title null so Instapaper fills it in.
+			tweetUrl = null;
 		}
 
-		final Meta linkMeta = tweet.getFirstMetaOfType(MetaType.URL);
-
-		final String url = linkMeta != null && linkMeta.hasData()
-				? linkMeta.getData()
-				: tweetUrl;
-
-		final String title = (linkMeta != null && !StringHelper.isEmpty(linkMeta.getTitle())
-				? linkMeta.getTitle() + " via "
-				: (networkType == NetworkType.FACEBOOK ? "Post" : "Tweet") + " by ")
-				+ StringHelper.firstLine(tweet.getFullname()) + (tweet.getUsername() != null ? " (@" + tweet.getUsername() + ")" : "");
-
-		final String summary = url.equals(tweetUrl)
-				? tweet.getBody()
-				: tweet.getBody() + "\n[" + tweetUrl + "]";
+		final String url;
+		final String summary;
+		if (linkUrl != null) {
+			url = linkUrl;
+			summary = tweet.getBody() + (tweetUrl != null ? "\n[" + tweetUrl + "]" : "");
+		}
+		else {
+			url = tweetUrl != null ? tweetUrl : "http://localhost/nourl/" + System.currentTimeMillis();
+			summary = tweet.getBody();
+		}
 
 		getAccount(account).add(url, title, summary);
 	}
 
-	public void shutdown () {
-		this.httpClientFactory.shutdown();
+	private static Meta findLink (final Tweet tweet) {
+		final Meta meta = tweet.getFirstMetaOfType(MetaType.URL);
+		if (meta != null) return meta;
+		final Matcher m = StringHelper.URL_PATTERN.matcher(tweet.getBody());
+		while (m.find()) {
+			String g = m.group();
+			if (g.startsWith("(") && g.endsWith(")")) g = g.substring(1, g.length() - 1);
+			return new Meta(MetaType.URL, g);
+		}
+		return null;
+	}
+
+	private static NetworkType findNetworkType (final Tweet tweet) {
+		final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
+		final ServiceRef serviceRef = svcMeta != null ? ServiceRef.parseServiceMeta(svcMeta) : null;
+		return serviceRef != null ? serviceRef.getType() : null;
+	}
+
+	private static String twitterUrlOf (final Tweet tweet) {
+		return "https://twitter.com/" + tweet.getUsername() + "/status/" + tweet.getSid();
+	}
+
+	private static String facebookUrlOf (final Tweet tweet) {
+		final String tweetSid = tweet.getSid();
+		final int x = tweetSid.indexOf("_");
+		if (x > 0) {
+			final String userId = tweetSid.substring(0, x);
+			final String statusId = tweetSid.substring(x + 1);
+			return "https://www.facebook.com/" + userId + "/posts/" + statusId;
+		}
+		return "http://localhost/invalidfacebookpostid/uid/" + tweet.getSid();
 	}
 
 }

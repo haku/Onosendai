@@ -1,8 +1,11 @@
 package com.vaguehope.onosendai.util;
 
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 public final class StringHelper {
+
+	public static final Pattern URL_PATTERN = Pattern.compile("\\(?\\b(https?://|www[.])[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]");
 
 	private static final String ELIPSE = "...";
 
