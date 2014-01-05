@@ -106,7 +106,7 @@ public class BufferApp {
 			params.add(new BasicNameValuePair("profile_ids[]", svc.getId()));
 		}
 
-		post.setEntity(new UrlEncodedFormEntity(params));
+		post.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 		client.execute(post, new CheckStatusOnlyHandler());
 	}
 

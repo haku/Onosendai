@@ -58,7 +58,7 @@ public class Instapaper {
 		params.add(new BasicNameValuePair("url", url));
 		params.add(new BasicNameValuePair("title", title));
 		params.add(new BasicNameValuePair("selection", body));
-		post.setEntity(new UrlEncodedFormEntity(params));
+		post.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 		getHttpClient().execute(post, new CheckStatusOnlyHandler());
 	}
 
