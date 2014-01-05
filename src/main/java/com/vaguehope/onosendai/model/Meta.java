@@ -37,6 +37,10 @@ public class Meta {
 		return !StringHelper.isEmpty(this.data);
 	}
 
+	public boolean hasTitle () {
+		return !StringHelper.isEmpty(this.title);
+	}
+
 	public long toLong (final long defaultValue) {
 		if (!hasData()) return defaultValue;
 		return Long.parseLong(this.data);
@@ -65,4 +69,5 @@ public class Meta {
 				&& EqualHelper.equal(this.data, that.data)
 				&& EqualHelper.equal(this.title, that.title);
 	}
+
 }

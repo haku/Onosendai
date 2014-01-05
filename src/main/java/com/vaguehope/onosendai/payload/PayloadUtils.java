@@ -19,12 +19,12 @@ import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.util.EqualHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public final class PayloadUtils {
 
 	// http://www.regular-expressions.info/unicode.html
 
-	private static final Pattern URL_PATTERN = Pattern.compile("\\(?\\b(https?://|www[.])[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]");
 	private static final Pattern HASHTAG_PATTERN = Pattern.compile(
 			"\\B([#|\uFF03][a-z0-9_\\u00c0-\\u00d6\\u00d8-\\u00f6\\u00f8-\\u00ff\\u3040-\\u309F\\u30A0-\\u30FF]+)", Pattern.CASE_INSENSITIVE);
 
@@ -105,7 +105,7 @@ public final class PayloadUtils {
 		if (payloadsContainsType(ret, PayloadType.LINK)) return;
 		final String text = tweet.getBody();
 		if (text == null || text.isEmpty()) return;
-		final Matcher m = URL_PATTERN.matcher(text);
+		final Matcher m = StringHelper.URL_PATTERN.matcher(text);
 		while (m.find()) {
 			String g = m.group();
 			if (g.startsWith("(") && g.endsWith(")")) g = g.substring(1, g.length() - 1);

@@ -56,7 +56,7 @@ public class Instapaper {
 		addAuth(post);
 		final List<NameValuePair> params = new ArrayList<NameValuePair>(3);
 		params.add(new BasicNameValuePair("url", url));
-		params.add(new BasicNameValuePair("title", title));
+		if (title != null) params.add(new BasicNameValuePair("title", title));
 		params.add(new BasicNameValuePair("selection", body));
 		post.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 		getHttpClient().execute(post, new CheckStatusOnlyHandler());
