@@ -148,7 +148,7 @@ public class SuccessWhale {
 			final List<NameValuePair> params = new ArrayList<NameValuePair>(2);
 			params.add(new BasicNameValuePair("username", username));
 			params.add(new BasicNameValuePair("password", password));
-			post.setEntity(new UrlEncodedFormEntity(params));
+			post.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 			this.token = getHttpClient().execute(post, new AuthHandler());
 			LOG.i("Authenticated username='%s'.", username);
 			writeAuthToKvStore();
@@ -334,7 +334,7 @@ public class SuccessWhale {
 		params.add(new BasicNameValuePair("postid", itemSid));
 		params.add(new BasicNameValuePair("action", itemAction.getAction()));
 
-		post.setEntity(new UrlEncodedFormEntity(params));
+		post.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 		client.execute(post, new CheckStatusOnlyHandler());
 	}
 
