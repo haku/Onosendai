@@ -3,15 +3,27 @@ package com.vaguehope.onosendai.provider.successwhale;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
+import org.apache.http.HttpResponse;
+
+import android.net.http.AndroidHttpClient;
+
 import com.vaguehope.onosendai.util.ExcpetionHelper;
+import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.StringHelper;
 
 
-public class SuccessWhaleException extends Exception {
+public class SuccessWhaleException extends IOException {
 
 	private static final long serialVersionUID = -2004908955108746560L;
 
 	private final boolean permanent;
+
+	public SuccessWhaleException (final HttpResponse response) throws IOException {
+		this(String.format("HTTP %s %s: %s",
+				response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(),
+				IoHelper.toString(AndroidHttpClient.getUngzippedContent(response.getEntity()))
+				));
+	}
 
 	public SuccessWhaleException (final String msg) {
 		this(msg, false);
@@ -37,7 +49,13 @@ public class SuccessWhaleException extends Exception {
 
 	public String friendlyMessage () {
 		final Throwable cause = getCause();
-		if (cause != null) {
+		if (cause == null) {
+			// In theory we should parse the XML properly for this, but this will do for now.
+			if (getMessage().contains("Koala::Facebook::AuthenticationError")) {
+				return "SuccessWhale error: Please use web UI to authorise access to Facebook.";
+			}
+		}
+		else {
 			if (cause instanceof UnknownHostException) {
 				return "Network error: " + cause.getMessage();
 			}
