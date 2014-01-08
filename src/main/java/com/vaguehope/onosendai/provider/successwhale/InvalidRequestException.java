@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.apache.http.HttpResponse;
 
-class InvalidRequestException extends HttpRequestException {
+class InvalidRequestException extends SuccessWhaleException {
 
 	private static final long serialVersionUID = 8386398554192783582L;
 

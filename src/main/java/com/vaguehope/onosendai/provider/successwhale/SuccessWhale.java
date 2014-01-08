@@ -133,7 +133,7 @@ public class SuccessWhale {
 			throw new InvalidRequestException(response);
 		}
 		else if (code < 200 || code >= 300) { // NOSONAR not a magic number.
-			throw new HttpRequestException(response);
+			throw new SuccessWhaleException(response);
 		}
 	}
 
