@@ -241,7 +241,10 @@ public class PictureResizeDialog implements Titleable {
 					if (scaled != src) scaled.recycle();
 				}
 			}
-			catch (final IOException e) {
+			// XXX May cases of OutOfMemoryError have been reported, particularly on low end hardware.
+			// Try not to upset the user too much by not dying completely if possible.
+			catch (final Throwable e) {
+				LOG.e("Failed to generate preview image.", e);
 				this.summary.append(e.toString());
 				return null;
 			}
