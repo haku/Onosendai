@@ -68,6 +68,16 @@ public final class IoHelper {
 		}
 	}
 
+	public static long copy (final InputStream source, final File sink) throws IOException {
+		final OutputStream out = new FileOutputStream(sink);
+		try {
+			return copy(source, out);
+		}
+		finally {
+			closeQuietly(out);
+		}
+	}
+
 	public static long copy (final InputStream source, final OutputStream sink) throws IOException {
 		final byte[] buffer = new byte[COPY_BUFFER_SIZE];
 		long bytesReadTotal = 0L;
