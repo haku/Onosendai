@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.payload;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import twitter4j.TwitterException;
 import android.content.Context;
@@ -31,13 +32,15 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLo
 	private final Config conf;
 	private final ProviderMgr provMgr;
 	private final PayloadListAdapter payloadListAdapter;
+	private final ExecutorService es;
 	private final Payload placeholderPayload;
 
-	public InReplyToLoaderTask (final Context context, final Config conf, final ProviderMgr provMgr, final PayloadListAdapter payloadListAdapter) {
+	public InReplyToLoaderTask (final Context context, final Config conf, final ProviderMgr provMgr, final PayloadListAdapter payloadListAdapter, final ExecutorService es) {
 		super(context);
 		this.conf = conf;
 		this.provMgr = provMgr;
 		this.payloadListAdapter = payloadListAdapter;
+		this.es = es;
 		this.placeholderPayload = new PlaceholderPayload(null, "Fetching conversation...", true);
 	}
 
@@ -169,7 +172,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLo
 		}
 		this.payloadListAdapter.replaceItem(this.placeholderPayload, result.getPayloads());
 		if (result.checkAgain()) {
-			new InReplyToLoaderTask(getContext(), this.conf, this.provMgr, this.payloadListAdapter).execute(result.getFirstTweet());
+			new InReplyToLoaderTask(getContext(), this.conf, this.provMgr, this.payloadListAdapter, this.es).executeOnExecutor(this.es, result.getFirstTweet());
 		}
 	}
 

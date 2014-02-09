@@ -1,9 +1,11 @@
 package com.vaguehope.onosendai.provider;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import android.content.Intent;
 
+import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.model.OutboxTweet;
@@ -11,14 +13,29 @@ import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
 import com.vaguehope.onosendai.provider.PostTask.PostResult;
 import com.vaguehope.onosendai.storage.DbBindingService;
+import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class SendOutboxService extends DbBindingService {
 
 	protected static final LogWrapper LOG = new LogWrapper("SS");
 
+	private ExecutorService es;
+
 	public SendOutboxService () {
 		super("OnosendaiSendOutboxService", LOG);
+	}
+
+	@Override
+	public void onCreate () {
+		super.onCreate();
+		this.es = ExecUtils.newBoundedCachedThreadPool(C.SEND_OUTBOX_MAX_THREADS, LOG);
+	}
+
+	@Override
+	public void onDestroy () {
+		if (this.es != null) this.es.shutdown();
+		super.onDestroy();
 	}
 
 	@Override
@@ -44,7 +61,7 @@ public class SendOutboxService extends DbBindingService {
 
 		for (final OutboxTweet ot : entries) {
 			final PostTask task = new PostTask(getApplicationContext(), outboxTweetToPostRequest(ot, conf));
-			task.execute();
+			task.executeOnExecutor(this.es);
 			OutboxTweet otStat = null;
 			try {
 				final PostResult res = task.get();

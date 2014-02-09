@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.ui;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import android.app.AlertDialog;
@@ -257,6 +258,10 @@ public class TweetListFragment extends Fragment {
 		return getMainActivity().getProviderMgr();
 	}
 
+	private ExecutorService getDbEs() {
+		return getMainActivity().getDbEs();
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	protected ScrollState getCurrentScroll () {
@@ -472,9 +477,8 @@ public class TweetListFragment extends Fragment {
 		final Tweet tweet = dbTweet != null ? dbTweet : listTweet;
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 
-		// FIXME use specific executor?
-		new ReplyLoaderTask(getActivity(), getDb(), this.lstTweetPayloadAdaptor).execute(tweet);
-		new InReplyToLoaderTask(getActivity().getApplicationContext(), getConf(), getProviderMgr(), this.lstTweetPayloadAdaptor).execute(tweet);
+		new ReplyLoaderTask(getActivity(), getDb(), this.lstTweetPayloadAdaptor).executeOnExecutor(getDbEs(), tweet);
+		new InReplyToLoaderTask(getActivity().getApplicationContext(), getConf(), getProviderMgr(), this.lstTweetPayloadAdaptor, getDbEs()).executeOnExecutor(getDbEs(), tweet);
 
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
@@ -659,7 +663,7 @@ public class TweetListFragment extends Fragment {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void refreshUiOnUiThread () {
-		new LoadTweets(this).execute();
+		new LoadTweets(this).executeOnExecutor(getDbEs());
 	}
 
 	private static class LoadTweets extends AsyncTask<Void, Void, Result<TweetList>> {
