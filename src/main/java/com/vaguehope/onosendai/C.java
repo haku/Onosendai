@@ -20,12 +20,14 @@ public interface C {
 
 	String DATA_TW_MAX_COL_ENTRIES = "500";
 
-	// Arbitrary values.
+	// Sending and receiving.
 	int UPDATER_MIN_COLUMS_TO_USE_THREADPOOL = 2;
 	int UPDATER_MAX_THREADS = 3;
+	int SEND_OUTBOX_MAX_THREADS = 1;
 
 	// Form main activity.
 	int IMAGE_LOADER_MAX_THREADS = 3;
+	int DB_MAX_THREADS = 1;
 
 	// Tweet Lists.
 	long SCROLL_TIME_LABEL_TIMEOUT_MILLIS = 3000L;

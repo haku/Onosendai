@@ -16,24 +16,15 @@ public final class ImageLoaderUtils {
 		return (ImageLoader) activity;
 	}
 
-	public static void loadImage (final HybridBitmapCache cache, final ImageLoadRequest req) {
-		loadImage(cache, req, null);
-	}
-
 	public static void loadImage (final HybridBitmapCache cache, final ImageLoadRequest req, final Executor exec) {
+		if (exec == null) throw new IllegalArgumentException("Must specificy an executor.");
 		final Bitmap bmp = cache.quickGet(req.getUrl());
 		if (bmp != null) {
 			req.setImageBitmap(bmp);
 		}
 		else {
 			req.setImagePending();
-			final ImageFetcherTask task = new ImageFetcherTask(cache);
-			if (exec != null) {
-				task.executeOnExecutor(exec, req);
-			}
-			else {
-				task.execute(req);
-			}
+			new ImageFetcherTask(cache).executeOnExecutor(exec, req);
 		}
 	}
 
