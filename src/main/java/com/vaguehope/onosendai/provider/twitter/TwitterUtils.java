@@ -32,6 +32,14 @@ import com.vaguehope.onosendai.util.StringHelper;
 
 public final class TwitterUtils {
 
+	private static final int TWITTER_ERROR_CODE_ACCOUNT_SUSPENDED = 64;
+	private static final int TWITTER_ERROR_CODE_RATE_LIMIT_EXCEEDED = 88;
+	private static final int TWITTER_ERROR_CODE_INVALID_EXPIRED_TOKEN = 89;
+	private static final int TWITTER_ERROR_CODE_TWITTER_IS_DOWN = 131;
+	private static final int TWITTER_ERROR_CODE_OVER_CAPCACITY = 130;
+	private static final int TWITTER_ERROR_CODE_NOT_AUTH_TO_VIEW_STATUS = 179;
+	private static final int TWITTER_ERROR_CODE_DAILY_STATUS_LIMIT_EXCEEDED = 185;
+
 	private static final LogWrapper LOG = new LogWrapper("TU");
 
 	private TwitterUtils () {
@@ -111,12 +119,12 @@ public final class TwitterUtils {
 	private static URLEntity[] mergeArrays (final URLEntity[]... urlss) {
 		int count = 0;
 		for (final URLEntity[] urls : urlss) {
-			if (urls !=null) count += urls.length;
+			if (urls != null) count += urls.length;
 		}
 		final URLEntity[] ret = new URLEntity[count];
 		int x = 0;
 		for (final URLEntity[] urls : urlss) {
-			if (urls !=null) {
+			if (urls != null) {
 				System.arraycopy(urls, 0, ret, x, urls.length);
 				x += urls.length;
 			}
@@ -184,6 +192,22 @@ public final class TwitterUtils {
 	};
 
 	public static String friendlyExceptionMessage (final TwitterException e) {
+		switch (e.getErrorCode()) {
+			case TWITTER_ERROR_CODE_ACCOUNT_SUSPENDED:
+				return "Your account is suspended and is not permitted to access this feature. :(";
+			case TWITTER_ERROR_CODE_RATE_LIMIT_EXCEEDED:
+				return "Rate limit exceeded.  Please try again in a while.";
+			case TWITTER_ERROR_CODE_INVALID_EXPIRED_TOKEN:
+				return "Invalid or expired token.  Please try reauthenticating.";
+			case TWITTER_ERROR_CODE_OVER_CAPCACITY:
+				return "OMG Twitter is over capacity!";
+			case TWITTER_ERROR_CODE_TWITTER_IS_DOWN:
+				return "OMG Twitter is down!";
+			case TWITTER_ERROR_CODE_NOT_AUTH_TO_VIEW_STATUS:
+				return "You are not authorized to see this status.";
+			case TWITTER_ERROR_CODE_DAILY_STATUS_LIMIT_EXCEEDED:
+				return "You are over daily status update limit.";
+		}
 		final Throwable cause = e.getCause();
 		if (cause != null) {
 			if (cause instanceof UnknownHostException) {
