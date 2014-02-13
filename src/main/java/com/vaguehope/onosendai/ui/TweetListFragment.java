@@ -41,6 +41,8 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
+import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
@@ -54,9 +56,11 @@ import com.vaguehope.onosendai.payload.PayloadListAdapter;
 import com.vaguehope.onosendai.payload.PayloadListClickListener;
 import com.vaguehope.onosendai.payload.PayloadType;
 import com.vaguehope.onosendai.payload.ReplyLoaderTask;
+import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.RtTask;
 import com.vaguehope.onosendai.provider.RtTask.RtRequest;
+import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
@@ -258,8 +262,17 @@ public class TweetListFragment extends Fragment {
 		return getMainActivity().getProviderMgr();
 	}
 
-	private ExecutorService getDbEs() {
+	private ExecutorService getDbEs () {
 		return getMainActivity().getDbEs();
+	}
+
+	private ServiceRef findFullService (final Account account, final ServiceRef svc) {
+		final List<ServiceRef> accounts = getProviderMgr().getSuccessWhaleProvider().getPostToAccountsCached(account);
+		if (accounts == null) return null;
+		for (final ServiceRef a : accounts) {
+			if (svc.equals(a)) return a;
+		}
+		return null;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -513,8 +526,22 @@ public class TweetListFragment extends Fragment {
 			return;
 		}
 
+		String action = "RT";
+		String as = account.getUiTitle();
+		final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
+		if (svcMeta != null) {
+			ServiceRef svc = ServiceRef.parseServiceMeta(svcMeta);
+			if (svc != null) {
+				if (svc.getType() == NetworkType.FACEBOOK) action = "Like";
+
+				final ServiceRef fullSvc = findFullService(account, svc);
+				if (fullSvc != null) svc = fullSvc;
+				as = String.format("%s via %s", svc.getUiTitle(), as);
+			}
+		}
+
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
-		dlgBld.setMessage(String.format("RT / Like via %s?", account.getUiTitle()));
+		dlgBld.setMessage(String.format("%s as %s?", action, as));
 
 		dlgBld.setPositiveButton("RT", new DialogInterface.OnClickListener() {
 			@Override
@@ -655,8 +682,8 @@ public class TweetListFragment extends Fragment {
 	/**
 	 * Only call on UI thread.
 	 */
-	protected void progressIndicator(final boolean inProgress) {
-		this.progressIndicatorCounter += (inProgress ? 1 :-1);
+	protected void progressIndicator (final boolean inProgress) {
+		this.progressIndicatorCounter += (inProgress ? 1 : -1);
 		this.prgUpdating.setVisibility(this.progressIndicatorCounter > 0 ? View.VISIBLE : View.GONE);
 	}
 
