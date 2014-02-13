@@ -23,6 +23,7 @@ import twitter4j.TwitterException;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
+import twitter4j.internal.http.HttpResponse;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
@@ -176,6 +177,48 @@ public class TwitterUtilsTest {
 		twitter4j.internal.org.json.JSONException je = new twitter4j.internal.org.json.JSONException("Expected a ',' or '}' at 7733 [character 7734 line 1]");
 		final TwitterException te = new TwitterException(je);
 		assertEquals("Network error: Invalid or incomplete data received.", TwitterUtils.friendlyExceptionMessage(te));
+	}
+
+	@Test
+	public void itMakesFriendlyErrorForTwitter64 () throws Exception {
+		assertEquals("Your account is suspended and is not permitted to access this feature. :(", TwitterUtils.friendlyExceptionMessage(makeTwitterEx(403, 64)));
+	}
+
+	@Test
+	public void itMakesFriendlyErrorForTwitter88 () throws Exception {
+		assertEquals("Rate limit exceeded.  Please try again in a while.", TwitterUtils.friendlyExceptionMessage(makeTwitterEx(999, 88)));
+	}
+
+	@Test
+	public void itMakesFriendlyErrorForTwitter89 () throws Exception {
+		assertEquals("Invalid or expired token.  Please try reauthenticating.", TwitterUtils.friendlyExceptionMessage(makeTwitterEx(999, 89)));
+	}
+
+	@Test
+	public void itMakesFriendlyErrorForTwitter130 () throws Exception {
+		assertEquals("OMG Twitter is over capacity!", TwitterUtils.friendlyExceptionMessage(makeTwitterEx(503, 130)));
+	}
+
+	@Test
+	public void itMakesFriendlyErrorForTwitter131 () throws Exception {
+		assertEquals("OMG Twitter is down!", TwitterUtils.friendlyExceptionMessage(makeTwitterEx(500, 131)));
+	}
+
+	@Test
+	public void itMakesFriendlyErrorForTwitter179 () throws Exception {
+		assertEquals("You are not authorized to see this status.", TwitterUtils.friendlyExceptionMessage(makeTwitterEx(403, 179)));
+	}
+
+	@Test
+	public void itMakesFriendlyErrorForTwitter185 () throws Exception {
+		assertEquals("You are over daily status update limit.", TwitterUtils.friendlyExceptionMessage(makeTwitterEx(403, 185)));
+	}
+
+	private static TwitterException makeTwitterEx (final int httpCode, final int twitterCode) {
+		final HttpResponse res = mock(HttpResponse.class);
+		when(res.getStatusCode()).thenReturn(httpCode);
+		final TwitterException te = new TwitterException("{\"errors\":[{\"message\":\"error\", \"code\": " + twitterCode + "}]}", res);
+		return te;
 	}
 
 }
