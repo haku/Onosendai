@@ -132,7 +132,7 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 	}
 
 	private void configureAccountBtn (final ToggleButton btn, final ServiceRef svc) {
-		final String displayName = svc.getDisplayName();
+		final String displayName = svc.getUiTitle();
 		btn.setTextOn(displayName);
 		btn.setTextOff(displayName);
 

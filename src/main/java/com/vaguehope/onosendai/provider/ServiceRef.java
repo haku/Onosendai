@@ -6,8 +6,9 @@ import java.util.Collection;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.util.Titleable;
 
-public class ServiceRef {
+public class ServiceRef implements Titleable {
 
 	private final String id;
 	private final String rawServiceType;
@@ -68,7 +69,8 @@ public class ServiceRef {
 		return createServiceMeta(this.rawServiceType, this.uid);
 	}
 
-	public String getDisplayName () {
+	@Override
+	public String getUiTitle () {
 		if (this.username != null && !this.username.isEmpty()) return this.username;
 		if (this.uid != null && !this.uid.isEmpty()) return this.uid;
 		if (this.rawServiceType != null && !this.rawServiceType.isEmpty()) return this.rawServiceType;
