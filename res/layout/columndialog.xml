@@ -1,107 +1,116 @@
-<TableLayout
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
-	android:padding="5dip">
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:fillViewport="true"
+	xmlns:tools="http://schemas.android.com/tools">
 
-	<TableRow
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content">
-
-		<TextView
-			android:paddingRight="10dp"
-			android:text="Title" />
-
-		<EditText
-			android:id="@+id/txtTitle"
-			android:layout_weight="1"
-			android:singleLine="true"
-			android:selectAllOnFocus="true"
-			android:hint="e.g. My Column" />
-
-	</TableRow>
-
-	<TableRow
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content">
-
-		<TextView
-			android:paddingRight="10dp"
-			android:text="Position" />
-
-		<Spinner
-			android:id="@+id/spnPosition"
-			android:layout_weight="1" />
-
-	</TableRow>
-
-	<TableRow
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content">
-
-		<TextView
-			android:paddingRight="10dp"
-			android:text="Resource" />
-
-		<Button
-			android:id="@+id/btnResource"
-			android:layout_weight="1"
-			android:textSize="14sp"
-			android:maxLines="5" />
-
-	</TableRow>
-
-	<TableRow
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content">
-
-		<TextView
-			android:paddingRight="10dp"
-			android:text="Exclude" />
-
-		<Button
-			android:id="@+id/btnExclude"
-			android:layout_weight="1" />
-
-	</TableRow>
-
-	<TableRow
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content">
-
-		<TextView
-			android:paddingRight="10dp"
-			android:text="Refresh" />
-
-		<Spinner
-			android:id="@+id/spnRefresh"
-			android:layout_weight="1" />
-
-	</TableRow>
-
-	<TableRow
+	<TableLayout
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:orientation="horizontal">
+		android:padding="5dip">
 
-		<CheckBox
-			android:id="@+id/chkInlineMedia"
-			android:layout_width="0px"
-			android:layout_weight="1"
-			android:text="Media" />
+		<TableRow
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content">
 
-		<CheckBox
-			android:id="@+id/chkNotify"
-			android:layout_width="0px"
-			android:layout_weight="1"
-			android:text="Notify" />
+			<TextView
+				android:paddingRight="10dp"
+				android:text="Title" />
 
-		<CheckBox
-			android:id="@+id/chkDelete"
-			android:layout_width="0px"
-			android:layout_weight="1"
-			android:text="Delete" />
+			<EditText
+				android:id="@+id/txtTitle"
+				android:layout_weight="1"
+				android:singleLine="true"
+				android:selectAllOnFocus="true"
+				android:hint="e.g. My Column" />
 
-	</TableRow>
+		</TableRow>
 
-</TableLayout>
+		<TableRow
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content">
+
+			<TextView
+				android:paddingRight="10dp"
+				android:text="Position" />
+
+			<Spinner
+				android:id="@+id/spnPosition"
+				android:layout_weight="1" />
+
+		</TableRow>
+
+		<TableRow
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content">
+
+			<TextView
+				android:paddingRight="10dp"
+				android:text="Resource" />
+
+			<Button
+				android:id="@+id/btnResource"
+				android:layout_weight="1"
+				android:textSize="14sp"
+				android:maxLines="5" />
+
+		</TableRow>
+
+		<TableRow
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content">
+
+			<TextView
+				android:paddingRight="10dp"
+				android:text="Exclude" />
+
+			<Button
+				android:id="@+id/btnExclude"
+				android:layout_weight="1" />
+
+		</TableRow>
+
+		<TableRow
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content">
+
+			<TextView
+				android:paddingRight="10dp"
+				android:text="Refresh" />
+
+			<Spinner
+				android:id="@+id/spnRefresh"
+				android:layout_weight="1" />
+
+		</TableRow>
+
+		<TableRow
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal">
+
+			<CheckBox
+				android:id="@+id/chkInlineMedia"
+				android:layout_width="0px"
+				android:layout_weight="1"
+				android:text="Media" />
+
+			<CheckBox
+				android:id="@+id/chkNotify"
+				android:layout_width="0px"
+				android:layout_weight="1"
+				android:text="Notify" />
+
+			<CheckBox
+				android:id="@+id/chkDelete"
+				android:layout_width="0px"
+				android:layout_weight="1"
+				android:text="Delete" />
+
+		</TableRow>
+
+	</TableLayout>
+
+</ScrollView>
