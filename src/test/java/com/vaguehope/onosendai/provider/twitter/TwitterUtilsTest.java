@@ -101,6 +101,36 @@ public class TwitterUtilsTest {
 		assertThat(t2.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "self"))));
 	}
 
+	@Test
+	public void itUsesOrigionalStatusForRetweets () throws Exception {
+		final Status s1 = mockTweet("a thing.", "them", "Them", 202);
+
+		final Status s = mockTweet("RT @them: a thing.", "friend", "Friend", 201);
+		when(s.isRetweet()).thenReturn(true);
+		when(s.getRetweetedStatus()).thenReturn(s1);
+
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, 200);
+		assertEquals("a thing.", t.getBody());
+		assertEquals("them", t.getUsername());
+		assertEquals("Them", t.getFullname());
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MENTION, "friend", "RT by Friend")));
+	}
+
+	@Test
+	public void itDoesNotAddMentionForRetweetsByMe () throws Exception {
+		final Status s1 = mockTweet("a thing.", "them", "Them", 202);
+
+		final Status s = mockTweet("RT @them: a thing.", "me", "Me", 200);
+		when(s.isRetweet()).thenReturn(true);
+		when(s.getRetweetedStatus()).thenReturn(s1);
+
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, 200);
+		assertEquals("a thing.", t.getBody());
+		assertEquals("them", t.getUsername());
+		assertEquals("Them", t.getFullname());
+		assertThat(t.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "me", "RT by Me"))));
+	}
+
 	private void testPictureUrlExpansion (final String fromUrl, final String toUrl) {
 		final Status s = mockTweetWithUrl(fromUrl);
 		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L);
@@ -130,13 +160,18 @@ public class TwitterUtilsTest {
 	}
 
 	private static Status mockTweet (final String msg) {
+		return mockTweet(msg, "screenname", "name", 1234);
+	}
+
+	private static Status mockTweet (final String msg, final String screenName, final String fullName, final long userId) {
 		final Status s = mock(Status.class);
 		when(s.getText()).thenReturn(msg);
 		when(s.getCreatedAt()).thenReturn(new Date());
 
 		final User user = mock(User.class);
-		when(user.getName()).thenReturn("name");
-		when(user.getScreenName()).thenReturn("screenname");
+		when(user.getScreenName()).thenReturn(screenName);
+		when(user.getName()).thenReturn(fullName);
+		when(user.getId()).thenReturn(userId);
 		when(user.getProfileImageURLHttps()).thenReturn("https://profile/image");
 		when(s.getUser()).thenReturn(user);
 
