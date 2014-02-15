@@ -1,6 +1,7 @@
 <feed>
   <success type="boolean">true</success>
   <items type="array">
+    <!-- Basic tweet. -->
     <item>
       <service>twitter</service>
       <fetchedforuserid>09823422</fetchedforuserid>
@@ -20,6 +21,7 @@
         <inreplytouserid type="integer">13453457</inreplytouserid>
       </content>
     </item>
+    <!-- Tweet with a link and a preview -->
     <item>
       <service>twitter</service>
       <fetchedforuserid>09823422</fetchedforuserid>
@@ -53,14 +55,15 @@
         <hashtags type="array"/>
       </content>
     </item>
+    <!-- An RT -->
     <item>
       <service>twitter</service>
       <fetchedforuserid>09823422</fetchedforuserid>
       <content>
         <id type="integer">312304957304950224</id>
         <time type="datetime">2013-03-27T18:41:33+00:00</time>
-        <retweetedbyuser>johndoe</retweetedbyuser>
-        <retweetedbyusername>John Doe</retweetedbyusername>
+        <retweetedbyuser>bill</retweetedbyuser>
+        <retweetedbyusername>Bill</retweetedbyusername>
         <originalposttime type="datetime">2013-03-27T18:12:36+00:00</originalposttime>
         <isretweet type="boolean">true</isretweet>
         <text>This tweet will be #retweeted. http://t.co/123654789F . /cc @testuser</text>
@@ -106,6 +109,7 @@
         </hashtags>
       </content>
     </item>
+    <!-- A mention of self. -->
     <item>
       <service>twitter</service>
       <fetchedforuserid>09823422</fetchedforuserid>
@@ -137,6 +141,32 @@
           </username>
         </usernames>
         <hashtags type="array" />
+      </content>
+    </item>
+    <!-- An RT by self. -->
+    <item>
+      <service>twitter</service>
+      <fetchedforuserid>09823422</fetchedforuserid>
+      <content>
+        <id type="integer">312304957309088934</id>
+        <time type="datetime">2013-03-27T18:41:33+00:00</time>
+        <retweetedbyuser>johndoe</retweetedbyuser>
+        <retweetedbyusername>John Doe</retweetedbyusername>
+        <originalposttime type="datetime">2013-03-27T18:12:36+00:00</originalposttime>
+        <isretweet type="boolean">true</isretweet>
+        <text>This tweet was RT by me.</text>
+        <fromuser>CoolUser</fromuser>
+        <fromusername>Cool User</fromusername>
+        <fromuseravatar>http://si0.twimg.com/profile_images/0923849826/TW-Profile_normal.jpg</fromuseravatar>
+        <isreply type="boolean">false</isreply>
+        <numfavourited nil="true"/>
+        <numretweeted type="integer">424</numretweeted>
+        <numreplied nil="true"/>
+        <inreplytostatusid nil="true"/>
+        <inreplytouserid nil="true"/>
+        <links type="array" />
+        <usernames type="array"/>
+        <hashtags type="array"/>
       </content>
     </item>
   </items>

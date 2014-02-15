@@ -8,6 +8,7 @@ import static org.junit.Assert.fail;
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.vaguehope.onosendai.config.Account;
@@ -30,7 +31,7 @@ public class SuccessWhaleFeedXmlTest {
 	public void itParsesAllTweets () throws Exception {
 		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_tweets.xml"));
 		TweetList tweets = feed.getTweets();
-		assertEquals(4, tweets.count());
+		assertEquals(5, tweets.count());
 	}
 
 	@Test
@@ -80,7 +81,7 @@ public class SuccessWhaleFeedXmlTest {
 
 		Tweet t = tweets.getTweet(2);
 
-		assertHasMeta(t.getMetas(), new Meta(MetaType.MENTION, "johndoe", "RT by @johndoe"));
+		assertHasMeta(t.getMetas(), new Meta(MetaType.MENTION, "bill", "RT by @bill"));
 		assertHasMeta(t.getMetas(), new Meta(MetaType.URL, "http://example.com/cool", "Link Title Goes Here"));
 		assertHasMeta(t.getMetas(), new Meta(MetaType.SERVICE, "twitter:09823422"));
 		assertHasMeta(t.getMetas(), new Meta(MetaType.ACCOUNT, ACCOUNT_ID));
@@ -105,6 +106,20 @@ public class SuccessWhaleFeedXmlTest {
 		Tweet t = tweets.getTweet(3);
 
 		assertEquals("@johndoe What is up?", t.getBody());
+		for (Meta m : t.getMetas()) {
+			if (m.getType() == MetaType.MENTION) fail("Expected no mentions in : " + t.getMetas());
+		}
+	}
+
+	@Ignore("Awaiting retweetedbyid element.")
+	@Test
+	public void itDoesNotIncludeMentionForRtBySelf () throws Exception {
+		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_tweets.xml"));
+		TweetList tweets = feed.getTweets();
+
+		Tweet t = tweets.getTweet(4);
+
+		assertEquals("This tweet was RT by me.", t.getBody());
 		for (Meta m : t.getMetas()) {
 			if (m.getType() == MetaType.MENTION) fail("Expected no mentions in : " + t.getMetas());
 		}
