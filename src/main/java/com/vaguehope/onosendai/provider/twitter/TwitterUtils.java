@@ -77,9 +77,14 @@ public final class TwitterUtils {
 		}
 	}
 
-	static Tweet convertTweet (final Account account, final Status s, final long ownId) {
+	static Tweet convertTweet (final Account account, final Status status, final long ownId) {
 		final List<Meta> metas = new ArrayList<Meta>();
 		metas.add(new Meta(MetaType.ACCOUNT, account.getId()));
+
+		if (status.isRetweet() && status.getUser().getId() != ownId) {
+			metas.add(new Meta(MetaType.MENTION, status.getUser().getScreenName(), String.format("RT by %s", status.getUser().getName())));
+		}
+		final Status s = status.isRetweet() ? status.getRetweetedStatus() : status;
 
 		final URLEntity[] urls = mergeArrays(s.getURLEntities(), s.getMediaEntities());
 		final String text = expandUrls(s.getText(), urls, metas);
