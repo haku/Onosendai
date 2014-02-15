@@ -111,6 +111,22 @@
 
 		</TableRow>
 
+		<TableRow
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/rowNotification"
+			android:visibility="gone">
+
+			<TextView
+				android:paddingRight="10dp"
+				android:text="Notification" />
+
+			<Button
+				android:id="@+id/btnNotification"
+				android:layout_weight="1" />
+
+		</TableRow>
+
 	</TableLayout>
 
 </ScrollView>

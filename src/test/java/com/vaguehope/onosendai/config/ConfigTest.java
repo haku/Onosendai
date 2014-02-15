@@ -77,7 +77,7 @@ public class ConfigTest {
 		assertEquals("t0", c0.getAccountId());
 		assertEquals("timeline", c0.getResource());
 		assertEquals(15, c0.getRefreshIntervalMins());
-		assertEquals(false, c0.isNotify());
+		assertEquals(null, c0.getNotificationStyle());
 		assertEquals(false, c0.isInlineMedia());
 
 		Column c1 = cs.get(1);
@@ -86,7 +86,7 @@ public class ConfigTest {
 		assertEquals("t0", c1.getAccountId());
 		assertEquals("lists/mylist", c1.getResource());
 		assertEquals(15, c1.getRefreshIntervalMins());
-		assertEquals(true, c1.isNotify());
+		assertEquals(NotificationStyle.DEFAULT, c1.getNotificationStyle());
 		assertEquals(false, c1.isInlineMedia());
 
 		Column c2 = cs.get(2);
@@ -95,7 +95,7 @@ public class ConfigTest {
 		assertEquals(null, c2.getAccountId());
 		assertEquals("later", c2.getResource());
 		assertEquals(0, c2.getRefreshIntervalMins());
-		assertEquals(false, c2.isNotify());
+		assertEquals(null, c2.getNotificationStyle());
 		assertEquals(false, c2.isInlineMedia());
 	}
 

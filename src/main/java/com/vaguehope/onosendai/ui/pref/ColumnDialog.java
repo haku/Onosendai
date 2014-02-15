@@ -10,7 +10,9 @@ import java.util.Set;
 
 import org.json.JSONException;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -20,11 +22,13 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TableRow;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.NotificationStyle;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.ui.pref.ColumnChooser.ColumnChoiceListener;
 import com.vaguehope.onosendai.util.CollectionHelper;
@@ -66,9 +70,12 @@ class ColumnDialog {
 	private final CheckBox chkInlineMedia;
 	private final CheckBox chkNotify;
 	private final CheckBox chkDelete;
+	private final TableRow rowNotification;
+	private final Button btnNotification;
 
 	private String resource;
 	private final Set<Integer> excludes = new HashSet<Integer>();
+	private NotificationStyle notificationStyle = null;
 
 	public ColumnDialog (final Context context, final Prefs prefs, final int id, final String accountId) {
 		this(context, prefs, id, accountId, null);
@@ -112,6 +119,8 @@ class ColumnDialog {
 		this.chkInlineMedia = (CheckBox) this.llParent.findViewById(R.id.chkInlineMedia);
 		this.chkNotify = (CheckBox) this.llParent.findViewById(R.id.chkNotify);
 		this.chkDelete = (CheckBox) this.llParent.findViewById(R.id.chkDelete);
+		this.rowNotification = (TableRow) this.llParent.findViewById(R.id.rowNotification);
+		this.btnNotification = (Button) this.llParent.findViewById(R.id.btnNotification);
 
 		final ArrayAdapter<Integer> posAdapter = new ArrayAdapter<Integer>(context, R.layout.numberspinneritem);
 		posAdapter.addAll(CollectionHelper.sequence(1, prefs.readColumnIds().size() + (initialValue == null ? 1 : 0)));
@@ -120,6 +129,8 @@ class ColumnDialog {
 		this.btnResource.setOnClickListener(this.btnResourceClickListener);
 		this.btnResource.setOnLongClickListener(this.btnResourceLongClickListener);
 		this.btnExclude.setOnClickListener(this.btnExcludeClickListener);
+		this.chkNotify.setOnClickListener(this.chkNotifyClickListener);
+		this.btnNotification.setOnClickListener(this.btnNotificationClickListener);
 
 		final ArrayAdapter<Duration> refAdapter = new ArrayAdapter<Duration>(context, R.layout.numberspinneritem);
 		refAdapter.addAll(REFRESH_DURAITONS);
@@ -135,7 +146,7 @@ class ColumnDialog {
 			setDurationSpinner(initialValue.getRefreshIntervalMins(), refAdapter);
 			if (this.account == null) this.spnRefresh.setEnabled(false);
 			this.chkInlineMedia.setChecked(initialValue.isInlineMedia());
-			this.chkNotify.setChecked(initialValue.isNotify());
+			setNotificationStyle(initialValue.getNotificationStyle());
 			this.chkDelete.setVisibility(View.VISIBLE);
 		}
 		else {
@@ -181,6 +192,27 @@ class ColumnDialog {
 		this.btnExclude.setText(s.toString());
 	}
 
+	protected void setNotificationStyle (final NotificationStyle ns) {
+		this.notificationStyle = ns;
+		this.chkNotify.setChecked(ns != null);
+		redrawNotificationStyle();
+	}
+
+	protected void updateNotificationStyle () {
+		if (this.chkNotify.isChecked()) {
+			if (this.notificationStyle == null) this.notificationStyle = NotificationStyle.DEFAULT;
+		}
+		else {
+			this.notificationStyle = null;
+		}
+		redrawNotificationStyle();
+	}
+
+	private void redrawNotificationStyle () {
+		this.rowNotification.setVisibility(this.notificationStyle != null ? View.VISIBLE : View.GONE);
+		this.btnNotification.setText(this.notificationStyle != null ? this.notificationStyle.getUiTitle() : "false");
+	}
+
 	private final OnClickListener btnResourceClickListener = new OnClickListener() {
 		@Override
 		public void onClick (final View v) {
@@ -200,6 +232,20 @@ class ColumnDialog {
 		@Override
 		public void onClick (final View v) {
 			btnExcludeClick();
+		}
+	};
+
+	private final OnClickListener chkNotifyClickListener = new OnClickListener() {
+		@Override
+		public void onClick (final View v) {
+			updateNotificationStyle();
+		}
+	};
+
+	private final OnClickListener btnNotificationClickListener = new OnClickListener() {
+		@Override
+		public void onClick (final View v) {
+			btnNotificationClick();
 		}
 	};
 
@@ -243,6 +289,27 @@ class ColumnDialog {
 		});
 	}
 
+	protected void btnNotificationClick () {
+		final NotificationStyleDialog dlg = new NotificationStyleDialog(this.context, this.notificationStyle);
+		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(this.context);
+		dlgBuilder.setTitle(dlg.getUiTitle());
+		dlgBuilder.setView(dlg.getRootView());
+		dlgBuilder.setPositiveButton(android.R.string.ok, new android.content.DialogInterface.OnClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int which) {
+				setNotificationStyle(dlg.getValue());
+				dialog.dismiss();
+			}
+		});
+		dlgBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int whichButton) {
+				dialog.cancel();
+			}
+		});
+		dlgBuilder.create().show();
+	}
+
 	private void setDurationSpinner (final int mins, final ArrayAdapter<Duration> refAdapter) {
 		final Duration duration = new Duration(mins > 0 ? mins : 0);
 		final int pos = refAdapter.getPosition(duration);
@@ -280,7 +347,7 @@ class ColumnDialog {
 				this.resource,
 				((Duration) this.spnRefresh.getSelectedItem()).getMins(),
 				this.excludes.size() > 0 ? this.excludes : null,
-				this.chkNotify.isChecked(),
+				this.notificationStyle,
 				this.chkInlineMedia.isChecked());
 	}
 
