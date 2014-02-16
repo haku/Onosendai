@@ -101,7 +101,7 @@ public class InstapaperProvider {
 
 	private static String facebookUrlOf (final Tweet tweet) {
 		final String tweetSid = tweet.getSid();
-		final int x = tweetSid.indexOf("_");
+		final int x = tweetSid.indexOf('_');
 		if (x > 0) {
 			final String userId = tweetSid.substring(0, x);
 			final String statusId = tweetSid.substring(x + 1);
