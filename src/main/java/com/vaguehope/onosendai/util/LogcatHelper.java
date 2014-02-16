@@ -44,7 +44,7 @@ public final class LogcatHelper {
 				try {
 					try {
 						final byte[] dummy = new byte[1024];
-						while (is.read(dummy) >= 0) {/* Unwanted. */}
+						while (is.read(dummy) >= 0) {/* Unwanted. */} // NOSONAR do not care about content.
 					}
 					catch (final IOException e) {/* Unwanted. */}
 				}
