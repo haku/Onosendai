@@ -211,49 +211,49 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			}
 		}
 		else if (this.stack.size() == 7) { // NOSONAR not a magic number.
-			if ("url".equals(elementName) && "link".equals(this.stack.get(5))) {
+			if ("url".equals(elementName) && "link".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				this.stashedLinkUrl = this.currentText.toString();
 			}
-			else if ("expanded-url".equals(elementName) && "link".equals(this.stack.get(5))) {
+			else if ("expanded-url".equals(elementName) && "link".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				this.stashedLinkExpandedUrl = this.currentText.toString();
 			}
-			else if ("title".equals(elementName) && "link".equals(this.stack.get(5))) {
+			else if ("title".equals(elementName) && "link".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				this.stashedLinkTitle = this.currentText.toString();
 				if (this.stashedFirstLinkTitle == null) this.stashedFirstLinkTitle = this.stashedLinkTitle;
 			}
-			else if ("preview".equals(elementName) && "link".equals(this.stack.get(5))) {
+			else if ("preview".equals(elementName) && "link".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				this.currentItem.meta(MetaType.MEDIA, this.currentText.toString());
 			}
-			else if ("text".equals(elementName) && "hashtag".equals(this.stack.get(5))) {
+			else if ("text".equals(elementName) && "hashtag".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				this.stashedHashtagText = this.currentText.toString();
 			}
-			else if ("user".equals(elementName) && "username".equals(this.stack.get(5))) {
+			else if ("user".equals(elementName) && "username".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				this.stashedMentionUserName = this.currentText.toString();
 			}
-			else if ("username".equals(elementName) && "username".equals(this.stack.get(5))) {
+			else if ("username".equals(elementName) && "username".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				this.stashedMentionFullName = this.currentText.toString();
 			}
 			else if ("id".equals(elementName)) {
-				if ("username".equals(this.stack.get(5))) {
+				if ("username".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 					this.stashedUserId = this.currentText.toString();
 				}
-				else if ("comment".equals(this.stack.get(5))) {
+				else if ("comment".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 					this.currentComment.id(this.currentText.toString());
 				}
 			}
-			else if ("message".equals(elementName) && "comment".equals(this.stack.get(5))) {
+			else if ("message".equals(elementName) && "comment".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				this.currentComment.body(this.currentText.toString());
 			}
-			else if ("created-time".equals(elementName) && "comment".equals(this.stack.get(5))) {
+			else if ("created-time".equals(elementName) && "comment".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				final long millis = this.dateFormat.parseMillis(this.currentText.toString());
 				this.currentComment.unitTimeSeconds(TimeUnit.MILLISECONDS.toSeconds(millis));
 			}
 		}
 		else if (this.stack.size() == 8) { // NOSONAR not a magic number.
-			if ("name".equals(elementName) && "comment".equals(this.stack.get(5))) {
+			if ("name".equals(elementName) && "comment".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				this.currentComment.fullname(this.currentText.toString());
 			}
-			else if ("fromuseravatar".equals(elementName) && "comment".equals(this.stack.get(5))) {
+			else if ("fromuseravatar".equals(elementName) && "comment".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				this.currentComment.avatarUrl(this.currentText.toString());
 			}
 		}

@@ -43,7 +43,7 @@ public final class LogcatHelper {
 			public void run () {
 				try {
 					try {
-						final byte[] dummy = new byte[1024];
+						final byte[] dummy = new byte[1024]; // NOSONAR not a magic number.
 						while (is.read(dummy) >= 0) {/* Unwanted. */} // NOSONAR do not care about content.
 					}
 					catch (final IOException e) {/* Unwanted. */}
