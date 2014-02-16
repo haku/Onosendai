@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.provider.instapaper;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,9 +64,14 @@ public class Instapaper {
 	}
 
 	private void addAuth (final HttpPost post) {
-		post.setHeader("Authorization", "Basic " + Base64.encodeToString(
-				(this.account.getAccessToken() + ":" + this.account.getAccessSecret()).getBytes(),
-				Base64.NO_WRAP));
+		try {
+			post.setHeader("Authorization", "Basic " + Base64.encodeToString(
+					(this.account.getAccessToken() + ":" + this.account.getAccessSecret()).getBytes("UTF-8"),
+					Base64.NO_WRAP));
+		}
+		catch (final UnsupportedEncodingException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	static void checkReponseCode (final StatusLine statusLine) throws IOException {
