@@ -238,7 +238,7 @@ public class PictureResizeDialog implements Titleable {
 					return null;
 				}
 				finally {
-					if (scaled != src) scaled.recycle();
+					if (scaled != src) scaled.recycle(); // NOSONAR intentional identity comparison.
 				}
 			}
 			// XXX May cases of OutOfMemoryError have been reported, particularly on low end hardware.
