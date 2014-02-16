@@ -243,7 +243,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 			final Column col = this.conf.findInternalColumn(InternalColumnType.LATER);
 			final List<Tweet> ts = db.getTweets(col.getId(), 500); // FIXME extract to constant.
 			try {
-				final PrintWriter w = new PrintWriter(this.file);
+				final PrintWriter w = new PrintWriter(this.file, "UTF-8");
 				try {
 					for (final Tweet tw : ts) {
 						final Tweet t = db.getTweetDetails(col.getId(), tw);
