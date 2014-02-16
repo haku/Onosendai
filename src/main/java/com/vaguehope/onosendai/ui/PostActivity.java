@@ -158,11 +158,11 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	@Override
 	protected void onSaveInstanceState (final Bundle outState) {
-		super.onSaveInstanceState(outState);
 		outState.putString(ARG_ACCOUNT_ID, getSelectedAccount().getId());
 		this.enabledPostToAccounts.addToBundle(outState);
 		outState.putParcelable(ARG_ATTACHMENT, this.attachment);
 		outState.putParcelable(ARG_TMP_ATTACHMENT, this.tmpAttachment);
+		super.onSaveInstanceState(outState);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
