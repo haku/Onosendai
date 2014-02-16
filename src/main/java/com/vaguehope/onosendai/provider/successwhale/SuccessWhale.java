@@ -87,7 +87,7 @@ public class SuccessWhale {
 	}
 
 	private interface SwCall<T> {
-		T invoke (HttpClient client) throws SuccessWhaleException, IOException;
+		T invoke (HttpClient client) throws IOException;
 
 		String describeFailure (Exception e);
 	}
@@ -161,7 +161,7 @@ public class SuccessWhale {
 	public SuccessWhaleColumns getColumns () throws SuccessWhaleException {
 		return authenticated(new SwCall<SuccessWhaleColumns>() {
 			@Override
-			public SuccessWhaleColumns invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+			public SuccessWhaleColumns invoke (final HttpClient client) throws IOException {
 				final HttpGet req = new HttpGet(makeAuthedUrl(API_COLUMNS));
 				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
 				return client.execute(req, new ColumnsHandler(getAccount()));
@@ -177,7 +177,7 @@ public class SuccessWhale {
 	public SuccessWhaleSources getSources () throws SuccessWhaleException {
 		return authenticated(new SwCall<SuccessWhaleSources>() {
 			@Override
-			public SuccessWhaleSources invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+			public SuccessWhaleSources invoke (final HttpClient client) throws IOException {
 				final HttpGet req = new HttpGet(makeAuthedUrl(API_SOURCES));
 				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
 				return client.execute(req, SourcesHandler.INSTANCE);
@@ -195,7 +195,7 @@ public class SuccessWhale {
 			private String url;
 
 			@Override
-			public TweetList invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+			public TweetList invoke (final HttpClient client) throws IOException {
 				this.url = makeAuthedUrl(API_FEED, "&sources=", URLEncoder.encode(feed.getSources(), "UTF-8"));
 
 				// FIXME disabling this until SW finds a way to accept it on mixed feeds [issue 89].
@@ -216,7 +216,7 @@ public class SuccessWhale {
 	public TweetList getThread (final String serviceType, final String serviceSid, final String forSid) throws SuccessWhaleException {
 		return authenticated(new SwCall<TweetList>() {
 			@Override
-			public TweetList invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+			public TweetList invoke (final HttpClient client) throws IOException {
 				final String url = makeAuthedUrl(API_THREAD, "&service=", serviceType, "&uid=" + serviceSid, "&postid=", forSid);
 				final HttpGet req = new HttpGet(url);
 				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
@@ -234,7 +234,7 @@ public class SuccessWhale {
 	public List<ServiceRef> getPostToAccounts () throws SuccessWhaleException {
 		return authenticated(new SwCall<List<ServiceRef>>() {
 			@Override
-			public List<ServiceRef> invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+			public List<ServiceRef> invoke (final HttpClient client) throws IOException {
 				return client.execute(new HttpGet(makeAuthedUrl(API_POSTTOACCOUNTS)), new PostToAccountsHandler(SuccessWhale.this));
 			}
 
@@ -266,7 +266,7 @@ public class SuccessWhale {
 	public void post (final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final ImageMetadata image) throws SuccessWhaleException {
 		authenticated(new SwCall<Void>() {
 			@Override
-			public Void invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+			public Void invoke (final HttpClient client) throws IOException {
 				attemptPost(client, postToSvc, body, inReplyToSid, image);
 				return null;
 			}
@@ -313,7 +313,7 @@ public class SuccessWhale {
 	public void itemAction (final ServiceRef svc, final String itemSid, final ItemAction itemAction) throws SuccessWhaleException {
 		authenticated(new SwCall<Void>() {
 			@Override
-			public Void invoke (final HttpClient client) throws SuccessWhaleException, IOException {
+			public Void invoke (final HttpClient client) throws IOException {
 				attemptItemAction(client, svc, itemSid, itemAction);
 				return null;
 			}
