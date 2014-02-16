@@ -103,8 +103,8 @@ public class MultipartEntity extends AbstractHttpEntity {
      * Generates a random multipart boundary string.
     */
     private static byte[] generateMultipartBoundary() {
-        Random rand = new Random();
-        byte[] bytes = new byte[rand.nextInt(11) + 30]; // a random size from 30 to 40
+        final Random rand = new Random();
+        final byte[] bytes = new byte[rand.nextInt(11) + 30]; // a random size from 30 to 40
         for (int i = 0; i < bytes.length; i++) {
             bytes[i] = MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)];
         }
@@ -193,7 +193,7 @@ public class MultipartEntity extends AbstractHttpEntity {
      */
     @Override
     public Header getContentType() {
-      StringBuffer buffer = new StringBuffer(MULTIPART_FORM_CONTENT_TYPE);
+      final StringBuffer buffer = new StringBuffer(MULTIPART_FORM_CONTENT_TYPE);
       buffer.append("; boundary=");
       buffer.append(EncodingUtils.getAsciiString(getMultipartBoundary()));
       return new BasicHeader(HTTP.CONTENT_TYPE, buffer.toString());
@@ -206,7 +206,7 @@ public class MultipartEntity extends AbstractHttpEntity {
 	public long getContentLength() {
         try {
             return Part.getLengthOfParts(this.parts, getMultipartBoundary());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             return 0;
         }
     }
@@ -218,7 +218,7 @@ public class MultipartEntity extends AbstractHttpEntity {
           }
           this.contentConsumed = true;
 
-          ByteArrayOutputStream baos = new ByteArrayOutputStream();
+          final ByteArrayOutputStream baos = new ByteArrayOutputStream();
           Part.sendParts(baos, this.parts, this.multipartBoundary);
           return new ByteArrayInputStream(baos.toByteArray());
     }

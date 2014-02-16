@@ -146,11 +146,11 @@ public class ByteArrayOutputStream extends OutputStream {
             return;
         }
         synchronized (this) {
-            int newcount = this.count + len;
+            final int newcount = this.count + len;
             int remaining = len;
             int inBufferPos = this.count - this.filledBufferSum;
             while (remaining > 0) {
-                int part = Math.min(remaining, this.currentBuffer.length - inBufferPos);
+                final int part = Math.min(remaining, this.currentBuffer.length - inBufferPos);
                 System.arraycopy(b, off + len - remaining, this.currentBuffer, inBufferPos, part);
                 remaining -= part;
                 if (remaining > 0) {
@@ -246,8 +246,8 @@ public class ByteArrayOutputStream extends OutputStream {
      */
     public synchronized void writeTo(final OutputStream out) throws IOException {
         int remaining = this.count;
-        for (byte[] buf : this.buffers) {
-            int c = Math.min(buf.length, remaining);
+        for (final byte[] buf : this.buffers) {
+            final int c = Math.min(buf.length, remaining);
             out.write(buf, 0, c);
             remaining -= c;
             if (remaining == 0) {
@@ -279,7 +279,7 @@ public class ByteArrayOutputStream extends OutputStream {
      */
     public static InputStream toBufferedInputStream(final InputStream input)
             throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
         output.write(input);
         return output.toBufferedInputStream();
     }
@@ -299,9 +299,9 @@ public class ByteArrayOutputStream extends OutputStream {
         if (remaining == 0) {
             return null;
         }
-        List<ByteArrayInputStream> list = new ArrayList<ByteArrayInputStream>(this.buffers.size());
-        for (byte[] buf : this.buffers) {
-            int c = Math.min(buf.length, remaining);
+        final List<ByteArrayInputStream> list = new ArrayList<ByteArrayInputStream>(this.buffers.size());
+        for (final byte[] buf : this.buffers) {
+            final int c = Math.min(buf.length, remaining);
             list.add(new ByteArrayInputStream(buf, 0, c));
             remaining -= c;
             if (remaining == 0) {
@@ -323,10 +323,10 @@ public class ByteArrayOutputStream extends OutputStream {
         if (remaining == 0) {
             return EMPTY_BYTE_ARRAY;
         }
-        byte newbuf[] = new byte[remaining];
+        final byte newbuf[] = new byte[remaining];
         int pos = 0;
-        for (byte[] buf : this.buffers) {
-            int c = Math.min(buf.length, remaining);
+        for (final byte[] buf : this.buffers) {
+            final int c = Math.min(buf.length, remaining);
             System.arraycopy(buf, 0, newbuf, pos, c);
             pos += c;
             remaining -= c;
