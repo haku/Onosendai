@@ -63,7 +63,7 @@ public class SuccessWhaleException extends IOException {
 				return "Network error: Connection timed out.";
 			}
 			else if (cause instanceof IOException) {
-				return "Network error: " + String.valueOf(cause);
+				return "Network error: " + cause;
 			}
 		}
 		return ExcpetionHelper.causeTrace(this);
