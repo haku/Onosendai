@@ -39,7 +39,7 @@ public class PlaceholderPayload extends Payload {
 		if (o == null) return false;
 		if (o == this) return true;
 		if (!(o instanceof PlaceholderPayload)) return false;
-		PlaceholderPayload that = (PlaceholderPayload) o;
+		final PlaceholderPayload that = (PlaceholderPayload) o;
 		return EqualHelper.equal(this.msg, that.msg);
 	}
 

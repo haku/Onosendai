@@ -105,7 +105,7 @@ public class TweetBuilder {
 
 	public Tweet build () {
 		if (this.replyToId != null && !this.replyToId.equals(this.id)) meta(MetaType.REPLYTO, this.replyToId);
-		Tweet t = new Tweet(this.id, this.username,
+		final Tweet t = new Tweet(this.id, this.username,
 				this.subTitles != null ? this.fullname + "\n" + this.subTitles.toString() : this.fullname,
 				this.body, this.unitTimeSeconds, this.avatarUrl, this.inlineMediaUrl, this.metas);
 		reset();

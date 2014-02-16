@@ -67,7 +67,7 @@ public class SidebarLayout extends ViewGroup {
 	public SidebarLayout (final Context context, final AttributeSet attrs) {
 		super(context, attrs);
 
-		TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.SidebarLayout);
+		final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.SidebarLayout);
 		this.hostViewRes = a.getResourceId(R.styleable.SidebarLayout_hostView, -1);
 		this.sidebarViewRes = a.getResourceId(R.styleable.SidebarLayout_sidebarView, -1);
 		a.recycle();
@@ -197,8 +197,8 @@ public class SidebarLayout extends ViewGroup {
 	@Override
 	protected void measureChild (final View child, final int parentWSpec, final int parentHSpec) {
 		if (child == this.getSidebarView()) {
-			int mode = MeasureSpec.getMode(parentWSpec);
-			int width = (int) (getMeasuredWidth() * SIDEBAR_MAX_WIDTH);
+			final int mode = MeasureSpec.getMode(parentWSpec);
+			final int width = (int) (getMeasuredWidth() * SIDEBAR_MAX_WIDTH);
 			super.measureChild(child, MeasureSpec.makeMeasureSpec(width, mode), parentHSpec);
 		}
 		else {

@@ -103,10 +103,10 @@ public class ScrollState {
 	public static ScrollState fromBundle (final Bundle bundle) {
 		if (bundle == null) return null;
 		if (bundle.containsKey(KEY_ITEM_ID) && bundle.containsKey(KEY_TOP)) {
-			long itemId = bundle.getLong(KEY_ITEM_ID);
-			int top = bundle.getInt(KEY_TOP);
-			long itemTime = bundle.getLong(KEY_ITEM_TIME);
-			long unreadTime = bundle.getLong(KEY_UNREAD_TIME);
+			final long itemId = bundle.getLong(KEY_ITEM_ID);
+			final int top = bundle.getInt(KEY_TOP);
+			final long itemTime = bundle.getLong(KEY_ITEM_TIME);
+			final long unreadTime = bundle.getLong(KEY_UNREAD_TIME);
 			return new ScrollState(itemId, top, itemTime, unreadTime);
 		}
 		return null;

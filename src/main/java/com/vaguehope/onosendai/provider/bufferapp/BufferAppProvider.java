@@ -21,7 +21,7 @@ public class BufferAppProvider {
 
 	public void addAccount (final Account account) {
 		if (this.accounts.containsKey(account.getId())) return;
-		BufferApp b = new BufferApp(account, this.httpClientFactory);
+		final BufferApp b = new BufferApp(account, this.httpClientFactory);
 		this.accounts.putIfAbsent(account.getId(), b);
 	}
 

@@ -46,7 +46,7 @@ public class RtTask extends DbBindingAsyncTask<Void, Void, RtResult> {
 	@Override
 	protected void onPreExecute () {
 		this.notificationMgr = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
-		Notification n = new NotificationCompat.Builder(this.context)
+		final Notification n = new NotificationCompat.Builder(this.context)
 				.setSmallIcon(Notifications.notificationIcon())
 				.setContentTitle(String.format("RTing via %s...", this.req.getAccount().getUiTitle()))
 				.setOngoing(true)
@@ -74,7 +74,7 @@ public class RtTask extends DbBindingAsyncTask<Void, Void, RtResult> {
 			p.rt(this.req.getAccount(), Long.parseLong(this.req.getTweet().getSid()));
 			return new RtResult(this.req);
 		}
-		catch (TwitterException e) {
+		catch (final TwitterException e) {
 			return new RtResult(this.req, e);
 		}
 		finally {
@@ -108,7 +108,7 @@ public class RtTask extends DbBindingAsyncTask<Void, Void, RtResult> {
 			}
 			return new RtResult(this.req, new SuccessWhaleException("Service metadata missing from message."));
 		}
-		catch (SuccessWhaleException e) {
+		catch (final SuccessWhaleException e) {
 			return new RtResult(this.req, e);
 		}
 		finally {
@@ -120,7 +120,7 @@ public class RtTask extends DbBindingAsyncTask<Void, Void, RtResult> {
 	protected void onPostExecute (final RtResult res) {
 		if (!res.isSuccess()) {
 			LOG.w("RT failed: %s", res.getE());
-			Notification n = new NotificationCompat.Builder(this.context)
+			final Notification n = new NotificationCompat.Builder(this.context)
 					.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
 					.setContentTitle(String.format("Failed to RT via %s.", this.req.getAccount().getUiTitle()))
 					.setContentText(res.getEmsg())

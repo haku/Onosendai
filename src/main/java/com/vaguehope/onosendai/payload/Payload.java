@@ -74,8 +74,8 @@ public abstract class Payload {
 	public static final Comparator<Payload> TYPE_COMP = new Comparator<Payload>() {
 		@Override
 		public int compare (final Payload lhs, final Payload rhs) {
-			int lo = lhs.getType().ordinal();
-			int ro = rhs.getType().ordinal();
+			final int lo = lhs.getType().ordinal();
+			final int ro = rhs.getType().ordinal();
 			if (lo != ro) return lo - ro;
 			return 0;
 		}

@@ -43,7 +43,7 @@ public class TweetListAdapter extends BaseAdapter {
 
 	@Override
 	public long getItemId (final int position) {
-		Tweet tweet = getTweet(position);
+		final Tweet tweet = getTweet(position);
 		if (tweet == null) return -1;
 		return tweet.getUid();
 	}

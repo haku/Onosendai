@@ -45,7 +45,7 @@ public class MentionPayload extends Payload {
 		if (this.titleCache == null) {
 			final StringBuilder sb = new StringBuilder("@").append(this.screenName);
 			if (this.alsoMentions != null) {
-				for (String mention : this.alsoMentions) {
+				for (final String mention : this.alsoMentions) {
 					sb.append(", @").append(mention);
 				}
 			}
@@ -94,7 +94,7 @@ public class MentionPayload extends Payload {
 		if (o == null) return false;
 		if (o == this) return true;
 		if (!(o instanceof MentionPayload)) return false;
-		MentionPayload that = (MentionPayload) o;
+		final MentionPayload that = (MentionPayload) o;
 		return EqualHelper.equal(this.screenName, that.screenName)
 				&& Arrays.equals(this.alsoMentions, that.alsoMentions);
 	}

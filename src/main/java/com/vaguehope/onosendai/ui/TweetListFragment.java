@@ -157,7 +157,7 @@ public class TweetListFragment extends Fragment {
 
 		this.prgUpdating = (ProgressBar) rootView.findViewById(R.id.tweetListPrg);
 
-		Button btnMenu = (Button) rootView.findViewById(R.id.tweetListMenu);
+		final Button btnMenu = (Button) rootView.findViewById(R.id.tweetListMenu);
 		if (this.isLaterColumn) {
 			((ViewGroup) btnMenu.getParent()).removeView(btnMenu);
 		}
@@ -386,7 +386,7 @@ public class TweetListFragment extends Fragment {
 	private final OnClickListener menuClickListener = new OnClickListener() {
 		@Override
 		public void onClick (final View v) {
-			PopupMenu popupMenu = new PopupMenu(getActivity(), v);
+			final PopupMenu popupMenu = new PopupMenu(getActivity(), v);
 			popupMenu.getMenuInflater().inflate(R.menu.listmenu, popupMenu.getMenu());
 			popupMenu.setOnMenuItemClickListener(TweetListFragment.this.menuItemClickListener);
 			popupMenu.show();
@@ -717,7 +717,7 @@ public class TweetListFragment extends Fragment {
 				}
 				return new Result<TweetList>(new IllegalStateException("Failed to refresh column as DB was not bound."));
 			}
-			catch (Exception e) { // NOSONAR needed to report errors.
+			catch (final Exception e) { // NOSONAR needed to report errors.
 				return new Result<TweetList>(e);
 			}
 		}

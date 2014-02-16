@@ -98,7 +98,7 @@ public class ServiceRef implements Titleable {
 		if (o == null) return false;
 		if (o == this) return true;
 		if (!(o instanceof ServiceRef)) return false;
-		ServiceRef that = (ServiceRef) o;
+		final ServiceRef that = (ServiceRef) o;
 		return EqualHelper.equal(this.id, that.id)
 				&& EqualHelper.equal(this.rawServiceType, that.rawServiceType)
 				&& EqualHelper.equal(this.uid, that.uid);
@@ -107,8 +107,8 @@ public class ServiceRef implements Titleable {
 	public static String humanList (final Collection<ServiceRef> col, final String token) {
 		if (col == null) return null;
 		if (col.size() < 1) return "";
-		StringBuilder b = new StringBuilder();
-		for (ServiceRef s : col) {
+		final StringBuilder b = new StringBuilder();
+		for (final ServiceRef s : col) {
 			if (b.length() > 0) b.append(token);
 			b.append(s.rawServiceType).append(":").append(s.uid);
 		}

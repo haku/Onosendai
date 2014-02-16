@@ -64,7 +64,7 @@ public class Meta {
 		if (o == null) return false;
 		if (o == this) return true;
 		if (!(o instanceof Meta)) return false;
-		Meta that = (Meta) o;
+		final Meta that = (Meta) o;
 		return EqualHelper.equal(this.type, that.type)
 				&& EqualHelper.equal(this.data, that.data)
 				&& EqualHelper.equal(this.title, that.title);

@@ -61,7 +61,7 @@ public class AccountAdaptor extends BaseAdapter {
 			rowView = (AccountAdaptor.AccountRowView) view.getTag();
 		}
 
-		Account account = this.accounts.get(position);
+		final Account account = this.accounts.get(position);
 		rowView.getMain().setText(account.getUiTitle());
 
 		return view;

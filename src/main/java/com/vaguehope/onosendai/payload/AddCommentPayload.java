@@ -52,7 +52,7 @@ public class AddCommentPayload extends Payload {
 		if (o == null) return false;
 		if (o == this) return true;
 		if (!(o instanceof AddCommentPayload)) return false;
-		AddCommentPayload that = (AddCommentPayload) o;
+		final AddCommentPayload that = (AddCommentPayload) o;
 		return EqualHelper.equal(this.getOwnerTweet(), that.getOwnerTweet()) &&
 				EqualHelper.equal(this.account, that.account);
 	}
