@@ -96,6 +96,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	private String stashedLinkTitle;
 	private String stashedFetchedForUserid;
 	private String stashedService;
+	private String stashedRetweetedByUser;
+	private String stashedRetweetedByUserName;
+	private String stashedRetweetedByUserId;
 	private String stashedMentionUserName;
 	private String stashedMentionFullName;
 	private String stashedUserId;
@@ -122,6 +125,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 						: this.stashedFromUserName);
 				this.currentItem.meta(MetaType.ACCOUNT, this.account.getId());
 				this.currentItem.meta(MetaType.SERVICE, ServiceRef.createServiceMeta(this.stashedService, this.stashedFetchedForUserid));
+				if (this.stashedRetweetedByUserId != null && !this.stashedRetweetedByUserId.equals(this.stashedFetchedForUserid)) {
+					this.currentItem.meta(MetaType.MENTION, this.stashedRetweetedByUser, String.format("RT by %s", this.stashedRetweetedByUserName));
+				}
 				this.tweets.add(this.currentItem.build());
 			}
 			this.stashedFromUserName = null;
@@ -129,6 +135,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			this.stashedFirstLinkTitle = null;
 			this.stashedFetchedForUserid = null;
 			this.stashedService = null;
+			this.stashedRetweetedByUser = null;
+			this.stashedRetweetedByUserName = null;
+			this.stashedRetweetedByUserId = null;
 			this.addThisItem = true;
 		}
 		else if (this.stack.size() == 4) { // NOSONAR not a magic number.
@@ -165,9 +174,14 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			else if ("inreplytostatusid".equals(elementName) && this.currentText.length() > 0) {
 				this.currentItem.meta(MetaType.INREPLYTO, this.currentText.toString());
 			}
+			else if ("retweetedbyuserid".equals(elementName)) {
+				this.stashedRetweetedByUserId = this.currentText.toString();
+			}
+			else if ("retweetedbyusername".equals(elementName)) {
+				this.stashedRetweetedByUserName = this.currentText.toString();
+			}
 			else if ("retweetedbyuser".equals(elementName)) {
-				final String v = this.currentText.toString();
-				this.currentItem.meta(MetaType.MENTION, v, String.format("RT by @%s", v));
+				this.stashedRetweetedByUser = this.currentText.toString();
 			}
 			else if ("replytoid".equals(elementName)) {
 				this.currentItem.replyToId(this.currentText.toString());
