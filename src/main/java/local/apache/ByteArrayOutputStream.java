@@ -57,7 +57,9 @@ import java.util.List;
  */
 public class ByteArrayOutputStream extends OutputStream {
 
-    /** A singleton empty byte array. */
+    private static final int DEFAULT_INITIAL_SIZE = 1024;
+
+	/** A singleton empty byte array. */
     private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     /** The list of buffers, which grows and never reduces. */
@@ -76,7 +78,7 @@ public class ByteArrayOutputStream extends OutputStream {
      * initially 1024 bytes, though its size increases if necessary.
      */
     public ByteArrayOutputStream() {
-        this(1024);
+        this(DEFAULT_INITIAL_SIZE);
     }
 
     /**
