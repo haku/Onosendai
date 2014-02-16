@@ -90,7 +90,7 @@ public class ImageMetadata implements Titleable {
 		throw new IllegalArgumentException("Unknown resource type: " + this.uri);
 	}
 
-	public synchronized Bitmap readBitmap () throws IOException {
+	public Bitmap readBitmap () throws IOException {
 		synchronized (this.bitmapLock) {
 			final Bitmap cached = this.bitmapRef == null ? null : this.bitmapRef.get();
 			if (cached == null) {
