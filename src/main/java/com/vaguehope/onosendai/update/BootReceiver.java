@@ -10,7 +10,7 @@ import com.vaguehope.onosendai.C;
 public class BootReceiver extends BroadcastReceiver {
 
 	@Override
-	public void onReceive (Context context, Intent intent) {
+	public void onReceive (final Context context, final Intent intent) {
 		Log.i(C.TAG, "BootReceiver invoked.");
 		AlarmReceiver.configureAlarms(context);
 	}
