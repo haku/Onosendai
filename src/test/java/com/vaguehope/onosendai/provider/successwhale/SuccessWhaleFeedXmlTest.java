@@ -8,7 +8,6 @@ import static org.junit.Assert.fail;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.vaguehope.onosendai.config.Account;
@@ -81,7 +80,7 @@ public class SuccessWhaleFeedXmlTest {
 
 		Tweet t = tweets.getTweet(2);
 
-		assertHasMeta(t.getMetas(), new Meta(MetaType.MENTION, "bill", "RT by @bill"));
+		assertHasMeta(t.getMetas(), new Meta(MetaType.MENTION, "bill", "RT by Bill"));
 		assertHasMeta(t.getMetas(), new Meta(MetaType.URL, "http://example.com/cool", "Link Title Goes Here"));
 		assertHasMeta(t.getMetas(), new Meta(MetaType.SERVICE, "twitter:09823422"));
 		assertHasMeta(t.getMetas(), new Meta(MetaType.ACCOUNT, ACCOUNT_ID));
@@ -111,7 +110,6 @@ public class SuccessWhaleFeedXmlTest {
 		}
 	}
 
-	@Ignore("Awaiting retweetedbyid element.")
 	@Test
 	public void itDoesNotIncludeMentionForRtBySelf () throws Exception {
 		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_tweets.xml"));
