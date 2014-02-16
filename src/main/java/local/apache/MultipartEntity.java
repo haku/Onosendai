@@ -104,7 +104,7 @@ public class MultipartEntity extends AbstractHttpEntity {
     */
     private static byte[] generateMultipartBoundary() {
         final Random rand = new Random();
-        final byte[] bytes = new byte[rand.nextInt(11) + 30]; // a random size from 30 to 40
+        final byte[] bytes = new byte[rand.nextInt(11) + 30]; // a random size from 30 to 40 // NOSONAR ignore magic numbers.
         for (int i = 0; i < bytes.length; i++) {
             bytes[i] = MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)];
         }
