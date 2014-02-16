@@ -23,6 +23,7 @@ public class ImageMetadata implements Titleable {
 	private final long size;
 	private final String name;
 
+	private final Object[] bitmapLock = new Object[0];
 	private SoftReference<Bitmap> bitmapRef;
 
 	public ImageMetadata (final Context context, final Uri uri) {
@@ -90,27 +91,31 @@ public class ImageMetadata implements Titleable {
 	}
 
 	public synchronized Bitmap readBitmap () throws IOException {
-		final Bitmap cached = this.bitmapRef == null ? null : this.bitmapRef.get();
-		if (cached == null) {
-			final InputStream in = open();
-			try {
-				final Bitmap fresh = BitmapFactory.decodeStream(in);
-				this.bitmapRef = new SoftReference<Bitmap>(fresh);
-				return fresh;
+		synchronized (this.bitmapLock) {
+			final Bitmap cached = this.bitmapRef == null ? null : this.bitmapRef.get();
+			if (cached == null) {
+				final InputStream in = open();
+				try {
+					final Bitmap fresh = BitmapFactory.decodeStream(in);
+					this.bitmapRef = new SoftReference<Bitmap>(fresh);
+					return fresh;
+				}
+				finally {
+					IoHelper.closeQuietly(in);
+				}
 			}
-			finally {
-				IoHelper.closeQuietly(in);
-			}
+			return cached;
 		}
-		return cached;
 	}
 
-	public synchronized void recycle () {
-		if (this.bitmapRef == null) return;
-		final Bitmap cached = this.bitmapRef.get();
-		if (cached == null) return;
-		cached.recycle();
-		this.bitmapRef = null;
+	public void recycle () {
+		synchronized (this.bitmapLock) {
+			if (this.bitmapRef == null) return;
+			final Bitmap cached = this.bitmapRef.get();
+			if (cached == null) return;
+			cached.recycle();
+			this.bitmapRef = null;
+		}
 	}
 
 	@Override

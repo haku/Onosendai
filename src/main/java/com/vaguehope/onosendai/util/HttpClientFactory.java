@@ -31,6 +31,7 @@ public class HttpClientFactory {
 	private final String tsPath;
 	private final char[] tsPassword;
 
+	private final Object[] clientLock = new Object[0];
 	private volatile HttpClient httpClient;
 
 	public HttpClientFactory () {
@@ -42,18 +43,22 @@ public class HttpClientFactory {
 		this.tsPassword = tsPassword != null ? tsPassword.toCharArray() : null;
 	}
 
-	public synchronized HttpClient getHttpClient () throws IOException {
-		try {
-			if (this.httpClient == null) this.httpClient = makeHttpClient();
-			return this.httpClient;
-		}
-		catch (final GeneralSecurityException e) {
-			throw new IOException("Failed to create HTTP client. " + e.toString(), e);
+	public HttpClient getHttpClient () throws IOException {
+		synchronized (this.clientLock) {
+			try {
+				if (this.httpClient == null) this.httpClient = makeHttpClient();
+				return this.httpClient;
+			}
+			catch (final GeneralSecurityException e) {
+				throw new IOException("Failed to create HTTP client. " + e.toString(), e);
+			}
 		}
 	}
 
-	public synchronized void shutdown () {
-		if (this.httpClient != null) this.httpClient.getConnectionManager().shutdown();
+	public void shutdown () {
+		synchronized (this.clientLock) {
+			if (this.httpClient != null) this.httpClient.getConnectionManager().shutdown();
+		}
 	}
 
 	private HttpClient makeHttpClient () throws IOException, GeneralSecurityException {
