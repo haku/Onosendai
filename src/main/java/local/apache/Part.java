@@ -73,7 +73,7 @@ public abstract class Part {
     protected static final String CRLF = "\r\n";
 
     /** Carriage return/linefeed as a byte array */
-    protected static final byte[] CRLF_BYTES = EncodingUtils.getAsciiBytes(CRLF);
+    private static final byte[] CRLF_BYTES = EncodingUtils.getAsciiBytes(CRLF);
 
     /** Content dispostion characters */
     protected static final String QUOTE = "\"";
