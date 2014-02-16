@@ -85,8 +85,8 @@ public class HybridBitmapCache {
 		final long now = System.currentTimeMillis();
 		final long lastModified = f.lastModified();
 		if (lastModified != 0) {
-			if (now - lastModified > C.IMAGE_DISC_CACHE_TOUCH_AFTER_MILLIS) {
-				if (!f.setLastModified(now)) LOG.w("Failed to update last modified date for '%s'.", f.getAbsolutePath());
+			if (now - lastModified > C.IMAGE_DISC_CACHE_TOUCH_AFTER_MILLIS && !f.setLastModified(now)) {
+				LOG.w("Failed to update last modified date for '%s'.", f.getAbsolutePath());
 			}
 		}
 		else {
