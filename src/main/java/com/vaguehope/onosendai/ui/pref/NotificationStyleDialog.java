@@ -13,8 +13,6 @@ import com.vaguehope.onosendai.util.Titleable;
 
 class NotificationStyleDialog implements Titleable {
 
-	private final NotificationStyle initialValue;
-
 	private final View llParent;
 	private final ToggleButton chkNotify;
 	private final CheckBox chkLights;
@@ -22,8 +20,6 @@ class NotificationStyleDialog implements Titleable {
 	private final CheckBox chkSound;
 
 	public NotificationStyleDialog (final Context context, final NotificationStyle initialValue) {
-		this.initialValue = initialValue;
-
 		final LayoutInflater inflater = LayoutInflater.from(context);
 		this.llParent = inflater.inflate(R.layout.notificationstyledialog, null);
 
@@ -32,12 +28,14 @@ class NotificationStyleDialog implements Titleable {
 		this.chkVibrate = (CheckBox) this.llParent.findViewById(R.id.chkVibrate);
 		this.chkSound = (CheckBox) this.llParent.findViewById(R.id.chkSound);
 
-		this.chkNotify.setChecked(this.initialValue != null);
+		this.chkNotify.setChecked(initialValue != null);
 		this.chkNotify.setOnClickListener(this.chkNotifyClickListener);
 
-		this.chkLights.setChecked(this.initialValue.isLights());
-		this.chkVibrate.setChecked(this.initialValue.isVibrate());
-		this.chkSound.setChecked(this.initialValue.isSound());
+		if (initialValue != null) {
+			this.chkLights.setChecked(initialValue.isLights());
+			this.chkVibrate.setChecked(initialValue.isVibrate());
+			this.chkSound.setChecked(initialValue.isSound());
+		}
 	}
 
 	private final OnClickListener chkNotifyClickListener = new OnClickListener() {
