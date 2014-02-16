@@ -40,8 +40,8 @@ public class ImageMetadata implements Titleable {
 			try {
 				if (cursor != null) {
 					cursor.moveToFirst();
-					int colSize = cursor.getColumnIndex(MediaColumns.SIZE);
-					int colDisplayName = cursor.getColumnIndex(MediaColumns.DISPLAY_NAME); // Filename with extension.
+					final int colSize = cursor.getColumnIndex(MediaColumns.SIZE);
+					final int colDisplayName = cursor.getColumnIndex(MediaColumns.DISPLAY_NAME); // Filename with extension.
 					this.size = cursor.getLong(colSize);
 					this.name = cursor.getString(colDisplayName);
 				}

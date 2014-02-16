@@ -81,20 +81,20 @@ public class FetchColumn implements Callable<Void> {
 		try {
 			final TwitterProvider twitterProvider = providerMgr.getTwitterProvider();
 			twitterProvider.addAccount(account);
-			TwitterFeed feed = TwitterFeeds.parse(column.getResource());
+			final TwitterFeed feed = TwitterFeeds.parse(column.getResource());
 
 			long sinceId = -1;
-			List<Tweet> existingTweets = db.getTweets(column.getId(), 1);
+			final List<Tweet> existingTweets = db.getTweets(column.getId(), 1);
 			if (existingTweets.size() > 0) sinceId = Long.parseLong(existingTweets.get(existingTweets.size() - 1).getSid());
 
-			TweetList tweets = twitterProvider.getTweets(feed, account, sinceId);
+			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId);
 			if (tweets.count() > 0) db.storeTweets(column, tweets.getTweets());
 
 			storeSuccess(db, column);
-			long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 			LOG.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
 		}
-		catch (TwitterException e) {
+		catch (final TwitterException e) {
 			LOG.w("Failed to fetch from Twitter: %s", ExcpetionHelper.causeTrace(e));
 			storeError(db, column, TwitterUtils.friendlyExceptionMessage(e));
 		}
@@ -105,20 +105,20 @@ public class FetchColumn implements Callable<Void> {
 		try {
 			final SuccessWhaleProvider successWhaleProvider = providerMgr.getSuccessWhaleProvider();
 			successWhaleProvider.addAccount(account);
-			SuccessWhaleFeed feed = new SuccessWhaleFeed(column);
+			final SuccessWhaleFeed feed = new SuccessWhaleFeed(column);
 
 			String sinceId = null;
-			List<Tweet> existingTweets = db.getTweets(column.getId(), 1);
+			final List<Tweet> existingTweets = db.getTweets(column.getId(), 1);
 			if (existingTweets.size() > 0) sinceId = existingTweets.get(existingTweets.size() - 1).getSid();
 
-			TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId);
+			final TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId);
 			if (tweets.count() > 0) db.storeTweets(column, tweets.getTweets());
 
 			storeSuccess(db, column);
-			long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 			LOG.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
 		}
-		catch (SuccessWhaleException e) {
+		catch (final SuccessWhaleException e) {
 			LOG.w("Failed to fetch from SuccessWhale: %s", ExcpetionHelper.causeTrace(e));
 			storeError(db, column, e.friendlyMessage());
 		}
@@ -144,10 +144,10 @@ public class FetchColumn implements Callable<Void> {
 			}
 
 			storeSuccess(db, column);
-			long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 			LOG.i("Pushed %d items for '%s' in %d millis.", tweets.size(), column.getTitle(), durationMillis);
 		}
-		catch (Exception e) {
+		catch (final Exception e) {
 			LOG.w("Failed to push to Instapaper: %s", ExcpetionHelper.causeTrace(e));
 			storeError(db, column, ExcpetionHelper.causeTrace(e));
 		}

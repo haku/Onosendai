@@ -25,7 +25,7 @@ public class PendingImage extends FrameLayout {
 	public PendingImage (final Context context, final AttributeSet attrs, final int defStyle) {
 		super(context, attrs, defStyle);
 
-		TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.PendingImage);
+		final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.PendingImage);
 		final int maxHeightPixels = a.getDimensionPixelSize(R.styleable.PendingImage_maxHeight, -1);
 		a.recycle();
 

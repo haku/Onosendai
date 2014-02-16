@@ -86,7 +86,7 @@ public class Column implements Titleable {
 		if (o == null) return false;
 		if (o == this) return true;
 		if (!(o instanceof Column)) return false;
-		Column that = (Column) o;
+		final Column that = (Column) o;
 		return EqualHelper.equal(this.id, that.id) &&
 				EqualHelper.equal(this.title, that.title) &&
 				EqualHelper.equal(this.accountId, that.accountId) &&
@@ -106,7 +106,7 @@ public class Column implements Titleable {
 
 	@Override
 	public String toString () {
-		StringBuilder s = new StringBuilder();
+		final StringBuilder s = new StringBuilder();
 		s.append("Column{").append(this.id)
 				.append(",").append(this.title)
 				.append(",").append(this.accountId)
@@ -153,8 +153,8 @@ public class Column implements Titleable {
 
 	public static List<String> titles (final Collection<Column> columns) {
 		if (columns == null) return null;
-		List<String> ret = new ArrayList<String>(columns.size());
-		for (Column col : columns) {
+		final List<String> ret = new ArrayList<String>(columns.size());
+		for (final Column col : columns) {
 			ret.add(col.getTitle());
 		}
 		return ret;
@@ -176,7 +176,7 @@ public class Column implements Titleable {
 	private static JSONArray toJsonArray (final Set<Integer> ints) {
 		if (ints == null) return null;
 		final JSONArray ja = new JSONArray();
-		for (Integer i : ints) {
+		for (final Integer i : ints) {
 			ja.put(i);
 		}
 		return ja;

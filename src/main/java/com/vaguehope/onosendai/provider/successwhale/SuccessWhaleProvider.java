@@ -30,7 +30,7 @@ public class SuccessWhaleProvider {
 
 	public void addAccount (final Account account) {
 		if (this.accounts.containsKey(account.getId())) return;
-		SuccessWhale s = new SuccessWhale(this.kvStore, account, this.httpClientFactory);
+		final SuccessWhale s = new SuccessWhale(this.kvStore, account, this.httpClientFactory);
 		this.accounts.putIfAbsent(account.getId(), s);
 	}
 

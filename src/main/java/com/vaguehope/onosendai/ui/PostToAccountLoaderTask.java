@@ -66,7 +66,7 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 					if (cached != null) publishProgress(new AccountLoaderResult(cached));
 					return new AccountLoaderResult(swProv.getPostToAccounts(account));
 				}
-				catch (SuccessWhaleException e) {
+				catch (final SuccessWhaleException e) {
 					return new AccountLoaderResult(e);
 				}
 				finally {
@@ -77,7 +77,7 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 				try {
 					return new AccountLoaderResult(bufProv.getPostToAccounts(account));
 				}
-				catch (BufferAppException e) {
+				catch (final BufferAppException e) {
 					return new AccountLoaderResult(e);
 				}
 				finally {
@@ -121,7 +121,7 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 
 	private void displayAccounts (final AccountLoaderResult result) {
 		for (final ServiceRef svc : result.getAccounts()) {
-			View existingView = this.llSubAccounts.findViewWithTag(svc);
+			final View existingView = this.llSubAccounts.findViewWithTag(svc);
 			if (existingView == null) {
 				final View view = View.inflate(this.llSubAccounts.getContext(), R.layout.subaccountitem, null);
 				view.setTag(svc);
@@ -211,7 +211,7 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 		@Override
 		public void onClick (final View v) {
 			if (!(v instanceof ToggleButton)) return;
-			ToggleButton btn = (ToggleButton) v;
+			final ToggleButton btn = (ToggleButton) v;
 			if (btn.isChecked()) {
 				this.enabledSubAccounts.enable(this.svc);
 			}

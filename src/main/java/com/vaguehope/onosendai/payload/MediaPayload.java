@@ -44,7 +44,7 @@ public class MediaPayload extends Payload {
 
 	@Override
 	public Intent toIntent (final Context context) {
-		Intent i = new Intent(Intent.ACTION_VIEW);
+		final Intent i = new Intent(Intent.ACTION_VIEW);
 		i.setData(Uri.parse(this.url));
 		return i;
 	}
@@ -75,7 +75,7 @@ public class MediaPayload extends Payload {
 		if (o == null) return false;
 		if (o == this) return true;
 		if (!(o instanceof MediaPayload)) return false;
-		MediaPayload that = (MediaPayload) o;
+		final MediaPayload that = (MediaPayload) o;
 		return EqualHelper.equal(this.url, that.url);
 	}
 

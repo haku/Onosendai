@@ -35,7 +35,7 @@ public class HashTagPayload extends Payload {
 
 	@Override
 	public Intent toIntent (final Context context) {
-		Intent i = new Intent(Intent.ACTION_VIEW);
+		final Intent i = new Intent(Intent.ACTION_VIEW);
 		i.setData(Uri.parse(String.format(HASHTAG_URL_TEMPLATE, Uri.encode(this.hashtag))));
 		return i;
 	}
@@ -50,7 +50,7 @@ public class HashTagPayload extends Payload {
 		if (o == null) return false;
 		if (o == this) return true;
 		if (!(o instanceof HashTagPayload)) return false;
-		HashTagPayload that = (HashTagPayload) o;
+		final HashTagPayload that = (HashTagPayload) o;
 		return EqualHelper.equal(this.hashtag, that.hashtag);
 	}
 

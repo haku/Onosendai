@@ -49,7 +49,7 @@ public class Account implements Titleable {
 
 	@Override
 	public String toString () {
-		StringBuilder s = new StringBuilder();
+		final StringBuilder s = new StringBuilder();
 		s.append("Account{").append(this.id)
 				.append(",").append(this.provider)
 				.append("}");
@@ -75,7 +75,7 @@ public class Account implements Titleable {
 		if (o == null) return false;
 		if (o == this) return true;
 		if (!(o instanceof Account)) return false;
-		Account that = (Account) o;
+		final Account that = (Account) o;
 		return EqualHelper.equal(this.id, that.id) &&
 				EqualHelper.equal(this.title, that.title) &&
 				EqualHelper.equal(this.provider, that.provider) &&

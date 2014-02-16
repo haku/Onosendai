@@ -20,10 +20,10 @@ public final class TimeParser {
 		if (s == null || s.isEmpty()) return 0;
 		final String t = s.trim();
 		if (t.isEmpty()) return 0;
-		Matcher m = DURATION_PATTERN.matcher(t);
+		final Matcher m = DURATION_PATTERN.matcher(t);
 		if (m.matches()) {
-			int hours = parseInt(m.group(1));
-			int mins = parseInt(m.group(2));
+			final int hours = parseInt(m.group(1));
+			final int mins = parseInt(m.group(2));
 			return (hours * MINUTES_IN_HOUR) + mins;
 		}
 		return -1;

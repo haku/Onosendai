@@ -54,20 +54,20 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 
 	public SuccessWhaleFeedXml (final Account account, final InputStream dataIs) throws SAXException {
 		this.account = account;
-		SAXParserFactory spf = SAXParserFactory.newInstance();
+		final SAXParserFactory spf = SAXParserFactory.newInstance();
 		SAXParser sp;
 		try {
 			sp = spf.newSAXParser();
-			XMLReader xmlReader = sp.getXMLReader();
+			final XMLReader xmlReader = sp.getXMLReader();
 			xmlReader.setContentHandler(this);
 			try {
 				xmlReader.parse(new InputSource(dataIs));
 			}
-			catch (IOException e) {
+			catch (final IOException e) {
 				throw new SAXException(e);
 			}
 		}
-		catch (ParserConfigurationException e) {
+		catch (final ParserConfigurationException e) {
 			throw new SAXException(e);
 		}
 	}

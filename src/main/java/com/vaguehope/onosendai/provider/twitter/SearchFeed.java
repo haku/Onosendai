@@ -28,7 +28,7 @@ class SearchFeed implements TwitterFeed {
 	@Override
 	public TweetList getTweets (final Account account, final Twitter t, final long sinceId) throws TwitterException {
 		final List<Tweet> tweets = new ArrayList<Tweet>();
-		int page = 1; // First page is 1.
+		final int page = 1; // First page is 1.
 		Query query = new Query()
 				.query(this.term)
 				.count(C.TWEET_FETCH_PAGE_SIZE)

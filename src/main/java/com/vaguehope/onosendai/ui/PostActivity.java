@@ -116,7 +116,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			accounts = this.prefs.readAccounts();
 			conf = this.prefs.asConfig();
 		}
-		catch (Exception e) { // No point continuing if any exception.
+		catch (final Exception e) { // No point continuing if any exception.
 			DialogHelper.alertAndClose(this, e);
 			return;
 		}
@@ -209,7 +209,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			this.enabledPostToAccounts.setAccount(account);
 			this.enabledPostToAccounts.fromBundle(savedInstanceState);
 			if (svcs != null && !this.enabledPostToAccounts.isServicesPreSpecified()) {
-				for (String svc : svcs) {
+				for (final String svc : svcs) {
 					this.enabledPostToAccounts.enable(ServiceRef.parseServiceMeta(svc));
 				}
 				this.enabledPostToAccounts.setServicesPreSpecified(true);
@@ -353,10 +353,10 @@ public class PostActivity extends Activity implements ImageLoader {
 			this.txtBody.setText(intialBody);
 		}
 		else {
-			StringBuilder s = new StringBuilder();
+			final StringBuilder s = new StringBuilder();
 			if (tweet != null && tweet.getUsername() != null) s.append("@").append(tweet.getUsername());
 			if (this.alsoMentions != null) {
-				for (String mention : this.alsoMentions) {
+				for (final String mention : this.alsoMentions) {
 					s.append(" @").append(mention);
 				}
 			}
@@ -421,7 +421,7 @@ public class PostActivity extends Activity implements ImageLoader {
 				.putExtra(ARG_BODY, body);
 
 		final ArrayList<String> svcsLst = new ArrayList<String>();
-		for (ServiceRef svc : svcs) {
+		for (final ServiceRef svc : svcs) {
 			svcsLst.add(svc.toServiceMeta());
 		}
 		recoveryIntent.putStringArrayListExtra(ARG_SVCS, svcsLst);
@@ -550,7 +550,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			});
 			dlgBuilder.create().show();
 		}
-		catch (IOException e) {
+		catch (final IOException e) {
 			DialogHelper.alert(this, e);
 		}
 	}
@@ -560,7 +560,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			this.attachment = dlg.resizeToTempFile();
 			redrawAttachment();
 		}
-		catch (IOException e) {
+		catch (final IOException e) {
 			DialogHelper.alert(this, e);
 		}
 	}
@@ -598,7 +598,7 @@ public class PostActivity extends Activity implements ImageLoader {
 				DialogHelper.alert(this, "Unknown resource:\n" + uri);
 			}
 		}
-		catch (IOException e) {
+		catch (final IOException e) {
 			DialogHelper.alert(this, e);
 		}
 	}

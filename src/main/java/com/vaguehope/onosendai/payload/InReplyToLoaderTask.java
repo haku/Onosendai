@@ -86,7 +86,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLo
 				return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
 			}
 		}
-		catch (TwitterException e) {
+		catch (final TwitterException e) {
 			LOG.w("Failed to retrieve tweet %s: %s", inReplyToMeta.getData(), e.toString());
 			return new ReplyLoaderResult("Error fetching tweet: " + e.getMessage(), startingTweet);
 		}
@@ -110,7 +110,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLo
 					return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
 				}
 			}
-			catch (SuccessWhaleException e) {
+			catch (final SuccessWhaleException e) {
 				LOG.w("Failed to retrieve thread %s: %s", inReplyToMeta.getData(), e.toString());
 				return new ReplyLoaderResult("Error fetching thread: " + e.getMessage(), startingTweet);
 			}
@@ -144,7 +144,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLo
 				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
 				return new ReplyLoaderResult("No visible comments.", startingTweet);
 			}
-			catch (SuccessWhaleException e) {
+			catch (final SuccessWhaleException e) {
 				LOG.w("Failed to retrieve thread %s: %s", startingTweet.getSid(), e.toString());
 				return new ReplyLoaderResult("Error fetching comments: " + e.getMessage(), startingTweet);
 			}
@@ -153,8 +153,8 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLo
 	}
 
 	private static List<InReplyToPayload> tweetListToReplyPayloads (final Tweet startingTweet, final TweetList thread) {
-		List<InReplyToPayload> ret = new ArrayList<InReplyToPayload>();
-		for (Tweet tweet : thread.getTweets()) {
+		final List<InReplyToPayload> ret = new ArrayList<InReplyToPayload>();
+		for (final Tweet tweet : thread.getTweets()) {
 			ret.add(new InReplyToPayload(startingTweet, tweet));
 		}
 		return ret;

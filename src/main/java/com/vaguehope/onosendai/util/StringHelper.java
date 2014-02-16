@@ -30,7 +30,7 @@ public final class StringHelper {
 
 	public static String firstLine(final String s) {
 		if (s == null) return s;
-		int x = s.indexOf('\n');
+		final int x = s.indexOf('\n');
 		return x >= 0 ? s.substring(0, x) : s;
 	}
 
