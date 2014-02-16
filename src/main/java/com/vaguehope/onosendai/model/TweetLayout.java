@@ -49,9 +49,9 @@ public enum TweetLayout {
 		@Override
 		public void applyTweetTo (final Tweet item, final TweetRowView rowView, final ImageLoader imageLoader) {
 			MAIN.applyTweetTo(item, rowView, imageLoader);
-			final String InlineMediaUrl = item.getInlineMediaUrl();
-			if (InlineMediaUrl != null) {
-				imageLoader.loadImage(new ImageLoadRequest(InlineMediaUrl, rowView.getInlineMedia()));
+			final String inlineMediaUrl = item.getInlineMediaUrl();
+			if (inlineMediaUrl != null) {
+				imageLoader.loadImage(new ImageLoadRequest(inlineMediaUrl, rowView.getInlineMedia()));
 			}
 			else {
 				rowView.getInlineMedia().setImageResource(R.drawable.question_blue);
