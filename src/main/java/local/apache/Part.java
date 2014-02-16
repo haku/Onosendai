@@ -222,12 +222,12 @@ public abstract class Part {
      * @throws IOException If an IO problem occurs.
      */
      protected void sendContentTypeHeader(final OutputStream out) throws IOException {
-        String contentType = getContentType();
+        final String contentType = getContentType();
         if (contentType != null) {
             out.write(CRLF_BYTES);
             out.write(CONTENT_TYPE_BYTES);
             out.write(EncodingUtils.getAsciiBytes(contentType));
-            String charSet = getCharSet();
+            final String charSet = getCharSet();
             if (charSet != null) {
                 out.write(CHARSET_BYTES);
                 out.write(EncodingUtils.getAsciiBytes(charSet));
@@ -243,7 +243,7 @@ public abstract class Part {
      * @throws IOException If an IO problem occurs.
      */
      protected void sendTransferEncodingHeader(final OutputStream out) throws IOException {
-        String transferEncoding = getTransferEncoding();
+        final String transferEncoding = getTransferEncoding();
         if (transferEncoding != null) {
             out.write(CRLF_BYTES);
             out.write(CONTENT_TRANSFER_ENCODING_BYTES);
@@ -316,7 +316,7 @@ public abstract class Part {
         if (lengthOfData() < 0) {
             return -1;
         }
-        ByteArrayOutputStream overhead = new ByteArrayOutputStream();
+        final ByteArrayOutputStream overhead = new ByteArrayOutputStream();
         sendStart(overhead);
         sendDispositionHeader(overhead);
         sendContentTypeHeader(overhead);
@@ -412,7 +412,7 @@ public abstract class Part {
         for (int i = 0; i < parts.length; i++) {
             // set the part boundary before we calculate the part's length
             parts[i].setPartBoundary(partBoundary);
-            long l = parts[i].length();
+            final long l = parts[i].length();
             if (l < 0) {
                 return -1;
             }
