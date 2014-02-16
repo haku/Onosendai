@@ -233,6 +233,7 @@ public class SidebarLayout extends ViewGroup {
 					return true;
 				}
 				break;
+			default:
 		}
 		return false;
 	}

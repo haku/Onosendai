@@ -212,6 +212,7 @@ public final class TwitterUtils {
 				return "You are not authorized to see this status.";
 			case TWITTER_ERROR_CODE_DAILY_STATUS_LIMIT_EXCEEDED:
 				return "You are over daily status update limit.";
+			default:
 		}
 		final Throwable cause = e.getCause();
 		if (cause != null) {
