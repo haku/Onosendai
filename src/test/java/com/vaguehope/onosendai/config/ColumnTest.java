@@ -2,6 +2,8 @@ package com.vaguehope.onosendai.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,6 +26,27 @@ public class ColumnTest {
 		Column c = new Column(12, "title", "accountid", "resource", 15, CollectionHelper.setOf(1, 2), NotificationStyle.DEFAULT, false);
 		Column c1 = new Column(89, c);
 		Column c2 = new Column(12, c1);
+		assertEquals(c, c2);
+	}
+
+	@Test
+	public void itClonesWithNewAccountId () throws Exception {
+		final Account a1 = mock(Account.class);
+		final Account a2 = mock(Account.class);
+		when(a1.getId()).thenReturn("accountid");
+		when(a2.getId()).thenReturn("newaccountid");
+
+		Column c = new Column(12, "title", a1.getId(), "resource", 15, CollectionHelper.setOf(1, 2), NotificationStyle.DEFAULT, false);
+		Column c1 = new Column(a2, c);
+		Column c2 = new Column(a1, c1);
+		assertEquals(c, c2);
+	}
+
+	@Test
+	public void itClonesWithNewExcludeColumnIds () throws Exception {
+		Column c = new Column(12, "title", "accountid", "resource", 15, CollectionHelper.setOf(1, 2), NotificationStyle.DEFAULT, false);
+		Column c1 = new Column(CollectionHelper.setOf(2), c);
+		Column c2 = new Column(CollectionHelper.setOf(1, 2), c1);
 		assertEquals(c, c2);
 	}
 
