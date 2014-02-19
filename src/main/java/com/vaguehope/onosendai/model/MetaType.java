@@ -38,6 +38,7 @@ public enum MetaType {
 	REPLYTO(8),
 	/**
 	 * Data is the real time the Tweet was posted if Tweet.getTime() has been overwritten.
+	 * Time is in seconds (utime).
 	 * Title is unused.
 	 */
 	POST_TIME(9);
