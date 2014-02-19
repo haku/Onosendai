@@ -73,6 +73,7 @@ import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.NetHelper;
 import com.vaguehope.onosendai.util.Result;
 import com.vaguehope.onosendai.util.Titleable;
 import com.vaguehope.onosendai.widget.ScrollIndicator;
@@ -365,6 +366,11 @@ public class TweetListFragment extends Fragment {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	protected void scheduleRefresh (final boolean all) {
+		if (!NetHelper.connectionPresent(getActivity())) {
+			DialogHelper.alert(getActivity(), "No internet connection available.");
+			return;
+		}
+
 		final Intent intent = new Intent(getActivity(), UpdateService.class);
 		intent.putExtra(UpdateService.ARG_IS_MANUAL, true);
 		if (!all) intent.putExtra(UpdateService.ARG_COLUMN_ID, this.columnId);
