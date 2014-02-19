@@ -1,5 +1,8 @@
 package com.vaguehope.onosendai.ui.pref;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.json.JSONException;
 
 import android.app.AlertDialog;
@@ -108,20 +111,34 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 				new Runnable() {
 					@Override
 					public void run () {
-						deleteDataForColumn(column);
-						getPrefs().deleteColumn(column);
-						refreshColumnsList();
+						try {
+							discardColumnFromExcludes(column);
+							deleteDataForColumn(column);
+							getPrefs().deleteColumn(column);
+							refreshColumnsList();
+						}
+						catch (final Exception e) { // NOSONAR Need to report errors.
+							DialogHelper.alert(getActivity(), e);
+						}
 					}
 				});
+	}
+
+	protected void discardColumnFromExcludes (final Column delCol) throws JSONException {
+		final Integer delColId = Integer.valueOf(delCol.getId());
+		for (final Column otherCol : this.prefs.readColumns()) {
+			if (delCol.getId() == otherCol.getId()) continue;
+			if (setContains(otherCol.getExcludeColumnIds(), delColId)) {
+				final Set<Integer> newExcludeColumnIds = copyOfSetWithout(otherCol.getExcludeColumnIds(), delColId);
+				this.prefs.writeUpdatedColumn(new Column(newExcludeColumnIds, otherCol));
+			}
+		}
 	}
 
 	protected void deleteDataForColumn (final Column column) {
 		final OsPreferenceActivity act = (OsPreferenceActivity) getActivity();
 		final DbInterface db = act.getDb();
-		if (db == null) {
-			DialogHelper.alert(getActivity(), "Database not bound, aborting column deletion.");
-			return;
-		}
+		if (db == null) throw new IllegalStateException("Database not bound, aborting column deletion.");
 		db.deleteTweets(column);
 	}
 
@@ -138,6 +155,17 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 			this.columnsPrefFragment.promptAddColumn();
 			return true;
 		}
+	}
+
+	private static <T> boolean setContains (final Set<T> set, final T item) {
+		if (set == null) return false;
+		return set.contains(item);
+	}
+
+	private static <T> Set<T> copyOfSetWithout (final Set<T> set, final T item) {
+		final Set<T> newSet = new HashSet<T>(set);
+		if (!newSet.remove(item)) throw new IllegalStateException("Failed to remove " + set + " from " + newSet + ".");
+		return newSet;
 	}
 
 }
