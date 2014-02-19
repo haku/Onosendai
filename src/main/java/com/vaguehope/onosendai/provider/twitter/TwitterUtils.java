@@ -81,9 +81,13 @@ public final class TwitterUtils {
 		final List<Meta> metas = new ArrayList<Meta>();
 		metas.add(new Meta(MetaType.ACCOUNT, account.getId()));
 
-		if (status.isRetweet() && status.getUser().getId() != ownId) {
-			metas.add(new Meta(MetaType.MENTION, status.getUser().getScreenName(), String.format("RT by %s", status.getUser().getName())));
+		if (status.isRetweet()) {
+			metas.add(new Meta(MetaType.POST_TIME, String.valueOf(TimeUnit.MILLISECONDS.toSeconds(status.getRetweetedStatus().getCreatedAt().getTime()))));
+			if (status.getUser().getId() != ownId) {
+				metas.add(new Meta(MetaType.MENTION, status.getUser().getScreenName(), String.format("RT by %s", status.getUser().getName())));
+			}
 		}
+
 		final Status s = status.isRetweet() ? status.getRetweetedStatus() : status;
 
 		final URLEntity[] urls = mergeArrays(s.getURLEntities(), s.getMediaEntities());
@@ -107,7 +111,7 @@ public final class TwitterUtils {
 				s.getUser().getScreenName(),
 				s.getUser().getName(),
 				text,
-				TimeUnit.MILLISECONDS.toSeconds(s.getCreatedAt().getTime()),
+				TimeUnit.MILLISECONDS.toSeconds(status.getCreatedAt().getTime()),
 				s.getUser().getProfileImageURLHttps(),
 				MetaUtils.firstMetaOfTypesData(metas, MetaType.MEDIA),
 				metas);
