@@ -103,32 +103,42 @@ public class TwitterUtilsTest {
 
 	@Test
 	public void itUsesOrigionalStatusForRetweets () throws Exception {
-		final Status s1 = mockTweet("a thing.", "them", "Them", 202);
+		final Status s = mockTweet("a thing.", "them", "Them", 202);
 
-		final Status s = mockTweet("RT @them: a thing.", "friend", "Friend", 201);
-		when(s.isRetweet()).thenReturn(true);
-		when(s.getRetweetedStatus()).thenReturn(s1);
+		final Status rt = mockTweet("RT @them: a thing.", "friend", "Friend", 201);
+		when(rt.isRetweet()).thenReturn(true);
+		when(rt.getRetweetedStatus()).thenReturn(s);
 
-		final Tweet t = TwitterUtils.convertTweet(this.account, s, 200);
+		if (s.getCreatedAt().getTime() == rt.getCreatedAt().getTime()) throw new IllegalStateException("Bad mocking: created times are the same.");
+
+		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 200);
 		assertEquals("a thing.", t.getBody());
 		assertEquals("them", t.getUsername());
 		assertEquals("Them", t.getFullname());
+		assertEquals(s.getUser().getProfileImageURLHttps(), t.getAvatarUrl());
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MENTION, "friend", "RT by Friend")));
+		assertEquals(rt.getCreatedAt().getTime() / 1000L, t.getTime());
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.POST_TIME, String.valueOf(s.getCreatedAt().getTime() / 1000L))));
 	}
 
 	@Test
 	public void itDoesNotAddMentionForRetweetsByMe () throws Exception {
-		final Status s1 = mockTweet("a thing.", "them", "Them", 202);
+		final Status s = mockTweet("a thing.", "them", "Them", 202);
 
-		final Status s = mockTweet("RT @them: a thing.", "me", "Me", 200);
-		when(s.isRetweet()).thenReturn(true);
-		when(s.getRetweetedStatus()).thenReturn(s1);
+		final Status rt = mockTweet("RT @them: a thing.", "me", "Me", 200);
+		when(rt.isRetweet()).thenReturn(true);
+		when(rt.getRetweetedStatus()).thenReturn(s);
 
-		final Tweet t = TwitterUtils.convertTweet(this.account, s, 200);
+		if (s.getCreatedAt().getTime() == rt.getCreatedAt().getTime()) throw new IllegalStateException("Bad mocking: created times are the same.");
+
+		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 200);
 		assertEquals("a thing.", t.getBody());
 		assertEquals("them", t.getUsername());
 		assertEquals("Them", t.getFullname());
+		assertEquals(s.getUser().getProfileImageURLHttps(), t.getAvatarUrl());
 		assertThat(t.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "me", "RT by Me"))));
+		assertEquals(rt.getCreatedAt().getTime() / 1000L, t.getTime());
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.POST_TIME, String.valueOf(s.getCreatedAt().getTime() / 1000L))));
 	}
 
 	private void testPictureUrlExpansion (final String fromUrl, final String toUrl) {
@@ -163,16 +173,21 @@ public class TwitterUtilsTest {
 		return mockTweet(msg, "screenname", "name", 1234);
 	}
 
+	private static long lastMockTime = System.currentTimeMillis();
+
 	private static Status mockTweet (final String msg, final String screenName, final String fullName, final long userId) {
 		final Status s = mock(Status.class);
 		when(s.getText()).thenReturn(msg);
-		when(s.getCreatedAt()).thenReturn(new Date());
+
+		long t = System.currentTimeMillis();
+		lastMockTime = t > lastMockTime ? t : lastMockTime + 1;
+		when(s.getCreatedAt()).thenReturn(new Date(lastMockTime));
 
 		final User user = mock(User.class);
 		when(user.getScreenName()).thenReturn(screenName);
 		when(user.getName()).thenReturn(fullName);
 		when(user.getId()).thenReturn(userId);
-		when(user.getProfileImageURLHttps()).thenReturn("https://profile/image");
+		when(user.getProfileImageURLHttps()).thenReturn("https://profile/" + screenName + "/image");
 		when(s.getUser()).thenReturn(user);
 
 		return s;
