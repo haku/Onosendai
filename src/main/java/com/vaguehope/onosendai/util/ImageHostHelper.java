@@ -20,7 +20,7 @@ public final class ImageHostHelper {
 			if (m.matches()) return linkUrl + "media/";
 		}
 
-		{
+		{ // http://dev.twitpic.com/docs/thumbnails/
 			final Matcher m = TWITPIC_URL.matcher(linkUrl);
 			if (m.matches()) return "http://twitpic.com/show/thumb/" + m.group(1) + ".jpg";
 		}
@@ -34,7 +34,7 @@ public final class ImageHostHelper {
 			}
 		}
 
-		{
+		{ // http://twitter.yfrog.com/page/api#a5
 			final Matcher m = YFROG_URL.matcher(linkUrl);
 			if (m.matches()) return "http://yfrog.com/" + m.group(1) + ":small";
 		}
