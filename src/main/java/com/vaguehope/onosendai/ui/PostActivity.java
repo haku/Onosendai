@@ -122,7 +122,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		}
 
 		this.imageCache = new HybridBitmapCache(getBaseContext(), C.MAX_MEMORY_IMAGE_CACHE);
-		this.exec = ExecUtils.newBoundedCachedThreadPool(C.IMAGE_LOADER_MAX_THREADS, LOG);
+		this.exec = ExecUtils.newBoundedCachedThreadPool(C.NET_MAX_THREADS, LOG);
 
 		this.intentExtras = getIntent().getExtras();
 		this.inReplyToUid = this.intentExtras.getLong(ARG_IN_REPLY_TO_UID);
@@ -169,7 +169,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	@Override
 	public void loadImage (final ImageLoadRequest req) {
-		ImageLoaderUtils.loadImage(this.imageCache, req, this.exec);
+		ImageLoaderUtils.loadImage(this.imageCache, req, this.exec, this.exec); // TODO Worth splitting these ES?
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

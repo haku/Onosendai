@@ -31,7 +31,7 @@ public class GotoMenu implements OnClickListener {
 		for (final Column col : columns) {
 			final MenuItem menuItem = mnu.getMenu().add(Menu.NONE, MNU_GOTO_BASE_ID + i, Menu.NONE, col.getTitle());
 			final ScrollState scroll = this.mainActivity.getColumnScroll(col.getId());
-			new UnreadCountLoaderTask(this.mainActivity.getDb(), col, menuItem, scroll).executeOnExecutor(this.mainActivity.getDbEs());
+			new UnreadCountLoaderTask(this.mainActivity.getDb(), col, menuItem, scroll).executeOnExecutor(this.mainActivity.getLocalEs());
 			i++;
 		}
 		mnu.setOnMenuItemClickListener(new GotoItemClientListener(columns, this.mainActivity));

@@ -29,8 +29,8 @@ public final class C {
 	public static final int SEND_OUTBOX_MAX_THREADS = 1;
 
 	// Form main activity.
-	public static final int IMAGE_LOADER_MAX_THREADS = 3;
-	public static final int DB_MAX_THREADS = 1;
+	public static final int LOCAL_MAX_THREADS = 1;
+	public static final int NET_MAX_THREADS = 3;
 
 	// Tweet Lists.
 	public static final long SCROLL_TIME_LABEL_TIMEOUT_MILLIS = 3000L;

@@ -16,15 +16,16 @@ public final class ImageLoaderUtils {
 		return (ImageLoader) activity;
 	}
 
-	public static void loadImage (final HybridBitmapCache cache, final ImageLoadRequest req, final Executor exec) {
-		if (exec == null) throw new IllegalArgumentException("Must specificy an executor.");
+	public static void loadImage (final HybridBitmapCache cache, final ImageLoadRequest req, final Executor localEs, final Executor netEs) {
+		if (localEs == null) throw new IllegalArgumentException("Must specificy a local executor.");
+		if (netEs == null) throw new IllegalArgumentException("Must specificy a network executor.");
 		final Bitmap bmp = cache.quickGet(req.getUrl());
 		if (bmp != null) {
 			req.setImageBitmap(bmp);
 		}
 		else {
 			req.setImagePending();
-			new ImageFetcherTask(cache).executeOnExecutor(exec, req);
+			new ImageLoaderTask(cache, netEs).executeOnExecutor(localEs, req);
 		}
 	}
 
