@@ -48,8 +48,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 	private Config conf;
 	private ProviderMgr providerMgr;
 	private HybridBitmapCache imageCache;
-	private ExecutorService imageEs;
-	private ExecutorService dbEs;
+	private ExecutorService localEs;
+	private ExecutorService netEs;
 
 	private SidebarAwareViewPager viewPager;
 	private VisiblePageSelectionListener pageSelectionListener;
@@ -80,8 +80,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		}
 
 		this.imageCache = new HybridBitmapCache(this, C.MAX_MEMORY_IMAGE_CACHE);
-		this.imageEs = ExecUtils.newBoundedCachedThreadPool(C.IMAGE_LOADER_MAX_THREADS, new LogWrapper("MAI"));
-		this.dbEs = ExecUtils.newBoundedCachedThreadPool(C.DB_MAX_THREADS, new LogWrapper("MAD"));
+		this.localEs = ExecUtils.newBoundedCachedThreadPool(C.LOCAL_MAX_THREADS, new LogWrapper("LES"));
+		this.netEs = ExecUtils.newBoundedCachedThreadPool(C.NET_MAX_THREADS, new LogWrapper("NES"));
 
 		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
 
@@ -127,8 +127,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		if (this.prefs != null) this.prefs.getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
 		if (this.providerMgr != null) this.providerMgr.shutdown();
 		if (this.imageCache != null) this.imageCache.clean();
-		if (this.imageEs != null) this.imageEs.shutdown();
-		if (this.dbEs != null) this.dbEs.shutdown();
+		if (this.netEs != null) this.netEs.shutdown();
+		if (this.localEs != null) this.localEs.shutdown();
 		disposeDb();
 		super.onDestroy();
 	}
@@ -185,8 +185,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		return this.conf;
 	}
 
-	public ExecutorService getDbEs () {
-		return this.dbEs;
+	public ExecutorService getLocalEs () {
+		return this.localEs;
 	}
 
 	ProviderMgr getProviderMgr () {
@@ -200,7 +200,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 
 	@Override
 	public void loadImage (final ImageLoadRequest req) {
-		ImageLoaderUtils.loadImage(this.imageCache, req, this.imageEs);
+		ImageLoaderUtils.loadImage(this.imageCache, req, this.localEs, this.netEs);
 	}
 
 	public boolean gotoPage (final int position) {

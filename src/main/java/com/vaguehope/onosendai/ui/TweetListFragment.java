@@ -263,8 +263,8 @@ public class TweetListFragment extends Fragment {
 		return getMainActivity().getProviderMgr();
 	}
 
-	private ExecutorService getDbEs () {
-		return getMainActivity().getDbEs();
+	private ExecutorService getLocalEs () {
+		return getMainActivity().getLocalEs();
 	}
 
 	private ServiceRef findFullService (final Account account, final ServiceRef svc) {
@@ -496,8 +496,8 @@ public class TweetListFragment extends Fragment {
 		final Tweet tweet = dbTweet != null ? dbTweet : listTweet;
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 
-		new ReplyLoaderTask(getActivity(), getDb(), this.lstTweetPayloadAdaptor).executeOnExecutor(getDbEs(), tweet);
-		new InReplyToLoaderTask(getActivity().getApplicationContext(), getConf(), getProviderMgr(), this.lstTweetPayloadAdaptor, getDbEs()).executeOnExecutor(getDbEs(), tweet);
+		new ReplyLoaderTask(getActivity(), getDb(), this.lstTweetPayloadAdaptor).executeOnExecutor(getLocalEs(), tweet);
+		new InReplyToLoaderTask(getActivity().getApplicationContext(), getConf(), getProviderMgr(), this.lstTweetPayloadAdaptor, getLocalEs()).executeOnExecutor(getLocalEs(), tweet);
 
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
@@ -696,7 +696,7 @@ public class TweetListFragment extends Fragment {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void refreshUiOnUiThread () {
-		new LoadTweets(this).executeOnExecutor(getDbEs());
+		new LoadTweets(this).executeOnExecutor(getLocalEs());
 	}
 
 	private static class LoadTweets extends AsyncTask<Void, Void, Result<TweetList>> {
