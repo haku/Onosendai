@@ -13,8 +13,8 @@ import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
 import com.vaguehope.onosendai.provider.PostTask.PostResult;
 import com.vaguehope.onosendai.storage.DbBindingService;
-import com.vaguehope.onosendai.util.ExecUtils;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.exec.ExecUtils;
 
 public class SendOutboxService extends DbBindingService {
 

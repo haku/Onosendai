@@ -9,6 +9,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceFragment;
@@ -30,6 +31,8 @@ import com.vaguehope.onosendai.util.LogcatHelper;
 
 public class AdvancedPrefFragment extends PreferenceFragment {
 
+	public static final String KEY_THREAD_INSPECTOR = "pref_adv_thread_inspector";
+
 	private static final LogWrapper LOG = new LogWrapper("ADVPREF");
 
 	private Prefs prefs;
@@ -47,10 +50,19 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 	}
 
 	private void addEntries () {
+		addThreadInspector();
 		addImportConfPref();
 		addDumpLogPref();
 		addDumpReadLaterPref();
 		addHousekeepPref();
+	}
+
+	private void addThreadInspector () {
+		final CheckBoxPreference pref = new CheckBoxPreference(getActivity());
+		pref.setKey(KEY_THREAD_INSPECTOR);
+		pref.setTitle("Thread Inspector");
+		pref.setSummary("For debugging issues with worker threads.");
+		getPreferenceScreen().addPreference(pref);
 	}
 
 	private void addImportConfPref () {
@@ -223,7 +235,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		private ProgressDialog dialog;
 
 		public DumpReadLater (final Context context, final Config config, final File file) {
-			super(context);
+			super(null, context);
 			this.conf = config;
 			this.file = file;
 		}
@@ -285,7 +297,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		private ProgressDialog dialog;
 
 		public Housekeep (final Context context) {
-			super(context);
+			super(null, context);
 		}
 
 		@Override

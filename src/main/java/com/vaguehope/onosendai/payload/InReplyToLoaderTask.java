@@ -23,6 +23,7 @@ import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLoaderResult> {
@@ -35,13 +36,18 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLo
 	private final ExecutorService es;
 	private final Payload placeholderPayload;
 
-	public InReplyToLoaderTask (final Context context, final Config conf, final ProviderMgr provMgr, final PayloadListAdapter payloadListAdapter, final ExecutorService es) {
-		super(context);
+	public InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr, final PayloadListAdapter payloadListAdapter, final ExecutorService es) {
+		super(eventListener, context);
 		this.conf = conf;
 		this.provMgr = provMgr;
 		this.payloadListAdapter = payloadListAdapter;
 		this.es = es;
 		this.placeholderPayload = new PlaceholderPayload(null, "Fetching conversation...", true);
+	}
+
+	@Override
+	public String toString () {
+		return "inReplyToLoader"; // TODO include details.
 	}
 
 	@Override
@@ -172,7 +178,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLo
 		}
 		this.payloadListAdapter.replaceItem(this.placeholderPayload, result.getPayloads());
 		if (result.checkAgain()) {
-			new InReplyToLoaderTask(getContext(), this.conf, this.provMgr, this.payloadListAdapter, this.es).executeOnExecutor(this.es, result.getFirstTweet());
+			new InReplyToLoaderTask(getEventListener(), getContext(), this.conf, this.provMgr, this.payloadListAdapter, this.es).executeOnExecutor(this.es, result.getFirstTweet());
 		}
 	}
 

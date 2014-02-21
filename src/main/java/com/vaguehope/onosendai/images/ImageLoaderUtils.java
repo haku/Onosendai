@@ -5,6 +5,8 @@ import java.util.concurrent.Executor;
 import android.app.Activity;
 import android.graphics.Bitmap;
 
+import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
+
 public final class ImageLoaderUtils {
 
 	private ImageLoaderUtils () {
@@ -16,7 +18,11 @@ public final class ImageLoaderUtils {
 		return (ImageLoader) activity;
 	}
 
-	public static void loadImage (final HybridBitmapCache cache, final ImageLoadRequest req, final Executor localEs, final Executor netEs) {
+	public static void loadImage (final HybridBitmapCache cache, final ImageLoadRequest req, final Executor es) {
+		loadImage(cache, req, es, es, null);
+	}
+
+	public static void loadImage (final HybridBitmapCache cache, final ImageLoadRequest req, final Executor localEs, final Executor netEs, final ExecutorEventListener eventListener) {
 		if (localEs == null) throw new IllegalArgumentException("Must specificy a local executor.");
 		if (netEs == null) throw new IllegalArgumentException("Must specificy a network executor.");
 		final Bitmap bmp = cache.quickGet(req.getUrl());
@@ -25,7 +31,7 @@ public final class ImageLoaderUtils {
 		}
 		else {
 			req.setImagePending();
-			new ImageLoaderTask(cache, netEs).executeOnExecutor(localEs, req);
+			new ImageLoaderTask(eventListener, cache, netEs, req).executeOnExecutor(localEs);
 		}
 	}
 

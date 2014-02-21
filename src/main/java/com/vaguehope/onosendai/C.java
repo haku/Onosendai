@@ -30,7 +30,7 @@ public final class C {
 
 	// Form main activity.
 	public static final int LOCAL_MAX_THREADS = 1;
-	public static final int NET_MAX_THREADS = 3;
+	public static final int NET_MAX_THREADS = 2;
 
 	// Tweet Lists.
 	public static final long SCROLL_TIME_LABEL_TIMEOUT_MILLIS = 3000L;

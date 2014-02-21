@@ -12,7 +12,6 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -72,6 +71,8 @@ import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
+import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
+import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.NetHelper;
 import com.vaguehope.onosendai.util.Result;
@@ -247,7 +248,7 @@ public class TweetListFragment extends Fragment {
 		return this.conf;
 	}
 
-	private Column getColumn () {
+	protected Column getColumn () {
 		return this.conf.getColumnById(this.columnId);
 	}
 
@@ -261,6 +262,10 @@ public class TweetListFragment extends Fragment {
 
 	private ProviderMgr getProviderMgr () {
 		return getMainActivity().getProviderMgr();
+	}
+
+	private ExecutorEventListener getExecutorEventListener () {
+		return getMainActivity().getExecutorEventListener();
 	}
 
 	private ExecutorService getLocalEs () {
@@ -496,8 +501,8 @@ public class TweetListFragment extends Fragment {
 		final Tweet tweet = dbTweet != null ? dbTweet : listTweet;
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 
-		new ReplyLoaderTask(getActivity(), getDb(), this.lstTweetPayloadAdaptor).executeOnExecutor(getLocalEs(), tweet);
-		new InReplyToLoaderTask(getActivity().getApplicationContext(), getConf(), getProviderMgr(), this.lstTweetPayloadAdaptor, getLocalEs()).executeOnExecutor(getLocalEs(), tweet);
+		new ReplyLoaderTask(getExecutorEventListener(), getActivity(), getDb(), this.lstTweetPayloadAdaptor).executeOnExecutor(getLocalEs(), tweet);
+		new InReplyToLoaderTask(getExecutorEventListener(), getActivity().getApplicationContext(), getConf(), getProviderMgr(), this.lstTweetPayloadAdaptor, getLocalEs()).executeOnExecutor(getLocalEs(), tweet);
 
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
@@ -696,15 +701,21 @@ public class TweetListFragment extends Fragment {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void refreshUiOnUiThread () {
-		new LoadTweets(this).executeOnExecutor(getLocalEs());
+		new LoadTweets(getExecutorEventListener(), this).executeOnExecutor(getLocalEs());
 	}
 
-	private static class LoadTweets extends AsyncTask<Void, Void, Result<TweetList>> {
+	private static class LoadTweets extends TrackingAsyncTask<Void, Void, Result<TweetList>> {
 
 		private final TweetListFragment host;
 
-		public LoadTweets (final TweetListFragment host) {
+		public LoadTweets (final ExecutorEventListener eventListener, final TweetListFragment host) {
+			super(eventListener);
 			this.host = host;
+		}
+
+		@Override
+		public String toString () {
+			return "loadTweets:" + this.host.getColumnPosition() + ":" + this.host.getColumn().getTitle();
 		}
 
 		@Override
@@ -714,7 +725,7 @@ public class TweetListFragment extends Fragment {
 		}
 
 		@Override
-		protected Result<TweetList> doInBackground (final Void... params) {
+		protected Result<TweetList> doInBackgroundWithTracking (final Void... params) {
 			try {
 				final DbInterface db = this.host.getDb();
 				if (db != null) {

@@ -75,6 +75,11 @@ public class GotoMenu implements OnClickListener {
 		}
 
 		@Override
+		public String toString () {
+			return "unreadCountLoader";
+		}
+
+		@Override
 		protected Integer doInBackground (final Void... params) {
 			return this.db.getScrollUpCount(this.column.getId(), this.column.getExcludeColumnIds(), this.scroll);
 		}
