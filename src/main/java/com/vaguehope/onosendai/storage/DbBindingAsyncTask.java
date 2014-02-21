@@ -4,19 +4,24 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
-import android.os.AsyncTask;
 
 import com.vaguehope.onosendai.C;
+import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
+import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-public abstract class DbBindingAsyncTask<Params, Progress, Result> extends AsyncTask<Params, Progress, Result> { // NOSONAR Ignore generic names must match pattern '^[A-Z]$' to copy Android SDK.
+public abstract class DbBindingAsyncTask<Params, Progress, Result> extends TrackingAsyncTask<Params, Progress, Result> { // NOSONAR Ignore generic names must match pattern '^[A-Z]$' to copy Android SDK.
 
 	private final Context context;
 	private final CountDownLatch dbReadyLatch = new CountDownLatch(1);
 	private DbClient bndDb;
 
 	public DbBindingAsyncTask (final Context context) {
-		super();
+		this(null, context);
+	}
+
+	public DbBindingAsyncTask (final ExecutorEventListener eventListener, final Context context) {
+		super(eventListener);
 		this.context = context;
 	}
 
@@ -57,7 +62,7 @@ public abstract class DbBindingAsyncTask<Params, Progress, Result> extends Async
 	}
 
 	@Override
-	protected final Result doInBackground (final Params... params) {
+	protected Result doInBackgroundWithTracking (final Params... params) {
 		connectDb();
 		if (!waitForDbReady()) return null;
 		try {

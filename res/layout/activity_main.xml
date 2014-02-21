@@ -1,8 +1,29 @@
-<com.vaguehope.onosendai.widget.SidebarAwareViewPager xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/pager"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity" >
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:orientation="vertical">
 
-</com.vaguehope.onosendai.widget.SidebarAwareViewPager>
+	<com.vaguehope.onosendai.widget.SidebarAwareViewPager
+		android:id="@+id/pager"
+		android:layout_width="match_parent"
+		android:layout_height="0dip"
+		android:layout_weight="1"
+		tools:context=".MainActivity" />
+
+	<TextView
+		android:id="@+id/jobStatus"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:maxLines="5"
+		android:paddingTop="5dip"
+		android:paddingBottom="5dip"
+		android:paddingLeft="10dip"
+		android:paddingRight="10dip"
+		android:background="@drawable/warning_border"
+		android:visibility="gone"
+		android:text="[status]" />
+
+
+</LinearLayout>

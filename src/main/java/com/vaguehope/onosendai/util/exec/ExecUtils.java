@@ -1,5 +1,6 @@
-package com.vaguehope.onosendai.util;
+package com.vaguehope.onosendai.util.exec;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionHandler;
@@ -7,6 +8,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.vaguehope.onosendai.util.LogWrapper;
+
 
 public final class ExecUtils {
 
@@ -17,14 +21,61 @@ public final class ExecUtils {
 	}
 
 	public static ExecutorService newBoundedCachedThreadPool (final int maxThreads, final LogWrapper log) {
-		return new ThreadPoolExecutor(0, maxThreads,
+		return newBoundedCachedThreadPool(maxThreads, log, null);
+	}
+
+	public static ExecutorService newBoundedCachedThreadPool (final int maxThreads, final LogWrapper log, final ExecutorEventListener eventListener) {
+		final ThreadPoolExecutor tpe = new TrackingThreadPoolExecutor(eventListener, maxThreads, maxThreads,
 				THREAD_LINGER_TIME_SECONDS, TimeUnit.SECONDS,
 				new LinkedBlockingQueue<Runnable>(),
-				new LoggingThreadFactory(
-						new LoggingThreadGroup(Thread.currentThread().getThreadGroup(), log),
-						log
-				),
+				new LoggingThreadFactory(new LoggingThreadGroup(Thread.currentThread().getThreadGroup(), log), log),
 				new LoggingRejectionHandler(log));
+		tpe.allowCoreThreadTimeOut(true);
+		return tpe;
+	}
+
+	private static class TrackingThreadPoolExecutor extends ThreadPoolExecutor {
+
+		private final ExecutorEventListener eventListener;
+
+		public TrackingThreadPoolExecutor (final ExecutorEventListener eventListener, final int corePoolSize, final int maximumPoolSize, final long keepAliveTime, final TimeUnit unit, final BlockingQueue<Runnable> workQueue, final ThreadFactory threadFactory, final RejectedExecutionHandler handler) {
+			super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
+			this.eventListener = eventListener;
+		}
+
+		@Override
+		public void execute (final Runnable command) {
+			if (this.eventListener == null) {
+				super.execute(command);
+			}
+			else {
+				super.execute(new TrackingRunnable(this.eventListener, command));
+			}
+
+		}
+
+		private static class TrackingRunnable implements Runnable {
+
+			private final Runnable command;
+			private final ExecutorEventListener eventListener;
+
+			public TrackingRunnable (final ExecutorEventListener eventListener, final Runnable command) {
+				this.eventListener = eventListener;
+				this.command = command;
+			}
+
+			@Override
+			public void run () {
+				this.eventListener.execStart(this.command);
+				try {
+					this.command.run();
+				}
+				finally {
+					this.eventListener.execEnd(this.command);
+				}
+			}
+		}
+
 	}
 
 	private static class LoggingThreadGroup extends ThreadGroup {

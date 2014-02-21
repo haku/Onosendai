@@ -15,6 +15,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
 import android.util.SparseArray;
+import android.view.View;
+import android.widget.TextView;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
@@ -31,9 +33,11 @@ import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment;
 import com.vaguehope.onosendai.update.AlarmReceiver;
 import com.vaguehope.onosendai.util.DialogHelper;
-import com.vaguehope.onosendai.util.ExecUtils;
+import com.vaguehope.onosendai.util.exec.ExecUtils;
+import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.MultiplexingOnPageChangeListener;
 import com.vaguehope.onosendai.widget.SidebarAwareViewPager;
@@ -48,6 +52,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 	private Config conf;
 	private ProviderMgr providerMgr;
 	private HybridBitmapCache imageCache;
+	private ExecutorStatus executorStatus;
 	private ExecutorService localEs;
 	private ExecutorService netEs;
 
@@ -74,14 +79,21 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		try {
 			this.conf = this.prefs.asConfig();
 		}
-		catch (Exception e) { // No point continuing if any exception.
+		catch (final Exception e) { // No point continuing if any exception.
 			DialogHelper.alertAndClose(this, e);
 			return;
 		}
 
 		this.imageCache = new HybridBitmapCache(this, C.MAX_MEMORY_IMAGE_CACHE);
-		this.localEs = ExecUtils.newBoundedCachedThreadPool(C.LOCAL_MAX_THREADS, new LogWrapper("LES"));
-		this.netEs = ExecUtils.newBoundedCachedThreadPool(C.NET_MAX_THREADS, new LogWrapper("NES"));
+
+		if (this.prefs.getSharedPreferences().getBoolean(AdvancedPrefFragment.KEY_THREAD_INSPECTOR, false)) {
+			final TextView jobStatus = (TextView) findViewById(R.id.jobStatus);
+			jobStatus.setVisibility(View.VISIBLE);
+			this.executorStatus = new ExecutorStatus(jobStatus);
+		}
+
+		this.localEs = ExecUtils.newBoundedCachedThreadPool(C.LOCAL_MAX_THREADS, new LogWrapper("LES"), this.executorStatus);
+		this.netEs = ExecUtils.newBoundedCachedThreadPool(C.NET_MAX_THREADS, new LogWrapper("NES"), this.executorStatus);
 
 		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
 
@@ -168,7 +180,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		try {
 			dbReady = this.dbReadyLatch.await(C.DB_CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 		}
-		catch (InterruptedException e) {/**/}
+		catch (final InterruptedException e) {/**/}
 		if (!dbReady) LOG.e("Not updateing: Time out waiting for DB service to connect.");
 		return dbReady;
 	}
@@ -183,6 +195,10 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 
 	Config getConf () {
 		return this.conf;
+	}
+
+	public ExecutorEventListener getExecutorEventListener() {
+		return this.executorStatus;
 	}
 
 	public ExecutorService getLocalEs () {
@@ -200,7 +216,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 
 	@Override
 	public void loadImage (final ImageLoadRequest req) {
-		ImageLoaderUtils.loadImage(this.imageCache, req, this.localEs, this.netEs);
+		ImageLoaderUtils.loadImage(this.imageCache, req, this.localEs, this.netEs, this.executorStatus);
 	}
 
 	public boolean gotoPage (final int position) {

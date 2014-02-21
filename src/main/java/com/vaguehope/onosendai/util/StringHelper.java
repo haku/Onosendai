@@ -22,6 +22,11 @@ public final class StringHelper {
 		return s.substring(0, len - ELIPSE.length()) + ELIPSE;
 	}
 
+	public static String maxLengthEnd(final String s, final int len) {
+		if (s.length() < len) return s;
+		return ELIPSE + s.substring(len - ELIPSE.length());
+	}
+
 	public static boolean safeContainsIgnoreCase (final String s, final String lookFor) {
 		if (s == null) return lookFor == null;
 		if (lookFor == null) return false;

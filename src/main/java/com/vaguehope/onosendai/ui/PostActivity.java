@@ -61,7 +61,7 @@ import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
-import com.vaguehope.onosendai.util.ExecUtils;
+import com.vaguehope.onosendai.util.exec.ExecUtils;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -169,7 +169,7 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	@Override
 	public void loadImage (final ImageLoadRequest req) {
-		ImageLoaderUtils.loadImage(this.imageCache, req, this.exec, this.exec); // TODO Worth splitting these ES?
+		ImageLoaderUtils.loadImage(this.imageCache, req, this.exec);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

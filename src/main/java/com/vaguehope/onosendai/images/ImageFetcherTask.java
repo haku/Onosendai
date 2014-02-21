@@ -2,31 +2,41 @@ package com.vaguehope.onosendai.images;
 
 import java.io.IOException;
 
+import org.apache.http.client.HttpResponseException;
+
 import android.graphics.Bitmap;
-import android.os.AsyncTask;
 
 import com.vaguehope.onosendai.images.ImageFetcherTask.ImageFetchResult;
+import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.HttpHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.StringHelper;
+import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
+import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
 
-public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFetchResult> {
+public class ImageFetcherTask extends TrackingAsyncTask<Void, Void, ImageFetchResult> {
 
 	private static final LogWrapper LOG = new LogWrapper("IF");
 
 	private final HybridBitmapCache cache;
+	private final ImageLoadRequest req;
 
-	public ImageFetcherTask (final HybridBitmapCache cache) {
-		super();
+	public ImageFetcherTask (final ExecutorEventListener eventListener, final HybridBitmapCache cache, final ImageLoadRequest req) {
+		super(eventListener);
 		this.cache = cache;
+		this.req = req;
 	}
 
 	@Override
-	protected ImageFetchResult doInBackground (final ImageLoadRequest... reqs) {
-		if (reqs.length != 1) throw new IllegalArgumentException("Only one request per task.");
-		final ImageLoadRequest req = reqs[0];
-		if (!req.isRequired()) return null;
+	public String toString () {
+		return "fetch:" + StringHelper.maxLengthEnd(this.req.getUrl(), 40);
+	}
+
+	@Override
+	protected ImageFetchResult doInBackgroundWithTracking (final Void... unused) {
+		if (!this.req.isRequired()) return null;
 		try {
-			final String url = req.getUrl();
+			final String url = this.req.getUrl();
 			Bitmap bmp = this.cache.get(url);
 			if (bmp == null) {
 				final Object sync = this.cache.getSyncMgr().getSync(url);
@@ -40,10 +50,10 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 					this.cache.getSyncMgr().returnSync(url);
 				}
 			}
-			return new ImageFetchResult(req, bmp);
+			return new ImageFetchResult(this.req, bmp);
 		}
 		catch (Exception e) { // NOSONAR To report errors.
-			return new ImageFetchResult(req, e);
+			return new ImageFetchResult(this.req, e);
 		}
 	}
 
@@ -101,7 +111,12 @@ public class ImageFetcherTask extends AsyncTask<ImageLoadRequest, Void, ImageFet
 		}
 
 		public String getEmsg () {
-			if (this.e != null) return this.e.toString();
+			if (this.e != null) {
+				if (this.e instanceof HttpResponseException) {
+					return String.format("HTTP %s.", ((HttpResponseException) this.e).getStatusCode());
+				}
+				return ExcpetionHelper.causeTrace(this.e, "|");
+			}
 			return "Invalid response.";
 		}
 
