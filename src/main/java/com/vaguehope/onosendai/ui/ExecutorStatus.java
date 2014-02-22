@@ -70,7 +70,7 @@ public class ExecutorStatus implements ExecutorEventListener {
 		@Override
 		public void handleMessage (final Message msg) {
 			final ExecutorStatus parent = this.parentRef.get();
-			if (parent != null) parent.msgOnUiThread(msg);
+			if (parent != null) parent.msgOnUiThread();
 		}
 
 	}
@@ -78,10 +78,10 @@ public class ExecutorStatus implements ExecutorEventListener {
 	private long lastUpdate = 0L;
 	private boolean sentReminder = false;
 
-	protected void msgOnUiThread (final Message msg) {
-		if (SystemClock.uptimeMillis() - this.lastUpdate < 200) {
+	protected void msgOnUiThread () {
+		if (SystemClock.uptimeMillis() - this.lastUpdate < 100) {
 			if (!this.sentReminder) {
-				this.refreshUiHandler.sendEmptyMessageDelayed(2, 500);
+				this.refreshUiHandler.sendEmptyMessageDelayed(2, 200);
 				this.sentReminder = true;
 			}
 			return;
