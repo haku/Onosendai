@@ -103,7 +103,7 @@ public final class TwitterUtils {
 		addMedia(s, metas);
 		checkUrlsForMedia(s, metas);
 		addHashtags(s, metas);
-		addMentions(s, metas, ownId);
+		addMentions(s, metas, status.getUser().getId(), ownId);
 
 		// https://dev.twitter.com/docs/user-profile-images-and-banners
 
@@ -185,11 +185,13 @@ public final class TwitterUtils {
 		}
 	}
 
-	private static void addMentions (final Status s, final List<Meta> metas, final long ownId) {
+	private static void addMentions (final Status s, final List<Meta> metas, final long tweetOwnderId, final long tweetViewerId) {
 		final UserMentionEntity[] umes = s.getUserMentionEntities();
 		if (umes == null) return;
 		for (final UserMentionEntity ume : umes) {
-			if (ume.getId() != ownId) metas.add(new Meta(MetaType.MENTION, ume.getScreenName(), ume.getName()));
+			if (ume.getId() == tweetOwnderId) continue;
+			if (ume.getId() == tweetViewerId) continue;
+			metas.add(new Meta(MetaType.MENTION, ume.getScreenName(), ume.getName()));
 		}
 	}
 
