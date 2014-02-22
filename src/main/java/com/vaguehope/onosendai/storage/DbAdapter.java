@@ -736,7 +736,8 @@ public class DbAdapter implements DbInterface {
 			values.put(TBL_OB_ATTEMPT_COUNT, ot.getAttemptCount());
 			values.put(TBL_OB_LAST_ERROR, ot.getLastError());
 			final int affected = this.mDb.update(TBL_OB, values, TBL_OB_ID + "=?", new String[] { String.valueOf(uid) });
-			if (affected != 1) throw new IllegalStateException("Updated affected " + affected + " rows, expected 1.");
+			if (affected > 1) throw new IllegalStateException("Updating " + ot + " affected " + affected + " rows, expected 1.");
+			if (affected < 1) this.log.w("Updating outbox entry %s affected %s rows, expected 1.", ot, affected);
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
@@ -810,7 +811,7 @@ public class DbAdapter implements DbInterface {
 		this.mDb.beginTransaction();
 		try {
 			this.mDb.delete(TBL_OB, TBL_OB_ID + "=?", new String[] { String.valueOf(uid) });
-			this.log.d("Deleted OutboxTweet uid=%s from %s.", uid, TBL_OB);
+			this.log.i("Deleted OutboxTweet uid=%s from %s.", uid, TBL_OB);
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
