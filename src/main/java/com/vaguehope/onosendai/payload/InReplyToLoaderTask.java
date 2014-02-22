@@ -23,23 +23,33 @@ import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
-import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 
-public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLoaderResult> {
+public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoaderResult> {
 
 	private static final LogWrapper LOG = new LogWrapper("RL");
 
 	private final Config conf;
 	private final ProviderMgr provMgr;
 	private final PayloadListAdapter payloadListAdapter;
+	private final Tweet rootTweet;
+	private final Tweet threadTweet;
 	private final ExecutorService es;
 	private final Payload placeholderPayload;
 
-	public InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr, final PayloadListAdapter payloadListAdapter, final ExecutorService es) {
+	public InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr,
+			final Tweet rootTweet, final PayloadListAdapter payloadListAdapter, final ExecutorService es) {
+		this(eventListener, context, conf, provMgr, rootTweet, rootTweet, payloadListAdapter, es);
+	}
+
+	public InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr,
+			final Tweet rootTweet, final Tweet threadTweet, final PayloadListAdapter payloadListAdapter, final ExecutorService es) {
 		super(eventListener, context);
 		this.conf = conf;
 		this.provMgr = provMgr;
+		this.rootTweet = rootTweet;
+		this.threadTweet = threadTweet;
 		this.payloadListAdapter = payloadListAdapter;
 		this.es = es;
 		this.placeholderPayload = new PlaceholderPayload(null, "Fetching conversation...", true);
@@ -47,7 +57,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLo
 
 	@Override
 	public String toString () {
-		return "inReplyToLoader"; // TODO include details.
+		return "inReplyToLoader:" + this.threadTweet.getSid();
 	}
 
 	@Override
@@ -61,21 +71,18 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLo
 	}
 
 	@Override
-	protected ReplyLoaderResult doInBackgroundWithDb (final DbInterface db, final Tweet... params) {
-		if (params.length != 1) throw new IllegalArgumentException("Only one param per task.");
-		final Tweet startingTweet = params[0];
-
-		final Account account = MetaUtils.accountFromMeta(startingTweet, this.conf);
+	protected ReplyLoaderResult doInBackgroundWithDb (final DbInterface db, final Void... unused) {
+		final Account account = MetaUtils.accountFromMeta(this.threadTweet, this.conf);
 		if (account != null) {
 			switch (account.getProvider()) {
 				case TWITTER:
-					return twitter(db, account, startingTweet);
+					return twitter(db, account, this.threadTweet);
 				case SUCCESSWHALE:
-					return successWhale(db, account, startingTweet);
+					return successWhale(db, account, this.threadTweet);
 				default:
 			}
 		}
-		return generic(db, startingTweet);
+		return generic(db, this.threadTweet);
 	}
 
 	private ReplyLoaderResult twitter (final DbInterface db, final Account account, final Tweet startingTweet) {
@@ -172,13 +179,14 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Tweet, Void, ReplyLo
 
 	@Override
 	protected void onPostExecute (final ReplyLoaderResult result) {
+		if (!this.payloadListAdapter.isForTweet(this.rootTweet)) return;
 		if (result == null || !result.hasResults()) {
 			this.payloadListAdapter.removeItem(this.placeholderPayload);
 			return;
 		}
 		this.payloadListAdapter.replaceItem(this.placeholderPayload, result.getPayloads());
 		if (result.checkAgain()) {
-			new InReplyToLoaderTask(getEventListener(), getContext(), this.conf, this.provMgr, this.payloadListAdapter, this.es).executeOnExecutor(this.es, result.getFirstTweet());
+			new InReplyToLoaderTask(getEventListener(), getContext(), this.conf, this.provMgr, this.rootTweet, result.getFirstTweet(), this.payloadListAdapter, this.es).executeOnExecutor(this.es);
 		}
 	}
 

@@ -18,6 +18,7 @@ public class PayloadListAdapter extends BaseAdapter {
 	private final ImageLoader imageLoader;
 	private final PayloadClickListener clickListener;
 
+	private Tweet tweet;
 	private PayloadList listData;
 
 	public PayloadListAdapter (final Context context, final ImageLoader imageLoader, final PayloadClickListener clickListener) {
@@ -26,7 +27,12 @@ public class PayloadListAdapter extends BaseAdapter {
 		this.imageLoader = imageLoader;
 	}
 
+	public boolean isForTweet(final Tweet t) {
+		return this.tweet.getUid() == t.getUid();
+	}
+
 	public void setInput (final Config config, final Tweet tweet) {
+		this.tweet = tweet;
 		this.listData = PayloadUtils.makePayloads(config, tweet);
 		notifyDataSetChanged();
 	}

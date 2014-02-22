@@ -71,12 +71,12 @@ import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
-import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
-import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.NetHelper;
 import com.vaguehope.onosendai.util.Result;
 import com.vaguehope.onosendai.util.Titleable;
+import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
+import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
 import com.vaguehope.onosendai.widget.ScrollIndicator;
 import com.vaguehope.onosendai.widget.SidebarLayout;
 
@@ -501,8 +501,8 @@ public class TweetListFragment extends Fragment {
 		final Tweet tweet = dbTweet != null ? dbTweet : listTweet;
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 
-		new ReplyLoaderTask(getExecutorEventListener(), getActivity(), getDb(), this.lstTweetPayloadAdaptor).executeOnExecutor(getLocalEs(), tweet);
-		new InReplyToLoaderTask(getExecutorEventListener(), getActivity().getApplicationContext(), getConf(), getProviderMgr(), this.lstTweetPayloadAdaptor, getLocalEs()).executeOnExecutor(getLocalEs(), tweet);
+		new ReplyLoaderTask(getExecutorEventListener(), getActivity(), getDb(), tweet, this.lstTweetPayloadAdaptor).executeOnExecutor(getLocalEs());
+		new InReplyToLoaderTask(getExecutorEventListener(), getActivity().getApplicationContext(), getConf(), getProviderMgr(), tweet, this.lstTweetPayloadAdaptor, getLocalEs()).executeOnExecutor(getLocalEs());
 
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
