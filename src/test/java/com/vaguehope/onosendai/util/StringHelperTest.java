@@ -13,4 +13,11 @@ public class StringHelperTest {
 		assertEquals("abc", StringHelper.firstLine("abc\ndef"));
 	}
 
+	@Test
+	public void itTruncatesFront () throws Exception {
+		assertEquals("abcdef", StringHelper.maxLengthEnd("abcdef", 6));
+		assertEquals("...efg", StringHelper.maxLengthEnd("abcdefg", 6));
+		assertEquals("...hijkl", StringHelper.maxLengthEnd("abcdefghijkl", 8));
+	}
+
 }

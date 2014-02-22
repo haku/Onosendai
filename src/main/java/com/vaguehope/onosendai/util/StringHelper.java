@@ -23,8 +23,8 @@ public final class StringHelper {
 	}
 
 	public static String maxLengthEnd(final String s, final int len) {
-		if (s.length() < len) return s;
-		return ELIPSE + s.substring(len - ELIPSE.length());
+		if (s.length() <= len) return s;
+		return ELIPSE + s.substring(s.length() - (len - ELIPSE.length()));
 	}
 
 	public static boolean safeContainsIgnoreCase (final String s, final String lookFor) {
