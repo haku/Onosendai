@@ -88,17 +88,17 @@ public class TwitterUtilsTest {
 	public void itExtractsMentionsButDoesNotIncludeMentionsOfSelf () throws Exception {
 		final Status s = mockTweet("foo @twitter desu");
 
-		final UserMentionEntity ume1 = mockUserMentionEntity("twitter", 100L);
-		final UserMentionEntity ume2 = mockUserMentionEntity("self", 200L);
+		final UserMentionEntity ume1 = mockUserMentionEntity("twitter", "Twitter", 100L);
+		final UserMentionEntity ume2 = mockUserMentionEntity("self", "Self", 200L);
 		when(s.getUserMentionEntities()).thenReturn(new UserMentionEntity[] { ume1, ume2 });
 
 		final Tweet t1 = TwitterUtils.convertTweet(this.account, s, 201);
-		assertThat(t1.getMetas(), hasItem(new Meta(MetaType.MENTION, "twitter")));
-		assertThat(t1.getMetas(), hasItem(new Meta(MetaType.MENTION, "self")));
+		assertThat(t1.getMetas(), hasItem(new Meta(MetaType.MENTION, "twitter", "Twitter")));
+		assertThat(t1.getMetas(), hasItem(new Meta(MetaType.MENTION, "self", "Self")));
 
 		final Tweet t2 = TwitterUtils.convertTweet(this.account, s, 200);
-		assertThat(t2.getMetas(), hasItem(new Meta(MetaType.MENTION, "twitter")));
-		assertThat(t2.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "self"))));
+		assertThat(t2.getMetas(), hasItem(new Meta(MetaType.MENTION, "twitter", "Twitter")));
+		assertThat(t2.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "self", "Self"))));
 	}
 
 	@Test
@@ -139,6 +139,24 @@ public class TwitterUtilsTest {
 		assertThat(t.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "me", "RT by Me"))));
 		assertEquals(rt.getCreatedAt().getTime() / 1000L, t.getTime());
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.POST_TIME, String.valueOf(s.getCreatedAt().getTime() / 1000L))));
+	}
+
+	@Test
+	public void itDoesNotDoubleMentionForRtAtMention () throws Exception {
+		final Status s = mockTweet("a thing @bob about a thing.", "them", "Them", 202);
+		final UserMentionEntity sUme = mockUserMentionEntity("bob", "Bob", 200L);
+		when(s.getUserMentionEntities()).thenReturn(new UserMentionEntity[] { sUme });
+
+		final Status rt = mockTweet("RT @them: a thing @bob about a thing.", "bob", "Bob", 200);
+		final UserMentionEntity rtUme = mockUserMentionEntity("bob", "Bob", 200L);
+		when(rt.getUserMentionEntities()).thenReturn(new UserMentionEntity[] { rtUme });
+		when(rt.isRetweet()).thenReturn(true);
+		when(rt.getRetweetedStatus()).thenReturn(s);
+
+		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 100);
+		assertEquals("a thing @bob about a thing.", t.getBody());
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MENTION, "bob", "RT by Bob")));
+		assertThat(t.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "bob", "Bob"))));
 	}
 
 	private void testPictureUrlExpansion (final String fromUrl, final String toUrl) {
@@ -193,9 +211,10 @@ public class TwitterUtilsTest {
 		return s;
 	}
 
-	private static UserMentionEntity mockUserMentionEntity (final String screenname, final long id) {
+	private static UserMentionEntity mockUserMentionEntity (final String screenname, final String fullName, final long id) {
 		final UserMentionEntity ume = mock(UserMentionEntity.class);
 		when(ume.getScreenName()).thenReturn(screenname);
+		when(ume.getName()).thenReturn(fullName);
 		when(ume.getId()).thenReturn(id);
 		return ume;
 	}
