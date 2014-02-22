@@ -3,7 +3,7 @@ package com.vaguehope.onosendai.payload;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 import twitter4j.TwitterException;
 import android.content.Context;
@@ -35,16 +35,16 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 	private final PayloadListAdapter payloadListAdapter;
 	private final Tweet rootTweet;
 	private final Tweet threadTweet;
-	private final ExecutorService es;
+	private final Executor es;
 	private final Payload placeholderPayload;
 
 	public InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr,
-			final Tweet rootTweet, final PayloadListAdapter payloadListAdapter, final ExecutorService es) {
+			final Tweet rootTweet, final PayloadListAdapter payloadListAdapter, final Executor es) {
 		this(eventListener, context, conf, provMgr, rootTweet, rootTweet, payloadListAdapter, es);
 	}
 
 	public InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr,
-			final Tweet rootTweet, final Tweet threadTweet, final PayloadListAdapter payloadListAdapter, final ExecutorService es) {
+			final Tweet rootTweet, final Tweet threadTweet, final PayloadListAdapter payloadListAdapter, final Executor es) {
 		super(eventListener, context);
 		this.conf = conf;
 		this.provMgr = provMgr;
