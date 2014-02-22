@@ -87,7 +87,7 @@ public class ExecutorStatus implements ExecutorEventListener {
 			return;
 		}
 
-		if (msg.what == 1) cleapThreads();
+		cleapThreads();
 		redraw();
 
 		this.lastUpdate = SystemClock.uptimeMillis();
