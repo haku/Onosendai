@@ -8,7 +8,7 @@ public interface ExecutorEventListener {
 
 	void execEnd (AsyncTask<?, ?, ?> task);
 
-	void execStart (Runnable command);
+	void execStart (String logPrefix, Runnable command);
 
 	void execEnd (Runnable command);
 

@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import android.os.AsyncTask;
@@ -29,6 +30,8 @@ public class ExecutorStatus implements ExecutorEventListener {
 		}
 	});
 
+	private final Map<Long, String> threadPoolNames = new ConcurrentHashMap<Long, String>();
+
 	public ExecutorStatus (final TextView textView) {
 		this.textView = textView;
 		textView.setHorizontallyScrolling(true);
@@ -37,8 +40,12 @@ public class ExecutorStatus implements ExecutorEventListener {
 	}
 
 	@Override
-	public void execStart (final Runnable command) {
+	public void execStart (final String logPrefix, final Runnable command) {
 		this.threads.put(Thread.currentThread(), "[task]");
+
+		final Long key = Long.valueOf(Thread.currentThread().getId());
+		if (!this.threadPoolNames.containsKey(key)) this.threadPoolNames.put(key, logPrefix);
+
 		this.refreshUiHandler.sendEmptyMessage(0);
 	}
 
@@ -97,7 +104,11 @@ public class ExecutorStatus implements ExecutorEventListener {
 	private void cleapThreads () {
 		final Iterator<Entry<Thread, String>> i = this.threads.entrySet().iterator();
 		while (i.hasNext()) {
-			if (!i.next().getKey().isAlive()) i.remove();
+			final Thread t = i.next().getKey();
+			if (!t.isAlive()) {
+				i.remove();
+				this.threadPoolNames.remove(Long.valueOf(t.getId()));
+			}
 		}
 	}
 
@@ -105,7 +116,9 @@ public class ExecutorStatus implements ExecutorEventListener {
 		final StringBuilder s = new StringBuilder();
 		for (final Entry<Thread, String> e : this.threads.entrySet()) {
 			if (s.length() > 0) s.append("\n");
-			s.append(e.getKey().getId()).append(" ").append(e.getValue());
+			s.append(this.threadPoolNames.get(Long.valueOf(e.getKey().getId())))
+					.append(" ").append(e.getKey().getId())
+					.append(" ").append(e.getValue());
 		}
 		if (s.length() < 1) s.append("idle.");
 		this.textView.setText(s);

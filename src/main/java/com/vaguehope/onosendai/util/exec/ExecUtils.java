@@ -25,7 +25,7 @@ public final class ExecUtils {
 	}
 
 	public static ExecutorService newBoundedCachedThreadPool (final int maxThreads, final LogWrapper log, final ExecutorEventListener eventListener) {
-		final ThreadPoolExecutor tpe = new TrackingThreadPoolExecutor(eventListener, maxThreads, maxThreads,
+		final ThreadPoolExecutor tpe = new TrackingThreadPoolExecutor(eventListener, log, maxThreads, maxThreads,
 				THREAD_LINGER_TIME_SECONDS, TimeUnit.SECONDS,
 				new LinkedBlockingQueue<Runnable>(),
 				new LoggingThreadFactory(new LoggingThreadGroup(Thread.currentThread().getThreadGroup(), log), log),
@@ -37,10 +37,14 @@ public final class ExecUtils {
 	private static class TrackingThreadPoolExecutor extends ThreadPoolExecutor {
 
 		private final ExecutorEventListener eventListener;
+		private final LogWrapper log;
 
-		public TrackingThreadPoolExecutor (final ExecutorEventListener eventListener, final int corePoolSize, final int maximumPoolSize, final long keepAliveTime, final TimeUnit unit, final BlockingQueue<Runnable> workQueue, final ThreadFactory threadFactory, final RejectedExecutionHandler handler) {
+		public TrackingThreadPoolExecutor (final ExecutorEventListener eventListener, final LogWrapper log,
+				final int corePoolSize, final int maximumPoolSize, final long keepAliveTime, final TimeUnit unit,
+				final BlockingQueue<Runnable> workQueue, final ThreadFactory threadFactory, final RejectedExecutionHandler handler) {
 			super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
 			this.eventListener = eventListener;
+			this.log = log;
 		}
 
 		@Override
@@ -49,24 +53,26 @@ public final class ExecUtils {
 				super.execute(command);
 			}
 			else {
-				super.execute(new TrackingRunnable(this.eventListener, command));
+				super.execute(new TrackingRunnable(this.eventListener, this.log, command));
 			}
 
 		}
 
 		private static class TrackingRunnable implements Runnable {
 
-			private final Runnable command;
 			private final ExecutorEventListener eventListener;
+			private final LogWrapper log;
+			private final Runnable command;
 
-			public TrackingRunnable (final ExecutorEventListener eventListener, final Runnable command) {
+			public TrackingRunnable (final ExecutorEventListener eventListener, final LogWrapper log, final Runnable command) {
 				this.eventListener = eventListener;
+				this.log = log;
 				this.command = command;
 			}
 
 			@Override
 			public void run () {
-				this.eventListener.execStart(this.command);
+				this.eventListener.execStart(this.log.getPrefix(), this.command);
 				try {
 					this.command.run();
 				}
