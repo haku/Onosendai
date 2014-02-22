@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
@@ -74,9 +75,23 @@ public class ExecutorStatus implements ExecutorEventListener {
 
 	}
 
+	private long lastUpdate = 0L;
+	private boolean sentReminder = false;
+
 	protected void msgOnUiThread (final Message msg) {
+		if (SystemClock.uptimeMillis() - this.lastUpdate < 200) {
+			if (!this.sentReminder) {
+				this.refreshUiHandler.sendEmptyMessageDelayed(2, 500);
+				this.sentReminder = true;
+			}
+			return;
+		}
+
 		if (msg.what == 1) cleapThreads();
 		redraw();
+
+		this.lastUpdate = SystemClock.uptimeMillis();
+		this.sentReminder = false;
 	}
 
 	private void cleapThreads () {
