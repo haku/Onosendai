@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.ui;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -36,10 +37,10 @@ import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment;
 import com.vaguehope.onosendai.update.AlarmReceiver;
 import com.vaguehope.onosendai.util.DialogHelper;
-import com.vaguehope.onosendai.util.exec.ExecUtils;
-import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.MultiplexingOnPageChangeListener;
+import com.vaguehope.onosendai.util.exec.ExecUtils;
+import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.widget.SidebarAwareViewPager;
 
 public class MainActivity extends FragmentActivity implements ImageLoader, OnSharedPreferenceChangeListener {
@@ -201,8 +202,12 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		return this.executorStatus;
 	}
 
-	public ExecutorService getLocalEs () {
+	public Executor getLocalEs () {
 		return this.localEs;
+	}
+
+	public Executor getNetEs () {
+		return this.netEs;
 	}
 
 	ProviderMgr getProviderMgr () {

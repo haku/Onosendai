@@ -3,7 +3,7 @@ package com.vaguehope.onosendai.ui;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import android.app.AlertDialog;
@@ -268,8 +268,12 @@ public class TweetListFragment extends Fragment {
 		return getMainActivity().getExecutorEventListener();
 	}
 
-	private ExecutorService getLocalEs () {
+	private Executor getLocalEs () {
 		return getMainActivity().getLocalEs();
+	}
+
+	private Executor getNetEs () {
+		return getMainActivity().getNetEs();
 	}
 
 	private ServiceRef findFullService (final Account account, final ServiceRef svc) {
@@ -502,7 +506,7 @@ public class TweetListFragment extends Fragment {
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 
 		new ReplyLoaderTask(getExecutorEventListener(), getActivity(), getDb(), tweet, this.lstTweetPayloadAdaptor).executeOnExecutor(getLocalEs());
-		new InReplyToLoaderTask(getExecutorEventListener(), getActivity().getApplicationContext(), getConf(), getProviderMgr(), tweet, this.lstTweetPayloadAdaptor, getLocalEs()).executeOnExecutor(getLocalEs());
+		new InReplyToLoaderTask(getExecutorEventListener(), getActivity().getApplicationContext(), getConf(), getProviderMgr(), tweet, this.lstTweetPayloadAdaptor, getNetEs()).executeOnExecutor(getNetEs());
 
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
