@@ -506,7 +506,7 @@ public class TweetListFragment extends Fragment {
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 
 		new ReplyLoaderTask(getExecutorEventListener(), getActivity(), getDb(), tweet, this.lstTweetPayloadAdaptor).executeOnExecutor(getLocalEs());
-		new InReplyToLoaderTask(getExecutorEventListener(), getActivity().getApplicationContext(), getConf(), getProviderMgr(), tweet, this.lstTweetPayloadAdaptor, getNetEs()).executeOnExecutor(getNetEs());
+		new InReplyToLoaderTask(getExecutorEventListener(), getActivity().getApplicationContext(), getConf(), getProviderMgr(), tweet, getColumn().isHdMedia(), this.lstTweetPayloadAdaptor, getNetEs()).executeOnExecutor(getNetEs());
 
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();

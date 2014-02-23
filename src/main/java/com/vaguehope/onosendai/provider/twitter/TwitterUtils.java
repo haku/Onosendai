@@ -51,7 +51,7 @@ public final class TwitterUtils {
 	 * http://twitter4j.org/en/code-examples.html
 	 */
 
-	static TweetList fetchTwitterFeed (final Account account, final Twitter t, final FeedGetter getter, final long sinceId) throws TwitterException {
+	static TweetList fetchTwitterFeed (final Account account, final Twitter t, final FeedGetter getter, final long sinceId, final boolean hdMedia) throws TwitterException {
 		final List<Tweet> tweets = new ArrayList<Tweet>();
 		final int minCount = getter.recommendedFetchCount();
 		final int pageSize = Math.min(minCount, C.TWEET_FETCH_PAGE_SIZE);
@@ -64,20 +64,20 @@ public final class TwitterUtils {
 			final ResponseList<Status> timelinePage = getter.getTweets(t, paging);
 			LOG.i("Page %d of '%s' contains %d items.", page, getter.toString(), timelinePage.size());
 			if (timelinePage.size() < 1) break;
-			addTweetsToList(tweets, account, timelinePage, t.getId());
+			addTweetsToList(tweets, account, timelinePage, t.getId(), hdMedia);
 			minId = TwitterUtils.minIdOf(minId, timelinePage);
 			page++;
 		}
 		return new TweetList(tweets);
 	}
 
-	static void addTweetsToList (final List<Tweet> list, final Account account, final List<Status> tweets, final long ownId) {
+	static void addTweetsToList (final List<Tweet> list, final Account account, final List<Status> tweets, final long ownId, final boolean hdMedia) {
 		for (final Status status : tweets) {
-			list.add(convertTweet(account, status, ownId));
+			list.add(convertTweet(account, status, ownId, hdMedia));
 		}
 	}
 
-	static Tweet convertTweet (final Account account, final Status status, final long ownId) {
+	static Tweet convertTweet (final Account account, final Status status, final long ownId, final boolean hdMedia) {
 		final List<Meta> metas = new ArrayList<Meta>();
 		metas.add(new Meta(MetaType.ACCOUNT, account.getId()));
 
@@ -100,8 +100,8 @@ public final class TwitterUtils {
 			metas.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getRetweetedStatus().getId())));
 		}
 
-		addMedia(s, metas);
-		checkUrlsForMedia(s, metas);
+		addMedia(s, metas, hdMedia);
+		checkUrlsForMedia(s, metas, hdMedia);
 		addHashtags(s, metas);
 		addMentions(s, metas, status.getUser().getId(), ownId);
 
@@ -112,7 +112,7 @@ public final class TwitterUtils {
 				s.getUser().getName(),
 				text,
 				TimeUnit.MILLISECONDS.toSeconds(status.getCreatedAt().getTime()),
-				s.getUser().getProfileImageURLHttps(),
+				hdMedia ? s.getUser().getBiggerProfileImageURLHttps() : s.getUser().getProfileImageURLHttps(),
 				MetaUtils.firstMetaOfTypesData(metas, MetaType.MEDIA),
 				metas);
 	}
@@ -159,20 +159,22 @@ public final class TwitterUtils {
 		return expandedText;
 	}
 
-	private static void addMedia (final Status s, final List<Meta> metas) {
+	private static void addMedia (final Status s, final List<Meta> metas, final boolean hdMedia) {
 		final MediaEntity[] mes = s.getMediaEntities();
 		if (mes == null) return;
 		for (final MediaEntity me : mes) {
-			metas.add(new Meta(MetaType.MEDIA, me.getMediaURLHttps()));
+			String url = me.getMediaURLHttps();
+			if (hdMedia) url += ":large";
+			metas.add(new Meta(MetaType.MEDIA, url));
 		}
 	}
 
-	private static void checkUrlsForMedia (final Status s, final List<Meta> metas) {
+	private static void checkUrlsForMedia (final Status s, final List<Meta> metas, final boolean hdMedia) {
 		final URLEntity[] urls = s.getURLEntities();
 		if (urls == null) return;
 		for (final URLEntity url : urls) {
 			final String fullUrl = url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL();
-			final String thumbUrl = ImageHostHelper.thumbUrl(fullUrl);
+			final String thumbUrl = ImageHostHelper.thumbUrl(fullUrl, hdMedia);
 			if (thumbUrl != null) metas.add(new Meta(MetaType.MEDIA, thumbUrl));
 		}
 	}

@@ -87,7 +87,7 @@ public class FetchColumn implements Callable<Void> {
 			final List<Tweet> existingTweets = db.getTweets(column.getId(), 1);
 			if (existingTweets.size() > 0) sinceId = Long.parseLong(existingTweets.get(existingTweets.size() - 1).getSid());
 
-			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId);
+			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia());
 			if (tweets.count() > 0) db.storeTweets(column, tweets.getTweets());
 
 			storeSuccess(db, column);

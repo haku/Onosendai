@@ -58,13 +58,13 @@ public class TwitterProvider {
 	/**
 	 * TODO use a call back to return tweets progressively.
 	 */
-	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId) throws TwitterException {
-		return feed.getTweets(account, getTwitter(account), sinceId);
+	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId, final boolean hdMedia) throws TwitterException {
+		return feed.getTweets(account, getTwitter(account), sinceId, hdMedia);
 	}
 
-	public Tweet getTweet (final Account account, final long id) throws TwitterException {
+	public Tweet getTweet (final Account account, final long id, final boolean hdMedia) throws TwitterException {
 		final Twitter t = getTwitter(account);
-		return TwitterUtils.convertTweet(account, t.showStatus(id), t.getId());
+		return TwitterUtils.convertTweet(account, t.showStatus(id), t.getId(), hdMedia);
 	}
 
 	public void post (final Account account, final String body, final long inReplyTo, final ImageMetadata media) throws TwitterException, IOException {

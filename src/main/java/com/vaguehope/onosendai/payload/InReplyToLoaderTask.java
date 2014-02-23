@@ -35,21 +35,23 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 	private final PayloadListAdapter payloadListAdapter;
 	private final Tweet rootTweet;
 	private final Tweet threadTweet;
+	private final boolean hdMedia;
 	private final Executor es;
 	private final Payload placeholderPayload;
 
 	public InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr,
-			final Tweet rootTweet, final PayloadListAdapter payloadListAdapter, final Executor es) {
-		this(eventListener, context, conf, provMgr, rootTweet, rootTweet, payloadListAdapter, es);
+			final Tweet rootTweet, final boolean hdMedia, final PayloadListAdapter payloadListAdapter, final Executor es) {
+		this(eventListener, context, conf, provMgr, rootTweet, rootTweet, hdMedia, payloadListAdapter, es);
 	}
 
 	public InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr,
-			final Tweet rootTweet, final Tweet threadTweet, final PayloadListAdapter payloadListAdapter, final Executor es) {
+			final Tweet rootTweet, final Tweet threadTweet, final boolean hdMedia, final PayloadListAdapter payloadListAdapter, final Executor es) {
 		super(eventListener, context);
 		this.conf = conf;
 		this.provMgr = provMgr;
 		this.rootTweet = rootTweet;
 		this.threadTweet = threadTweet;
+		this.hdMedia = hdMedia;
 		this.payloadListAdapter = payloadListAdapter;
 		this.es = es;
 		this.placeholderPayload = new PlaceholderPayload(null, "Fetching conversation...", true);
@@ -93,7 +95,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 		if (fromCache != null) return fromCache;
 
 		try {
-			final Tweet inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(account, inReplyToMeta.toLong(0L));
+			final Tweet inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(account, inReplyToMeta.toLong(0L), this.hdMedia);
 			if (inReplyToTweet != null) {
 				cacheInReplyTos(db, Collections.singletonList(inReplyToTweet));
 				return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
@@ -186,7 +188,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 		}
 		this.payloadListAdapter.replaceItem(this.placeholderPayload, result.getPayloads());
 		if (result.checkAgain()) {
-			new InReplyToLoaderTask(getEventListener(), getContext(), this.conf, this.provMgr, this.rootTweet, result.getFirstTweet(), this.payloadListAdapter, this.es).executeOnExecutor(this.es);
+			new InReplyToLoaderTask(getEventListener(), getContext(), this.conf, this.provMgr, this.rootTweet, result.getFirstTweet(), this.hdMedia, this.payloadListAdapter, this.es).executeOnExecutor(this.es);
 		}
 	}
 

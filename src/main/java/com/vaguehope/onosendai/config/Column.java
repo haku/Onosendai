@@ -28,6 +28,7 @@ public class Column implements Titleable {
 	private static final String KEY_EXCLUDE = "exclude";
 	private static final String KEY_NOTIFY = "notify";
 	private static final String KEY_INLINE_MEDIA = "inline_media";
+	private static final String KEY_HD_MEDIA = "hd_media";
 
 	private static final LogWrapper LOG = new LogWrapper("COL");
 
@@ -39,17 +40,18 @@ public class Column implements Titleable {
 	private final Set<Integer> excludeColumnIds;
 	private final NotificationStyle notificationStyle;
 	private final boolean inlineMedia;
+	private final boolean hdMedia;
 
 	public Column (final int id, final Column c) {
-		this(id, c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.getNotificationStyle(), c.isInlineMedia());
+		this(id, c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.getNotificationStyle(), c.isInlineMedia(), c.isHdMedia());
 	}
 
 	public Column (final Account newAccount, final Column c) {
-		this(c.getId(), c.getTitle(), newAccount.getId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.getNotificationStyle(), c.isInlineMedia());
+		this(c.getId(), c.getTitle(), newAccount.getId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.getNotificationStyle(), c.isInlineMedia(), c.isHdMedia());
 	}
 
 	public Column (final Set<Integer> newExcludeColumnIds, final Column c) {
-		this(c.getId(), c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), newExcludeColumnIds, c.getNotificationStyle(), c.isInlineMedia());
+		this(c.getId(), c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), newExcludeColumnIds, c.getNotificationStyle(), c.isInlineMedia(), c.isHdMedia());
 	}
 
 	public Column (
@@ -60,7 +62,8 @@ public class Column implements Titleable {
 			final int refreshIntervalMins,
 			final Set<Integer> excludeColumnIds,
 			final NotificationStyle notificationStyle,
-			final boolean inlineMedia) {
+			final boolean inlineMedia,
+			final boolean hdMedia) {
 		this.id = id;
 		this.title = title;
 		this.accountId = accountId;
@@ -69,6 +72,7 @@ public class Column implements Titleable {
 		this.excludeColumnIds = excludeColumnIds;
 		this.notificationStyle = notificationStyle;
 		this.inlineMedia = inlineMedia;
+		this.hdMedia = hdMedia;
 	}
 
 	@Override
@@ -98,7 +102,8 @@ public class Column implements Titleable {
 				this.refreshIntervalMins == that.refreshIntervalMins &&
 				EqualHelper.equal(this.excludeColumnIds, that.excludeColumnIds) &&
 				EqualHelper.equal(this.notificationStyle, that.notificationStyle) &&
-				EqualHelper.equal(this.inlineMedia, that.inlineMedia);
+				EqualHelper.equal(this.inlineMedia, that.inlineMedia) &&
+				EqualHelper.equal(this.hdMedia, that.hdMedia);
 	}
 
 	@Override
@@ -119,6 +124,7 @@ public class Column implements Titleable {
 				.append(",").append(this.excludeColumnIds)
 				.append(",").append(this.notificationStyle)
 				.append(",").append(this.inlineMedia)
+				.append(",").append(this.hdMedia)
 				.append("}");
 		return s.toString();
 	}
@@ -155,6 +161,10 @@ public class Column implements Titleable {
 		return this.inlineMedia;
 	}
 
+	public boolean isHdMedia () {
+		return this.hdMedia;
+	}
+
 	public static List<String> titles (final Collection<Column> columns) {
 		if (columns == null) return null;
 		final List<String> ret = new ArrayList<String>(columns.size());
@@ -174,6 +184,7 @@ public class Column implements Titleable {
 		json.put(KEY_EXCLUDE, toJsonArray(getExcludeColumnIds()));
 		json.put(KEY_NOTIFY, getNotificationStyle() != null ? getNotificationStyle().toJson() : null);
 		json.put(KEY_INLINE_MEDIA, isInlineMedia());
+		json.put(KEY_HD_MEDIA, isHdMedia());
 		return json;
 	}
 
@@ -203,7 +214,8 @@ public class Column implements Titleable {
 		final Set<Integer> excludeColumnIds = parseFeedExcludeColumns(json, title);
 		final NotificationStyle notificationStyle = NotificationStyle.parseJson(json.opt(KEY_NOTIFY));
 		final boolean inlineMedia = json.optBoolean(KEY_INLINE_MEDIA, false);
-		return new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds, notificationStyle, inlineMedia);
+		final boolean hdMedia = json.optBoolean(KEY_HD_MEDIA, false);
+		return new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds, notificationStyle, inlineMedia, hdMedia);
 	}
 
 	private static int parseFeedRefreshInterval (final String refreshRaw, final String account, final String title) {
