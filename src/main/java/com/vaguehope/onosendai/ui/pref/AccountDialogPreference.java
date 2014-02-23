@@ -31,6 +31,7 @@ public class AccountDialogPreference extends DialogPreference {
 			case TWITTER:
 			case SUCCESSWHALE:
 			case INSTAPAPER:
+			case BUFFER:
 				break;
 			default:
 				setEnabled(false);
