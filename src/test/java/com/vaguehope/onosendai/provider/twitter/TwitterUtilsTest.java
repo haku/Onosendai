@@ -42,17 +42,27 @@ public class TwitterUtilsTest {
 
 	@Test
 	public void itExpandsInstagramUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://instagram.com/p/cT0bSXnMqi/", "http://instagram.com/p/cT0bSXnMqi/media/");
+		testPictureUrlExpansion("http://instagram.com/p/cT0bSXnMqi/", false, "http://instagram.com/p/cT0bSXnMqi/media/?size=m");
+	}
+
+	@Test
+	public void itExpandsInstagramUrlsToMediaHd () throws Exception {
+		testPictureUrlExpansion("http://instagram.com/p/cT0bSXnMqi/", true, "http://instagram.com/p/cT0bSXnMqi/media/?size=l");
 	}
 
 	@Test
 	public void itExpandsTwitpicUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://twitpic.com/d53yth", "http://twitpic.com/show/thumb/d53yth.jpg");
+		testPictureUrlExpansion("http://twitpic.com/d53yth", false, "http://twitpic.com/show/thumb/d53yth.jpg");
 	}
 
 	@Test
 	public void itExpandsImgurPageUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://imgur.com/oxyFqMy", "http://i.imgur.com/oxyFqMyl.jpg");
+		testPictureUrlExpansion("http://imgur.com/oxyFqMy", false, "http://i.imgur.com/oxyFqMyl.jpg");
+	}
+
+	@Test
+	public void itExpandsImgurPageUrlsToMediaHd () throws Exception {
+		testPictureUrlExpansion("http://imgur.com/oxyFqMy", true, "http://i.imgur.com/oxyFqMyh.jpg");
 	}
 
 	/**
@@ -66,22 +76,34 @@ public class TwitterUtilsTest {
 
 	@Test
 	public void itConvertsImgurJpgUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://i.imgur.com/dhadb0b.jpg", "http://i.imgur.com/dhadb0bl.jpg");
+		testPictureUrlExpansion("http://i.imgur.com/dhadb0b.jpg", false, "http://i.imgur.com/dhadb0bl.jpg");
 	}
 
 	@Test
 	public void itConvertsImgurPngUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://i.imgur.com/SOLlJFo.png", "http://i.imgur.com/SOLlJFol.jpg");
+		testPictureUrlExpansion("http://i.imgur.com/SOLlJFo.png", false, "http://i.imgur.com/SOLlJFol.jpg");
 	}
 
 	@Test
 	public void itConvertsImgurGifUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://i.imgur.com/AyLnEoz.gif", "http://i.imgur.com/AyLnEozl.jpg");
+		testPictureUrlExpansion("http://i.imgur.com/AyLnEoz.gif", false, "http://i.imgur.com/AyLnEozl.jpg");
 	}
 
 	@Test
 	public void itConvertsYfrogUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://yfrog.com/oehccwlqj", "http://yfrog.com/oehccwlqj:small");
+		testPictureUrlExpansion("http://yfrog.com/oehccwlqj", false, "http://yfrog.com/oehccwlqj:small");
+	}
+
+	@Test
+	public void itConvertsYfrogUrlsToMediaHd () throws Exception {
+		testPictureUrlExpansion("http://yfrog.com/oehccwlqj", true, "http://yfrog.com/oehccwlqj:medium");
+	}
+
+	@Test
+	public void itCanAddHdProfileImages () throws Exception {
+		final Status s = mockTweet("foo @twitter desu");
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, 201, true);
+		assertEquals(s.getUser().getBiggerProfileImageURLHttps(), t.getAvatarUrl());
 	}
 
 	@Test
@@ -92,11 +114,11 @@ public class TwitterUtilsTest {
 		final UserMentionEntity ume2 = mockUserMentionEntity("self", "Self", 200L);
 		when(s.getUserMentionEntities()).thenReturn(new UserMentionEntity[] { ume1, ume2 });
 
-		final Tweet t1 = TwitterUtils.convertTweet(this.account, s, 201);
+		final Tweet t1 = TwitterUtils.convertTweet(this.account, s, 201, false);
 		assertThat(t1.getMetas(), hasItem(new Meta(MetaType.MENTION, "twitter", "Twitter")));
 		assertThat(t1.getMetas(), hasItem(new Meta(MetaType.MENTION, "self", "Self")));
 
-		final Tweet t2 = TwitterUtils.convertTweet(this.account, s, 200);
+		final Tweet t2 = TwitterUtils.convertTweet(this.account, s, 200, false);
 		assertThat(t2.getMetas(), hasItem(new Meta(MetaType.MENTION, "twitter", "Twitter")));
 		assertThat(t2.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "self", "Self"))));
 	}
@@ -111,7 +133,7 @@ public class TwitterUtilsTest {
 
 		if (s.getCreatedAt().getTime() == rt.getCreatedAt().getTime()) throw new IllegalStateException("Bad mocking: created times are the same.");
 
-		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 200);
+		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 200, false);
 		assertEquals("a thing.", t.getBody());
 		assertEquals("them", t.getUsername());
 		assertEquals("Them", t.getFullname());
@@ -131,7 +153,7 @@ public class TwitterUtilsTest {
 
 		if (s.getCreatedAt().getTime() == rt.getCreatedAt().getTime()) throw new IllegalStateException("Bad mocking: created times are the same.");
 
-		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 200);
+		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 200, false);
 		assertEquals("a thing.", t.getBody());
 		assertEquals("them", t.getUsername());
 		assertEquals("Them", t.getFullname());
@@ -153,21 +175,21 @@ public class TwitterUtilsTest {
 		when(rt.isRetweet()).thenReturn(true);
 		when(rt.getRetweetedStatus()).thenReturn(s);
 
-		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 100);
+		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 100, false);
 		assertEquals("a thing @bob about a thing.", t.getBody());
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MENTION, "bob", "RT by Bob")));
 		assertThat(t.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "bob", "Bob"))));
 	}
 
-	private void testPictureUrlExpansion (final String fromUrl, final String toUrl) {
+	private void testPictureUrlExpansion (final String fromUrl, final boolean hdMedia, final String toUrl) {
 		final Status s = mockTweetWithUrl(fromUrl);
-		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L);
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, hdMedia);
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, toUrl)));
 	}
 
 	private void testPictureUrlNonExpansion (final String fromUrl) {
 		final Status s = mockTweetWithUrl(fromUrl);
-		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L);
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false);
 		for (final Meta meta : t.getMetas()) {
 			if (meta.getType() == MetaType.MEDIA) throw new AssertionError("Unexpected MEDIA in " + t.getMetas());
 		}
@@ -206,6 +228,7 @@ public class TwitterUtilsTest {
 		when(user.getName()).thenReturn(fullName);
 		when(user.getId()).thenReturn(userId);
 		when(user.getProfileImageURLHttps()).thenReturn("https://profile/" + screenName + "/image");
+		when(user.getBiggerProfileImageURLHttps()).thenReturn("https://profile/" + screenName + "/bigger_image");
 		when(s.getUser()).thenReturn(user);
 
 		return s;

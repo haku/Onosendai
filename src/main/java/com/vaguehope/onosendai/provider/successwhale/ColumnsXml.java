@@ -74,7 +74,7 @@ public class ColumnsXml implements ContentHandler {
 		if (this.stack.size() == 3) { // NOSONAR not a magic number.
 			if ("column".equals(elementName)) {
 				if (!StringHelper.isEmpty(this.stashedFullpath)) {
-					this.columns.add(new Column(this.columns.size(), this.stashedTitle, this.account.getId(), this.stashedFullpath, DEFAULT_COLUMN_REFRESH_MINS, null, null, false));
+					this.columns.add(new Column(this.columns.size(), this.stashedTitle, this.account.getId(), this.stashedFullpath, DEFAULT_COLUMN_REFRESH_MINS, null, null, false, false));
 				}
 				this.stashedFullpath = null;
 				this.stashedTitle = null;

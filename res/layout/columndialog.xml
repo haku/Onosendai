@@ -91,11 +91,28 @@
 			android:layout_height="wrap_content"
 			android:orientation="horizontal">
 
+			<TextView
+				android:paddingRight="10dp"
+				android:text="Media" />
+
 			<CheckBox
 				android:id="@+id/chkInlineMedia"
 				android:layout_width="0px"
 				android:layout_weight="1"
-				android:text="Media" />
+				android:text="Inline" />
+
+			<CheckBox
+				android:id="@+id/chkHdMedia"
+				android:layout_width="0px"
+				android:layout_weight="1"
+				android:text="HD" />
+
+		</TableRow>
+
+		<TableRow
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal">
 
 			<CheckBox
 				android:id="@+id/chkNotify"

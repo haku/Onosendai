@@ -68,6 +68,7 @@ class ColumnDialog {
 	private final Button btnExclude;
 	private final Spinner spnRefresh;
 	private final CheckBox chkInlineMedia;
+	private final CheckBox chkHdMedia;
 	private final CheckBox chkNotify;
 	private final CheckBox chkDelete;
 	private final TableRow rowNotification;
@@ -117,6 +118,7 @@ class ColumnDialog {
 		this.btnExclude = (Button) this.llParent.findViewById(R.id.btnExclude);
 		this.spnRefresh = (Spinner) this.llParent.findViewById(R.id.spnRefresh);
 		this.chkInlineMedia = (CheckBox) this.llParent.findViewById(R.id.chkInlineMedia);
+		this.chkHdMedia = (CheckBox) this.llParent.findViewById(R.id.chkHdMedia);
 		this.chkNotify = (CheckBox) this.llParent.findViewById(R.id.chkNotify);
 		this.chkDelete = (CheckBox) this.llParent.findViewById(R.id.chkDelete);
 		this.rowNotification = (TableRow) this.llParent.findViewById(R.id.rowNotification);
@@ -146,6 +148,7 @@ class ColumnDialog {
 			setDurationSpinner(initialValue.getRefreshIntervalMins(), refAdapter);
 			if (this.account == null) this.spnRefresh.setEnabled(false);
 			this.chkInlineMedia.setChecked(initialValue.isInlineMedia());
+			this.chkHdMedia.setChecked(initialValue.isHdMedia());
 			setNotificationStyle(initialValue.getNotificationStyle());
 			this.chkDelete.setVisibility(View.VISIBLE);
 		}
@@ -348,7 +351,8 @@ class ColumnDialog {
 				((Duration) this.spnRefresh.getSelectedItem()).getMins(),
 				this.excludes.size() > 0 ? this.excludes : null,
 				this.notificationStyle,
-				this.chkInlineMedia.isChecked());
+				this.chkInlineMedia.isChecked(),
+				this.chkHdMedia.isChecked());
 	}
 
 	private static class Duration {

@@ -14,10 +14,10 @@ public final class ImageHostHelper {
 		throw new AssertionError();
 	}
 
-	public static String thumbUrl (final String linkUrl) {
-		{
+	public static String thumbUrl (final String linkUrl, final boolean hdMedia) {
+		{ // http://instagram.com/developer/embedding
 			final Matcher m = INSTAGRAM_URL.matcher(linkUrl);
-			if (m.matches()) return linkUrl + "media/";
+			if (m.matches()) return linkUrl + "media/?size=" + (hdMedia ? "l" : "m");
 		}
 
 		{ // http://dev.twitpic.com/docs/thumbnails/
@@ -30,13 +30,13 @@ public final class ImageHostHelper {
 			if (m.matches()) {
 				final String imgId = m.group(1);
 				if (imgId.startsWith("a/") || imgId.startsWith("gallery/")) return null;
-				return "http://i.imgur.com/" + imgId + "l.jpg";
+				return "http://i.imgur.com/" + imgId + (hdMedia ? "h" : "l") + ".jpg";
 			}
 		}
 
 		{ // http://twitter.yfrog.com/page/api#a5
 			final Matcher m = YFROG_URL.matcher(linkUrl);
-			if (m.matches()) return "http://yfrog.com/" + m.group(1) + ":small";
+			if (m.matches()) return "http://yfrog.com/" + m.group(1) + (hdMedia ? ":medium" : ":small");
 		}
 
 		return null;
