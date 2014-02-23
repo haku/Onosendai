@@ -59,6 +59,11 @@ class AccountDialog {
 				this.llParent.addView(this.txtPassword);
 
 				break;
+			case BUFFER:
+				this.txtUsername.setSelectAllOnFocus(true);
+				this.txtUsername.setHint("accessToken");
+				this.llParent.addView(this.txtUsername);
+				break;
 			default:
 		}
 
@@ -66,8 +71,8 @@ class AccountDialog {
 		this.chkDelete.setChecked(false);
 
 		if (initialValue != null) {
-			this.txtUsername.setText(initialValue.getAccessToken());
-			this.txtPassword.setText(initialValue.getAccessSecret());
+			if (this.txtUsername != null) this.txtUsername.setText(initialValue.getAccessToken());
+			if (this.txtPassword != null) this.txtPassword.setText(initialValue.getAccessSecret());
 			this.llParent.addView(this.chkDelete);
 		}
 	}
@@ -91,6 +96,7 @@ class AccountDialog {
 		switch (this.accountProvider) {
 			case SUCCESSWHALE:
 			case INSTAPAPER:
+			case BUFFER:
 				return true;
 			default:
 		}
@@ -106,6 +112,12 @@ class AccountDialog {
 				return new Account(this.id, username,
 						this.accountProvider,
 						null, null, username, password);
+			case BUFFER:
+				final String title = this.initialValue != null ? this.initialValue.getTitle() : this.id;
+				final String accessToken = this.txtUsername.getText().toString();
+				return new Account(this.id, title,
+						this.accountProvider,
+						null, null, accessToken, null);
 			default:
 				return null;
 		}

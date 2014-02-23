@@ -47,7 +47,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 		final Preference pref = new Preference(getActivity());
 		pref.setTitle("Add Account");
-		pref.setSummary("Add a new Twitter, SuccessWhale or Instapaper account");
+		pref.setSummary("Add a new Twitter, SuccessWhale, Instapaper or Buffer account");
 		pref.setOnPreferenceClickListener(new AddAcountClickListener(this));
 		getPreferenceScreen().addPreference(pref);
 
@@ -65,7 +65,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 	protected void promptNewAccountType () {
 		DialogHelper.askItem(getActivity(), "Account Type",
-				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.SUCCESSWHALE, AccountProvider.INSTAPAPER },
+				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.SUCCESSWHALE, AccountProvider.INSTAPAPER, AccountProvider.BUFFER },
 				new Listener<AccountProvider>() {
 					@Override
 					public void onAnswer (final AccountProvider answer) {
@@ -80,10 +80,9 @@ public class AccountsPrefFragment extends PreferenceFragment {
 				promptAddTwitterAccount();
 				break;
 			case SUCCESSWHALE:
-				promptAddUsernamePasswordLikeAccount(AccountProvider.SUCCESSWHALE);
-				break;
 			case INSTAPAPER:
-				promptAddUsernamePasswordLikeAccount(AccountProvider.INSTAPAPER);
+			case BUFFER:
+				promptAddUsernamePasswordLikeAccount(accountProvider);
 				break;
 			default:
 				DialogHelper.alert(getActivity(), "Do not know how to add account of type: " + accountProvider);
