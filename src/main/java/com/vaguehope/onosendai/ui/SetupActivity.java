@@ -162,7 +162,7 @@ public class SetupActivity extends Activity {
 
 	protected void onTwitterAccountAdded (final Account account) {
 		DialogHelper.alertAndRun(this,
-				"Default Twitter columns will be created.\n\n(TODO: dialogue to choose columns)",
+				"To get you started default Twitter columns will be created.  These can be customised later.",
 				new Runnable() {
 					@Override
 					public void run () {
