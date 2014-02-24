@@ -133,7 +133,8 @@ public class HybridBitmapCache {
 			final File f = this.cache.keyToFile(this.key);
 			final OutputStream os = new FileOutputStream(f);
 			try {
-				IoHelper.copy(is, os);
+				final long bytesCopied = IoHelper.copy(is, os);
+				if (bytesCopied < 1L) throw new IOException(String.format("%s bytes returned.", bytesCopied));
 			}
 			catch (final IOException e) {
 				if (!f.delete()) LOG.e("Failed to delete incomplete download '" + f.getAbsolutePath() + "': " + e.toString());
