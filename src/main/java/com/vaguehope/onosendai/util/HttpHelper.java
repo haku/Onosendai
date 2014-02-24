@@ -42,22 +42,28 @@ public final class HttpHelper {
 	public static <R, T extends Exception> R get (final String sUrl, final HttpStreamHandler<R, T> streamHandler) throws IOException, T { // NOSONAR Not redundant throws.
 		final URL url = new URL(sUrl);
 		final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-		connection.setRequestMethod("GET");
-		connection.setConnectTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_CONNECT_TIMEOUT_SECONDS));
-		connection.setReadTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_READ_TIMEOUT_SECONDS));
-
-		InputStream is = null;
 		try {
-			final int responseCode = connection.getResponseCode();
-			if (responseCode >= 400) { // NOSONAR 400 is not a magic number.  Its HTTP spec.
-				throw new HttpResponseException(responseCode, IoHelper.toString(connection.getErrorStream()));
-			}
+			connection.setRequestMethod("GET");
+			connection.setInstanceFollowRedirects(true);
+			connection.setConnectTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_CONNECT_TIMEOUT_SECONDS));
+			connection.setReadTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_READ_TIMEOUT_SECONDS));
 
-			is = connection.getInputStream();
-			return streamHandler.handleStream(is, connection.getContentLength());
+			InputStream is = null;
+			try {
+				final int responseCode = connection.getResponseCode();
+				if (responseCode < 200 || responseCode >= 300) { // NOSONAR not magic numbers.  Its HTTP spec.
+					throw new HttpResponseException(responseCode, IoHelper.toString(connection.getErrorStream()));
+				}
+
+				is = connection.getInputStream();
+				return streamHandler.handleStream(is, connection.getContentLength());
+			}
+			finally {
+				IoHelper.closeQuietly(is);
+			}
 		}
 		finally {
-			if (is != null) is.close();
+			connection.disconnect();
 		}
 	}
 
