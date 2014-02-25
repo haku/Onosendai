@@ -140,7 +140,7 @@ public class SuccessWhale {
 	/**
 	 * FIXME lock against multiple calls.
 	 */
-	public void authenticate () throws SuccessWhaleException {
+	private void authenticate () throws SuccessWhaleException {
 		final String username = this.account.getAccessToken();
 		final String password = this.account.getAccessSecret();
 		try {
@@ -156,6 +156,10 @@ public class SuccessWhale {
 		catch (final IOException e) {
 			throw new SuccessWhaleException("Auth failed for user '" + username + "': " + e.toString(), e);
 		}
+	}
+
+	public void testLogin () throws SuccessWhaleException {
+		getPostToAccounts();
 	}
 
 	public SuccessWhaleColumns getColumns () throws SuccessWhaleException {

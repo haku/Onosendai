@@ -41,6 +41,10 @@ public class SuccessWhaleProvider {
 		return this.accounts.get(account.getId());
 	}
 
+	public void testAccountLogin(final Account account) throws SuccessWhaleException {
+		getAccount(account).testLogin();
+	}
+
 	public SuccessWhaleColumns getColumns (final Account account) throws SuccessWhaleException {
 		return getAccount(account).getColumns();
 	}

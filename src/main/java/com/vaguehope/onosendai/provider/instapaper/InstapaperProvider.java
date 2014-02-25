@@ -40,6 +40,10 @@ public class InstapaperProvider {
 		throw new IllegalStateException("Only one instapaper account at a time is supported.");
 	}
 
+	public void testAccountLogin (final Account account) throws IOException {
+		getAccount(account).testLogin();
+	}
+
 	public void add (final Account account, final Tweet tweet) throws IOException {
 		final Meta linkMeta = findLink(tweet);
 		final String linkUrl = linkMeta != null && linkMeta.hasData() ? linkMeta.getData() : null;
