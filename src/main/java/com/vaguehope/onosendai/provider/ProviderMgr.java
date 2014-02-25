@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.provider;
 
 import android.os.AsyncTask;
 
+import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
 import com.vaguehope.onosendai.provider.instapaper.InstapaperProvider;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
@@ -12,11 +13,13 @@ public class ProviderMgr {
 	private final TwitterProvider twitterProvider;
 	private final SuccessWhaleProvider successWhaleProvider;
 	private final InstapaperProvider instapaperProvider;
+	private final BufferAppProvider bufferAppProvider;
 
 	public ProviderMgr (final KvStore kvStore) {
 		this.twitterProvider = new TwitterProvider();
 		this.successWhaleProvider = new SuccessWhaleProvider(kvStore);
 		this.instapaperProvider = new InstapaperProvider();
+		this.bufferAppProvider = new BufferAppProvider();
 	}
 
 	public TwitterProvider getTwitterProvider () {
@@ -31,6 +34,10 @@ public class ProviderMgr {
 		return this.instapaperProvider;
 	}
 
+	public BufferAppProvider getBufferAppProvider () {
+		return this.bufferAppProvider;
+	}
+
 	/**
 	 * TODO: tidy this up.
 	 */
@@ -43,7 +50,12 @@ public class ProviderMgr {
 				new SwShutdowner().execute(this.successWhaleProvider);
 			}
 			finally {
-				this.instapaperProvider.shutdown();
+				try {
+					this.instapaperProvider.shutdown();
+				}
+				finally {
+					this.bufferAppProvider.shutdown();
+				}
 			}
 		}
 	}

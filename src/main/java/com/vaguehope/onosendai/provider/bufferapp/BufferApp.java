@@ -67,6 +67,10 @@ public class BufferApp {
 		}
 	}
 
+	public void testLogin () throws BufferAppException {
+		getPostToAccounts();
+	}
+
 	public List<ServiceRef> getPostToAccounts () throws BufferAppException {
 		return authenticated(new BufferCall<List<ServiceRef>>() {
 			@Override

@@ -32,6 +32,10 @@ public class BufferAppProvider {
 		return this.accounts.get(account.getId());
 	}
 
+	public void testAccountLogin (final Account account) throws BufferAppException {
+		getAccount(account).testLogin();
+	}
+
 	public List<ServiceRef> getPostToAccounts (final Account account) throws BufferAppException {
 		return getAccount(account).getPostToAccounts();
 	}

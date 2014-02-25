@@ -26,6 +26,7 @@ import com.vaguehope.onosendai.util.LogWrapper;
 public class Instapaper {
 
 	private static final String BASE_URL = "https://www.instapaper.com:443";
+	private static final String API_TEST_AUTH = "/api/authenticate";
 	private static final String API_ADD = "/api/add";
 
 	static final LogWrapper LOG = new LogWrapper("IP");
@@ -50,6 +51,12 @@ public class Instapaper {
 
 	protected HttpClient getHttpClient () throws IOException {
 		return this.httpClientFactory.getHttpClient();
+	}
+
+	public void testLogin () throws IOException {
+		final HttpPost post = new HttpPost(BASE_URL + API_TEST_AUTH);
+		addAuth(post);
+		getHttpClient().execute(post, new CheckStatusOnlyHandler());
 	}
 
 	public void add (final String url, final String title, final String body) throws IOException {
