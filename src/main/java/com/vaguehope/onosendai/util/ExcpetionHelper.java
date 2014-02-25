@@ -6,6 +6,9 @@ public final class ExcpetionHelper {
 		throw new AssertionError();
 	}
 
+	/**
+	 * Causes separated by new lines.
+	 */
 	public static String causeTrace (final Throwable t) {
 		return causeTrace(t, "\n");
 	}
