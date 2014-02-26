@@ -61,11 +61,11 @@ import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
-import com.vaguehope.onosendai.util.exec.ExecUtils;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.StringHelper;
+import com.vaguehope.onosendai.util.exec.ExecUtils;
 
 public class PostActivity extends Activity implements ImageLoader {
 
@@ -151,7 +151,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		super.onResume();
 		resumeDb();
 		if (this.askAccountOnActivate) {
-			askAccount();
+			askAccountAndShrinkPicture();
 			this.askAccountOnActivate = false;
 		}
 	}
@@ -294,13 +294,14 @@ public class PostActivity extends Activity implements ImageLoader {
 		this.spnAccount.setSelection(this.accountAdaptor.getAccountPosition(account));
 	}
 
-	protected void askAccount () {
+	protected void askAccountAndShrinkPicture () {
 		final List<Account> items = readAccountsOrAlert();
 		if (items == null) return;
 		DialogHelper.askItem(this, "Post to Account", items, new Listener<Account>() {
 			@Override
 			public void onAnswer (final Account account) {
 				setSelectedAccount(account);
+				checkAndAskShrinkPicture();
 			}
 		});
 	}
@@ -592,7 +593,7 @@ public class PostActivity extends Activity implements ImageLoader {
 			if (ImageMetadata.isUnderstoodResource(uri)) {
 				this.attachment = uri;
 				final ImageMetadata metadata = redrawAttachment();
-				if (metadata.getSize() > PROMPT_RESIZE_MIN_SIZE) askShrinkPicture(metadata);
+				checkAndAskShrinkPicture(metadata);
 			}
 			else {
 				DialogHelper.alert(this, "Unknown resource:\n" + uri);
@@ -603,7 +604,12 @@ public class PostActivity extends Activity implements ImageLoader {
 		}
 	}
 
-	private void askShrinkPicture (final ImageMetadata metadata) {
+	protected void checkAndAskShrinkPicture () {
+		checkAndAskShrinkPicture(new ImageMetadata(this, this.attachment));
+	}
+
+	private void checkAndAskShrinkPicture (final ImageMetadata metadata) {
+		if (metadata.getSize() < PROMPT_RESIZE_MIN_SIZE) return;
 		DialogHelper.askYesNo(this,
 				"Picture is " + IoHelper.readableFileSize(metadata.getSize())
 				, "Shrink...", "Full Size", new Runnable() {
