@@ -16,12 +16,17 @@ import org.json.JSONException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Editable;
+import android.text.Layout;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,9 +34,12 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.MultiAutoCompleteTextView;
+import android.widget.MultiAutoCompleteTextView.Tokenizer;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -57,6 +65,7 @@ import com.vaguehope.onosendai.provider.PostTask.PostRequest;
 import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.AttachmentStorage;
+import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.DialogHelper;
@@ -97,7 +106,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	private AccountAdaptor accountAdaptor;
 	private Spinner spnAccount;
 	private ViewGroup llSubAccounts;
-	private EditText txtBody;
+	private MultiAutoCompleteTextView txtBody;
 
 	private final EnabledServiceRefs enabledPostToAccounts = new EnabledServiceRefs();
 	private boolean askAccountOnActivate;
@@ -182,6 +191,7 @@ public class PostActivity extends Activity implements ImageLoader {
 				public void run () {
 					LOG.d("DB service bound.");
 					showInReplyToTweetDetails();
+					loadUsernameAutoComplete();
 				}
 			});
 		}
@@ -250,7 +260,7 @@ public class PostActivity extends Activity implements ImageLoader {
 	}
 
 	private void setupTextBody () {
-		this.txtBody = (EditText) findViewById(R.id.txtBody);
+		this.txtBody = (MultiAutoCompleteTextView) findViewById(R.id.txtBody);
 		final TextView txtCharRemaining = (TextView) findViewById(R.id.txtCharRemaining);
 		this.txtBody.addTextChangedListener(new TextCounterWatcher(txtCharRemaining, this.txtBody));
 
@@ -369,6 +379,117 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	}
 
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	public void loadUsernameAutoComplete () {
+		if (this.txtBody.getAdapter() != null) return;
+		this.txtBody.setThreshold(1);
+		this.txtBody.setTokenizer(new UsernameTokenizer());
+		this.txtBody.addTextChangedListener(new PopupPositioniner(this.txtBody));
+		new UsernameLoader(this, this.txtBody).executeOnExecutor(this.exec); // TODO really this exec?
+	}
+
+	// TODO extract to separate files.
+
+	/**
+	 * https://stackoverflow.com/questions/12691679
+	 */
+	private static class UsernameTokenizer implements Tokenizer {
+
+		public UsernameTokenizer () {}
+
+		@Override
+		public CharSequence terminateToken (final CharSequence text) {
+			int i = text.length();
+			while (i > 0 && text.charAt(i - 1) == ' ') {
+				i--;
+			}
+			if (i > 0 && text.charAt(i - 1) == ' ') return text;
+			if (text instanceof Spanned) {
+				final SpannableString sp = new SpannableString(text + " ");
+				TextUtils.copySpansFrom((Spanned) text, 0, text.length(), Object.class, sp, 0);
+				return sp;
+			}
+			return text + " ";
+		}
+
+		@Override
+		public int findTokenStart (final CharSequence text, final int cursor) {
+			int i = cursor;
+			while (i > 0 && text.charAt(i - 1) != '@') {
+				i--;
+			}
+			if (i < 1 || text.charAt(i - 1) != '@') return cursor;
+			return i;
+		}
+
+		@Override
+		public int findTokenEnd (final CharSequence text, final int cursor) {
+			int i = cursor;
+			final int len = text.length();
+			while (i < len) {
+				if (text.charAt(i) == ' ') return i;
+				i++;
+			}
+			return len;
+		}
+
+	}
+
+	/**
+	 * https://stackoverflow.com/questions/12691679
+	 */
+	private static class PopupPositioniner implements TextWatcher {
+
+		private final MultiAutoCompleteTextView tv;
+
+		public PopupPositioniner (final MultiAutoCompleteTextView tv) {
+			this.tv = tv;
+		}
+
+		@Override
+		public void onTextChanged (final CharSequence s, final int start, final int before, final int count) {
+			final Layout layout = this.tv.getLayout();
+			this.tv.setDropDownVerticalOffset(layout.getLineBottom(layout.getLineForOffset(this.tv.getSelectionStart())) - this.tv.getHeight());
+		}
+
+		@Override
+		public void beforeTextChanged (final CharSequence s, final int start, final int count, final int after) {/**/}
+
+		@Override
+		public void afterTextChanged (final Editable s) {/**/}
+
+	}
+
+	private static class UsernameLoader extends DbBindingAsyncTask<Void, Void, List<String>> {
+
+		private final MultiAutoCompleteTextView tv;
+
+		public UsernameLoader (final Context context, final MultiAutoCompleteTextView tv) {
+			super(context);
+			this.tv = tv;
+		}
+
+		@Override
+		protected LogWrapper getLog () {
+			return LOG;
+		}
+
+		@Override
+		protected List<String> doInBackgroundWithDb (final DbInterface db, final Void... params) {
+			return db.getUsernames(300); // TODO this should not be hard coded.  Or perhaps it should not even exist.
+		}
+
+		@Override
+		protected void onPostExecute (final List<String> usernames) {
+			this.tv.setAdapter(new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, usernames));
+			LOG.i("Set autocomplete adapter with %s names.", usernames.size());
+		}
+
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	protected void askPost () {
 		final Account account = getSelectedAccount();
 		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
@@ -402,7 +523,7 @@ public class PostActivity extends Activity implements ImageLoader {
 		dlgBld.show();
 	}
 
-	private String getReplyToSidToSubmit() {
+	private String getReplyToSidToSubmit () {
 		if (!StringHelper.isEmpty(this.altReplyToSid)) return this.altReplyToSid;
 		return this.inReplyToSid;
 	}

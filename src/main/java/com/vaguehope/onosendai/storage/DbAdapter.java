@@ -494,6 +494,33 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public List<String> getUsernames (final int numberOf) {
+		if (!checkDbOpen()) return null;
+		Cursor c = null;
+		try {
+			c = this.mDb.query(true, TBL_TW,
+					new String[] { TBL_TW_USERNAME },
+					TBL_TW_USERNAME + " NOT NULL", null,
+					null, null,
+					TBL_TW_TIME + " desc", String.valueOf(numberOf));
+			if (c != null && c.moveToFirst()) {
+				final int colUesrname = c.getColumnIndex(TBL_TW_USERNAME);
+				final List<String> ret = new ArrayList<String>();
+				do {
+					final String username = c.getString(colUesrname);
+					ret.add(username);
+				}
+				while (c.moveToNext());
+				return ret;
+			}
+			return Collections.EMPTY_LIST;
+		}
+		finally {
+			IoHelper.closeQuietly(c);
+		}
+	}
+
+	@Override
 	public int getUnreadCount (final Column column) {
 		return getUpCount(UpCountType.UNREAD, column);
 	}

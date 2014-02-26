@@ -63,7 +63,7 @@
 			android:visibility="gone" />
 
 		<!-- height set to wrap_content to prevent double-scrolling. -->
-		<EditText
+		<MultiAutoCompleteTextView
 			android:id="@+id/txtBody"
 			android:layout_width="match_parent"
 			tools:ignore="InefficientWeight"
@@ -75,7 +75,7 @@
 			android:gravity="top"
 			android:minLines="3">
 			<requestFocus />
-		</EditText>
+		</MultiAutoCompleteTextView>
 
 		<LinearLayout
 			android:id="@+id/actions"
