@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.ui.pref;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.text.InputType;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -68,6 +69,7 @@ class AccountDialog {
 
 				this.txtPassword.setSelectAllOnFocus(true);
 				this.txtPassword.setHint("password");
+				this.txtPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 				this.llParent.addView(this.txtPassword);
 
 				addTestLoginBtn();
