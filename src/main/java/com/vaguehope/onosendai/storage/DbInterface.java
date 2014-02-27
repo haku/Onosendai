@@ -29,6 +29,7 @@ public interface DbInterface extends KvStore {
 	Tweet getTweetDetails(long tweetUid);
 
 	List<String> getUsernames(int numberOf);
+	List<String> getUsernames(String prefix, int numberOf);
 
 	int getUnreadCount(Column column);
 	int getUnreadCount(int columnId, Set<Integer> excludeColumnIds, ScrollState scroll);

@@ -16,7 +16,6 @@ import org.json.JSONException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -37,6 +36,7 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.MultiAutoCompleteTextView.Tokenizer;
@@ -65,7 +65,6 @@ import com.vaguehope.onosendai.provider.PostTask.PostRequest;
 import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.AttachmentStorage;
-import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.DialogHelper;
@@ -385,8 +384,8 @@ public class PostActivity extends Activity implements ImageLoader {
 		if (this.txtBody.getAdapter() != null) return;
 		this.txtBody.setThreshold(1);
 		this.txtBody.setTokenizer(new UsernameTokenizer());
+		this.txtBody.setAdapter(new UsernameSearchAdapter(this));
 		this.txtBody.addTextChangedListener(new PopupPositioniner(this.txtBody));
-		new UsernameLoader(this, this.txtBody).executeOnExecutor(this.exec); // TODO really this exec?
 	}
 
 	// TODO extract to separate files.
@@ -436,6 +435,65 @@ public class PostActivity extends Activity implements ImageLoader {
 
 	}
 
+	private static class UsernameSearchAdapter extends ArrayAdapter<String> {
+
+		private final Filter filter;
+
+		public UsernameSearchAdapter (final PostActivity host) { // TODO be more specific than PostActivity.
+			super(host, android.R.layout.simple_list_item_1);
+			this.filter = new UsernameFilter(this, host);
+		}
+
+		@Override
+		public Filter getFilter () {
+			return this.filter;
+		}
+
+		private static class UsernameFilter extends Filter {
+
+			private final ArrayAdapter<String> adapter;
+			private final PostActivity host;
+
+			public UsernameFilter (final ArrayAdapter<String> adapter, final PostActivity host) { // TODO be more specific than PostActivity.
+				this.adapter = adapter;
+				this.host = host;
+			}
+
+			@Override
+			protected FilterResults performFiltering (final CharSequence constraint) {
+				if (constraint == null) return new FilterResults();
+				try {
+					final String term = constraint.toString();
+					final List<String> usernames = this.host.getDb().getUsernames(term, 10);
+
+					final FilterResults filterResults = new FilterResults();
+					filterResults.values = usernames;
+					filterResults.count = usernames.size();
+					return filterResults;
+				}
+				catch (final Exception e) { // NOSONAR Need to report errors.
+					LOG.e("Search failed.", e);
+					return new FilterResults();
+				}
+			}
+
+			@Override
+			protected void publishResults (final CharSequence constraint, final FilterResults results) {
+				this.adapter.clear();
+				if (results != null && results.count > 0) {
+					final List<String> usernames = (List<String>) results.values;
+					this.adapter.addAll(usernames);
+					this.adapter.notifyDataSetChanged();
+				}
+				else {
+					this.adapter.notifyDataSetInvalidated();
+				}
+			}
+
+		}
+
+	}
+
 	/**
 	 * https://stackoverflow.com/questions/12691679
 	 */
@@ -458,33 +516,6 @@ public class PostActivity extends Activity implements ImageLoader {
 
 		@Override
 		public void afterTextChanged (final Editable s) {/**/}
-
-	}
-
-	private static class UsernameLoader extends DbBindingAsyncTask<Void, Void, List<String>> {
-
-		private final MultiAutoCompleteTextView tv;
-
-		public UsernameLoader (final Context context, final MultiAutoCompleteTextView tv) {
-			super(context);
-			this.tv = tv;
-		}
-
-		@Override
-		protected LogWrapper getLog () {
-			return LOG;
-		}
-
-		@Override
-		protected List<String> doInBackgroundWithDb (final DbInterface db, final Void... params) {
-			return db.getUsernames(300); // TODO this should not be hard coded.  Or perhaps it should not even exist.
-		}
-
-		@Override
-		protected void onPostExecute (final List<String> usernames) {
-			this.tv.setAdapter(new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, usernames));
-			LOG.i("Set autocomplete adapter with %s names.", usernames.size());
-		}
 
 	}
 
