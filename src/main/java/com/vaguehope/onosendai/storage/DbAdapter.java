@@ -495,14 +495,25 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public List<String> getUsernames (final int numberOf) {
+		return getUsernames(TBL_TW_USERNAME + " NOT NULL", null, TBL_TW_TIME + " desc", numberOf);
+	}
+
+	@Override
+	public List<String> getUsernames (final String prefix, final int numberOf) {
+		return getUsernames(TBL_TW_USERNAME + " LIKE ? ESCAPE ? COLLATE NOCASE",
+				new String[] { escapeSearch(prefix).concat("%"), SEARCH_ESC },
+				TBL_TW_USERNAME + " asc", numberOf);
+	}
+
+	private List<String> getUsernames (final String where, final String[] whereArgs, final String orderBy, final int numberOf) {
 		if (!checkDbOpen()) return null;
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
 					new String[] { TBL_TW_USERNAME },
-					TBL_TW_USERNAME + " NOT NULL", null,
+					where, whereArgs,
 					null, null,
-					TBL_TW_TIME + " desc", String.valueOf(numberOf));
+					orderBy, String.valueOf(numberOf));
 			if (c != null && c.moveToFirst()) {
 				final int colUesrname = c.getColumnIndex(TBL_TW_USERNAME);
 				final List<String> ret = new ArrayList<String>();
@@ -954,6 +965,22 @@ public class DbAdapter implements DbInterface {
 	private void vacuum () {
 		this.mDb.execSQL("VACUUM");
 		this.log.i("Vacuumed.");
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private static final String SEARCH_ESC = "\\";
+
+	/**
+	 * This pairs with SEARCH_ESC.
+	 */
+	private static String escapeSearch (final String term) {
+		String q = term.replace("'", "''");
+		q = q.replace("\\", "\\\\");
+		q = q.replace("%", "\\%");
+		q = q.replace("_", "\\_");
+		q = q.replace("*", "%");
+		return q;
 	}
 
 }
