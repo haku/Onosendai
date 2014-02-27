@@ -22,10 +22,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Editable;
-import android.text.Layout;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,13 +29,10 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.MultiAutoCompleteTextView;
-import android.widget.MultiAutoCompleteTextView.Tokenizer;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -67,6 +60,8 @@ import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.AttachmentStorage;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbProvider;
+import com.vaguehope.onosendai.storage.UsernameSearchAdapter;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.ImageMetadata;
@@ -74,8 +69,10 @@ import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.exec.ExecUtils;
+import com.vaguehope.onosendai.widget.adaptor.PopupPositioniner;
+import com.vaguehope.onosendai.widget.adaptor.UsernameTokenizer;
 
-public class PostActivity extends Activity implements ImageLoader {
+public class PostActivity extends Activity implements ImageLoader, DbProvider {
 
 	public static final String ARG_ACCOUNT_ID = "account_id";
 	public static final String ARG_IN_REPLY_TO_SID = "in_reply_to_sid";
@@ -196,7 +193,8 @@ public class PostActivity extends Activity implements ImageLoader {
 		}
 	}
 
-	protected DbInterface getDb () {
+	@Override
+	public DbInterface getDb () {
 		final DbClient d = this.bndDb;
 		if (d == null) return null;
 		return d.getDb();
@@ -386,137 +384,6 @@ public class PostActivity extends Activity implements ImageLoader {
 		this.txtBody.setTokenizer(new UsernameTokenizer());
 		this.txtBody.setAdapter(new UsernameSearchAdapter(this));
 		this.txtBody.addTextChangedListener(new PopupPositioniner(this.txtBody));
-	}
-
-	// TODO extract to separate files.
-
-	/**
-	 * https://stackoverflow.com/questions/12691679
-	 */
-	private static class UsernameTokenizer implements Tokenizer {
-
-		public UsernameTokenizer () {}
-
-		@Override
-		public CharSequence terminateToken (final CharSequence text) {
-			int i = text.length();
-			while (i > 0 && text.charAt(i - 1) == ' ') {
-				i--;
-			}
-			if (i > 0 && text.charAt(i - 1) == ' ') return text;
-			if (text instanceof Spanned) {
-				final SpannableString sp = new SpannableString(text + " ");
-				TextUtils.copySpansFrom((Spanned) text, 0, text.length(), Object.class, sp, 0);
-				return sp;
-			}
-			return text + " ";
-		}
-
-		@Override
-		public int findTokenStart (final CharSequence text, final int cursor) {
-			int i = cursor;
-			while (i > 0 && text.charAt(i - 1) != '@') {
-				i--;
-			}
-			if (i < 1 || text.charAt(i - 1) != '@') return cursor;
-			return i;
-		}
-
-		@Override
-		public int findTokenEnd (final CharSequence text, final int cursor) {
-			int i = cursor;
-			final int len = text.length();
-			while (i < len) {
-				if (text.charAt(i) == ' ') return i;
-				i++;
-			}
-			return len;
-		}
-
-	}
-
-	private static class UsernameSearchAdapter extends ArrayAdapter<String> {
-
-		private final Filter filter;
-
-		public UsernameSearchAdapter (final PostActivity host) { // TODO be more specific than PostActivity.
-			super(host, android.R.layout.simple_list_item_1);
-			this.filter = new UsernameFilter(this, host);
-		}
-
-		@Override
-		public Filter getFilter () {
-			return this.filter;
-		}
-
-		private static class UsernameFilter extends Filter {
-
-			private final ArrayAdapter<String> adapter;
-			private final PostActivity host;
-
-			public UsernameFilter (final ArrayAdapter<String> adapter, final PostActivity host) { // TODO be more specific than PostActivity.
-				this.adapter = adapter;
-				this.host = host;
-			}
-
-			@Override
-			protected FilterResults performFiltering (final CharSequence constraint) {
-				if (constraint == null) return new FilterResults();
-				try {
-					final String term = constraint.toString();
-					final List<String> usernames = this.host.getDb().getUsernames(term, 10);
-
-					final FilterResults filterResults = new FilterResults();
-					filterResults.values = usernames;
-					filterResults.count = usernames.size();
-					return filterResults;
-				}
-				catch (final Exception e) { // NOSONAR Need to report errors.
-					LOG.e("Search failed.", e);
-					return new FilterResults();
-				}
-			}
-
-			@Override
-			protected void publishResults (final CharSequence constraint, final FilterResults results) {
-				this.adapter.clear();
-				if (results != null && results.count > 0) {
-					final List<String> usernames = (List<String>) results.values;
-					this.adapter.addAll(usernames);
-					this.adapter.notifyDataSetChanged();
-				}
-				else {
-					this.adapter.notifyDataSetInvalidated();
-				}
-			}
-
-		}
-
-	}
-
-	/**
-	 * https://stackoverflow.com/questions/12691679
-	 */
-	private static class PopupPositioniner implements TextWatcher {
-
-		private final MultiAutoCompleteTextView tv;
-
-		public PopupPositioniner (final MultiAutoCompleteTextView tv) {
-			this.tv = tv;
-		}
-
-		@Override
-		public void onTextChanged (final CharSequence s, final int start, final int before, final int count) {
-			final Layout layout = this.tv.getLayout();
-			this.tv.setDropDownVerticalOffset(layout.getLineBottom(layout.getLineForOffset(this.tv.getSelectionStart())) - this.tv.getHeight());
-		}
-
-		@Override
-		public void beforeTextChanged (final CharSequence s, final int start, final int count, final int after) {/**/}
-
-		@Override
-		public void afterTextChanged (final Editable s) {/**/}
-
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
