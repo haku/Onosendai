@@ -21,8 +21,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -30,7 +28,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.PopupMenu;
@@ -70,6 +67,7 @@ import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.exec.ExecUtils;
 import com.vaguehope.onosendai.widget.adaptor.PopupPositioniner;
+import com.vaguehope.onosendai.widget.adaptor.TextCounterWatcher;
 import com.vaguehope.onosendai.widget.adaptor.UsernameTokenizer;
 
 public class PostActivity extends Activity implements ImageLoader, DbProvider {
@@ -187,7 +185,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				public void run () {
 					LOG.d("DB service bound.");
 					showInReplyToTweetDetails();
-					loadUsernameAutoComplete();
+					setupAutoComplete();
 				}
 			});
 		}
@@ -268,6 +266,14 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				this.txtBody.setSelection(this.txtBody.getText().length());
 			}
 		}
+	}
+
+	public void setupAutoComplete () {
+		if (this.txtBody.getAdapter() != null) return;
+		this.txtBody.setThreshold(1);
+		this.txtBody.setTokenizer(new UsernameTokenizer());
+		this.txtBody.setAdapter(new UsernameSearchAdapter(this));
+		this.txtBody.addTextChangedListener(new PopupPositioniner(this.txtBody));
 	}
 
 	private void wireMainButtons () {
@@ -374,16 +380,6 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			}
 		}
 
-	}
-
-//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	public void loadUsernameAutoComplete () {
-		if (this.txtBody.getAdapter() != null) return;
-		this.txtBody.setThreshold(1);
-		this.txtBody.setTokenizer(new UsernameTokenizer());
-		this.txtBody.setAdapter(new UsernameSearchAdapter(this));
-		this.txtBody.addTextChangedListener(new PopupPositioniner(this.txtBody));
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -637,30 +633,6 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 						showShrinkPictureDlg();
 					}
 				});
-	}
-
-//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	private static class TextCounterWatcher implements TextWatcher {
-
-		private final TextView txtView;
-		private final EditText editText;
-
-		public TextCounterWatcher (final TextView txtView, final EditText editText) {
-			this.txtView = txtView;
-			this.editText = editText;
-		}
-
-		@Override
-		public void afterTextChanged (final Editable s) {
-			this.txtView.setText(String.valueOf(this.editText.getText().length()));
-		}
-
-		@Override
-		public void onTextChanged (final CharSequence s, final int start, final int before, final int count) {/**/}
-
-		@Override
-		public void beforeTextChanged (final CharSequence s, final int start, final int count, final int after) {/**/}
 	}
 
 }
