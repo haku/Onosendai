@@ -514,21 +514,47 @@ public class DbAdapter implements DbInterface {
 					where, whereArgs,
 					null, null,
 					orderBy, String.valueOf(numberOf));
-			if (c != null && c.moveToFirst()) {
-				final int colUesrname = c.getColumnIndex(TBL_TW_USERNAME);
-				final List<String> ret = new ArrayList<String>();
-				do {
-					final String username = c.getString(colUesrname);
-					ret.add(username);
-				}
-				while (c.moveToNext());
-				return ret;
-			}
-			return Collections.EMPTY_LIST;
+			return columnToStringList(c, TBL_TW_USERNAME);
 		}
 		finally {
 			IoHelper.closeQuietly(c);
 		}
+	}
+
+	@Override
+	public List<String> getHashtags (final String prefix, final int numberOf) {
+		return getMetadatas(TBL_TM_TYPE + "=? AND " + TBL_TM_DATA + " LIKE ? ESCAPE ? COLLATE NOCASE",
+				new String[] { String.valueOf(MetaType.HASHTAG.getId()), escapeSearch(prefix).concat("%"), SEARCH_ESC },
+				TBL_TM_DATA + " asc", numberOf);
+	}
+
+	private List<String> getMetadatas (final String where, final String[] whereArgs, final String orderBy, final int numberOf) {
+		if (!checkDbOpen()) return null;
+		Cursor c = null;
+		try {
+			c = this.mDb.query(true, TBL_TM,
+					new String[] { TBL_TM_DATA },
+					where, whereArgs,
+					null, null,
+					orderBy, String.valueOf(numberOf));
+			return columnToStringList(c, TBL_TM_DATA);
+		}
+		finally {
+			IoHelper.closeQuietly(c);
+		}
+	}
+
+	private static List<String> columnToStringList (final Cursor c, final String column) {
+		if (c != null && c.moveToFirst()) {
+			final int colIndex = c.getColumnIndex(column);
+			final List<String> ret = new ArrayList<String>();
+			do {
+				ret.add(c.getString(colIndex));
+			}
+			while (c.moveToNext());
+			return ret;
+		}
+		return Collections.EMPTY_LIST;
 	}
 
 	@Override

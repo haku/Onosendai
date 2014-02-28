@@ -131,6 +131,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public List<String> getHashtags (final String prefix, final int numberOf) {
+		return this.dbAdaptor.getHashtags(prefix, numberOf);
+	}
+
+	@Override
 	public int getUnreadCount (final Column column) {
 		return this.dbAdaptor.getUnreadCount(column);
 	}

@@ -29,12 +29,13 @@ public class UsernameTokenizer implements Tokenizer {
 
 	@Override
 	public int findTokenStart (final CharSequence text, final int cursor) {
+		if (cursor == 0 || text.length() < 1 || isStartChar(text.charAt(cursor - 1))) return cursor;
 		int i = cursor;
-		while (i > 0 && text.charAt(i - 1) != '@') {
+		while (i > 0 && !isStartChar(text.charAt(i - 1))) {
 			i--;
 		}
-		if (i < 1 || text.charAt(i - 1) != '@') return cursor;
-		return i;
+		if (i < 1 || !isStartChar(text.charAt(i - 1))) return cursor;
+		return i - 1;
 	}
 
 	@Override
@@ -42,10 +43,18 @@ public class UsernameTokenizer implements Tokenizer {
 		int i = cursor;
 		final int len = text.length();
 		while (i < len) {
-			if (text.charAt(i) == ' ') return i;
+			if (isEndChar(text.charAt(i))) return i;
 			i++;
 		}
 		return len;
+	}
+
+	private static boolean isStartChar(final char c) {
+		return c == '@' || c == '#';
+	}
+
+	private static boolean isEndChar(final char c) {
+		return c == '@' || c == ' ';
 	}
 
 }
