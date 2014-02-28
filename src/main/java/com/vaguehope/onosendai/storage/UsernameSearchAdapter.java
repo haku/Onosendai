@@ -36,20 +36,33 @@ public class UsernameSearchAdapter extends ArrayAdapter<String> {
 
 		@Override
 		protected FilterResults performFiltering (final CharSequence constraint) {
-			if (constraint == null) return new FilterResults();
+			if (constraint == null || constraint.length() < 2) return new FilterResults();
 			try {
-				final String term = constraint.toString();
-				final List<String> usernames = this.dbProvider.getDb().getUsernames(term, 10);
-
-				final FilterResults filterResults = new FilterResults();
-				filterResults.values = usernames;
-				filterResults.count = usernames.size();
-				return filterResults;
+				final String term = constraint.subSequence(1, constraint.length()).toString();
+				switch (constraint.charAt(0)) {
+					case '@':
+						return wrapResults("@", this.dbProvider.getDb().getUsernames(term, 10));
+					case '#':
+						return wrapResults("#", this.dbProvider.getDb().getHashtags(term, 10));
+					default:
+						LOG.w("Unexpected search: '%s'.", term);
+				}
+				return new FilterResults();
 			}
 			catch (final Exception e) { // NOSONAR Need to report errors.
 				LOG.e("Search failed.", e);
 				return new FilterResults();
 			}
+		}
+
+		private static FilterResults wrapResults (final String addPrefix, final List<String> res) {
+			for (int i = 0; i < res.size(); i++) {
+				res.set(i, addPrefix.concat(res.get(i)));
+			}
+			final FilterResults filterResults = new FilterResults();
+			filterResults.values = res;
+			filterResults.count = res.size();
+			return filterResults;
 		}
 
 		@Override
