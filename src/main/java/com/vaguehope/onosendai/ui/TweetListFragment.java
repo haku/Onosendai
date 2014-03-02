@@ -12,6 +12,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -595,22 +596,79 @@ public class TweetListFragment extends Fragment {
 
 		@Override
 		public void onClick (final View v) {
-			final Column col = this.tweetListFragment.getConf().findInternalColumn(InternalColumnType.LATER);
-			if (col != null) {
-				if (this.isLaterColumn) {
-					this.tweetListFragment.getDb().deleteTweet(col, this.tweet);
-					Toast.makeText(this.context, "Removed.", Toast.LENGTH_SHORT).show();
-				}
-				else {
-					this.tweetListFragment.getDb().storeTweets(col, Collections.singletonList(this.tweet.cloneWithCurrentTimestamp()));
-					Toast.makeText(this.context, "Saved for later.", Toast.LENGTH_SHORT).show();
-				}
-				this.tweetListFragment.setReadLaterButton(this.tweet, !this.isLaterColumn);
+			if (this.isLaterColumn) {
+				new SetLaterTask(this.tweetListFragment, this.tweet, LaterState.READ).executeOnExecutor(this.tweetListFragment.getLocalEs());
 			}
 			else {
-				DialogHelper.alert(this.context, "Read later column not configured.");
+				new SetLaterTask(this.tweetListFragment, this.tweet, LaterState.UNREAD).executeOnExecutor(this.tweetListFragment.getLocalEs());
 			}
 		}
+	}
+
+	public enum LaterState {
+		UNREAD,
+		READ;
+	}
+
+	private static class SetLaterTask extends AsyncTask<Void, Void, Exception> {
+
+		private final TweetListFragment parent;
+		private final Tweet tweet;
+		private final LaterState laterState;
+
+		public SetLaterTask(final TweetListFragment parent, final Tweet tweet, final LaterState laterState) {
+			this.parent = parent;
+			this.tweet = tweet;
+			this.laterState = laterState;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			this.parent.btnDetailsLater.setEnabled(false);
+		}
+
+		@Override
+		protected Exception doInBackground(final Void... params) {
+			try {
+				final Column col = this.parent.getConf().findInternalColumn(InternalColumnType.LATER);
+				if (col == null) return new IllegalStateException("Read later column not configured.");
+				switch (this.laterState) {
+					case UNREAD:
+						this.parent.getDb().storeTweets(col, Collections.singletonList(this.tweet.cloneWithCurrentTimestamp()));
+						return null;
+					case READ:
+						this.parent.getDb().deleteTweet(col, this.tweet);
+						return null;
+					default:
+						return new IllegalStateException("Unknown read later state: " + this.laterState);
+				}
+			}
+			catch (final Exception e) { // NOSONAR To report status.
+				return e;
+			}
+		}
+
+		@Override
+		protected void onPostExecute(final Exception result) {
+			if (result == null) {
+				if (this.parent.lstTweetPayloadAdaptor.isForTweet(this.tweet)) this.parent.setReadLaterButton(this.tweet, this.laterState != LaterState.READ);
+				switch (this.laterState) {
+				case UNREAD:
+					Toast.makeText(this.parent.getMainActivity(), "Saved for later.", Toast.LENGTH_SHORT).show();
+					break;
+				case READ:
+					Toast.makeText(this.parent.getMainActivity(), "Removed.", Toast.LENGTH_SHORT).show();
+					break;
+				default:
+					DialogHelper.alert(this.parent.getMainActivity(), "Unknown read later state: " + this.laterState);
+				}
+			}
+			else {
+				DialogHelper.alert(this.parent.getMainActivity(), result);
+			}
+			this.parent.btnDetailsLater.setEnabled(true);
+		}
+
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
