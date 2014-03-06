@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.method.TextKeyListener;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -274,6 +275,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		this.txtBody.setTokenizer(new UsernameTokenizer());
 		this.txtBody.setAdapter(new UsernameSearchAdapter(this));
 		this.txtBody.addTextChangedListener(new PopupPositioniner(this.txtBody));
+		this.txtBody.setKeyListener(TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES));
 	}
 
 	private void wireMainButtons () {
