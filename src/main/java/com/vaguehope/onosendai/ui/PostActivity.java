@@ -17,6 +17,7 @@ import org.json.JSONException;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -65,6 +66,7 @@ import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.Result;
 import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.exec.ExecUtils;
 import com.vaguehope.onosendai.widget.adaptor.PopupPositioniner;
@@ -489,6 +491,11 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		return metadata;
 	}
 
+	protected ImageMetadata setAndRedrawAttachment (final Uri att) {
+		this.attachment = att;
+		return redrawAttachment();
+	}
+
 	private final OnClickListener attachClickListener = new OnClickListener() {
 		@Override
 		public void onClick (final View v) {
@@ -524,8 +531,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				showShrinkPictureDlg();
 				return true;
 			case R.id.mnuRemove:
-				this.attachment = null;
-				redrawAttachment();
+				setAndRedrawAttachment(null);
 				return true;
 			default:
 				return false;
@@ -546,8 +552,22 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	}
 
 	protected void showShrinkPictureDlg () {
+		final PictureResizeDialog dlg = new PictureResizeDialog(this, this.attachment);
+		new PictureResizeDialog.DialogInitTask(dlg, new Listener<Throwable>() {
+			@Override
+			public void onAnswer (final Throwable result) {
+				if (result == null) {
+					showInitedShrinkPictureDlg(dlg);
+				}
+				else {
+					DialogHelper.alert(PostActivity.this, result);
+				}
+			}
+		}).execute();
+	}
+
+	protected void showInitedShrinkPictureDlg (final PictureResizeDialog dlg) {
 		try {
-			final PictureResizeDialog dlg = new PictureResizeDialog(this, this.attachment);
 			final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(this);
 			dlgBuilder.setTitle(dlg.getUiTitle());
 			dlgBuilder.setView(dlg.getRootView());
@@ -556,31 +576,43 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				public void onClick (final DialogInterface dialog, final int which) {
 					resizeAttachedPicture(dlg);
 					dialog.dismiss();
-					dlg.recycle();
 				}
 			});
 			dlgBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick (final DialogInterface dialog, final int whichButton) {
 					dialog.cancel();
+				}
+			});
+			dlgBuilder.setOnCancelListener(new OnCancelListener() {
+				@Override
+				public void onCancel (final DialogInterface dialog) {
 					dlg.recycle();
 				}
 			});
 			dlgBuilder.create().show();
 		}
-		catch (final IOException e) {
-			DialogHelper.alert(this, e);
+		// XXX Cases of OutOfMemoryError have been reported, particularly on low end hardware.
+		// Try not to upset the user too much by not dying completely if possible.
+		catch (final Throwable t) {
+			DialogHelper.alert(this, t);
 		}
 	}
 
 	protected void resizeAttachedPicture (final PictureResizeDialog dlg) {
-		try {
-			this.attachment = dlg.resizeToTempFile();
-			redrawAttachment();
-		}
-		catch (final IOException e) {
-			DialogHelper.alert(this, e);
-		}
+		new PictureResizeDialog.ResizeToTempFileTask(dlg, new Listener<Result<Uri>>() {
+			@Override
+			public void onAnswer (final Result<Uri> result) {
+				dlg.recycle();
+				if (result.isSuccess()) {
+					setAndRedrawAttachment(result.getData());
+				}
+				else {
+					LOG.e("Failed to resize image.", result.getE());
+					DialogHelper.alert(PostActivity.this, result.getE());
+				}
+			}
+		}).execute();
 	}
 
 	@Override

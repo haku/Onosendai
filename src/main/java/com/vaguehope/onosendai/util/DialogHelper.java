@@ -30,12 +30,12 @@ public final class DialogHelper {
 		throw new AssertionError();
 	}
 
-	public static void alert (final Context context, final Exception e) {
-		alert(context, "Error:", e);
+	public static void alert (final Context context, final Throwable t) {
+		alert(context, "Error:", t);
 	}
 
-	public static void alert (final Context context, final String msg, final Exception e) {
-		alert(context, msg + "\n" + e.toString());
+	public static void alert (final Context context, final String msg, final Throwable t) {
+		alert(context, msg + "\n" + ExcpetionHelper.causeTrace(t));
 	}
 
 	public static void alertIfPossible (final Context context, final String msg, final Exception e) {
@@ -67,7 +67,7 @@ public final class DialogHelper {
 	}
 
 	public static void alertAndClose (final Activity activity, final String msg, final Exception e) {
-		alertAndClose(activity, msg + "\n" + e.toString());
+		alertAndClose(activity, msg + "\n" + ExcpetionHelper.causeTrace(e));
 	}
 
 	public static void alertAndClose (final Activity activity, final String msg) {
