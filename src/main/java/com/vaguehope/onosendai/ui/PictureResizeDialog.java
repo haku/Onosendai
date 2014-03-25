@@ -7,8 +7,10 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import local.apache.ByteArrayOutputStream;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -28,9 +30,11 @@ import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.storage.AttachmentStorage;
+import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.Result;
 import com.vaguehope.onosendai.util.Titleable;
 
 public class PictureResizeDialog implements Titleable {
@@ -44,7 +48,7 @@ public class PictureResizeDialog implements Titleable {
 	private static final LogWrapper LOG = new LogWrapper("PRD");
 
 	private final Context context;
-	private final ImageMetadata srcMetadata;
+	private final Uri pictureUri;
 
 	private final View llParent;
 	private final ImageView imgPreview;
@@ -53,12 +57,11 @@ public class PictureResizeDialog implements Titleable {
 	private final ProgressBar prgRedrawing;
 	private final TextView txtSummary;
 
-	public PictureResizeDialog (final Context context, final Uri pictureUri) throws IOException {
-		this.context = context;
-		this.srcMetadata = new ImageMetadata(context, pictureUri);
+	private ImageMetadata srcMetadata;
 
-		final Bitmap srcBmp = this.srcMetadata.readBitmap(); // FIXME do not do this on UI thread.
-		if (srcBmp == null) throw new IllegalStateException("Failed to read: " + this.srcMetadata); // FIXME handle this better?
+	public PictureResizeDialog (final Context context, final Uri pictureUri) {
+		this.context = context;
+		this.pictureUri = pictureUri;
 
 		final LayoutInflater inflater = LayoutInflater.from(context);
 		this.llParent = inflater.inflate(R.layout.pictureresizedialog, null);
@@ -80,6 +83,12 @@ public class PictureResizeDialog implements Titleable {
 		this.spnQuality.setAdapter(qualityAdapter);
 		this.spnQuality.setSelection(DEFAULT_QUALITY_POS);
 		this.spnQuality.setOnItemSelectedListener(this.spnChangeListener);
+	}
+
+	public void init () throws IOException {
+		this.srcMetadata = new ImageMetadata(this.context, this.pictureUri);
+		final Bitmap srcBmp = this.srcMetadata.readBitmap();
+		if (srcBmp == null) throw new IllegalStateException("Failed to read: " + this.srcMetadata); // FIXME handle this better?
 	}
 
 	public View getRootView () {
@@ -121,6 +130,10 @@ public class PictureResizeDialog implements Titleable {
 
 	public void recycle () {
 		this.srcMetadata.recycle();
+	}
+
+	protected Context getContext () {
+		return this.context;
 	}
 
 	private final OnItemSelectedListener spnChangeListener = new OnItemSelectedListener() {
@@ -174,6 +187,43 @@ public class PictureResizeDialog implements Titleable {
 				ret.add(new Scale(i, i + "%"));
 			}
 			return Collections.unmodifiableList(ret);
+		}
+
+	}
+
+	public static class DialogInitTask extends AsyncTask<Void, Void, Throwable> {
+
+		private final PictureResizeDialog prd;
+		private final Listener<Throwable> resultListener;
+		private ProgressDialog dialog;
+
+		public DialogInitTask (final PictureResizeDialog prd, final Listener<Throwable> resultListener) {
+			this.prd = prd;
+			this.resultListener = resultListener;
+		}
+
+		@Override
+		protected void onPreExecute () {
+			this.dialog = ProgressDialog.show(this.prd.getContext(), "Shrink image", "Reading image...", true);
+		}
+
+		@Override
+		protected Throwable doInBackground (final Void... params) {
+			try {
+				this.prd.init();
+				return null;
+			}
+			// XXX Cases of OutOfMemoryError have been reported, particularly on low end hardware.
+			// Try not to upset the user too much by not dying completely if possible.
+			catch (final Throwable t) {
+				return t;
+			}
+		}
+
+		@Override
+		protected void onPostExecute (final Throwable result) {
+			this.dialog.dismiss();
+			this.resultListener.onAnswer(result);
 		}
 
 	}
@@ -241,7 +291,7 @@ public class PictureResizeDialog implements Titleable {
 					if (scaled != src) scaled.recycle(); // NOSONAR intentional identity comparison.
 				}
 			}
-			// XXX May cases of OutOfMemoryError have been reported, particularly on low end hardware.
+			// XXX Many cases of OutOfMemoryError have been reported, particularly on low end hardware.
 			// Try not to upset the user too much by not dying completely if possible.
 			catch (final Throwable e) {
 				LOG.e("Failed to generate preview image.", e);
@@ -260,6 +310,45 @@ public class PictureResizeDialog implements Titleable {
 				this.imgPreview.setImageResource(R.drawable.exclamation_red);
 			}
 			this.prgRedrawing.setVisibility(View.INVISIBLE);
+		}
+
+	}
+
+	public static class ResizeToTempFileTask extends AsyncTask<Void, Void, Result<Uri>> {
+
+		private final PictureResizeDialog prd;
+		private final Listener<Result<Uri>> resultListener;
+		private ProgressDialog dialog;
+
+		public ResizeToTempFileTask (final PictureResizeDialog prd, final Listener<Result<Uri>> resultListener) {
+			this.prd = prd;
+			this.resultListener = resultListener;
+		}
+
+		@Override
+		protected void onPreExecute () {
+			this.dialog = ProgressDialog.show(this.prd.getContext(), "Shrink image", "Resizing image...", true);
+		}
+
+		@Override
+		protected Result<Uri> doInBackground (final Void... params) {
+			try {
+				return new Result<Uri>(this.prd.resizeToTempFile());
+			}
+			catch (final Exception e) { // NOSONAR show user all errors.
+				return new Result<Uri>(e);
+			}
+			// XXX Cases of OutOfMemoryError have been reported, particularly on low end hardware.
+			// Try not to upset the user too much by not dying completely if possible.
+			catch (final Throwable e) {
+				return new Result<Uri>(new ExecutionException("Failed to resize image.", e));
+			}
+		}
+
+		@Override
+		protected void onPostExecute (final Result<Uri> result) {
+			this.dialog.dismiss();
+			this.resultListener.onAnswer(result);
 		}
 
 	}

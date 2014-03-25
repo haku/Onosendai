@@ -59,6 +59,7 @@ public class PictureResizeDialogTest {
 		this.attachment = Uri.fromFile(picFile);
 
 		final PictureResizeDialog dlg = new PictureResizeDialog(this.activity, this.attachment);
+		dlg.init();
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(this.activity);
 		dlgBuilder.setTitle(dlg.getUiTitle());
 		dlgBuilder.setView(dlg.getRootView());
