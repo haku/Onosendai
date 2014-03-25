@@ -347,21 +347,22 @@ public class TweetListFragment extends Fragment {
 				}
 			});
 		}
-		else { // because we stop listening in onPause(), we must resume if the user comes back.
-			this.bndDb.getDb().addTwUpdateListener(getGuiUpdateListener());
+		else if (getDb() != null) { // because we stop listening in onPause(), we must resume if the user comes back.
+			getDb().addTwUpdateListener(getGuiUpdateListener());
 			restoreSavedScrollFromDb();
 			refreshUi();
 			this.log.d("DB service rebound.");
 		}
+		else {
+			this.log.w("resumeDb() called while DB service is half bound.  I do not know what to do.");
+		}
 	}
 
 	private void suspendDb () {
-		// We might be pausing before the callback has come.
-		if (this.bndDb.getDb() != null) {
-			this.bndDb.getDb().removeTwUpdateListener(getGuiUpdateListener());
+		if (getDb() != null) { // We might be pausing before the callback has come.
+			getDb().removeTwUpdateListener(getGuiUpdateListener());
 		}
-		else {
-			// If we have not even had the callback yet, cancel it.
+		else { // If we have not even had the callback yet, cancel it.
 			this.bndDb.clearReadyListener();
 		}
 		this.log.d("DB service released.");
