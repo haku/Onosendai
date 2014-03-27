@@ -94,6 +94,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	private String stashedLinkUrl;
 	private String stashedLinkExpandedUrl;
 	private String stashedLinkTitle;
+	private String stashedLinkPreviewUrl;
 	private String stashedFetchedForUserid;
 	private String stashedService;
 	private String stashedRetweetedByUser;
@@ -197,6 +198,12 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 		}
 		else if (this.stack.size() == 6) { // NOSONAR not a magic number.
 			if ("link".equals(elementName)) {
+				if (this.stashedLinkPreviewUrl != null && this.stashedLinkExpandedUrl != null) {
+					this.currentItem.meta(MetaType.MEDIA, this.stashedLinkPreviewUrl, this.stashedLinkExpandedUrl);
+				}
+				else if (this.stashedLinkPreviewUrl != null && this.stashedLinkUrl != null) {
+					this.currentItem.meta(MetaType.MEDIA, this.stashedLinkPreviewUrl, this.stashedLinkUrl);
+				}
 				if (this.stashedLinkExpandedUrl != null) {
 					this.currentItem.meta(MetaType.URL, this.stashedLinkExpandedUrl, this.stashedLinkTitle);
 				}
@@ -206,8 +213,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.stashedLinkUrl = null;
 				this.stashedLinkExpandedUrl = null;
 				this.stashedLinkTitle = null;
+				this.stashedLinkPreviewUrl = null;
 			}
-			if ("username".equals(elementName)) {
+			else if ("username".equals(elementName)) {
 				if (!EqualHelper.equal(this.stashedFetchedForUserid, this.stashedUserId)) {
 					this.currentItem.meta(MetaType.MENTION, this.stashedMentionUserName, this.stashedMentionFullName);
 				}
@@ -215,7 +223,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.stashedMentionFullName = null;
 				this.stashedUserId = null;
 			}
-			if ("hashtag".equals(elementName)) {
+			else if ("hashtag".equals(elementName)) {
 				this.currentItem.meta(MetaType.HASHTAG, this.stashedHashtagText);
 				this.stashedHashtagText = null;
 			}
@@ -236,7 +244,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				if (this.stashedFirstLinkTitle == null) this.stashedFirstLinkTitle = this.stashedLinkTitle;
 			}
 			else if ("preview".equals(elementName) && "link".equals(this.stack.get(5))) { // NOSONAR not a magic number.
-				this.currentItem.meta(MetaType.MEDIA, this.currentText.toString());
+				this.stashedLinkPreviewUrl = this.currentText.toString();
 			}
 			else if ("text".equals(elementName) && "hashtag".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				this.stashedHashtagText = this.currentText.toString();

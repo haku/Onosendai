@@ -103,6 +103,7 @@ public final class PayloadUtils {
 
 	private static void extractUrls (final Tweet tweet, final Set<Payload> ret) {
 		if (payloadsContainsType(ret, PayloadType.LINK)) return;
+		if (payloadsContainsType(ret, PayloadType.MEDIA)) return;
 		final String text = tweet.getBody();
 		if (text == null || text.isEmpty()) return;
 		final Matcher m = StringHelper.URL_PATTERN.matcher(text);

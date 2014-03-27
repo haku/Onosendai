@@ -151,7 +151,7 @@ public final class TwitterUtils {
 			if (url.getStart() < 0 || url.getEnd() > text.length()) return text; // All bets are off.
 			final String fullUrl = url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL();
 			bld.append(text.substring(i == 0 ? 0 : urls[i - 1].getEnd(), url.getStart())).append(fullUrl);
-			metas.add(new Meta(MetaType.URL, fullUrl, url.getDisplayURL()));
+			if (!(url instanceof MediaEntity)) metas.add(new Meta(MetaType.URL, fullUrl, url.getDisplayURL()));
 		}
 		bld.append(text.substring(urls[urls.length - 1].getEnd()));
 		final String expandedText = bld.toString();
@@ -163,9 +163,10 @@ public final class TwitterUtils {
 		final MediaEntity[] mes = s.getMediaEntities();
 		if (mes == null) return;
 		for (final MediaEntity me : mes) {
-			String url = me.getMediaURLHttps();
-			if (hdMedia) url += ":large";
-			metas.add(new Meta(MetaType.MEDIA, url));
+			final String clickUrl = me.getExpandedURL() != null ? me.getExpandedURL() : me.getURL();
+			String imgUrl = me.getMediaURLHttps();
+			if (hdMedia) imgUrl += ":large";
+			metas.add(new Meta(MetaType.MEDIA, imgUrl, clickUrl));
 		}
 	}
 
@@ -175,7 +176,7 @@ public final class TwitterUtils {
 		for (final URLEntity url : urls) {
 			final String fullUrl = url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL();
 			final String thumbUrl = ImageHostHelper.thumbUrl(fullUrl, hdMedia);
-			if (thumbUrl != null) metas.add(new Meta(MetaType.MEDIA, thumbUrl));
+			if (thumbUrl != null) metas.add(new Meta(MetaType.MEDIA, thumbUrl, fullUrl));
 		}
 	}
 

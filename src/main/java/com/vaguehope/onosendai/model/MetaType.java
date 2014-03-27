@@ -4,6 +4,7 @@ public enum MetaType {
 
 	/**
 	 * Data is an image URL that can be shown as a preview.
+	 * Title may be the click URL.
 	 */
 	MEDIA(1),
 	/**
