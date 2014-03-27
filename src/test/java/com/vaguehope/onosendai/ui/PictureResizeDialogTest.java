@@ -33,7 +33,7 @@ import com.vaguehope.onosendai.util.IoHelper;
 import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicInteger;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = { ShadowBitmapRegionDecoder.class })
+@Config(shadows = { ShadowParcel.class, ShadowBitmapRegionDecoder.class })
 public class PictureResizeDialogTest {
 
 	@Rule public TemporaryFolder tmp = new TemporaryFolder();
@@ -59,7 +59,6 @@ public class PictureResizeDialogTest {
 		this.attachment = Uri.fromFile(picFile);
 
 		final PictureResizeDialog dlg = new PictureResizeDialog(this.activity, this.attachment);
-		dlg.init();
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(this.activity);
 		dlgBuilder.setTitle(dlg.getUiTitle());
 		dlgBuilder.setView(dlg.getRootView());
@@ -106,7 +105,7 @@ public class PictureResizeDialogTest {
 
 		final TextView txtSummary = (TextView) this.shadowAlert.getView().findViewById(R.id.txtSummary);
 
-		final String expectedStatus = "100 x 100 (3.4 KB) --> 100 x 100 (78 B)";
+		final String expectedStatus = "100 x 100 (3.4 KB) --> 50 x 50 (69 B)";
 		int n = 0;
 		while (true) {
 			if (expectedStatus.equals(txtSummary.getText().toString())) break;
