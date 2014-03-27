@@ -2,8 +2,6 @@ package com.vaguehope.onosendai.images;
 
 import java.io.IOException;
 
-import org.apache.http.client.HttpResponseException;
-
 import android.graphics.Bitmap;
 
 import com.vaguehope.onosendai.images.ImageFetcherTask.ImageFetchResult;
@@ -112,9 +110,6 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Void, ImageFetchRe
 
 		public String getEmsg () {
 			if (this.e != null) {
-				if (this.e instanceof HttpResponseException) {
-					return String.format("HTTP %s.", ((HttpResponseException) this.e).getStatusCode());
-				}
 				return ExcpetionHelper.causeTrace(this.e, "|");
 			}
 			return "Invalid response.";

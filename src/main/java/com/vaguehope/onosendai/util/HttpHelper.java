@@ -29,6 +29,8 @@ public final class HttpHelper {
 	public static final int HTTP_CONNECT_TIMEOUT_SECONDS = 20;
 	public static final int HTTP_READ_TIMEOUT_SECONDS = 60;
 
+	private static final int MAX_REDIRECTS = 3;
+
 	public interface HttpStreamHandler<R, T extends Exception> {
 
 		R handleStream (InputStream is, int contentLength) throws IOException, T;
@@ -40,6 +42,10 @@ public final class HttpHelper {
 	}
 
 	public static <R, T extends Exception> R get (final String sUrl, final HttpStreamHandler<R, T> streamHandler) throws IOException, T { // NOSONAR Not redundant throws.
+		return get(sUrl, streamHandler, 0);
+	}
+
+	private static <R, T extends Exception> R get (final String sUrl, final HttpStreamHandler<R, T> streamHandler, final int redirectCount) throws IOException, T { // NOSONAR Not redundant throws.
 		final URL url = new URL(sUrl);
 		final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		try {
@@ -51,6 +57,16 @@ public final class HttpHelper {
 			InputStream is = null;
 			try {
 				final int responseCode = connection.getResponseCode();
+
+				// For some reason some devices do not follow redirects. :(
+				if (responseCode == 301 || responseCode == 302 || responseCode == 307) { // NOSONAR not magic numbers.  Its HTTP spec.
+					if (redirectCount >= MAX_REDIRECTS) throw new HttpResponseException(responseCode, "Max redirects of " + MAX_REDIRECTS + " exceeded.");
+					final String location = connection.getHeaderField("Location");
+					if (location == null) throw new HttpResponseException(responseCode, "Location header missing.  Headers present: "
+							+ connection.getHeaderFields() + ".");
+					return get(location, streamHandler, redirectCount + 1);
+				}
+
 				if (responseCode < 200 || responseCode >= 300) { // NOSONAR not magic numbers.  Its HTTP spec.
 					throw new HttpResponseException(responseCode, IoHelper.toString(connection.getErrorStream()));
 				}
