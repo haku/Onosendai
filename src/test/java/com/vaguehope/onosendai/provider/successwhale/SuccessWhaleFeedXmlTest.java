@@ -65,7 +65,7 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals("http://pbs.twimg.com/media/SDFLKsdflkjdfmG.jpg", t.getInlineMediaUrl());
 
 		assertEquals(4, t.getMetas().size());
-		assertHasMeta(t.getMetas(), new Meta(MetaType.MEDIA, "http://pbs.twimg.com/media/SDFLKsdflkjdfmG.jpg"));
+		assertHasMeta(t.getMetas(), new Meta(MetaType.MEDIA, "http://pbs.twimg.com/media/SDFLKsdflkjdfmG.jpg", "http://www.computerworld.com/s/article/9237880/DreamWorks_tops_compute_cycle_record_with_The_Croods_"));
 		assertHasMeta(t.getMetas(), new Meta(MetaType.URL,
 				"http://www.computerworld.com/s/article/9237880/DreamWorks_tops_compute_cycle_record_with_The_Croods_",
 				"computerworld.com/s/article/9237…"));
@@ -138,7 +138,7 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals("https://s-platform.ak.fbcdn.net/www/app_full_proxy.php?app=350685531728&v=1&size=z&cksum=1e87fdc3550bd207da99c7d631a82ae0&src=http%3A%2F%2Fnews.bbcimg.co.uk%2Fmedia%2Fimages%2F66629000%2Fjpg%2F_66629196_66629188.jpg", t.getInlineMediaUrl());
 
 		assertEquals(4, t.getMetas().size());
-		assertHasMeta(t.getMetas(), new Meta(MetaType.MEDIA, "https://s-platform.ak.fbcdn.net/www/app_full_proxy.php?app=350685531728&v=1&size=z&cksum=1e87fdc3550bd207da99c7d631a82ae0&src=http%3A%2F%2Fnews.bbcimg.co.uk%2Fmedia%2Fimages%2F66629000%2Fjpg%2F_66629196_66629188.jpg"));
+		assertHasMeta(t.getMetas(), new Meta(MetaType.MEDIA, "https://s-platform.ak.fbcdn.net/www/app_full_proxy.php?app=350685531728&v=1&size=z&cksum=1e87fdc3550bd207da99c7d631a82ae0&src=http%3A%2F%2Fnews.bbcimg.co.uk%2Fmedia%2Fimages%2F66629000%2Fjpg%2F_66629196_66629188.jpg", "http://m.bbc.co.uk/news/world-asia-21950139"));
 		assertHasMeta(t.getMetas(), new Meta(MetaType.URL, "http://m.bbc.co.uk/news/world-asia-21950139", "North Korea warns South president"));
 		assertHasMeta(t.getMetas(), new Meta(MetaType.SERVICE, "facebook:532423349"));
 		assertHasMeta(t.getMetas(), new Meta(MetaType.ACCOUNT, ACCOUNT_ID));

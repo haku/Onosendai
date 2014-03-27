@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.URLEntity;
@@ -38,6 +39,14 @@ public class TwitterUtilsTest {
 	@Before
 	public void before () throws Exception {
 		this.account = mock(Account.class);
+	}
+
+	@Test
+	public void itExpandsTwitterMedia () throws Exception {
+		final Status s = mockTweetWithMedia("https://twitter.com/some*user/status/1235430985/photo/1", "https://pbs.twimg.com/media/BjwsdkfjsAAI-4x.jpg");
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false);
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, "https://pbs.twimg.com/media/BjwsdkfjsAAI-4x.jpg", "https://twitter.com/some*user/status/1235430985/photo/1")));
+		assertNoMetaOfType(t, MetaType.URL);
 	}
 
 	@Test
@@ -184,7 +193,7 @@ public class TwitterUtilsTest {
 	private void testPictureUrlExpansion (final String fromUrl, final boolean hdMedia, final String toUrl) {
 		final Status s = mockTweetWithUrl(fromUrl);
 		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, hdMedia);
-		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, toUrl)));
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, toUrl, fromUrl)));
 	}
 
 	private void testPictureUrlNonExpansion (final String fromUrl) {
@@ -205,6 +214,21 @@ public class TwitterUtilsTest {
 		when(ue.getEnd()).thenReturn(6 + url.length());
 
 		when(s.getURLEntities()).thenReturn(new URLEntity[] { ue });
+
+		return s;
+	}
+
+	private static Status mockTweetWithMedia (final String mediaPageUrl, final String mediaImgUrl) {
+		final Status s = mockTweet("media: " + mediaPageUrl);
+
+		final MediaEntity me = mock(MediaEntity.class);
+		when(me.getURL()).thenReturn(mediaPageUrl);
+		when(me.getExpandedURL()).thenReturn(mediaPageUrl);
+		when(me.getMediaURLHttps()).thenReturn(mediaImgUrl);
+		when(me.getStart()).thenReturn(7);
+		when(me.getEnd()).thenReturn(7 + mediaPageUrl.length());
+
+		when(s.getMediaEntities()).thenReturn(new MediaEntity[] { me });
 
 		return s;
 	}
@@ -240,6 +264,12 @@ public class TwitterUtilsTest {
 		when(ume.getName()).thenReturn(fullName);
 		when(ume.getId()).thenReturn(id);
 		return ume;
+	}
+
+	private static void assertNoMetaOfType (final Tweet t, final MetaType type) throws AssertionError {
+		for (Meta meta : t.getMetas()) {
+			if (meta.getType() == type) throw new AssertionError("Metas should not have any " + type + ": " + t.getMetas());
+		}
 	}
 
 	@Test

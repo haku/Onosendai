@@ -17,24 +17,22 @@ import com.vaguehope.onosendai.widget.PendingImage;
 
 public class MediaPayload extends Payload {
 
-	private final String url;
+	private final String imgUrl;
+	private final String clickUrl;
 
 	public MediaPayload (final Tweet ownerTweet, final Meta meta) {
-		this(ownerTweet, meta.getData());
+		this(ownerTweet, meta.getData(), meta.getTitle());
 	}
 
-	public MediaPayload (final Tweet ownerTweet, final String url) {
+	public MediaPayload (final Tweet ownerTweet, final String imgUrl, final String clickUrl) {
 		super(ownerTweet, PayloadType.MEDIA);
-		this.url = url;
-	}
-
-	public String getUrl () {
-		return this.url;
+		this.imgUrl = imgUrl;
+		this.clickUrl = clickUrl;
 	}
 
 	@Override
 	public String getTitle () {
-		return this.url;
+		return this.clickUrl != null ? this.clickUrl : this.imgUrl;
 	}
 
 	@Override
@@ -45,7 +43,7 @@ public class MediaPayload extends Payload {
 	@Override
 	public Intent toIntent (final Context context) {
 		final Intent i = new Intent(Intent.ACTION_VIEW);
-		i.setData(Uri.parse(this.url));
+		i.setData(Uri.parse(this.clickUrl != null ? this.clickUrl : this.imgUrl));
 		return i;
 	}
 
@@ -62,12 +60,16 @@ public class MediaPayload extends Payload {
 	@Override
 	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final PayloadClickListener clickListener) {
 		super.applyTo(rowView, imageLoader, clickListener);
-		imageLoader.loadImage(new ImageLoadRequest(getUrl(), rowView.getImage(), new CaptionRemover(rowView)));
+		imageLoader.loadImage(new ImageLoadRequest(this.imgUrl, rowView.getImage(), new CaptionRemover(rowView)));
 	}
 
 	@Override
 	public int hashCode () {
-		return this.url.hashCode();
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (this.imgUrl == null ? 0 : this.imgUrl.hashCode());
+		result = prime * result + (this.clickUrl == null ? 0 : this.clickUrl.hashCode());
+		return result;
 	}
 
 	@Override
@@ -76,7 +78,8 @@ public class MediaPayload extends Payload {
 		if (o == this) return true;
 		if (!(o instanceof MediaPayload)) return false;
 		final MediaPayload that = (MediaPayload) o;
-		return EqualHelper.equal(this.url, that.url);
+		return EqualHelper.equal(this.imgUrl, that.imgUrl)
+				&& EqualHelper.equal(this.clickUrl, that.clickUrl);
 	}
 
 	private static class CaptionRemover implements ImageLoadListener {
