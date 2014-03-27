@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -176,7 +177,17 @@ public final class TwitterUtils {
 		for (final URLEntity url : urls) {
 			final String fullUrl = url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL();
 			final String thumbUrl = ImageHostHelper.thumbUrl(fullUrl, hdMedia);
-			if (thumbUrl != null) metas.add(new Meta(MetaType.MEDIA, thumbUrl, fullUrl));
+			if (thumbUrl != null) {
+				metas.add(new Meta(MetaType.MEDIA, thumbUrl, fullUrl));
+
+				// TODO put this somewhere nicer.
+				// Remove redundant URL entries added by expandUrls().
+				final Iterator<Meta> ittr = metas.iterator();
+				while (ittr.hasNext()) {
+					final Meta meta = ittr.next();
+					if (meta.getType() == MetaType.URL && fullUrl.equals(meta.getData())) ittr.remove();
+				}
+			}
 		}
 	}
 

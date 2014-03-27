@@ -194,6 +194,7 @@ public class TwitterUtilsTest {
 		final Status s = mockTweetWithUrl(fromUrl);
 		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, hdMedia);
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, toUrl, fromUrl)));
+		assertNoMetaOfType(t, MetaType.URL);
 	}
 
 	private void testPictureUrlNonExpansion (final String fromUrl) {
