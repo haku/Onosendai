@@ -552,22 +552,8 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	}
 
 	protected void showShrinkPictureDlg () {
-		final PictureResizeDialog dlg = new PictureResizeDialog(this, this.attachment);
-		new PictureResizeDialog.DialogInitTask(dlg, new Listener<Throwable>() {
-			@Override
-			public void onAnswer (final Throwable result) {
-				if (result == null) {
-					showInitedShrinkPictureDlg(dlg);
-				}
-				else {
-					DialogHelper.alert(PostActivity.this, result);
-				}
-			}
-		}).execute();
-	}
-
-	protected void showInitedShrinkPictureDlg (final PictureResizeDialog dlg) {
 		try {
+			final PictureResizeDialog dlg = new PictureResizeDialog(this, this.attachment);
 			final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(this);
 			dlgBuilder.setTitle(dlg.getUiTitle());
 			dlgBuilder.setView(dlg.getRootView());

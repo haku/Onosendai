@@ -39,8 +39,8 @@ import com.vaguehope.onosendai.util.Titleable;
 
 public class PictureResizeDialog implements Titleable {
 
-	private static final List<Scale> SCALES = Scale.setOf(100, 75, 50, 25);
-	private static final int DEFAULT_SCALES_POS = 0;
+	private static final List<Scale> SCALES = Scale.setOf(100, 50, 25);
+	private static final int DEFAULT_SCALES_POS = 1;
 
 	private static final List<Scale> QUALITIES = Scale.setOf(100, 95, 90, 80, 70, 50, 30, 10);
 	private static final int DEFAULT_QUALITY_POS = 2;
@@ -48,7 +48,7 @@ public class PictureResizeDialog implements Titleable {
 	private static final LogWrapper LOG = new LogWrapper("PRD");
 
 	private final Context context;
-	private final Uri pictureUri;
+	private final ImageMetadata srcMetadata;
 
 	private final View llParent;
 	private final ImageView imgPreview;
@@ -57,11 +57,9 @@ public class PictureResizeDialog implements Titleable {
 	private final ProgressBar prgRedrawing;
 	private final TextView txtSummary;
 
-	private ImageMetadata srcMetadata;
-
 	public PictureResizeDialog (final Context context, final Uri pictureUri) {
 		this.context = context;
-		this.pictureUri = pictureUri;
+		this.srcMetadata = new ImageMetadata(this.context, pictureUri);
 
 		final LayoutInflater inflater = LayoutInflater.from(context);
 		this.llParent = inflater.inflate(R.layout.pictureresizedialog, null);
@@ -85,12 +83,6 @@ public class PictureResizeDialog implements Titleable {
 		this.spnQuality.setOnItemSelectedListener(this.spnChangeListener);
 	}
 
-	public void init () throws IOException {
-		this.srcMetadata = new ImageMetadata(this.context, this.pictureUri);
-		final Bitmap srcBmp = this.srcMetadata.readBitmap();
-		if (srcBmp == null) throw new IllegalStateException("Failed to read: " + this.srcMetadata); // FIXME handle this better?
-	}
-
 	public View getRootView () {
 		return this.llParent;
 	}
@@ -112,19 +104,15 @@ public class PictureResizeDialog implements Titleable {
 	 * TODO FIXME do this in a BG thread with waiting dlg.
 	 */
 	public Uri resizeToTempFile () throws IOException {
-		final Bitmap src = this.srcMetadata.readBitmap();
+		final Bitmap scaled = this.srcMetadata.getBitmap(getScale().getPercentage());
 		final File tgt = AttachmentStorage.getTempFile(this.context, "shrunk_" + this.srcMetadata.getName());
-		final Bitmap shrunk = Bitmap.createScaledBitmap(src,
-				scaleDimension(src.getWidth()),
-				scaleDimension(src.getHeight()), true);
 		final OutputStream tgtOut = new FileOutputStream(tgt);
 		try {
-			shrunk.compress(Bitmap.CompressFormat.JPEG, getQuality().getPercentage(), tgtOut);
+			scaled.compress(Bitmap.CompressFormat.JPEG, getQuality().getPercentage(), tgtOut);
 			return Uri.fromFile(tgt);
 		}
 		finally {
 			IoHelper.closeQuietly(tgtOut);
-			if (shrunk != src) shrunk.recycle(); // NOSONAR intentional identity comparison.
 		}
 	}
 
@@ -191,43 +179,6 @@ public class PictureResizeDialog implements Titleable {
 
 	}
 
-	public static class DialogInitTask extends AsyncTask<Void, Void, Throwable> {
-
-		private final PictureResizeDialog prd;
-		private final Listener<Throwable> resultListener;
-		private ProgressDialog dialog;
-
-		public DialogInitTask (final PictureResizeDialog prd, final Listener<Throwable> resultListener) {
-			this.prd = prd;
-			this.resultListener = resultListener;
-		}
-
-		@Override
-		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.prd.getContext(), "Shrink image", "Reading image...", true);
-		}
-
-		@Override
-		protected Throwable doInBackground (final Void... params) {
-			try {
-				this.prd.init();
-				return null;
-			}
-			// XXX Cases of OutOfMemoryError have been reported, particularly on low end hardware.
-			// Try not to upset the user too much by not dying completely if possible.
-			catch (final Throwable t) {
-				return t;
-			}
-		}
-
-		@Override
-		protected void onPostExecute (final Throwable result) {
-			this.dialog.dismiss();
-			this.resultListener.onAnswer(result);
-		}
-
-	}
-
 	private static class PreviewResizeTask extends AsyncTask<Void, Void, Bitmap> {
 
 		private final TextView txtSummary;
@@ -255,41 +206,33 @@ public class PictureResizeDialog implements Titleable {
 		protected Bitmap doInBackground (final Void... params) {
 			LOG.i("Generating preview: s=%s q=%s.", this.dlg.getScale(), this.dlg.getQuality());
 			try {
-				final Bitmap src = this.srcMetadata.readBitmap();
-				final int w = this.dlg.scaleDimension(src.getWidth());
-				final int h = this.dlg.scaleDimension(src.getHeight());
-				final Bitmap scaled = Bitmap.createScaledBitmap(src, w, h, true);
-				try {
-					final ByteArrayOutputStream compOut = new ByteArrayOutputStream(512 * 1024);
-					if (scaled.compress(Bitmap.CompressFormat.JPEG, this.dlg.getQuality().getPercentage(), compOut)) {
-						this.summary
-								.append(src.getWidth()).append(" x ").append(src.getHeight())
-								.append(" (").append(IoHelper.readableFileSize(this.srcMetadata.getSize())).append(")")
-								.append(" --> ").append(w).append(" x ").append(h)
-								.append(" (").append(IoHelper.readableFileSize(compOut.size())).append(")");
-						final BitmapRegionDecoder dec = BitmapRegionDecoder.newInstance(compOut.toBufferedInputStream(), true);
-						try {
-							final int srcW = dec.getWidth();
-							final int srcH = dec.getHeight();
-							final int tgtW = this.dlg.getRootView().getWidth(); // FIXME Workaround for ImageView width issue.  Fix properly with something like FixedWidthImageView.
-							final int tgtH = this.imgPreview.getHeight();
-							final int left = srcW > tgtW ? (srcW - tgtW) / 2 : 0;
-							final int top = srcH > tgtH ? (srcH - tgtH) / 2 : 0;
-							final BitmapFactory.Options options = new BitmapFactory.Options();
-							options.inPurgeable = true;
-							options.inInputShareable = true;
-							return dec.decodeRegion(new Rect(left, top, left + tgtW, top + tgtH), options);
-						}
-						finally {
-							dec.recycle();
-						}
+				final Bitmap scaled = this.srcMetadata.getBitmap(this.dlg.getScale().getPercentage());
+				final ByteArrayOutputStream compOut = new ByteArrayOutputStream(512 * 1024);
+				if (scaled.compress(Bitmap.CompressFormat.JPEG, this.dlg.getQuality().getPercentage(), compOut)) {
+					this.summary
+							.append(this.srcMetadata.getWidth()).append(" x ").append(this.srcMetadata.getHeight())
+							.append(" (").append(IoHelper.readableFileSize(this.srcMetadata.getSize())).append(")")
+							.append(" --> ").append(scaled.getWidth()).append(" x ").append(scaled.getHeight())
+							.append(" (").append(IoHelper.readableFileSize(compOut.size())).append(")");
+					final BitmapRegionDecoder dec = BitmapRegionDecoder.newInstance(compOut.toBufferedInputStream(), true);
+					try {
+						final int srcW = dec.getWidth();
+						final int srcH = dec.getHeight();
+						final int tgtW = this.dlg.getRootView().getWidth(); // FIXME Workaround for ImageView width issue.  Fix properly with something like FixedWidthImageView.
+						final int tgtH = this.imgPreview.getHeight();
+						final int left = srcW > tgtW ? (srcW - tgtW) / 2 : 0;
+						final int top = srcH > tgtH ? (srcH - tgtH) / 2 : 0;
+						final BitmapFactory.Options options = new BitmapFactory.Options();
+						options.inPurgeable = true;
+						options.inInputShareable = true;
+						return dec.decodeRegion(new Rect(left, top, left + tgtW, top + tgtH), options);
 					}
-					this.summary.append("Failed to compress image.");
-					return null;
+					finally {
+						dec.recycle();
+					}
 				}
-				finally {
-					if (scaled != src) scaled.recycle(); // NOSONAR intentional identity comparison.
-				}
+				this.summary.append("Failed to compress image.");
+				return null;
 			}
 			// XXX Many cases of OutOfMemoryError have been reported, particularly on low end hardware.
 			// Try not to upset the user too much by not dying completely if possible.
