@@ -94,6 +94,7 @@ public final class PayloadUtils {
 			case INREPLYTO:
 			case SERVICE:
 			case ACCOUNT:
+			case POST_TIME:
 				return null;
 			default:
 				LOG.e("Unknown meta type: %s", meta.getType());
