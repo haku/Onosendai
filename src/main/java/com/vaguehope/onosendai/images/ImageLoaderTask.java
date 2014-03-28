@@ -1,14 +1,15 @@
 package com.vaguehope.onosendai.images;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
 import android.graphics.Bitmap;
 
 import com.vaguehope.onosendai.images.ImageFetcherTask.ImageFetchResult;
-import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
-import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.StringHelper;
+import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
+import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
 
 public class ImageLoaderTask extends TrackingAsyncTask<Void, Void, ImageFetchResult> {
 
@@ -42,6 +43,9 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, Void, ImageFetchRes
 		}
 		catch (final Exception e) { // NOSONAR To report errors.
 			return new ImageFetchResult(this.req, e);
+		}
+		catch (final Throwable e) { // NOSONAR To report errors.
+			return new ImageFetchResult(this.req, new ExecutionException("Failed to load image.", e));
 		}
 	}
 
