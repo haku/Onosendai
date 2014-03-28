@@ -68,7 +68,7 @@ public final class HttpHelper {
 				}
 
 				if (responseCode < 200 || responseCode >= 300) { // NOSONAR not magic numbers.  Its HTTP spec.
-					throw new HttpResponseException(responseCode, IoHelper.toString(connection.getErrorStream()));
+					throw new HttpResponseException(responseCode, "HTTP " + responseCode + ": " + IoHelper.toString(connection.getErrorStream()));
 				}
 
 				is = connection.getInputStream();
