@@ -11,7 +11,7 @@ public final class C {
 	public static final String TAG = "onosendai";
 	public static final String CONFIG_FILE_NAME = "deck.conf";
 
-	public static final int MAX_MEMORY_IMAGE_CACHE = 20 * 1024 * 1024;
+	public static final int MAX_MEMORY_IMAGE_CACHE = 15 * 1024 * 1024;
 	public static final int DB_CONNECT_TIMEOUT_SECONDS = 5;
 
 	public static final int TWEET_FETCH_PAGE_SIZE = 20;
