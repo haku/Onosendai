@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.model;
 
+import android.database.Cursor;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -7,6 +8,7 @@ import android.widget.TextView;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
+import com.vaguehope.onosendai.storage.TweetCursorReader;
 import com.vaguehope.onosendai.widget.PendingImage;
 
 public enum TweetLayout {
@@ -27,6 +29,24 @@ public enum TweetLayout {
 			rowView.getName().setText(item.getUsername() != null ? item.getUsername() : item.getFullname());
 
 			final String avatarUrl = item.getAvatarUrl();
+			if (avatarUrl != null) {
+				imageLoader.loadImage(new ImageLoadRequest(avatarUrl, rowView.getAvatar()));
+			}
+			else {
+				rowView.getAvatar().setImageResource(R.drawable.question_blue);
+			}
+		}
+
+		@Override
+		public void applyCursorTo (final Cursor c, final TweetCursorReader cursorReader, final TweetRowView rowView, final ImageLoader imageLoader) {
+			final String username = cursorReader.readUsername(c);
+			final String fullname = cursorReader.readFullname(c);
+			final String body = cursorReader.readBody(c);
+			final String avatarUrl = cursorReader.readAvatar(c);
+
+			rowView.getTweet().setText(body);
+			rowView.getName().setText(username != null ? username : fullname);
+
 			if (avatarUrl != null) {
 				imageLoader.loadImage(new ImageLoadRequest(avatarUrl, rowView.getAvatar()));
 			}
@@ -57,6 +77,19 @@ public enum TweetLayout {
 				rowView.getInlineMedia().setImageResource(R.drawable.question_blue);
 			}
 		}
+
+		@Override
+		public void applyCursorTo (final Cursor c, final TweetCursorReader cursorReader, final TweetRowView rowView, final ImageLoader imageLoader) {
+			MAIN.applyCursorTo(c, cursorReader, rowView, imageLoader);
+
+			final String inlineMediaUrl = cursorReader.readInlineMedia(c);
+			if (inlineMediaUrl != null) {
+				imageLoader.loadImage(new ImageLoadRequest(inlineMediaUrl, rowView.getInlineMedia()));
+			}
+			else {
+				rowView.getInlineMedia().setImageResource(R.drawable.question_blue);
+			}
+		}
 	};
 
 	private final int index;
@@ -78,5 +111,7 @@ public enum TweetLayout {
 	public abstract TweetRowView makeRowView (final View view);
 
 	public abstract void applyTweetTo (Tweet item, TweetRowView rowView, ImageLoader imageLoader);
+
+	public abstract void applyCursorTo (Cursor c, TweetCursorReader cursorReader, TweetRowView rowView, ImageLoader imageLoader);
 
 }

@@ -169,13 +169,13 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_TW = "tw";
 	private static final String TBL_TW_ID = "_id";
 	private static final String TBL_TW_COLID = "colid";
-	private static final String TBL_TW_SID = "sid";
-	private static final String TBL_TW_TIME = "time";
-	private static final String TBL_TW_USERNAME = "uname";
-	private static final String TBL_TW_FULLNAME = "fname";
-	private static final String TBL_TW_BODY = "body";
-	private static final String TBL_TW_AVATAR = "avatar";
-	private static final String TBL_TW_INLINEMEDIA = "imedia";
+	protected static final String TBL_TW_SID = "sid";
+	protected static final String TBL_TW_TIME = "time";
+	protected static final String TBL_TW_USERNAME = "uname";
+	protected static final String TBL_TW_FULLNAME = "fname";
+	protected static final String TBL_TW_BODY = "body";
+	protected static final String TBL_TW_AVATAR = "avatar";
+	protected static final String TBL_TW_INLINEMEDIA = "imedia";
 
 	private static final String TBL_TW_CREATE = "create table " + TBL_TW + " ("
 			+ TBL_TW_ID + " integer primary key autoincrement,"
@@ -310,7 +310,27 @@ public class DbAdapter implements DbInterface {
 	@Override
 	public List<Tweet> getTweets (final int columnId, final int numberOf, final Set<Integer> excludeColumnIds) {
 		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweets(columnId, numberOf);
+		final Cursor c = getTweetsCursor(columnId, excludeColumnIds, numberOf);
+		try {
+			return readTweets(c);
+		}
+		finally {
+			IoHelper.closeQuietly(c);
+		}
+	}
 
+	@Override
+	public Cursor getTweetsCursor (final int columnId) {
+		return getTweetsCursor(TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) }, TBL_TW_TIME + " desc", -1);
+	}
+
+	@Override
+	public Cursor getTweetsCursor (final int columnId, final Set<Integer> excludeColumnIds) {
+		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweetsCursor(columnId);
+		return getTweetsCursor(columnId, excludeColumnIds, -1);
+	}
+
+	private Cursor getTweetsCursor (final int columnId, final Set<Integer> excludeColumnIds, final int numberOf) {
 		final StringBuilder where = new StringBuilder()
 				.append(TBL_TW_COLID).append("=?")
 				.append(" AND ").append(TBL_TW_SID)
@@ -328,7 +348,7 @@ public class DbAdapter implements DbInterface {
 			i++;
 		}
 		where.append(")");
-		return getTweets(where.toString(), whereArgs, TBL_TW_TIME + " desc", numberOf);
+		return getTweetsCursor(where.toString(), whereArgs, TBL_TW_TIME + " desc", numberOf);
 	}
 
 	@Override
@@ -342,19 +362,23 @@ public class DbAdapter implements DbInterface {
 	}
 
 	private List<Tweet> getTweets (final String where, final String[] whereArgs, final String orderBy, final int numberOf) {
-		if (!checkDbOpen()) return null;
-		Cursor c = null;
+		final Cursor c = getTweetsCursor(where, whereArgs, orderBy, numberOf);
 		try {
-			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA },
-					where, whereArgs,
-					null, null,
-					orderBy, String.valueOf(numberOf));
 			return readTweets(c);
 		}
 		finally {
 			IoHelper.closeQuietly(c);
 		}
+	}
+
+	private Cursor getTweetsCursor (final String where, final String[] whereArgs, final String orderBy, final int numberOf) {
+		if (!checkDbOpen()) return null;
+		return this.mDb.query(true, TBL_TW,
+				new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA },
+				where, whereArgs,
+				null, null,
+				orderBy,
+				numberOf > 0 ? String.valueOf(numberOf) : null);
 	}
 
 	private static List<Tweet> readTweets (final Cursor c) {

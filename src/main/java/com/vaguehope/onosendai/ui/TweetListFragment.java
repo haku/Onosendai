@@ -12,6 +12,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -46,8 +47,7 @@ import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
-import com.vaguehope.onosendai.model.TweetList;
-import com.vaguehope.onosendai.model.TweetListAdapter;
+import com.vaguehope.onosendai.model.TweetListCursorAdapter;
 import com.vaguehope.onosendai.payload.InReplyToLoaderTask;
 import com.vaguehope.onosendai.payload.InReplyToPayload;
 import com.vaguehope.onosendai.payload.Payload;
@@ -114,7 +114,7 @@ public class TweetListFragment extends Fragment {
 
 	private ScrollState scrollState;
 	private ScrollIndicator scrollIndicator;
-	private TweetListAdapter adapter;
+	private TweetListCursorAdapter adapter;
 	private DbClient bndDb;
 
 	@Override
@@ -172,7 +172,7 @@ public class TweetListFragment extends Fragment {
 		this.tweetListEmptyRefresh.setOnClickListener(this.refreshClickListener);
 
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
-		this.adapter = new TweetListAdapter(container.getContext(), getArguments().getBoolean(ARG_COLUMN_SHOW_INLINEMEDIA, false), imageLoader);
+		this.adapter = new TweetListCursorAdapter(container.getContext(), getArguments().getBoolean(ARG_COLUMN_SHOW_INLINEMEDIA, false), imageLoader);
 		this.tweetList.setAdapter(this.adapter);
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
 		this.tweetList.setEmptyView(this.tweetListEmptyRefresh);
@@ -197,6 +197,7 @@ public class TweetListFragment extends Fragment {
 
 	@Override
 	public void onDestroy () {
+		if (this.adapter != null) this.adapter.dispose();
 		if (this.bndDb != null) this.bndDb.dispose();
 		super.onDestroy();
 	}
@@ -257,7 +258,7 @@ public class TweetListFragment extends Fragment {
 		return this.conf.getAccount(getColumn().getAccountId());
 	}
 
-	protected TweetListAdapter getAdapter () {
+	protected TweetListCursorAdapter getAdapter () {
 		return this.adapter;
 	}
 
@@ -442,7 +443,7 @@ public class TweetListFragment extends Fragment {
 	private final OnItemClickListener tweetItemClickedListener = new OnItemClickListener() {
 		@Override
 		public void onItemClick (final AdapterView<?> parent, final View view, final int position, final long id) {
-			showTweetDetails(getAdapter().getInputData().getTweet(position));
+			showTweetDetails(getAdapter().getItemSid(position));
 		}
 	};
 
@@ -482,7 +483,7 @@ public class TweetListFragment extends Fragment {
 
 	protected boolean payloadClick (final Payload payload) {
 		if (payload.getType() == PayloadType.INREPLYTO) {
-			showTweetDetails(((InReplyToPayload) payload).getInReplyToTweet());
+			showTweetDetails(((InReplyToPayload) payload).getInReplyToTweet().getSid());
 			return true;
 		}
 		return false;
@@ -502,9 +503,10 @@ public class TweetListFragment extends Fragment {
 		}
 	}
 
-	protected void showTweetDetails (final Tweet listTweet) {
-		final Tweet dbTweet = getDb().getTweetDetails(this.columnId, listTweet);
-		final Tweet tweet = dbTweet != null ? dbTweet : listTweet;
+	protected void showTweetDetails (final String tweetSid) {
+		final Tweet dbTweet = getDb().getTweetDetails(this.columnId, tweetSid);
+		final Tweet tweet = dbTweet != null ? dbTweet : new Tweet(tweetSid, "", "", "Error: tweet with SID=" + tweetSid + " not found.",
+				TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), null, null, Collections.EMPTY_LIST); // TODO better way of showing this error.
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 
 		new ReplyLoaderTask(getExecutorEventListener(), getActivity(), getDb(), tweet, this.lstTweetPayloadAdaptor).executeOnExecutor(getLocalEs());
@@ -767,7 +769,7 @@ public class TweetListFragment extends Fragment {
 		new LoadTweets(getExecutorEventListener(), this).executeOnExecutor(getLocalEs());
 	}
 
-	private static class LoadTweets extends TrackingAsyncTask<Void, Void, Result<TweetList>> {
+	private static class LoadTweets extends TrackingAsyncTask<Void, Void, Result<Cursor>> {
 
 		private final TweetListFragment host;
 
@@ -788,26 +790,26 @@ public class TweetListFragment extends Fragment {
 		}
 
 		@Override
-		protected Result<TweetList> doInBackgroundWithTracking (final Void... params) {
+		protected Result<Cursor> doInBackgroundWithTracking (final Void... params) {
 			try {
 				final DbInterface db = this.host.getDb();
 				if (db != null) {
-					final List<Tweet> tweets = db.getTweets(this.host.getColumnId(), 200, this.host.getColumn().getExcludeColumnIds()); // FIXME replace 200 with dynamic list.
-					return new Result<TweetList>(new TweetList(tweets));
+					final Cursor cursor = db.getTweetsCursor(this.host.getColumnId(), this.host.getColumn().getExcludeColumnIds());
+					return new Result<Cursor>(cursor);
 				}
-				return new Result<TweetList>(new IllegalStateException("Failed to refresh column as DB was not bound."));
+				return new Result<Cursor>(new IllegalStateException("Failed to refresh column as DB was not bound."));
 			}
 			catch (final Exception e) { // NOSONAR needed to report errors.
-				return new Result<TweetList>(e);
+				return new Result<Cursor>(e);
 			}
 		}
 
 		@Override
-		protected void onPostExecute (final Result<TweetList> result) {
+		protected void onPostExecute (final Result<Cursor> result) {
 			if (result.isSuccess()) {
 				this.host.saveScrollIfNotSaved();
-				this.host.getAdapter().setInputData(result.getData());
-				this.host.getLog().d("Refreshed %d tweets.", result.getData().count());
+				this.host.getAdapter().changeCursor(result.getData());
+				this.host.getLog().d("Refreshed tweets cursor.");
 				this.host.restoreScroll();
 				this.host.redrawLastUpdateError();
 			}
@@ -841,9 +843,9 @@ public class TweetListFragment extends Fragment {
 		this.lastScrollTime = now;
 		this.refreshUiHandler.sendEmptyMessageDelayed(MSG_STILL_SCROLLING_CHECK, C.SCROLL_TIME_LABEL_TIMEOUT_MILLIS);
 
-		final Tweet tweet = this.adapter.getTweet(position);
-		if (tweet != null) {
-			this.btnColumnTitle.setText(DateHelper.friendlyAbsoluteDate(getActivity(), now, TimeUnit.SECONDS.toMillis(tweet.getTime())));
+		final long time = this.adapter.getItemTime(position);
+		if (time > 0L) {
+			this.btnColumnTitle.setText(DateHelper.friendlyAbsoluteDate(getActivity(), now, TimeUnit.SECONDS.toMillis(time)));
 		}
 	}
 

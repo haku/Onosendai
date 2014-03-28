@@ -3,6 +3,8 @@ package com.vaguehope.onosendai.storage;
 import java.util.List;
 import java.util.Set;
 
+import android.database.Cursor;
+
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.OutboxTweet;
@@ -19,6 +21,9 @@ public interface DbInterface extends KvStore {
 
 	List<Tweet> getTweets(int columnId, int numberOf);
 	List<Tweet> getTweets(int columnId, int numberOf, Set<Integer> excludeColumnIds);
+
+	Cursor getTweetsCursor(int columnId);
+	Cursor getTweetsCursor(int columnId, Set<Integer> excludeColumnIds);
 
 	List<Tweet> getTweetsSinceTime (final int columnId, final long earliestTime, final int numberOf);
 	List<Tweet> findTweetsWithMeta (MetaType metaType, String data, final int numberOf);

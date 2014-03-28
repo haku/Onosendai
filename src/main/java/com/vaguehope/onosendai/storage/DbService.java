@@ -5,6 +5,7 @@ import java.util.Set;
 
 import android.app.Service;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Binder;
 import android.os.IBinder;
 
@@ -88,6 +89,16 @@ public class DbService extends Service implements DbInterface {
 	@Override
 	public List<Tweet> getTweets (final int columnId, final int numberOf, final Set<Integer> excludeColumnIds) {
 		return this.dbAdaptor.getTweets(columnId, numberOf, excludeColumnIds);
+	}
+
+	@Override
+	public Cursor getTweetsCursor (final int columnId) {
+		return this.dbAdaptor.getTweetsCursor(columnId);
+	}
+
+	@Override
+	public Cursor getTweetsCursor (final int columnId, final Set<Integer> excludeColumnIds) {
+		return this.dbAdaptor.getTweetsCursor(columnId, excludeColumnIds);
 	}
 
 	@Override

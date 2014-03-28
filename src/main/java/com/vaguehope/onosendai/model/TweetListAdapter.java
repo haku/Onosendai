@@ -8,6 +8,7 @@ import android.widget.BaseAdapter;
 
 import com.vaguehope.onosendai.images.ImageLoader;
 
+@Deprecated
 public class TweetListAdapter extends BaseAdapter {
 
 	private final boolean showInlineMedia;

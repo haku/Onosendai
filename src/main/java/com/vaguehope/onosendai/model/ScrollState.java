@@ -66,10 +66,10 @@ public class ScrollState {
 		}
 
 		// Also search by time before giving up.
-		if (this.itemTime > 0L && adapter instanceof TweetListAdapter) {
-			final TweetList tweetList = ((TweetListAdapter) adapter).getInputData();
-			for (int i = 0; i < tweetList.count(); i++) {
-				if (tweetList.getTweet(i).getTime() <= this.itemTime) {
+		if (this.itemTime > 0L && adapter instanceof TweetListCursorAdapter) {
+			final TweetListCursorAdapter tlca = (TweetListCursorAdapter) adapter;
+			for (int i = 0; i < tlca.getCount(); i++) {
+				if (tlca.getItemTime(i) <= this.itemTime) {
 					lv.setSelectionFromTop(i, 0);
 					return;
 				}
@@ -94,8 +94,8 @@ public class ScrollState {
 		final long itemId = lv.getAdapter().getItemId(index);
 		if (itemId < 0) return null;
 
-		final Object item = lv.getAdapter().getItem(index);
-		final long time = item instanceof Tweet ? ((Tweet) item).getTime() : 0L;
+		long time = ((TweetListCursorAdapter) lv.getAdapter()).getItemTime(index);
+		if (time < 0L) time = 0L;
 
 		return new ScrollState(itemId, top, time, scrollIndicator.getUnreadTime());
 	}
