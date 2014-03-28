@@ -63,7 +63,7 @@ public final class TwitterUtils {
 			if (sinceId > 0) paging.setSinceId(sinceId);
 			if (minId > 0) paging.setMaxId(minId);
 			final ResponseList<Status> timelinePage = getter.getTweets(t, paging);
-			LOG.i("Page %d of '%s' contains %d items.", page, getter.toString(), timelinePage.size());
+			LOG.i("Page %d of '%s'(sinceId=%s) contains %d items.", page, getter.toString(), sinceId, timelinePage.size());
 			if (timelinePage.size() < 1) break;
 			addTweetsToList(tweets, account, timelinePage, t.getId(), hdMedia);
 			minId = TwitterUtils.minIdOf(minId, timelinePage);
