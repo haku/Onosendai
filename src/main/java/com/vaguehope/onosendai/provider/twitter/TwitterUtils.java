@@ -156,7 +156,7 @@ public final class TwitterUtils {
 		}
 		bld.append(text.substring(urls[urls.length - 1].getEnd()));
 		final String expandedText = bld.toString();
-		LOG.d("Expanded '%s' --> '%s'.", text, expandedText);
+		//LOG.d("Expanded '%s' --> '%s'.", text, expandedText);
 		return expandedText;
 	}
 
