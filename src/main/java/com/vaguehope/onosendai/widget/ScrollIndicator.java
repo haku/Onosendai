@@ -12,8 +12,7 @@ import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.ListView;
 
-import com.vaguehope.onosendai.model.Tweet;
-import com.vaguehope.onosendai.model.TweetListAdapter;
+import com.vaguehope.onosendai.model.TweetListCursorAdapter;
 
 public final class ScrollIndicator {
 
@@ -101,7 +100,7 @@ public final class ScrollIndicator {
 
 		private final AbsoluteShape bar;
 		private final ListView list;
-		private final TweetListAdapter listAdaptor;
+		private final TweetListCursorAdapter listAdaptor;
 		private final float pxPerUnit;
 		private final int barWidth;
 		private final OnScrollListener delagate;
@@ -112,7 +111,7 @@ public final class ScrollIndicator {
 		public BarMover (final AbsoluteShape bar, final ListView list, final float pxPerUnit, final int barWidth, final OnScrollListener delagate) {
 			this.bar = bar;
 			this.list = list;
-			this.listAdaptor = (TweetListAdapter) list.getAdapter();
+			this.listAdaptor = (TweetListCursorAdapter) list.getAdapter();
 			this.pxPerUnit = pxPerUnit;
 			this.barWidth = barWidth;
 			this.delagate = delagate;
@@ -121,7 +120,7 @@ public final class ScrollIndicator {
 		public void setUnreadTime (final long unreadTime) {
 			this.unreadTime = unreadTime;
 			for (int i = 0; i < this.listAdaptor.getCount(); i++) {
-				if (this.listAdaptor.getTweet(i).getTime() <= this.unreadTime) {
+				if (this.listAdaptor.getItemTime(i) <= this.unreadTime) {
 					drawUnread(i);
 					return;
 				}
@@ -138,8 +137,7 @@ public final class ScrollIndicator {
 				this.bar.layoutForce(this.list.getRight() - this.barWidth, this.list.getTop(), this.list.getRight(), this.list.getTop() + barHeight(position));
 				this.lastPosition = position;
 
-				final Tweet tweet = this.listAdaptor.getTweet(position);
-				final long time = tweet != null ? tweet.getTime() : 0L;
+				final long time = this.listAdaptor.getItemTime(position);
 				if (time > this.unreadTime) {
 					this.unreadTime = time;
 					drawUnread(position);
