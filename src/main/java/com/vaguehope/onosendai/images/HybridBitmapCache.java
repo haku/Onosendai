@@ -27,6 +27,7 @@ public class HybridBitmapCache {
 	private final MemoryBitmapCache<String> memCache;
 	private final File baseDir;
 	private final SyncMgr syncMgr;
+	private final Bitmap errorBitmap;
 
 	public HybridBitmapCache (final Context context, final int maxMemorySizeBytes) {
 		this.context = context;
@@ -34,6 +35,7 @@ public class HybridBitmapCache {
 		this.baseDir = getBaseDir(context);
 		if (!this.baseDir.exists() && !this.baseDir.mkdirs()) throw new IllegalStateException("Failed to create cache directory: " + this.baseDir.getAbsolutePath());
 		this.syncMgr = new SyncMgr();
+		this.errorBitmap = BitmapFactory.decodeResource(this.context.getResources(), R.drawable.exclamation_red);
 	}
 
 	public Bitmap quickGet (final String key) {
@@ -51,7 +53,7 @@ public class HybridBitmapCache {
 		return bmp;
 	}
 
-	public HttpStreamHandler<Bitmap, RuntimeException> fromHttp (final String key) {
+	public HttpStreamHandler<Bitmap> fromHttp (final String key) {
 		return new DiscCacheHandler(this, key);
 	}
 
@@ -65,12 +67,16 @@ public class HybridBitmapCache {
 		if (!file.exists()) return null;
 		final Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
 		if (bmp == null) {
-			this.memCache.put(key, BitmapFactory.decodeResource(this.context.getResources(), R.drawable.exclamation_red));
+			cacheFailureInMemory(key);
 			throw new UnrederableException(file);
 		}
 		this.memCache.put(key, bmp);
 		refreshFileTimestamp(file);
 		return bmp;
+	}
+
+	protected void cacheFailureInMemory (final String key) {
+		this.memCache.put(key, this.errorBitmap);
 	}
 
 	protected File keyToFile (final String key) {
@@ -118,7 +124,7 @@ public class HybridBitmapCache {
 		return new File(context.getCacheDir(), "images");
 	}
 
-	private static class DiscCacheHandler implements HttpStreamHandler<Bitmap, RuntimeException> {
+	private static class DiscCacheHandler implements HttpStreamHandler<Bitmap> {
 
 		private final HybridBitmapCache cache;
 		private final String key;
@@ -126,6 +132,11 @@ public class HybridBitmapCache {
 		public DiscCacheHandler (final HybridBitmapCache cache, final String key) {
 			this.cache = cache;
 			this.key = key;
+		}
+
+		@Override
+		public void onError (final Exception e) {
+			this.cache.cacheFailureInMemory(this.key);
 		}
 
 		@Override

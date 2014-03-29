@@ -31,9 +31,10 @@ public final class HttpHelper {
 
 	private static final int MAX_REDIRECTS = 3;
 
-	public interface HttpStreamHandler<R, T extends Exception> {
+	public interface HttpStreamHandler<R> {
 
-		R handleStream (InputStream is, int contentLength) throws IOException, T;
+		void onError(Exception e);
+		R handleStream (InputStream is, int contentLength) throws IOException;
 
 	}
 
@@ -41,11 +42,19 @@ public final class HttpHelper {
 		throw new AssertionError();
 	}
 
-	public static <R, T extends Exception> R get (final String sUrl, final HttpStreamHandler<R, T> streamHandler) throws IOException, T { // NOSONAR Not redundant throws.
-		return get(sUrl, streamHandler, 0);
+	public static <R> R get (final String sUrl, final HttpStreamHandler<R> streamHandler) throws IOException {
+		try {
+			return getWithFollowRedirects(sUrl, streamHandler, 0);
+		}
+		catch (final Exception e) { // NOSONAR need to report failures to onError().
+			streamHandler.onError(e);
+			if (e instanceof RuntimeException) throw (RuntimeException) e;
+			if (e instanceof IOException) throw (IOException) e;
+			throw new IllegalStateException(e);
+		}
 	}
 
-	private static <R, T extends Exception> R get (final String sUrl, final HttpStreamHandler<R, T> streamHandler, final int redirectCount) throws IOException, T { // NOSONAR Not redundant throws.
+	private static <R> R getWithFollowRedirects (final String sUrl, final HttpStreamHandler<R> streamHandler, final int redirectCount) throws IOException {
 		final URL url = new URL(sUrl);
 		final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		try {
@@ -64,7 +73,7 @@ public final class HttpHelper {
 					final String location = connection.getHeaderField("Location");
 					if (location == null) throw new HttpResponseException(responseCode, "Location header missing.  Headers present: "
 							+ connection.getHeaderFields() + ".");
-					return get(location, streamHandler, redirectCount + 1);
+					return getWithFollowRedirects(location, streamHandler, redirectCount + 1);
 				}
 
 				if (responseCode < 200 || responseCode >= 300) { // NOSONAR not magic numbers.  Its HTTP spec.
