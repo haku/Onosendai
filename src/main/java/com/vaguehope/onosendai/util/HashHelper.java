@@ -13,7 +13,7 @@ public final class HashHelper {
 
 	public static BigInteger md5String (final String s) {
 		final MessageDigest md = MD_MD5_FACTORY.get();
-		md.update(getBytes(s), 0, s.length());
+		md.update(getBytes(s));
 		return new BigInteger(1, md.digest());
 	}
 
