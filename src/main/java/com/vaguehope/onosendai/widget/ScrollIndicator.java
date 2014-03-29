@@ -12,13 +12,24 @@ import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.ListView;
 
+import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.model.TweetListCursorAdapter;
 
 public final class ScrollIndicator {
 
+	private static final double MAX_HEIGHT_RELATIVE = 0.95d;
+	private static final double POSITION_MAX_HEIGHT = C.DATA_TW_MAX_COL_ENTRIES;
+	private static final double ACCEL_BASE = 12d; // degree of non-linear effect.
+	private static final double LOG_ACCEL_BASE = Math.log(ACCEL_BASE);
+	/**
+	 * Factored out for efficiency.  The JIT might do this, but might as well be sure.
+	 */
+	private static final double SCALE_CONSTANT_THING = 1d / (Math.exp(MAX_HEIGHT_RELATIVE * LOG_ACCEL_BASE) - 1);
+
 	private static final int ACCEL_STOP_1 = 5;
 	private static final int ACCEL_STOP_2 = 15;
 	private static final int ACCEL_STOP_3 = 100;
+
 	private static final int BAR_WIDTH_DIP = 7;
 	private static final int COLOUR_BAR = Color.GRAY;
 	private static final int COLOUR_UNREAD = Color.parseColor("#268bd2"); // Solarized Blue.
@@ -38,16 +49,13 @@ public final class ScrollIndicator {
 	}
 
 	public static ScrollIndicator attach (final Context context, final ViewGroup rootView, final ListView list, final OnScrollListener onScrollListener) {
-		final AbsoluteShape bar = new AbsoluteShape(context);
+		final AbsoluteShape bar = new AbsoluteShape(context, list);
 		bar.layoutForce(0, 0, 0, 0);
 		bar.setBackgroundColor(COLOUR_BAR);
 		bar.bringToFront();
 		rootView.addView(bar);
 
-		final float pxPerUnit = dipToPixels(context, 1); // Perhaps this should be a % of list height?
-		final int barWidth = (int) dipToPixels(context, BAR_WIDTH_DIP);
-
-		final BarMover barMovingScrollListener = new BarMover(bar, list, pxPerUnit, barWidth, onScrollListener);
+		final BarMover barMovingScrollListener = new BarMover(bar, list, (int) dipToPixels(context, BAR_WIDTH_DIP), onScrollListener);
 		list.setOnScrollListener(barMovingScrollListener);
 
 		return new ScrollIndicator(barMovingScrollListener);
@@ -57,20 +65,43 @@ public final class ScrollIndicator {
 		return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, a, context.getResources().getDisplayMetrics());
 	}
 
+	/**
+	 * @deprecated Replaced by barHeightRelative() which is relative to screen size.
+	 */
+	@Deprecated
+	protected static int barHeightPx (final int position, final float pxPerUnit) {
+		return (int) ((position
+				+ Math.min(position, ACCEL_STOP_1)
+				+ Math.min(position, ACCEL_STOP_2)
+				+ Math.min(position, ACCEL_STOP_3)) * pxPerUnit);
+	}
+
+	protected static double barHeightRelative (final int position) {
+		if (position == 0) return 0d;
+		return Math.log(((position / POSITION_MAX_HEIGHT) / SCALE_CONSTANT_THING) + 1d) / LOG_ACCEL_BASE;
+	}
+
+	protected static int barHeightPx (final int position, final View view) {
+		return (int) (barHeightRelative(position) * view.getHeight());
+	}
+
 	private static class AbsoluteShape extends View {
 
+		private final ListView list;
 		private final Rect unreadRect;
 		private final Paint unreadPaint;
+		private int unreadPosition;
 
-		public AbsoluteShape (final Context context) {
+		public AbsoluteShape (final Context context, final ListView list) {
 			super(context);
+			this.list = list;
 			this.unreadRect = new Rect(0, 0, 1, 1);
 			this.unreadPaint = new Paint(0);
 			this.unreadPaint.setColor(COLOUR_UNREAD);
 		}
 
-		public void setUnreadSize (final int unreadHeight) {
-			this.unreadRect.bottom = unreadHeight;
+		public void setUnreadPosition (final int unreadPosition) {
+			this.unreadPosition = unreadPosition;
 			invalidate();
 		}
 
@@ -91,6 +122,7 @@ public final class ScrollIndicator {
 		@Override
 		protected void onDraw (final Canvas canvas) {
 			super.onDraw(canvas);
+			this.unreadRect.bottom = barHeightPx(this.unreadPosition, this.list);
 			canvas.drawRect(this.unreadRect, this.unreadPaint);
 		}
 
@@ -101,18 +133,16 @@ public final class ScrollIndicator {
 		private final AbsoluteShape bar;
 		private final ListView list;
 		private final TweetListCursorAdapter listAdaptor;
-		private final float pxPerUnit;
 		private final int barWidth;
 		private final OnScrollListener delagate;
 
 		private int lastPosition = -1;
 		private long unreadTime = -1;
 
-		public BarMover (final AbsoluteShape bar, final ListView list, final float pxPerUnit, final int barWidth, final OnScrollListener delagate) {
+		public BarMover (final AbsoluteShape bar, final ListView list, final int barWidth, final OnScrollListener delagate) {
 			this.bar = bar;
 			this.list = list;
 			this.listAdaptor = (TweetListCursorAdapter) list.getAdapter();
-			this.pxPerUnit = pxPerUnit;
 			this.barWidth = barWidth;
 			this.delagate = delagate;
 		}
@@ -121,7 +151,7 @@ public final class ScrollIndicator {
 			this.unreadTime = unreadTime;
 			for (int i = 0; i < this.listAdaptor.getCount(); i++) {
 				if (this.listAdaptor.getItemTime(i) <= this.unreadTime) {
-					drawUnread(i);
+					this.bar.setUnreadPosition(i);
 					return;
 				}
 			}
@@ -134,27 +164,18 @@ public final class ScrollIndicator {
 		private void updateBar () {
 			final int position = this.list.getFirstVisiblePosition();
 			if (position != this.lastPosition) {
-				this.bar.layoutForce(this.list.getRight() - this.barWidth, this.list.getTop(), this.list.getRight(), this.list.getTop() + barHeight(position));
+				this.bar.layoutForce(this.list.getRight() - this.barWidth,
+						this.list.getTop(),
+						this.list.getRight(),
+						this.list.getTop() + barHeightPx(position, this.list));
 				this.lastPosition = position;
 
 				final long time = this.listAdaptor.getItemTime(position);
 				if (time > this.unreadTime) {
 					this.unreadTime = time;
-					drawUnread(position);
+					this.bar.setUnreadPosition(position);
 				}
 			}
-		}
-
-		private void drawUnread (final int position) {
-			this.bar.setUnreadSize(barHeight(position));
-		}
-
-		private int barHeight (final int position) {
-			final int h = (int) ((position
-					+ Math.min(position, ACCEL_STOP_1)
-					+ Math.min(position, ACCEL_STOP_2)
-					+ Math.min(position, ACCEL_STOP_3)) * this.pxPerUnit);
-			return h;
 		}
 
 		@Override
