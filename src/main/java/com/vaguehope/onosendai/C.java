@@ -21,7 +21,7 @@ public final class C {
 	public static final int TWITTER_LIST_MAX_FETCH = TWEET_FETCH_PAGE_SIZE * 5;
 	public static final int TWITTER_SEARCH_MAX_FETCH = TWEET_FETCH_PAGE_SIZE * 5;
 
-	public static final String DATA_TW_MAX_COL_ENTRIES = "500";
+	public static final int DATA_TW_MAX_COL_ENTRIES = 500;
 
 	// Sending and receiving.
 	public static final int UPDATER_MIN_COLUMS_TO_USE_THREADPOOL = 2;
