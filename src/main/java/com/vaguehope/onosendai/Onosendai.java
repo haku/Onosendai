@@ -32,6 +32,7 @@ import com.vaguehope.onosendai.util.IoHelper;
 				ReportField.INSTALLATION_ID,
 				ReportField.USER_APP_START_DATE,
 				ReportField.STACK_TRACE,
+				ReportField.THREAD_DETAILS,
 				ReportField.CUSTOM_DATA,
 				ReportField.LOGCAT
 		})
@@ -42,6 +43,7 @@ public class Onosendai extends Application {
 		super.onCreate();
 		ACRA.init(this);
 		addBuildNumberToCrashReport();
+		Log.i(C.TAG, "RT.maxMemory=" + Runtime.getRuntime().maxMemory());
 	}
 
 	private void addBuildNumberToCrashReport () {
@@ -49,7 +51,7 @@ public class Onosendai extends Application {
 			final String buildNumber = IoHelper.toString(getClass().getResourceAsStream("/build_number"));
 			ACRA.getErrorReporter().putCustomData("BUILD_NUMBER", buildNumber);
 		}
-		catch (IOException e) {
+		catch (final IOException e) {
 			Log.w(C.TAG, "Failed to read BUILD_NUMBER: " + e.toString());
 		}
 	}
