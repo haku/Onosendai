@@ -35,6 +35,7 @@ public class TweetListCursorAdapter extends CursorAdapter {
 	}
 
 	public long getItemTime (final int position) {
+		if (getCount() < 1) return -1;
 		return this.cursorReader.readTime((Cursor) getItem(position));
 	}
 
