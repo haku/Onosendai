@@ -131,11 +131,21 @@ public class HybridBitmapCache {
 		final BitmapFactory.Options opts = new BitmapFactory.Options();
 		opts.inJustDecodeBounds = true;
 		BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
+		final int srcWidth = opts.outWidth;
 
-		opts.inSampleSize = calculateInSampleSize(opts.outWidth, reqWidth);
-		//LOG.i("Decoding '%s' reqWidth=%s width=%s sampleSize=%s.", file.getAbsolutePath(), reqWidth, opts.outWidth, opts.inSampleSize);
+		opts.inSampleSize = calculateInSampleSize(srcWidth, reqWidth);
+		//LOG.i("Decoding '%s' reqWidth=%s srcWidth=%s sampleSize=%s.", file.getAbsolutePath(), reqWidth, srcWidth, opts.inSampleSize);
 		opts.inJustDecodeBounds = false;
-		return BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
+		try {
+			return BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
+		}
+		catch (final OutOfMemoryError e) {
+			final int oldSampleSize = opts.inSampleSize;
+			opts.inSampleSize *= 2;
+			LOG.w("OOM decoding '%s' reqWidth=%s srcWidth=%s sampleSize=%s, retrying with sampleSize=%s...",
+					file.getAbsolutePath(), reqWidth, srcWidth, oldSampleSize, opts.inSampleSize);
+			return BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
+		}
 	}
 
 	private static int calculateInSampleSize (final int srcWidth, final int reqWidth) {
