@@ -36,6 +36,7 @@ public class HybridBitmapCache {
 		if (!this.baseDir.exists() && !this.baseDir.mkdirs()) throw new IllegalStateException("Failed to create cache directory: " + this.baseDir.getAbsolutePath());
 		this.syncMgr = new SyncMgr();
 		this.errorBitmap = BitmapFactory.decodeResource(this.context.getResources(), R.drawable.exclamation_red);
+		LOG.i("in memory cache: %s bytes.", maxMemorySizeBytes);
 	}
 
 	public Bitmap quickGet (final String key) {
