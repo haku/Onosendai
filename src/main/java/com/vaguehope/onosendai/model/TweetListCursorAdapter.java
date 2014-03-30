@@ -15,13 +15,15 @@ public class TweetListCursorAdapter extends CursorAdapter {
 
 	private final InlineMediaStyle inlineMediaStyle;
 	private final ImageLoader imageLoader;
+	private final View listView;
 	private final LayoutInflater layoutInflater;
 	private final TweetCursorReader cursorReader;
 
-	public TweetListCursorAdapter (final Context context, final InlineMediaStyle inlineMediaStyle, final ImageLoader imageLoader) {
+	public TweetListCursorAdapter (final Context context, final InlineMediaStyle inlineMediaStyle, final ImageLoader imageLoader, final View listView) {
 		super(context, null, false); // Initialise with no cursor.
 		this.inlineMediaStyle = inlineMediaStyle;
 		this.imageLoader = imageLoader;
+		this.listView = listView;
 		this.layoutInflater = LayoutInflater.from(context);
 		this.cursorReader = new TweetCursorReader();
 	}
@@ -62,7 +64,7 @@ public class TweetListCursorAdapter extends CursorAdapter {
 	public void bindView (final View view, final Context context, final Cursor cursor) {
 		final TweetLayout layoutType = tweetLayoutType(cursor);
 		final TweetRowView rowView = (TweetRowView) view.getTag();
-		layoutType.applyCursorTo(cursor, this.cursorReader, rowView, this.imageLoader);
+		layoutType.applyCursorTo(cursor, this.cursorReader, rowView, this.imageLoader, this.listView.getWidth());
 	}
 
 	private TweetLayout tweetLayoutType (final Cursor c) {

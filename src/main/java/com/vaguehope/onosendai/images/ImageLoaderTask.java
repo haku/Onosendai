@@ -36,7 +36,7 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, Void, ImageFetchRes
 		if (!this.req.isRequired()) return null;
 		try {
 			final String url = this.req.getUrl();
-			final Bitmap bmp = this.cache.get(url);
+			final Bitmap bmp = this.cache.get(url, this.req.getReqWidth());
 			if (bmp != null) return new ImageFetchResult(this.req, bmp);
 			new ImageFetcherTask(getEventListener(), this.cache, this.req).executeOnExecutor(this.netEs);
 			return null;

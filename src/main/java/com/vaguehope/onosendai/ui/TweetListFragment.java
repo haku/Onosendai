@@ -175,15 +175,15 @@ public class TweetListFragment extends Fragment {
 		this.tweetListEmptyRefresh.setOnClickListener(this.refreshClickListener);
 
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
-		this.adapter = new TweetListCursorAdapter(container.getContext(), this.inlineMediaStyle, imageLoader);
+		this.adapter = new TweetListCursorAdapter(container.getContext(), this.inlineMediaStyle, imageLoader, this.tweetList);
 		this.tweetList.setAdapter(this.adapter);
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
 		this.tweetList.setEmptyView(this.tweetListEmptyRefresh);
 		if (this.inlineMediaStyle == InlineMediaStyle.SEAMLESS) this.tweetList.setDrawSelectorOnTop(true);
 		this.refreshUiHandler = new RefreshUiHandler(this);
 
-		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), imageLoader, this.payloadClickListener);
 		final ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
+		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), imageLoader, lstTweetPayload, this.payloadClickListener);
 		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
 		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(this.payloadClickListener));
 		((Button) rootView.findViewById(R.id.tweetDetailClose)).setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
