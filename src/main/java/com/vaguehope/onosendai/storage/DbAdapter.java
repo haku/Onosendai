@@ -310,7 +310,7 @@ public class DbAdapter implements DbInterface {
 	@Override
 	public List<Tweet> getTweets (final int columnId, final int numberOf, final Set<Integer> excludeColumnIds) {
 		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweets(columnId, numberOf);
-		final Cursor c = getTweetsCursor(columnId, excludeColumnIds, numberOf);
+		final Cursor c = getTweetsCursor(columnId, excludeColumnIds, false, numberOf);
 		try {
 			return readTweets(c);
 		}
@@ -325,15 +325,25 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public Cursor getTweetsCursor (final int columnId, final Set<Integer> excludeColumnIds) {
-		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweetsCursor(columnId);
-		return getTweetsCursor(columnId, excludeColumnIds, -1);
+	public Cursor getTweetsCursor (final int columnId, final boolean withInlineMediaOnly) {
+		if (!withInlineMediaOnly) return getTweetsCursor(columnId);
+		return getTweetsCursor(TBL_TW_COLID + "=? AND " + TBL_TW_INLINEMEDIA + " NOT NULL", new String[] { String.valueOf(columnId) }, TBL_TW_TIME + " desc", -1);
 	}
 
-	private Cursor getTweetsCursor (final int columnId, final Set<Integer> excludeColumnIds, final int numberOf) {
+	@Override
+	public Cursor getTweetsCursor (final int columnId, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly) {
+		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweetsCursor(columnId, withInlineMediaOnly);
+		return getTweetsCursor(columnId, excludeColumnIds, withInlineMediaOnly, -1);
+	}
+
+	private Cursor getTweetsCursor (final int columnId, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final int numberOf) {
 		final StringBuilder where = new StringBuilder()
-				.append(TBL_TW_COLID).append("=?")
-				.append(" AND ").append(TBL_TW_SID)
+				.append(TBL_TW_COLID).append("=?");
+
+		if (withInlineMediaOnly) where
+				.append(" AND ").append(TBL_TW_INLINEMEDIA).append(" NOT NULL");
+
+		where.append(" AND ").append(TBL_TW_SID)
 				.append(" NOT IN (SELECT ").append(TBL_TW_SID)
 				.append(" FROM ").append(TBL_TW)
 				.append(" WHERE ");

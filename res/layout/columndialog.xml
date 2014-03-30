@@ -89,17 +89,17 @@
 		<TableRow
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
-			android:orientation="horizontal">
+			android:orientation="horizontal"
+			android:gravity="center" >
 
 			<TextView
 				android:paddingRight="10dp"
 				android:text="Media" />
 
-			<CheckBox
-				android:id="@+id/chkInlineMedia"
+			<Spinner
+				android:id="@+id/spnInlineMedia"
 				android:layout_width="0px"
-				android:layout_weight="1"
-				android:text="Inline" />
+				android:layout_weight="1" />
 
 			<CheckBox
 				android:id="@+id/chkHdMedia"

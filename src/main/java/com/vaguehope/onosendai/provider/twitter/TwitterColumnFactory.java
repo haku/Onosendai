@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.provider.twitter;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.InlineMediaStyle;
 
 public final class TwitterColumnFactory {
 
@@ -14,12 +15,12 @@ public final class TwitterColumnFactory {
 
 	public static Column homeTimeline (final int id, final Account account) {
 		checkAccount(account);
-		return new Column(id, "Home Timeline", account.getId(), MainFeeds.TIMELINE.name(), DEFAULT_REFRESH_MINS, null, null, false, false);
+		return new Column(id, "Home Timeline", account.getId(), MainFeeds.TIMELINE.name(), DEFAULT_REFRESH_MINS, null, null, InlineMediaStyle.NONE, false);
 	}
 
 	public static Column mentions (final int id, final Account account) {
 		checkAccount(account);
-		return new Column(id, "Mentions", account.getId(), MainFeeds.MENTIONS.name(), DEFAULT_REFRESH_MINS, null, null, false, false);
+		return new Column(id, "Mentions", account.getId(), MainFeeds.MENTIONS.name(), DEFAULT_REFRESH_MINS, null, null, InlineMediaStyle.NONE, false);
 	}
 
 	private static void checkAccount (final Account account) {

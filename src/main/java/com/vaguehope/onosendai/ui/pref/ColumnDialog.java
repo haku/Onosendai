@@ -28,6 +28,7 @@ import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.config.NotificationStyle;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.ui.pref.ColumnChooser.ColumnChoiceListener;
@@ -67,7 +68,7 @@ class ColumnDialog {
 	private final Button btnResource;
 	private final Button btnExclude;
 	private final Spinner spnRefresh;
-	private final CheckBox chkInlineMedia;
+	private final Spinner spnInlineMedia;
 	private final CheckBox chkHdMedia;
 	private final CheckBox chkNotify;
 	private final CheckBox chkDelete;
@@ -117,7 +118,7 @@ class ColumnDialog {
 		this.btnResource = (Button) this.llParent.findViewById(R.id.btnResource);
 		this.btnExclude = (Button) this.llParent.findViewById(R.id.btnExclude);
 		this.spnRefresh = (Spinner) this.llParent.findViewById(R.id.spnRefresh);
-		this.chkInlineMedia = (CheckBox) this.llParent.findViewById(R.id.chkInlineMedia);
+		this.spnInlineMedia = (Spinner) this.llParent.findViewById(R.id.spnInlineMedia);
 		this.chkHdMedia = (CheckBox) this.llParent.findViewById(R.id.chkHdMedia);
 		this.chkNotify = (CheckBox) this.llParent.findViewById(R.id.chkNotify);
 		this.chkDelete = (CheckBox) this.llParent.findViewById(R.id.chkDelete);
@@ -138,6 +139,10 @@ class ColumnDialog {
 		refAdapter.addAll(REFRESH_DURAITONS);
 		this.spnRefresh.setAdapter(refAdapter);
 
+		final ArrayAdapter<InlineMediaStyle> inlineMediaAdapter = new ArrayAdapter<InlineMediaStyle>(context, R.layout.numberspinneritem);
+		inlineMediaAdapter.addAll(InlineMediaStyle.values());
+		this.spnInlineMedia.setAdapter(inlineMediaAdapter);
+
 		this.chkDelete.setChecked(false);
 
 		if (initialValue != null) {
@@ -147,7 +152,7 @@ class ColumnDialog {
 			setExcludeIds(initialValue.getExcludeColumnIds());
 			setDurationSpinner(initialValue.getRefreshIntervalMins(), refAdapter);
 			if (this.account == null) this.spnRefresh.setEnabled(false);
-			this.chkInlineMedia.setChecked(initialValue.isInlineMedia());
+			this.spnInlineMedia.setSelection(inlineMediaAdapter.getPosition(initialValue.getInlineMediaStyle()));
 			this.chkHdMedia.setChecked(initialValue.isHdMedia());
 			setNotificationStyle(initialValue.getNotificationStyle());
 			this.chkDelete.setVisibility(View.VISIBLE);
@@ -351,7 +356,7 @@ class ColumnDialog {
 				((Duration) this.spnRefresh.getSelectedItem()).getMins(),
 				this.excludes.size() > 0 ? this.excludes : null,
 				this.notificationStyle,
-				this.chkInlineMedia.isChecked(),
+				(InlineMediaStyle) this.spnInlineMedia.getSelectedItem(),
 				this.chkHdMedia.isChecked());
 	}
 

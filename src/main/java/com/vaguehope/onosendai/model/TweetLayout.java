@@ -69,28 +69,40 @@ public enum TweetLayout {
 		@Override
 		public void applyTweetTo (final Tweet item, final TweetRowView rowView, final ImageLoader imageLoader) {
 			MAIN.applyTweetTo(item, rowView, imageLoader);
-			final String inlineMediaUrl = item.getInlineMediaUrl();
-			if (inlineMediaUrl != null) {
-				imageLoader.loadImage(new ImageLoadRequest(inlineMediaUrl, rowView.getInlineMedia()));
-			}
-			else {
-				rowView.getInlineMedia().setImageResource(R.drawable.question_blue);
-			}
+			setImage(item.getInlineMediaUrl(), rowView, imageLoader);
 		}
 
 		@Override
 		public void applyCursorTo (final Cursor c, final TweetCursorReader cursorReader, final TweetRowView rowView, final ImageLoader imageLoader) {
 			MAIN.applyCursorTo(c, cursorReader, rowView, imageLoader);
+			setImage(cursorReader.readInlineMedia(c), rowView, imageLoader);
+		}
+	},
+	SEAMLESS_MEDIA(2, R.layout.tweetlistseamlessmediarow) {
+		@Override
+		public TweetRowView makeRowView (final View view) {
+			return new TweetRowView((PendingImage) view.findViewById(R.id.imgMedia));
+		}
 
-			final String inlineMediaUrl = cursorReader.readInlineMedia(c);
-			if (inlineMediaUrl != null) {
-				imageLoader.loadImage(new ImageLoadRequest(inlineMediaUrl, rowView.getInlineMedia()));
-			}
-			else {
-				rowView.getInlineMedia().setImageResource(R.drawable.question_blue);
-			}
+		@Override
+		public void applyTweetTo (final Tweet item, final TweetRowView rowView, final ImageLoader imageLoader) {
+			setImage(item.getInlineMediaUrl(), rowView, imageLoader);
+		}
+
+		@Override
+		public void applyCursorTo (final Cursor c, final TweetCursorReader cursorReader, final TweetRowView rowView, final ImageLoader imageLoader) {
+			setImage(cursorReader.readInlineMedia(c), rowView, imageLoader);
 		}
 	};
+
+	protected static void setImage (final String inlineMediaUrl, final TweetRowView rowView, final ImageLoader imageLoader) {
+		if (inlineMediaUrl != null) {
+			imageLoader.loadImage(new ImageLoadRequest(inlineMediaUrl, rowView.getInlineMedia()));
+		}
+		else {
+			rowView.getInlineMedia().setImageResource(R.drawable.question_blue);
+		}
+	}
 
 	private final int index;
 	private final int layout;

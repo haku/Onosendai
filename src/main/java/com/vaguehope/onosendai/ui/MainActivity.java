@@ -283,7 +283,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 			args.putInt(TweetListFragment.ARG_COLUMN_ID, col.getId());
 			args.putString(TweetListFragment.ARG_COLUMN_TITLE, col.getTitle());
 			args.putBoolean(TweetListFragment.ARG_COLUMN_IS_LATER, InternalColumnType.LATER.matchesColumn(col));
-			args.putBoolean(TweetListFragment.ARG_COLUMN_SHOW_INLINEMEDIA, col.isInlineMedia());
+			args.putString(TweetListFragment.ARG_COLUMN_SHOW_INLINEMEDIA, col.getInlineMediaStyle() != null ? col.getInlineMediaStyle().serialise() : null);
 			fragment.setArguments(args);
 			return fragment;
 		}

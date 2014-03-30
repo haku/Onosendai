@@ -7,19 +7,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 
+import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
 
 public class TweetListCursorAdapter extends CursorAdapter {
 
-	private final boolean showInlineMedia;
+	private final InlineMediaStyle inlineMediaStyle;
 	private final ImageLoader imageLoader;
 	private final LayoutInflater layoutInflater;
 	private final TweetCursorReader cursorReader;
 
-	public TweetListCursorAdapter (final Context context, final boolean showInlineMedia, final ImageLoader imageLoader) {
+	public TweetListCursorAdapter (final Context context, final InlineMediaStyle inlineMediaStyle, final ImageLoader imageLoader) {
 		super(context, null, false); // Initialise with no cursor.
-		this.showInlineMedia = showInlineMedia;
+		this.inlineMediaStyle = inlineMediaStyle;
 		this.imageLoader = imageLoader;
 		this.layoutInflater = LayoutInflater.from(context);
 		this.cursorReader = new TweetCursorReader();
@@ -64,7 +65,16 @@ public class TweetListCursorAdapter extends CursorAdapter {
 	}
 
 	private TweetLayout tweetLayoutType (final Cursor c) {
-		return this.showInlineMedia && this.cursorReader.readInlineMedia(c) != null ? TweetLayout.INLINE_MEDIA : TweetLayout.MAIN;
+		switch (this.inlineMediaStyle) {
+			case NONE:
+				return TweetLayout.MAIN;
+			case INLINE:
+				return this.cursorReader.readInlineMedia(c) != null ? TweetLayout.INLINE_MEDIA : TweetLayout.MAIN;
+			case SEAMLESS:
+				return this.cursorReader.readInlineMedia(c) != null ? TweetLayout.SEAMLESS_MEDIA : TweetLayout.MAIN;
+			default:
+				return TweetLayout.MAIN;
+		}
 	}
 
 }

@@ -39,6 +39,7 @@ import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
+import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
@@ -98,6 +99,7 @@ public class TweetListFragment extends Fragment {
 	private int columnId = -1;
 	private int columnPosition = -1;
 	private boolean isLaterColumn;
+	private InlineMediaStyle inlineMediaStyle;
 	private Config conf;
 	private RefreshUiHandler refreshUiHandler;
 
@@ -128,6 +130,7 @@ public class TweetListFragment extends Fragment {
 		this.columnId = getArguments().getInt(ARG_COLUMN_ID);
 		this.columnPosition = getArguments().getInt(ARG_COLUMN_POSITION);
 		this.isLaterColumn = getArguments().getBoolean(ARG_COLUMN_IS_LATER, false);
+		this.inlineMediaStyle = InlineMediaStyle.parseJson(getArguments().getString(ARG_COLUMN_SHOW_INLINEMEDIA));
 		this.log.setPrefix("C" + this.columnId);
 		this.log.d("onCreateView()");
 
@@ -172,10 +175,11 @@ public class TweetListFragment extends Fragment {
 		this.tweetListEmptyRefresh.setOnClickListener(this.refreshClickListener);
 
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
-		this.adapter = new TweetListCursorAdapter(container.getContext(), getArguments().getBoolean(ARG_COLUMN_SHOW_INLINEMEDIA, false), imageLoader);
+		this.adapter = new TweetListCursorAdapter(container.getContext(), this.inlineMediaStyle, imageLoader);
 		this.tweetList.setAdapter(this.adapter);
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
 		this.tweetList.setEmptyView(this.tweetListEmptyRefresh);
+		if (this.inlineMediaStyle == InlineMediaStyle.SEAMLESS) this.tweetList.setDrawSelectorOnTop(true);
 		this.refreshUiHandler = new RefreshUiHandler(this);
 
 		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), imageLoader, this.payloadClickListener);
@@ -244,6 +248,10 @@ public class TweetListFragment extends Fragment {
 
 	public int getColumnPosition () {
 		return this.columnPosition;
+	}
+
+	protected InlineMediaStyle getInlineMediaStyle () {
+		return this.inlineMediaStyle;
 	}
 
 	protected Config getConf () {
@@ -794,7 +802,10 @@ public class TweetListFragment extends Fragment {
 			try {
 				final DbInterface db = this.host.getDb();
 				if (db != null) {
-					final Cursor cursor = db.getTweetsCursor(this.host.getColumnId(), this.host.getColumn().getExcludeColumnIds());
+					final Cursor cursor = db.getTweetsCursor(
+							this.host.getColumnId(),
+							this.host.getColumn().getExcludeColumnIds(),
+							this.host.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS);
 					return new Result<Cursor>(cursor);
 				}
 				return new Result<Cursor>(new IllegalStateException("Failed to refresh column as DB was not bound."));

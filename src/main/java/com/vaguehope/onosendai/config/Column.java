@@ -39,19 +39,19 @@ public class Column implements Titleable {
 	private final int refreshIntervalMins;
 	private final Set<Integer> excludeColumnIds;
 	private final NotificationStyle notificationStyle;
-	private final boolean inlineMedia;
+	private final InlineMediaStyle inlineMediaStyle;
 	private final boolean hdMedia;
 
 	public Column (final int id, final Column c) {
-		this(id, c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.getNotificationStyle(), c.isInlineMedia(), c.isHdMedia());
+		this(id, c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.getNotificationStyle(), c.getInlineMediaStyle(), c.isHdMedia());
 	}
 
 	public Column (final Account newAccount, final Column c) {
-		this(c.getId(), c.getTitle(), newAccount.getId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.getNotificationStyle(), c.isInlineMedia(), c.isHdMedia());
+		this(c.getId(), c.getTitle(), newAccount.getId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.getNotificationStyle(), c.getInlineMediaStyle(), c.isHdMedia());
 	}
 
 	public Column (final Set<Integer> newExcludeColumnIds, final Column c) {
-		this(c.getId(), c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), newExcludeColumnIds, c.getNotificationStyle(), c.isInlineMedia(), c.isHdMedia());
+		this(c.getId(), c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), newExcludeColumnIds, c.getNotificationStyle(), c.getInlineMediaStyle(), c.isHdMedia());
 	}
 
 	public Column (
@@ -62,7 +62,7 @@ public class Column implements Titleable {
 			final int refreshIntervalMins,
 			final Set<Integer> excludeColumnIds,
 			final NotificationStyle notificationStyle,
-			final boolean inlineMedia,
+			final InlineMediaStyle inlineMediaStyle,
 			final boolean hdMedia) {
 		this.id = id;
 		this.title = title;
@@ -71,7 +71,7 @@ public class Column implements Titleable {
 		this.refreshIntervalMins = refreshIntervalMins;
 		this.excludeColumnIds = excludeColumnIds;
 		this.notificationStyle = notificationStyle;
-		this.inlineMedia = inlineMedia;
+		this.inlineMediaStyle = inlineMediaStyle;
 		this.hdMedia = hdMedia;
 	}
 
@@ -102,7 +102,7 @@ public class Column implements Titleable {
 				this.refreshIntervalMins == that.refreshIntervalMins &&
 				EqualHelper.equal(this.excludeColumnIds, that.excludeColumnIds) &&
 				EqualHelper.equal(this.notificationStyle, that.notificationStyle) &&
-				EqualHelper.equal(this.inlineMedia, that.inlineMedia) &&
+				EqualHelper.equal(this.inlineMediaStyle, that.inlineMediaStyle) &&
 				EqualHelper.equal(this.hdMedia, that.hdMedia);
 	}
 
@@ -123,7 +123,7 @@ public class Column implements Titleable {
 				.append(",").append(this.refreshIntervalMins)
 				.append(",").append(this.excludeColumnIds)
 				.append(",").append(this.notificationStyle)
-				.append(",").append(this.inlineMedia)
+				.append(",").append(this.inlineMediaStyle)
 				.append(",").append(this.hdMedia)
 				.append("}");
 		return s.toString();
@@ -157,8 +157,8 @@ public class Column implements Titleable {
 		return this.notificationStyle;
 	}
 
-	public boolean isInlineMedia () {
-		return this.inlineMedia;
+	public InlineMediaStyle getInlineMediaStyle () {
+		return this.inlineMediaStyle;
 	}
 
 	public boolean isHdMedia () {
@@ -183,7 +183,7 @@ public class Column implements Titleable {
 		json.put(KEY_REFRESH, getRefreshIntervalMins() + "mins");
 		json.put(KEY_EXCLUDE, toJsonArray(getExcludeColumnIds()));
 		json.put(KEY_NOTIFY, getNotificationStyle() != null ? getNotificationStyle().toJson() : null);
-		json.put(KEY_INLINE_MEDIA, isInlineMedia());
+		json.put(KEY_INLINE_MEDIA, getInlineMediaStyle() != null ? getInlineMediaStyle().serialise() : null);
 		json.put(KEY_HD_MEDIA, isHdMedia());
 		return json;
 	}
@@ -213,7 +213,7 @@ public class Column implements Titleable {
 		final int refreshIntervalMins = parseFeedRefreshInterval(refreshRaw, account, title);
 		final Set<Integer> excludeColumnIds = parseFeedExcludeColumns(json, title);
 		final NotificationStyle notificationStyle = NotificationStyle.parseJson(json.opt(KEY_NOTIFY));
-		final boolean inlineMedia = json.optBoolean(KEY_INLINE_MEDIA, false);
+		final InlineMediaStyle inlineMedia = InlineMediaStyle.parseJson(json.opt(KEY_INLINE_MEDIA));
 		final boolean hdMedia = json.optBoolean(KEY_HD_MEDIA, false);
 		return new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds, notificationStyle, inlineMedia, hdMedia);
 	}

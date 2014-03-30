@@ -16,6 +16,10 @@ class TweetRowView {
 		this(avatar, tweet, name, null);
 	}
 
+	public TweetRowView (final PendingImage inImageView) {
+		this(null, null, null, inImageView);
+	}
+
 	public TweetRowView (final ImageView avatar, final TextView tweet, final TextView name, final PendingImage inImageView) {
 		this.avatar = avatar;
 		this.tweet = tweet;

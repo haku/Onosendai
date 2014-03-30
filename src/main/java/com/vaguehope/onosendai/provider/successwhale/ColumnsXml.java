@@ -19,6 +19,7 @@ import org.xml.sax.XMLReader;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.util.StringHelper;
 
 public class ColumnsXml implements ContentHandler {
@@ -74,7 +75,7 @@ public class ColumnsXml implements ContentHandler {
 		if (this.stack.size() == 3) { // NOSONAR not a magic number.
 			if ("column".equals(elementName)) {
 				if (!StringHelper.isEmpty(this.stashedFullpath)) {
-					this.columns.add(new Column(this.columns.size(), this.stashedTitle, this.account.getId(), this.stashedFullpath, DEFAULT_COLUMN_REFRESH_MINS, null, null, false, false));
+					this.columns.add(new Column(this.columns.size(), this.stashedTitle, this.account.getId(), this.stashedFullpath, DEFAULT_COLUMN_REFRESH_MINS, null, null, InlineMediaStyle.NONE, false));
 				}
 				this.stashedFullpath = null;
 				this.stashedTitle = null;
