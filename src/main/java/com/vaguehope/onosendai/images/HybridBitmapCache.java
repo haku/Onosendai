@@ -48,25 +48,25 @@ public class HybridBitmapCache {
 	 * @throws UnrederableException
 	 *             if image is in cache but can not be rendered.
 	 */
-	public Bitmap get (final String key) throws UnrederableException {
+	public Bitmap get (final String key, final int reqWidth) throws UnrederableException {
 		Bitmap bmp = this.memCache.get(key);
-		if (bmp == null) bmp = getFromDisc(key);
+		if (bmp == null) bmp = getFromDisc(key, reqWidth);
 		return bmp;
 	}
 
-	public HttpStreamHandler<Bitmap> fromHttp (final String key) {
-		return new DiscCacheHandler(this, key);
+	public HttpStreamHandler<Bitmap> fromHttp (final String key, final int reqWidth) {
+		return new DiscCacheHandler(this, key, reqWidth);
 	}
 
 	public void clean () {
 		this.memCache.evictAll();
 	}
 
-	protected Bitmap getFromDisc (final String key) throws UnrederableException {
+	protected Bitmap getFromDisc (final String key, final int reqWidth) throws UnrederableException {
 		if (key == null) return null;
 		final File file = keyToFile(key);
 		if (!file.exists()) return null;
-		final Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
+		final Bitmap bmp = decodeBitmap(file, reqWidth);
 		if (bmp == null) {
 			cacheFailureInMemory(key);
 			throw new UnrederableException(file);
@@ -125,14 +125,39 @@ public class HybridBitmapCache {
 		return new File(context.getCacheDir(), "images");
 	}
 
+	private static Bitmap decodeBitmap (final File file, final int reqWidth) {
+		if (reqWidth < 1) return BitmapFactory.decodeFile(file.getAbsolutePath());
+
+		final BitmapFactory.Options opts = new BitmapFactory.Options();
+		opts.inJustDecodeBounds = true;
+		BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
+
+		opts.inSampleSize = calculateInSampleSize(opts.outWidth, reqWidth);
+		//LOG.i("Decoding '%s' reqWidth=%s width=%s sampleSize=%s.", file.getAbsolutePath(), reqWidth, opts.outWidth, opts.inSampleSize);
+		opts.inJustDecodeBounds = false;
+		return BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
+	}
+
+	private static int calculateInSampleSize (final int srcWidth, final int reqWidth) {
+		int inSampleSize = 1;
+		if (srcWidth > reqWidth) {
+			while ((srcWidth / 2) / inSampleSize >= reqWidth) {
+				inSampleSize *= 2;
+			}
+		}
+		return inSampleSize;
+	}
+
 	private static class DiscCacheHandler implements HttpStreamHandler<Bitmap> {
 
 		private final HybridBitmapCache cache;
 		private final String key;
+		private final int reqWidth;
 
-		public DiscCacheHandler (final HybridBitmapCache cache, final String key) {
+		public DiscCacheHandler (final HybridBitmapCache cache, final String key, final int reqWidth) {
 			this.cache = cache;
 			this.key = key;
+			this.reqWidth = reqWidth;
 		}
 
 		@Override
@@ -155,7 +180,7 @@ public class HybridBitmapCache {
 			finally {
 				os.close();
 			}
-			return this.cache.getFromDisc(this.key);
+			return this.cache.getFromDisc(this.key, this.reqWidth);
 		}
 
 	}

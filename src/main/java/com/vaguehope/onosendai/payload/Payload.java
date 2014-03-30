@@ -59,7 +59,7 @@ public abstract class Payload {
 	 * @param imageLoader
 	 * @param clickListener
 	 */
-	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final PayloadClickListener clickListener) {
+	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final int reqWidth, final PayloadClickListener clickListener) {
 		rowView.setText(getTitle());
 	}
 

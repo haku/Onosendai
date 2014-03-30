@@ -48,7 +48,7 @@ public class SharePayload extends Payload {
 	}
 
 	@Override
-	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final PayloadClickListener clickListener) {
+	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final int reqWidth, final PayloadClickListener clickListener) {
 		final List<Button> btns = rowView.getButtons();
 		final Button btnRt = btns.get(0);
 

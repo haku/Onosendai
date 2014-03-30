@@ -24,7 +24,7 @@ public enum TweetLayout {
 		}
 
 		@Override
-		public void applyTweetTo (final Tweet item, final TweetRowView rowView, final ImageLoader imageLoader) {
+		public void applyTweetTo (final Tweet item, final TweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
 			rowView.getTweet().setText(item.getBody());
 			rowView.getName().setText(item.getUsername() != null ? item.getUsername() : item.getFullname());
 
@@ -38,7 +38,7 @@ public enum TweetLayout {
 		}
 
 		@Override
-		public void applyCursorTo (final Cursor c, final TweetCursorReader cursorReader, final TweetRowView rowView, final ImageLoader imageLoader) {
+		public void applyCursorTo (final Cursor c, final TweetCursorReader cursorReader, final TweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
 			final String username = cursorReader.readUsername(c);
 			final String fullname = cursorReader.readFullname(c);
 			final String body = cursorReader.readBody(c);
@@ -67,15 +67,15 @@ public enum TweetLayout {
 		}
 
 		@Override
-		public void applyTweetTo (final Tweet item, final TweetRowView rowView, final ImageLoader imageLoader) {
-			MAIN.applyTweetTo(item, rowView, imageLoader);
-			setImage(item.getInlineMediaUrl(), rowView, imageLoader);
+		public void applyTweetTo (final Tweet item, final TweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
+			MAIN.applyTweetTo(item, rowView, imageLoader, reqWidth);
+			setImage(item.getInlineMediaUrl(), rowView, imageLoader, reqWidth);
 		}
 
 		@Override
-		public void applyCursorTo (final Cursor c, final TweetCursorReader cursorReader, final TweetRowView rowView, final ImageLoader imageLoader) {
-			MAIN.applyCursorTo(c, cursorReader, rowView, imageLoader);
-			setImage(cursorReader.readInlineMedia(c), rowView, imageLoader);
+		public void applyCursorTo (final Cursor c, final TweetCursorReader cursorReader, final TweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
+			MAIN.applyCursorTo(c, cursorReader, rowView, imageLoader, reqWidth);
+			setImage(cursorReader.readInlineMedia(c), rowView, imageLoader, reqWidth);
 		}
 	},
 	SEAMLESS_MEDIA(2, R.layout.tweetlistseamlessmediarow) {
@@ -85,19 +85,19 @@ public enum TweetLayout {
 		}
 
 		@Override
-		public void applyTweetTo (final Tweet item, final TweetRowView rowView, final ImageLoader imageLoader) {
-			setImage(item.getInlineMediaUrl(), rowView, imageLoader);
+		public void applyTweetTo (final Tweet item, final TweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
+			setImage(item.getInlineMediaUrl(), rowView, imageLoader, reqWidth);
 		}
 
 		@Override
-		public void applyCursorTo (final Cursor c, final TweetCursorReader cursorReader, final TweetRowView rowView, final ImageLoader imageLoader) {
-			setImage(cursorReader.readInlineMedia(c), rowView, imageLoader);
+		public void applyCursorTo (final Cursor c, final TweetCursorReader cursorReader, final TweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
+			setImage(cursorReader.readInlineMedia(c), rowView, imageLoader, reqWidth);
 		}
 	};
 
-	protected static void setImage (final String inlineMediaUrl, final TweetRowView rowView, final ImageLoader imageLoader) {
+	protected static void setImage (final String inlineMediaUrl, final TweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
 		if (inlineMediaUrl != null) {
-			imageLoader.loadImage(new ImageLoadRequest(inlineMediaUrl, rowView.getInlineMedia()));
+			imageLoader.loadImage(new ImageLoadRequest(inlineMediaUrl, rowView.getInlineMedia(), reqWidth));
 		}
 		else {
 			rowView.getInlineMedia().setImageResource(R.drawable.question_blue);
@@ -122,8 +122,8 @@ public enum TweetLayout {
 
 	public abstract TweetRowView makeRowView (final View view);
 
-	public abstract void applyTweetTo (Tweet item, TweetRowView rowView, ImageLoader imageLoader);
+	public abstract void applyTweetTo (Tweet item, TweetRowView rowView, ImageLoader imageLoader, int reqWidth);
 
-	public abstract void applyCursorTo (Cursor c, TweetCursorReader cursorReader, TweetRowView rowView, ImageLoader imageLoader);
+	public abstract void applyCursorTo (Cursor c, TweetCursorReader cursorReader, TweetRowView rowView, ImageLoader imageLoader, int reqWidth);
 
 }

@@ -9,22 +9,32 @@ public class ImageLoadRequest {
 
 	private final String url;
 	private final ImageView imageView;
+	private final int reqWidth;
 	private final ImageLoadListener listener;
 
 	public ImageLoadRequest (final String url, final ImageView imageView) {
-		this(url, imageView, null);
+		this(url, imageView, -1);
 	}
 
-	public ImageLoadRequest (final String url, final ImageView imageView, final ImageLoadListener listener) {
+	public ImageLoadRequest (final String url, final ImageView imageView, final int reqWidth) {
+		this(url, imageView, reqWidth, null);
+	}
+
+	public ImageLoadRequest (final String url, final ImageView imageView, final int reqWidth, final ImageLoadListener listener) {
 		if (url == null) throw new IllegalArgumentException("Missing arg: url.");
 		if (imageView == null) throw new IllegalArgumentException("Missing arg: imageView.");
 		this.url = url;
 		this.imageView = imageView;
+		this.reqWidth = reqWidth;
 		this.listener = listener;
 	}
 
 	public String getUrl () {
 		return this.url;
+	}
+
+	public int getReqWidth () {
+		return this.reqWidth;
 	}
 
 	public void setImagePending () {

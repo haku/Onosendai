@@ -13,13 +13,15 @@ public class TweetListAdapter extends BaseAdapter {
 
 	private final boolean showInlineMedia;
 	private final ImageLoader imageLoader;
+	private final View listView;
 	private final LayoutInflater layoutInflater;
 
 	private TweetList listData;
 
-	public TweetListAdapter (final Context context, final boolean showInlineMedia, final ImageLoader imageLoader) {
+	public TweetListAdapter (final Context context, final boolean showInlineMedia, final ImageLoader imageLoader, final View listView) {
 		this.showInlineMedia = showInlineMedia;
 		this.imageLoader = imageLoader;
+		this.listView = listView;
 		this.layoutInflater = LayoutInflater.from(context);
 	}
 
@@ -81,7 +83,7 @@ public class TweetListAdapter extends BaseAdapter {
 			rowView = (TweetRowView) view.getTag();
 		}
 
-		layoutType.applyTweetTo(item, rowView, this.imageLoader);
+		layoutType.applyTweetTo(item, rowView, this.imageLoader, this.listView.getWidth());
 
 		return view;
 	}

@@ -43,7 +43,7 @@ public class PrincipalPayload extends Payload {
 	}
 
 	@Override
-	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final PayloadClickListener clickListener) {
+	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final int reqWidth, final PayloadClickListener clickListener) {
 		final Tweet tweet = getOwnerTweet();
 
 		rowView.setText(tweet.getBody());

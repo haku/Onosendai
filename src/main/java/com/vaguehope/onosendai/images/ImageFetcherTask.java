@@ -36,12 +36,12 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Void, ImageFetchRe
 		if (!this.req.isRequired()) return null;
 		try {
 			final String url = this.req.getUrl();
-			Bitmap bmp = this.cache.get(url);
+			Bitmap bmp = this.cache.get(url, this.req.getReqWidth());
 			if (bmp == null) {
 				final Object sync = this.cache.getSyncMgr().getSync(url);
 				try {
 					synchronized (sync) {
-						bmp = this.cache.get(url);
+						bmp = this.cache.get(url, this.req.getReqWidth());
 						if (bmp == null) bmp = fetchImage(url);
 					}
 				}
@@ -61,7 +61,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Void, ImageFetchRe
 
 	private Bitmap fetchImage (final String url) throws IOException {
 		LOG.d("Fetching image: '%s'...", url);
-		return HttpHelper.get(url, this.cache.fromHttp(url));
+		return HttpHelper.get(url, this.cache.fromHttp(url, this.req.getReqWidth()));
 	}
 
 	@Override
