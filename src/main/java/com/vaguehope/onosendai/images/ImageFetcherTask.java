@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.images;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import android.graphics.Bitmap;
 
@@ -52,6 +53,9 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Void, ImageFetchRe
 		}
 		catch (Exception e) { // NOSONAR To report errors.
 			return new ImageFetchResult(this.req, e);
+		}
+		catch (final Throwable e) { // NOSONAR To report errors.
+			return new ImageFetchResult(this.req, new ExecutionException("Failed to fetch or load image.", e));
 		}
 	}
 
