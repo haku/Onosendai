@@ -10,6 +10,7 @@ import android.view.View.OnClickListener;
 import android.widget.PopupMenu;
 
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.storage.DbInterface;
 
@@ -81,7 +82,10 @@ public class GotoMenu implements OnClickListener {
 
 		@Override
 		protected Integer doInBackground (final Void... params) {
-			return this.db.getScrollUpCount(this.column.getId(), this.column.getExcludeColumnIds(), this.scroll);
+			return this.db.getScrollUpCount(this.column.getId(),
+					this.column.getExcludeColumnIds(),
+					this.column.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS,
+					this.scroll);
 		}
 
 		@Override

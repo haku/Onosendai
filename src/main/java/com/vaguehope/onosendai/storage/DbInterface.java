@@ -41,7 +41,7 @@ public interface DbInterface extends KvStore {
 	int getUnreadCount(Column column);
 	int getUnreadCount(int columnId, Set<Integer> excludeColumnIds, ScrollState scroll);
 	int getScrollUpCount(Column column);
-	int getScrollUpCount(int columnId, Set<Integer> excludeColumnIds, ScrollState scroll);
+	int getScrollUpCount(int columnId, Set<Integer> excludeColumnIds, boolean withInlineMediaOnly, ScrollState scroll);
 
 	void addTwUpdateListener (TwUpdateListener listener);
 	void removeTwUpdateListener (TwUpdateListener listener);
