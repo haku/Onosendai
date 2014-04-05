@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
+import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.widget.ScrollIndicator;
 
 public class ScrollState {
@@ -13,6 +14,8 @@ public class ScrollState {
 	private static final String KEY_TOP = "list_view_top";
 	private static final String KEY_ITEM_TIME = "list_view_item_time";
 	private static final String KEY_UNREAD_TIME = "list_view_unread_time";
+
+	private static final LogWrapper LOG = new LogWrapper("ST");
 
 	private final long itemId;
 	private final int top;
@@ -69,11 +72,16 @@ public class ScrollState {
 		if (this.itemTime > 0L && adapter instanceof TweetListCursorAdapter) {
 			final TweetListCursorAdapter tlca = (TweetListCursorAdapter) adapter;
 			for (int i = 0; i < tlca.getCount(); i++) {
-				if (tlca.getItemTime(i) <= this.itemTime) {
+				final long itime = tlca.getItemTime(i);
+				if (itime > 0L && itime <= this.itemTime) {
 					lv.setSelectionFromTop(i, 0);
 					return;
 				}
 			}
+			LOG.w("Failed to restore scroll state %s to list of %s items.", this, tlca.getCount());
+		}
+		else {
+			LOG.w("Failed to restore scroll state %s.", this);
 		}
 
 		lv.setSelection(lv.getCount() - 1);
