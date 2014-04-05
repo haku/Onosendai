@@ -3,7 +3,9 @@ package com.vaguehope.onosendai.provider.successwhale;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.vaguehope.onosendai.util.ArrayHelper;
 
@@ -23,10 +25,19 @@ public class SuccessWhaleSources {
 
 	public static String toResource (final Collection<SuccessWhaleSource> sources) {
 		final List<String> fullurls = new ArrayList<String>();
-		for (SuccessWhaleSource source : sources) {
+		for (final SuccessWhaleSource source : sources) {
 			fullurls.add(source.getFullurl());
 		}
 		return ArrayHelper.join(fullurls, SOURCE_SEP);
+	}
+
+	public static Set<SuccessWhaleSource> fromResource(final String resource) {
+		if (resource == null) return null;
+		final Set<SuccessWhaleSource> ret = new HashSet<SuccessWhaleSource>();
+		for (final String res : resource.split(SOURCE_SEP)) {
+			ret.add(new SuccessWhaleSource(res, res));
+		}
+		return ret;
 	}
 
 }
