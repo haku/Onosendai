@@ -264,7 +264,7 @@ class ColumnDialog {
 				if (newResource != null) setResource(newResource);
 				if (title != null) setTitle(title);
 			}
-		}).promptAddColumn(this.account); // TODO pass in existing resource value.
+		}).promptAddColumn(this.account, this.resource);
 	}
 
 	protected void btnResourceLongClick () {

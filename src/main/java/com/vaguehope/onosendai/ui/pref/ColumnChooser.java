@@ -21,6 +21,7 @@ import com.vaguehope.onosendai.provider.twitter.TwitterListsFetcher;
 import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
+import com.vaguehope.onosendai.util.DialogHelper.Question;
 
 class ColumnChooser {
 
@@ -64,18 +65,18 @@ class ColumnChooser {
 		DialogHelper.askItem(this.context, "Account", items, new Listener<Account>() {
 			@Override
 			public void onAnswer (final Account account) {
-				promptAddColumn(account);
+				promptAddColumn(account, null);
 			}
 		});
 	}
 
-	protected void promptAddColumn (final Account account) {
+	protected void promptAddColumn (final Account account, final String previousResource) {
 		switch (account.getProvider()) {
 			case TWITTER:
-				promptAddTwitterColumn(account);
+				promptAddTwitterColumn(account); // TODO pass in existing resource value.
 				break;
 			case SUCCESSWHALE:
-				promptAddSuccessWhaleColumn(account);
+				promptAddSuccessWhaleColumn(account, previousResource);
 				break;
 			default:
 				onColumn(account, null);
@@ -136,7 +137,12 @@ class ColumnChooser {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	protected void promptAddSuccessWhaleColumn (final Account account) {
+	protected void promptAddSuccessWhaleColumn (final Account account, final String previousResource) {
+		if (previousResource != null) {
+			promptAddSuccessWhaleCustomColumn(account, previousResource);
+			return;
+		}
+
 		final String existing = "Existing Column";
 		final String custom = "Custom Source Mix";
 		DialogHelper.askStringItem(this.context, "SuccessWhale Column", CollectionHelper.listOf(existing, custom), new Listener<String>() {
@@ -146,7 +152,7 @@ class ColumnChooser {
 					promptAddSuccessWhaleExistingColumn(account);
 				}
 				else {
-					promptAddSuccessWhaleCustomColumn(account);
+					promptAddSuccessWhaleCustomColumn(account, null);
 				}
 			}
 		});
@@ -171,22 +177,30 @@ class ColumnChooser {
 		});
 	}
 
-	protected void promptAddSuccessWhaleCustomColumn (final Account account) {
+	protected void promptAddSuccessWhaleCustomColumn (final Account account, final String previousResource) {
 		new SuccessWhaleSourcesFetcher(this.context, account, new Listener<SuccessWhaleSources>() {
 			@Override
 			public void onAnswer (final SuccessWhaleSources sources) {
-				promptAddSuccessWhaleColumn(account, sources);
+				promptAddSuccessWhaleColumn(account, sources, previousResource);
 			}
 		}).execute();
 	}
 
-	protected void promptAddSuccessWhaleColumn (final Account account, final SuccessWhaleSources sources) {
-		DialogHelper.askItems(this.context, "SuccessWhale Sources", sources.getSources(), new Listener<Set<SuccessWhaleSource>>() {
-			@Override
-			public void onAnswer (final Set<SuccessWhaleSource> anwer) {
-				onColumn(account, SuccessWhaleSources.toResource(anwer));
-			}
-		});
+	protected void promptAddSuccessWhaleColumn (final Account account, final SuccessWhaleSources sources, final String previousResource) {
+		final Set<SuccessWhaleSource> previous = SuccessWhaleSources.fromResource(previousResource);
+		DialogHelper.askItems(this.context, "SuccessWhale Sources", sources.getSources(),
+				new Question<SuccessWhaleSource>() {
+					@Override
+					public boolean ask (final SuccessWhaleSource source) {
+						return previous != null && previous.contains(source);
+					}
+				},
+				new Listener<Set<SuccessWhaleSource>>() {
+					@Override
+					public void onAnswer (final Set<SuccessWhaleSource> anwer) {
+						onColumn(account, SuccessWhaleSources.toResource(anwer));
+					}
+				});
 	}
 
 }
