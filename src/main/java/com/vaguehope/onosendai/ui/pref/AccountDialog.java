@@ -4,13 +4,15 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.text.InputType;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.provider.ProviderMgr;
@@ -25,8 +27,12 @@ class AccountDialog {
 	private final AccountProvider accountProvider;
 	private final Account initialValue;
 
-	private final LinearLayout llParent;
+	private final View llParent;
+	private final EditText txtTitle;
+	private final View rowUsername;
+	private final TextView txtUsernameLabel;
 	private final EditText txtUsername;
+	private final View rowPassword;
 	private final EditText txtPassword;
 	private final Button btnTest;
 	private final CheckBox chkDelete;
@@ -52,54 +58,50 @@ class AccountDialog {
 		this.accountProvider = accountProvider;
 		this.initialValue = initialValue;
 
-		this.llParent = new LinearLayout(context);
-		this.txtUsername = new EditText(context);
-		this.txtPassword = new EditText(context);
-		this.btnTest = new Button(context);
-		this.chkDelete = new CheckBox(context);
+		final LayoutInflater inflater = LayoutInflater.from(context);
+		this.llParent = inflater.inflate(R.layout.accountdialog, null);
 
-		this.llParent.setOrientation(LinearLayout.VERTICAL);
+		this.txtTitle = (EditText) this.llParent.findViewById(R.id.txtTitle);
+		this.rowUsername = this.llParent.findViewById(R.id.rowUsername);
+		this.txtUsername = (EditText) this.llParent.findViewById(R.id.txtUsername);
+		this.txtUsernameLabel = (TextView) this.llParent.findViewById(R.id.txtUsernameLabel);
+		this.rowPassword = this.llParent.findViewById(R.id.rowPassword);
+		this.txtPassword = (EditText) this.llParent.findViewById(R.id.txtPassword);
+		this.btnTest = (Button) this.llParent.findViewById(R.id.btnTestLogin);
+		this.chkDelete = (CheckBox) this.llParent.findViewById(R.id.chkDelete);
+
+		if (this.initialValue != null) {
+			this.txtTitle.setText(this.initialValue.getTitle());
+		}
 
 		switch (this.accountProvider) {
+			case TWITTER:
+				this.rowUsername.setVisibility(View.GONE);
+				this.rowPassword.setVisibility(View.GONE);
+				this.btnTest.setVisibility(View.GONE);
+				break;
 			case SUCCESSWHALE:
 			case INSTAPAPER:
-				this.txtUsername.setSelectAllOnFocus(true);
-				this.txtUsername.setHint("username");
-				this.llParent.addView(this.txtUsername);
-
-				this.txtPassword.setSelectAllOnFocus(true);
-				this.txtPassword.setHint("password");
 				this.txtPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-				this.llParent.addView(this.txtPassword);
-
-				addTestLoginBtn();
-
+				if (initialValue != null) {
+					this.txtUsername.setText(initialValue.getAccessToken());
+					this.txtPassword.setText(initialValue.getAccessSecret());
+				}
+				this.btnTest.setOnClickListener(this.btnTestClickListener);
 				break;
 			case BUFFER:
-				this.txtUsername.setSelectAllOnFocus(true);
-				this.txtUsername.setHint("accessToken");
-				this.llParent.addView(this.txtUsername);
-
-				addTestLoginBtn();
-
+				this.txtUsernameLabel.setText("accessToken");
+				this.rowPassword.setVisibility(View.GONE);
+				if (initialValue != null) {
+					this.txtUsername.setText(initialValue.getAccessToken());
+				}
+				this.btnTest.setOnClickListener(this.btnTestClickListener);
 				break;
 			default:
 		}
 
-		this.chkDelete.setText("delete");
 		this.chkDelete.setChecked(false);
-
-		if (initialValue != null) {
-			if (this.txtUsername != null) this.txtUsername.setText(initialValue.getAccessToken());
-			if (this.txtPassword != null) this.txtPassword.setText(initialValue.getAccessSecret());
-			this.llParent.addView(this.chkDelete);
-		}
-	}
-
-	private void addTestLoginBtn () {
-		this.btnTest.setText("test login");
-		this.btnTest.setOnClickListener(this.btnTestClickListener);
-		this.llParent.addView(this.btnTest);
+		this.chkDelete.setVisibility(initialValue != null ? View.VISIBLE : View.GONE);
 	}
 
 	private final OnClickListener btnTestClickListener = new OnClickListener() {
@@ -130,6 +132,7 @@ class AccountDialog {
 	 */
 	public boolean isSaveable () {
 		switch (this.accountProvider) {
+			case TWITTER:
 			case SUCCESSWHALE:
 			case INSTAPAPER:
 			case BUFFER:
@@ -140,16 +143,22 @@ class AccountDialog {
 	}
 
 	public Account getValue () {
+		final String title = this.txtTitle.getText().toString();
 		switch (this.accountProvider) {
+			case TWITTER:
+				if (this.initialValue == null) throw new IllegalStateException("Can not use account dialog to create a Twitter account.");
+				return new Account(this.id, title,
+						this.initialValue.getProvider(),
+						this.initialValue.getConsumerKey(), this.initialValue.getConsumerSecret(),
+						this.initialValue.getAccessToken(), this.initialValue.getAccessSecret());
 			case SUCCESSWHALE:
 			case INSTAPAPER:
 				final String username = this.txtUsername.getText().toString();
 				final String password = this.txtPassword.getText().toString();
-				return new Account(this.id, username,
+				return new Account(this.id, title,
 						this.accountProvider,
 						null, null, username, password);
 			case BUFFER:
-				final String title = this.initialValue != null ? this.initialValue.getTitle() : this.id;
 				final String accessToken = this.txtUsername.getText().toString();
 				return new Account(this.id, title,
 						this.accountProvider,
