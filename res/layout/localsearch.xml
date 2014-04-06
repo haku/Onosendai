@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:orientation="vertical">
+
+	<LinearLayout
+		android:id="@+id/searchActions"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentTop="true"
+		android:orientation="horizontal"
+		style="?android:attr/buttonBarStyle">
+
+		<EditText
+				android:id="@+id/txtSearch"
+				android:layout_width="0dip"
+				android:layout_height="50dip"
+				android:layout_weight="1" />
+		
+		<Button
+			android:id="@+id/btnSearch"
+			android:layout_width="wrap_content"
+			android:layout_height="50dip"
+			android:text="Search"
+			style="?android:attr/buttonBarButtonStyle" />
+
+	</LinearLayout>
+
+	<TextView
+		android:id="@+id/empty"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_centerInParent="true"
+		android:text="No results." />
+
+	<ListView
+		android:id="@+id/tweetList"
+		android:layout_width="match_parent"
+		android:layout_height="0dip"
+		android:layout_below="@id/searchActions"
+		android:layout_alignParentBottom="true" />
+
+</RelativeLayout>

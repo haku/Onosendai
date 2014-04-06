@@ -18,6 +18,10 @@
 			android:title="@string/menu_outbox" />
 
 		<item
+			android:id="@+id/mnuLocalSearch"
+			android:title="@string/menu_local_search" />
+
+		<item
 			android:id="@+id/mnuPreferences"
 			android:title="@string/menu_preferences" />
 
