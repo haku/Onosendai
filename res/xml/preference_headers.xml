@@ -14,6 +14,6 @@
 	<header
 		android:fragment="com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment"
 		android:title="Advanced"
-		android:summary="Reload configuration from JSON file" />
+		android:summary="For when things go wrong" />
 
 </preference-headers>
