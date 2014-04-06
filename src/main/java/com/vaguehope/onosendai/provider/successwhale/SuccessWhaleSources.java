@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.vaguehope.onosendai.util.ArrayHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class SuccessWhaleSources {
 
@@ -32,7 +33,7 @@ public class SuccessWhaleSources {
 	}
 
 	public static Set<SuccessWhaleSource> fromResource(final String resource) {
-		if (resource == null) return null;
+		if (StringHelper.isEmpty(resource)) return null;
 		final Set<SuccessWhaleSource> ret = new HashSet<SuccessWhaleSource>();
 		for (final String res : resource.split(SOURCE_SEP)) {
 			ret.add(new SuccessWhaleSource(res, res));
