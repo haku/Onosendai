@@ -117,6 +117,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public List<Tweet> searchTweets (final String searchTerm, final int numberOf) {
+		return this.dbAdaptor.searchTweets(searchTerm, numberOf);
+	}
+
+	@Override
 	public Tweet getTweetDetails (final int columnId, final Tweet tweet) {
 		return this.dbAdaptor.getTweetDetails(columnId, tweet);
 	}

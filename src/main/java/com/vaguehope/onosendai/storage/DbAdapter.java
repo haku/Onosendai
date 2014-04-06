@@ -441,6 +441,13 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public List<Tweet> searchTweets (final String searchTerm, final int numberOf) {
+		return getTweets(TBL_TW_BODY + " LIKE ? ESCAPE ? COLLATE NOCASE",
+				new String[] { "%" + escapeSearch(searchTerm) + "%", SEARCH_ESC },
+				TBL_TW_TIME + " desc", numberOf);
+	}
+
+	@Override
 	public Tweet getTweetDetails (final String tweetSid) {
 		return getTweetDetails(TBL_TW_SID + "=?", new String[] { tweetSid });
 	}
