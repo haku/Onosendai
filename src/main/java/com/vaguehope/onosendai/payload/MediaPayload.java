@@ -96,6 +96,11 @@ public class MediaPayload extends Payload {
 		}
 
 		@Override
+		public void imageFetchProgress (final int progress, final int total) {
+			if (this.rowView.getImageLoadListener() != null) this.rowView.getImageLoadListener().imageFetchProgress(progress, total);
+		}
+
+		@Override
 		public void imageLoaded (final ImageLoadRequest req) {
 			this.rowView.hideText();
 			if (this.rowView.getImageLoadListener() != null) this.rowView.getImageLoadListener().imageLoaded(req);

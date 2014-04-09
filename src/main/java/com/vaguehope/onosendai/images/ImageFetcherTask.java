@@ -14,7 +14,7 @@ import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
 
-public class ImageFetcherTask extends TrackingAsyncTask<Void, String, ImageFetchResult> implements LoadListener {
+public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetchResult> implements LoadListener {
 
 	private static final LogWrapper LOG = new LogWrapper("IF");
 
@@ -38,9 +38,16 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, String, ImageFetch
 	}
 
 	@Override
-	protected void onProgressUpdate (final String... values) {
+	protected void onProgressUpdate (final Object... values) {
 		if (values == null || values.length < 1) return;
-		this.req.setLoadingProgressIfRequired(values[0]);
+		switch ((Integer) values[0]) {
+			case 0:
+				this.req.setLoadingProgressIfRequired((String) values[1]);
+				break;
+			case 1:
+				this.req.setFetchingProgressIfRequired((Integer) values[1], (Integer) values[2]);
+				break;
+		}
 	}
 
 	/**
@@ -48,7 +55,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, String, ImageFetch
 	 */
 	@Override
 	public void onContentLengthToLoad (final long contentLength) {
-		publishProgress("loading " + IoHelper.readableFileSize(contentLength));
+		publishProgress(0, "loading " + IoHelper.readableFileSize(contentLength));
 	}
 
 	/**
@@ -56,7 +63,15 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, String, ImageFetch
 	 */
 	@Override
 	public void onContentLengthToFetch (final long contentLength) {
-		publishProgress("fetching " + IoHelper.readableFileSize(contentLength));
+		publishProgress(0, "fetching " + IoHelper.readableFileSize(contentLength));
+	}
+
+	/**
+	 * Called on BG thread.
+	 */
+	@Override
+	public void onContentFetching (final int bytesFetched, final int contentLength) {
+		publishProgress(1, bytesFetched, contentLength);
 	}
 
 	@Override
@@ -72,7 +87,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, String, ImageFetch
 						bmp = this.cache.get(url, this.req.getReqWidth(), this);
 						if (bmp == null) {
 							LOG.d("Fetching image: '%s'...", url);
-							publishProgress("fetching");
+							publishProgress(0, "fetching");
 							bmp = HttpHelper.get(url, this.cache.fromHttp(url, this.req.getReqWidth(), this));
 						}
 					}

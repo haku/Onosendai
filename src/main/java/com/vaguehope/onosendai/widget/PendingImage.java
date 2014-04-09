@@ -21,6 +21,7 @@ import com.vaguehope.onosendai.images.ImageLoadRequest.ImageLoadListener;
 public class PendingImage extends FrameLayout {
 
 	private final FixedWidthImageView image;
+	private final ProgressBar prg;
 	private final TextView status;
 
 	public PendingImage (final Context context, final AttributeSet attrs) {
@@ -34,13 +35,9 @@ public class PendingImage extends FrameLayout {
 		final int maxHeightPixels = a.getDimensionPixelSize(R.styleable.PendingImage_maxHeight, -1);
 		a.recycle();
 
-		final ProgressBar prg = new ProgressBar(context);
-		prg.setIndeterminate(true);
-		prg.setLayoutParams(new FrameLayout.LayoutParams(
-				ViewGroup.LayoutParams.WRAP_CONTENT,
-				ViewGroup.LayoutParams.WRAP_CONTENT,
-				Gravity.CENTER));
-		addView(prg);
+		this.prg = new ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal);
+		this.imageLoadListener.imageFetchProgress(0, 0);
+		addView(this.prg);
 
 		this.status = new TextView(context);
 		this.status.setLayoutParams(new FrameLayout.LayoutParams(
@@ -53,7 +50,7 @@ public class PendingImage extends FrameLayout {
 				this.status.getPaddingBottom() + dipToPixels(context, 20));
 		addView(this.status);
 
-		this.image = new ProgressAwareFixedWidthImageView(context, prg, this.status, maxHeightPixels);
+		this.image = new ProgressAwareFixedWidthImageView(context, this.prg, this.status, maxHeightPixels);
 		setupImageView(this.image, maxHeightPixels);
 		this.image.setVisibility(View.GONE);
 		addView(this.image);
@@ -64,17 +61,7 @@ public class PendingImage extends FrameLayout {
 	}
 
 	public ImageLoadListener getImageLoadListener () {
-		return new ImageLoadListener() {
-
-			@Override
-			public void imageLoadProgress (final String msg) {
-				PendingImage.this.status.setText(msg);
-			}
-
-			@Override
-			public void imageLoaded (final ImageLoadRequest req) {}
-
-		};
+		return this.imageLoadListener;
 	}
 
 	private static void setupImageView (final FixedWidthImageView image, final int maxHeightPixels) {
@@ -106,6 +93,42 @@ public class PendingImage extends FrameLayout {
 		image.setScaleType(ScaleType.FIT_CENTER);
 		image.setAdjustViewBounds(true);
 	}
+
+	private final ImageLoadListener imageLoadListener = new ImageLoadListener() {
+
+		@Override
+		public void imageLoadProgress (final String msg) {
+			PendingImage.this.status.setText(msg);
+		}
+
+		@Override
+		public void imageFetchProgress (final int progress, final int total) {
+			if (total > 0) {
+				if (PendingImage.this.prg.isIndeterminate()) {
+					PendingImage.this.prg.setIndeterminate(false);
+					PendingImage.this.prg.setLayoutParams(new FrameLayout.LayoutParams(
+							ViewGroup.LayoutParams.MATCH_PARENT,
+							ViewGroup.LayoutParams.WRAP_CONTENT,
+							Gravity.CENTER));
+				}
+				PendingImage.this.prg.setMax(total);
+				PendingImage.this.prg.setProgress(progress);
+			}
+			else {
+				if (!PendingImage.this.prg.isIndeterminate()) {
+					PendingImage.this.prg.setIndeterminate(true);
+					PendingImage.this.prg.setLayoutParams(new FrameLayout.LayoutParams(
+							ViewGroup.LayoutParams.WRAP_CONTENT,
+							ViewGroup.LayoutParams.WRAP_CONTENT,
+							Gravity.CENTER));
+				}
+			}
+		}
+
+		@Override
+		public void imageLoaded (final ImageLoadRequest req) {}
+
+	};
 
 	private static class ProgressAwareFixedWidthImageView extends FixedWidthImageView {
 

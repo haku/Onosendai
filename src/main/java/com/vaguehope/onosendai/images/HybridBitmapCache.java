@@ -15,14 +15,16 @@ import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.util.HashHelper;
 import com.vaguehope.onosendai.util.HttpHelper.HttpStreamHandler;
 import com.vaguehope.onosendai.util.IoHelper;
+import com.vaguehope.onosendai.util.IoHelper.CopyProgressListener;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.SyncMgr;
 
 public class HybridBitmapCache {
 
 	public interface LoadListener {
-		void onContentLengthToLoad(long contentLength);
-		void onContentLengthToFetch(long contentLength);
+		void onContentLengthToLoad (long contentLength);
+		void onContentLengthToFetch (long contentLength);
+		void onContentFetching (int bytesFetched, int contentLength);
 	}
 
 	private static final int BASE_HEX = 16;
@@ -189,7 +191,13 @@ public class HybridBitmapCache {
 			final File f = this.cache.keyToFile(this.key);
 			final OutputStream os = new FileOutputStream(f);
 			try {
-				final long bytesCopied = IoHelper.copy(is, os);
+				final long bytesCopied;
+				if (this.listener != null) {
+					bytesCopied = IoHelper.copyWithProgress(is, os, new FetchProgressListener(contentLength, this.listener));
+				}
+				else {
+					bytesCopied = IoHelper.copy(is, os);
+				}
 				if (bytesCopied < 1L) throw new IOException(String.format("%s bytes returned.", bytesCopied));
 			}
 			catch (final IOException e) {
@@ -200,6 +208,30 @@ public class HybridBitmapCache {
 				os.close();
 			}
 			return this.cache.getFromDisc(this.key, this.reqWidth, this.listener);
+		}
+
+	}
+
+	private static class FetchProgressListener implements CopyProgressListener {
+
+		private final int contentLength;
+		private final int updateStep;
+		private final LoadListener listener;
+		private int lastUpdateBytesCopied = 0;
+
+		public FetchProgressListener (final int contentLength, final LoadListener listener) {
+			this.contentLength = contentLength;
+			this.updateStep = contentLength / 100;
+			this.listener = listener;
+		}
+
+		@Override
+		public void onCopyProgress (final int bytesCopied) {
+			if (this.contentLength < 1) return;
+			if (bytesCopied - this.lastUpdateBytesCopied >= this.updateStep) {
+				this.lastUpdateBytesCopied = bytesCopied;
+				this.listener.onContentFetching(bytesCopied, this.contentLength);
+			}
 		}
 
 	}
