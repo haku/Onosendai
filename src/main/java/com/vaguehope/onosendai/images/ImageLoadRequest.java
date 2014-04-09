@@ -42,9 +42,15 @@ public class ImageLoadRequest {
 		this.imageView.setTag(this.url);
 	}
 
-	public void setImageUnavailableIfRequired () {
+	public void setLoadingProgressIfRequired (final String msg) {
+		if (!isRequired()) return;
+		if (this.listener != null) this.listener.imageLoadProgress(msg);
+	}
+
+	public void setImageUnavailableIfRequired (final String errMsg) {
 		if (!isRequired()) return;
 		this.imageView.setImageResource(R.drawable.exclamation_red);
+		if (this.listener != null) this.listener.imageLoadProgress(errMsg);
 	}
 
 	public void setImageBitmap (final Bitmap bmp) {
@@ -64,10 +70,19 @@ public class ImageLoadRequest {
 	}
 
 	public interface ImageLoadListener {
+
+		/**
+		 * Called with short updates during image loading.
+		 * Must be called on the UI thread.
+		 */
+		void imageLoadProgress(String msg);
+
 		/**
 		 * Called only after the image has been successfully loaded.
+		 * Must be called on the UI thread.
 		 */
 		void imageLoaded (ImageLoadRequest req);
+
 	}
 
 }

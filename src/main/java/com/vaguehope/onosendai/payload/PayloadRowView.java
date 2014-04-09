@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.vaguehope.onosendai.images.ImageLoadRequest.ImageLoadListener;
 import com.vaguehope.onosendai.widget.PendingImage;
 
 class PayloadRowView {
@@ -88,6 +89,11 @@ class PayloadRowView {
 	public ImageView getImage () {
 		if (this.pendingImage != null) return this.pendingImage.getImage();
 		return this.image;
+	}
+
+	public ImageLoadListener getImageLoadListener () {
+		if (this.pendingImage != null) return this.pendingImage.getImageLoadListener();
+		return null;
 	}
 
 	public List<Button> getButtons () {

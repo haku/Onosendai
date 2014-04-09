@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.model;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.vaguehope.onosendai.images.ImageLoadRequest.ImageLoadListener;
 import com.vaguehope.onosendai.widget.PendingImage;
 
 class TweetRowView {
@@ -41,6 +42,10 @@ class TweetRowView {
 
 	public ImageView getInlineMedia () {
 		return this.inlineMedia.getImage();
+	}
+
+	public ImageLoadListener getInlineMediaLoadListener () {
+		return this.inlineMedia.getImageLoadListener();
 	}
 
 }

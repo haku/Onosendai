@@ -1,19 +1,20 @@
 package com.vaguehope.onosendai.images;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 import android.graphics.Bitmap;
 
+import com.vaguehope.onosendai.images.HybridBitmapCache.LoadListener;
 import com.vaguehope.onosendai.images.ImageFetcherTask.ImageFetchResult;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.HttpHelper;
+import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
 
-public class ImageFetcherTask extends TrackingAsyncTask<Void, Void, ImageFetchResult> {
+public class ImageFetcherTask extends TrackingAsyncTask<Void, String, ImageFetchResult> implements LoadListener {
 
 	private static final LogWrapper LOG = new LogWrapper("IF");
 
@@ -32,17 +33,48 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Void, ImageFetchRe
 	}
 
 	@Override
+	protected void onPreExecute () {
+		this.req.setLoadingProgressIfRequired("fetch pending");
+	}
+
+	@Override
+	protected void onProgressUpdate (final String... values) {
+		if (values == null || values.length < 1) return;
+		this.req.setLoadingProgressIfRequired(values[0]);
+	}
+
+	/**
+	 * Called on BG thread.
+	 */
+	@Override
+	public void onContentLengthToLoad (final long contentLength) {
+		publishProgress("loading " + IoHelper.readableFileSize(contentLength));
+	}
+
+	/**
+	 * Called on BG thread.
+	 */
+	@Override
+	public void onContentLengthToFetch (final long contentLength) {
+		publishProgress("fetching " + IoHelper.readableFileSize(contentLength));
+	}
+
+	@Override
 	protected ImageFetchResult doInBackgroundWithTracking (final Void... unused) {
 		if (!this.req.isRequired()) return null;
 		try {
 			final String url = this.req.getUrl();
-			Bitmap bmp = this.cache.get(url, this.req.getReqWidth());
+			Bitmap bmp = this.cache.get(url, this.req.getReqWidth(), this);
 			if (bmp == null) {
 				final Object sync = this.cache.getSyncMgr().getSync(url);
 				try {
 					synchronized (sync) {
-						bmp = this.cache.get(url, this.req.getReqWidth());
-						if (bmp == null) bmp = fetchImage(url);
+						bmp = this.cache.get(url, this.req.getReqWidth(), this);
+						if (bmp == null) {
+							LOG.d("Fetching image: '%s'...", url);
+							publishProgress("fetching");
+							bmp = HttpHelper.get(url, this.cache.fromHttp(url, this.req.getReqWidth(), this));
+						}
 					}
 				}
 				finally {
@@ -59,11 +91,6 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Void, ImageFetchRe
 		}
 	}
 
-	private Bitmap fetchImage (final String url) throws IOException {
-		LOG.d("Fetching image: '%s'...", url);
-		return HttpHelper.get(url, this.cache.fromHttp(url, this.req.getReqWidth()));
-	}
-
 	@Override
 	protected void onPostExecute (final ImageFetchResult result) {
 		if (result == null) return; // Request was no longer required.
@@ -72,7 +99,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Void, ImageFetchRe
 		}
 		else {
 			LOG.w("Failed to fetch image '%s': %s", result.getRequest().getUrl(), result.getEmsg());
-			result.getRequest().setImageUnavailableIfRequired();
+			result.getRequest().setImageUnavailableIfRequired(result.getShortEmsg());
 		}
 	}
 
@@ -115,6 +142,16 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Void, ImageFetchRe
 		public String getEmsg () {
 			if (this.e != null) {
 				return ExcpetionHelper.causeTrace(this.e, "|");
+			}
+			return "Invalid response.";
+		}
+
+		public String getShortEmsg () {
+			if (this.e != null) {
+				String msg = this.e.getMessage();
+				if (!StringHelper.isEmpty(msg)) return msg;
+				msg = this.e.getClass().getSimpleName();
+				if (!StringHelper.isEmpty(msg)) return msg;
 			}
 			return "Invalid response.";
 		}
