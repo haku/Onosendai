@@ -97,7 +97,7 @@ public enum TweetLayout {
 
 	protected static void setImage (final String inlineMediaUrl, final TweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
 		if (inlineMediaUrl != null) {
-			imageLoader.loadImage(new ImageLoadRequest(inlineMediaUrl, rowView.getInlineMedia(), reqWidth));
+			imageLoader.loadImage(new ImageLoadRequest(inlineMediaUrl, rowView.getInlineMedia(), reqWidth, rowView.getInlineMediaLoadListener()));
 		}
 		else {
 			rowView.getInlineMedia().setImageResource(R.drawable.question_blue);

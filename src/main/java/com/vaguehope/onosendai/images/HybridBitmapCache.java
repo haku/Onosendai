@@ -20,6 +20,11 @@ import com.vaguehope.onosendai.util.SyncMgr;
 
 public class HybridBitmapCache {
 
+	public interface LoadListener {
+		void onContentLengthToLoad(long contentLength);
+		void onContentLengthToFetch(long contentLength);
+	}
+
 	private static final int BASE_HEX = 16;
 	static final LogWrapper LOG = new LogWrapper("HC");
 
@@ -48,24 +53,25 @@ public class HybridBitmapCache {
 	 * @throws UnrederableException
 	 *             if image is in cache but can not be rendered.
 	 */
-	public Bitmap get (final String key, final int reqWidth) throws UnrederableException {
+	public Bitmap get (final String key, final int reqWidth, final LoadListener listener) throws UnrederableException {
 		Bitmap bmp = this.memCache.get(key);
-		if (bmp == null) bmp = getFromDisc(key, reqWidth);
+		if (bmp == null) bmp = getFromDisc(key, reqWidth, listener);
 		return bmp;
 	}
 
-	public HttpStreamHandler<Bitmap> fromHttp (final String key, final int reqWidth) {
-		return new DiscCacheHandler(this, key, reqWidth);
+	public HttpStreamHandler<Bitmap> fromHttp (final String key, final int reqWidth, final LoadListener listener) {
+		return new DiscCacheHandler(this, key, reqWidth, listener);
 	}
 
 	public void clean () {
 		this.memCache.evictAll();
 	}
 
-	protected Bitmap getFromDisc (final String key, final int reqWidth) throws UnrederableException {
+	protected Bitmap getFromDisc (final String key, final int reqWidth, final LoadListener listener) throws UnrederableException {
 		if (key == null) return null;
 		final File file = keyToFile(key);
 		if (!file.exists()) return null;
+		if (listener != null) listener.onContentLengthToLoad(file.length());
 		final Bitmap bmp = decodeBitmap(file, reqWidth);
 		if (bmp == null) {
 			cacheFailureInMemory(key);
@@ -163,11 +169,13 @@ public class HybridBitmapCache {
 		private final HybridBitmapCache cache;
 		private final String key;
 		private final int reqWidth;
+		private final LoadListener listener;
 
-		public DiscCacheHandler (final HybridBitmapCache cache, final String key, final int reqWidth) {
+		public DiscCacheHandler (final HybridBitmapCache cache, final String key, final int reqWidth, final LoadListener listener) {
 			this.cache = cache;
 			this.key = key;
 			this.reqWidth = reqWidth;
+			this.listener = listener;
 		}
 
 		@Override
@@ -177,6 +185,7 @@ public class HybridBitmapCache {
 
 		@Override
 		public Bitmap handleStream (final InputStream is, final int contentLength) throws IOException {
+			if (this.listener != null) this.listener.onContentLengthToFetch(contentLength);
 			final File f = this.cache.keyToFile(this.key);
 			final OutputStream os = new FileOutputStream(f);
 			try {
@@ -190,7 +199,7 @@ public class HybridBitmapCache {
 			finally {
 				os.close();
 			}
-			return this.cache.getFromDisc(this.key, this.reqWidth);
+			return this.cache.getFromDisc(this.key, this.reqWidth, this.listener);
 		}
 
 	}
