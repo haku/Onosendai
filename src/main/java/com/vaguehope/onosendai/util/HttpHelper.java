@@ -30,6 +30,7 @@ public final class HttpHelper {
 	public static final int HTTP_READ_TIMEOUT_SECONDS = 60;
 
 	private static final int MAX_REDIRECTS = 3;
+	private static final LogWrapper LOG = new LogWrapper("HH");
 
 	public interface HttpStreamHandler<R> {
 
@@ -73,6 +74,7 @@ public final class HttpHelper {
 					final String location = connection.getHeaderField("Location");
 					if (location == null) throw new HttpResponseException(responseCode, "Location header missing.  Headers present: "
 							+ connection.getHeaderFields() + ".");
+					connection.disconnect();
 					return getWithFollowRedirects(location, streamHandler, redirectCount + 1);
 				}
 
@@ -81,7 +83,9 @@ public final class HttpHelper {
 				}
 
 				is = connection.getInputStream();
-				return streamHandler.handleStream(is, connection.getContentLength());
+				final int contentLength = connection.getContentLength();
+				if (contentLength < 1) LOG.w("Content-Length=%s for %s.", contentLength, sUrl);
+				return streamHandler.handleStream(is, contentLength);
 			}
 			finally {
 				IoHelper.closeQuietly(is);
