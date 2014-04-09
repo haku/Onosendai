@@ -52,14 +52,11 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, String, ImageFetchR
 		publishProgress("loading " + IoHelper.readableFileSize(contentLength));
 	}
 
-	/**
-	 * Called on BG thread.
-	 * Probably never used but here for completeness.
-	 */
 	@Override
-	public void onContentLengthToFetch (final long contentLength) {
-		publishProgress("fetching " + IoHelper.readableFileSize(contentLength));
-	}
+	public void onContentLengthToFetch (final long contentLength) {/* Unused */}
+
+	@Override
+	public void onContentFetching (final int bytesFetched, final int contentLength) {/* Unused */}
 
 	@Override
 	protected ImageFetchResult doInBackgroundWithTracking (final Void... unused) {

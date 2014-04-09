@@ -39,12 +39,18 @@ public class ImageLoadRequest {
 
 	public void setImagePending () {
 		this.imageView.setImageResource(R.drawable.question_blue);
+		if (this.listener != null) this.listener.imageFetchProgress(0, 0);
 		this.imageView.setTag(this.url);
 	}
 
 	public void setLoadingProgressIfRequired (final String msg) {
 		if (!isRequired()) return;
 		if (this.listener != null) this.listener.imageLoadProgress(msg);
+	}
+
+	public void setFetchingProgressIfRequired (final int progress, final int total) {
+		if (!isRequired()) return;
+		if (this.listener != null) this.listener.imageFetchProgress(progress, total);
 	}
 
 	public void setImageUnavailableIfRequired (final String errMsg) {
@@ -72,14 +78,19 @@ public class ImageLoadRequest {
 	public interface ImageLoadListener {
 
 		/**
-		 * Called with short updates during image loading.
-		 * Must be called on the UI thread.
+		 * Called with short updates during image loading. Must be called on the
+		 * UI thread.
 		 */
-		void imageLoadProgress(String msg);
+		void imageLoadProgress (String msg);
 
 		/**
-		 * Called only after the image has been successfully loaded.
 		 * Must be called on the UI thread.
+		 */
+		void imageFetchProgress (int progress, int total);
+
+		/**
+		 * Called only after the image has been successfully loaded. Must be
+		 * called on the UI thread.
 		 */
 		void imageLoaded (ImageLoadRequest req);
 

@@ -89,6 +89,22 @@ public final class IoHelper {
 		return bytesReadTotal;
 	}
 
+	public interface CopyProgressListener {
+		void onCopyProgress (int bytesCopied);
+	}
+
+	public static int copyWithProgress (final InputStream source, final OutputStream sink, final CopyProgressListener listener) throws IOException {
+		final byte[] buffer = new byte[COPY_BUFFER_SIZE];
+		int bytesReadTotal = 0;
+		int bytesRead;
+		while ((bytesRead = source.read(buffer)) != -1) {
+			sink.write(buffer, 0, bytesRead);
+			bytesReadTotal += bytesRead;
+			listener.onCopyProgress(bytesReadTotal);
+		}
+		return bytesReadTotal;
+	}
+
 	public static String toString (final InputStream is) throws IOException {
 		if (is == null) return null;
 		final StringBuilder sb = new StringBuilder();
