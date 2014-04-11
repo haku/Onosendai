@@ -82,11 +82,17 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 			final String url = this.req.getUrl();
 			Bitmap bmp = this.cache.get(url, this.req.getReqWidth(), this);
 			if (bmp == null) {
+				final String failure1 = this.cache.getFailure(url);
+				if (failure1 != null) return new ImageFetchResult(this.req, failure1);
+
 				final Object sync = this.cache.getSyncMgr().getSync(url);
 				try {
 					synchronized (sync) {
 						bmp = this.cache.get(url, this.req.getReqWidth(), this);
 						if (bmp == null) {
+							final String failure2 = this.cache.getFailure(url);
+							if (failure2 != null) return new ImageFetchResult(this.req, failure2);
+
 							LOG.d("Fetching image: '%s'...", url);
 							publishProgress(0, "fetching");
 							bmp = HttpHelper.get(url, this.cache.fromHttp(url, this.req.getReqWidth(), this));
@@ -99,7 +105,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 			}
 			return new ImageFetchResult(this.req, bmp);
 		}
-		catch (Exception e) { // NOSONAR To report errors.
+		catch (final Exception e) { // NOSONAR To report errors.
 			return new ImageFetchResult(this.req, e);
 		}
 		catch (final Throwable e) { // NOSONAR To report errors.
@@ -125,6 +131,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 		private final ImageLoadRequest request;
 		private final Bitmap bmp;
 		private final Exception e;
+		private final String errMsg;
 
 		public ImageFetchResult (final ImageLoadRequest request, final Bitmap bmp) {
 			if (request == null) throw new IllegalArgumentException("Missing arg: request.");
@@ -132,6 +139,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 			this.request = request;
 			this.bmp = bmp;
 			this.e = null;
+			this.errMsg = null;
 		}
 
 		public ImageFetchResult (final ImageLoadRequest request, final Exception e) {
@@ -141,6 +149,17 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 			this.request = request;
 			this.bmp = null;
 			this.e = e;
+			this.errMsg = null;
+		}
+
+		public ImageFetchResult (final ImageLoadRequest request, final String errMsg) {
+			if (request == null) throw new IllegalArgumentException("Missing arg: request.");
+			if (errMsg == null) throw new IllegalArgumentException("Missing arg: e.");
+			this.success = false;
+			this.request = request;
+			this.bmp = null;
+			this.e = null;
+			this.errMsg = errMsg;
 		}
 
 		public boolean isSuccess () {
@@ -156,19 +175,14 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 		}
 
 		public String getEmsg () {
-			if (this.e != null) {
-				return ExcpetionHelper.causeTrace(this.e, "|");
-			}
+			if (this.e != null) return ExcpetionHelper.causeTrace(this.e, "|");
+			if (this.errMsg != null) return this.errMsg;
 			return "Invalid response.";
 		}
 
 		public String getShortEmsg () {
-			if (this.e != null) {
-				String msg = this.e.getMessage();
-				if (!StringHelper.isEmpty(msg)) return msg;
-				msg = this.e.getClass().getSimpleName();
-				if (!StringHelper.isEmpty(msg)) return msg;
-			}
+			if (this.e != null) return ExcpetionHelper.veryShortMessage(this.e);
+			if (this.errMsg != null) return this.errMsg;
 			return "Invalid response.";
 		}
 

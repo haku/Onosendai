@@ -35,7 +35,7 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, String, ImageFetchR
 
 	@Override
 	protected void onPreExecute () {
-		this.req.setLoadingProgressIfRequired("loading");
+		this.req.setLoadingProgressIfRequired("load pending");
 	}
 
 	@Override
@@ -64,8 +64,13 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, String, ImageFetchR
 		try {
 			publishProgress("loading");
 			final String url = this.req.getUrl();
-			final Bitmap bmp = this.cache.get(url, this.req.getReqWidth(), this);
+
+			Bitmap bmp = this.cache.get(url, this.req.getReqWidth(), this);
 			if (bmp != null) return new ImageFetchResult(this.req, bmp);
+
+			final String failure = this.cache.getFailure(url);
+			if (failure != null) return new ImageFetchResult(this.req, failure);
+
 			return null;
 		}
 		catch (final Exception e) { // NOSONAR To report errors.
@@ -79,7 +84,10 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, String, ImageFetchR
 	@Override
 	protected void onPostExecute (final ImageFetchResult result) {
 		if (result == null) {
-			if (this.req.isRequired()) new ImageFetcherTask(getEventListener(), this.cache, this.req).executeOnExecutor(this.netEs);
+			if (this.req.isRequired()) {
+				publishProgress("fetch requested");
+				new ImageFetcherTask(getEventListener(), this.cache, this.req).executeOnExecutor(this.netEs);
+			}
 			return;
 		}
 		if (result.isSuccess()) {

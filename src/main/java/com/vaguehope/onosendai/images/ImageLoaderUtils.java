@@ -30,8 +30,14 @@ public final class ImageLoaderUtils {
 			req.setImageBitmap(bmp);
 		}
 		else {
-			req.setImagePending();
-			new ImageLoaderTask(eventListener, cache, netEs, req).executeOnExecutor(localEs);
+			final String failure = cache.getFailure(req.getUrl());
+			if (failure != null) {
+				req.setImageUnavailableIfRequired(failure);
+			}
+			else {
+				req.setImagePending();
+				new ImageLoaderTask(eventListener, cache, netEs, req).executeOnExecutor(localEs);
+			}
 		}
 	}
 

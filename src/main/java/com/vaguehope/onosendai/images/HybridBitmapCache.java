@@ -9,9 +9,10 @@ import java.io.OutputStream;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.support.v4.util.LruCache;
 
 import com.vaguehope.onosendai.C;
-import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.HashHelper;
 import com.vaguehope.onosendai.util.HttpHelper.HttpStreamHandler;
 import com.vaguehope.onosendai.util.IoHelper;
@@ -30,20 +31,22 @@ public class HybridBitmapCache {
 	private static final int BASE_HEX = 16;
 	static final LogWrapper LOG = new LogWrapper("HC");
 
-	private final Context context;
 	private final MemoryBitmapCache<String> memCache;
+	private final LruCache<String, String> failuresCache;
 	private final File baseDir;
 	private final SyncMgr syncMgr;
-	private final Bitmap errorBitmap;
 
 	public HybridBitmapCache (final Context context, final int maxMemorySizeBytes) {
-		this.context = context;
 		this.memCache = new MemoryBitmapCache<String>(maxMemorySizeBytes);
+		this.failuresCache = new LruCache<String, String>(100); // TODO extract constant.
 		this.baseDir = getBaseDir(context);
 		if (!this.baseDir.exists() && !this.baseDir.mkdirs()) throw new IllegalStateException("Failed to create cache directory: " + this.baseDir.getAbsolutePath());
 		this.syncMgr = new SyncMgr();
-		this.errorBitmap = BitmapFactory.decodeResource(this.context.getResources(), R.drawable.exclamation_red);
 		LOG.i("in memory cache: %s bytes.", maxMemorySizeBytes);
+	}
+
+	public String getFailure(final String key) {
+		return this.failuresCache.get(key);
 	}
 
 	public Bitmap quickGet (final String key) {
@@ -67,29 +70,39 @@ public class HybridBitmapCache {
 
 	public void clean () {
 		this.memCache.evictAll();
+		this.failuresCache.evictAll();
 	}
 
 	protected Bitmap getFromDisc (final String key, final int reqWidth, final LoadListener listener) throws UnrederableException {
 		if (key == null) return null;
 		final File file = keyToFile(key);
 		if (!file.exists()) return null;
-		if (listener != null) listener.onContentLengthToLoad(file.length());
+
+		final long fileLength = file.length();
+		if (fileLength < 1) return null;
+		if (listener != null) listener.onContentLengthToLoad(fileLength);
+
 		final Bitmap bmp = decodeBitmap(file, reqWidth);
 		if (bmp == null) {
-			cacheFailureInMemory(key);
-			throw new UnrederableException(file);
+			final UnrederableException unEx = new UnrederableException(file);
+			cacheFailureInMemory(key, unEx);
+			throw unEx;
 		}
 		this.memCache.put(key, bmp);
 		refreshFileTimestamp(file);
 		return bmp;
 	}
 
-	protected void cacheFailureInMemory (final String key) {
-		this.memCache.put(key, this.errorBitmap);
+	protected void cacheFailureInMemory (final String key, final Exception ex) {
+		this.failuresCache.put(key, ExcpetionHelper.veryShortMessage(ex));
 	}
 
 	protected File keyToFile (final String key) {
 		return new File(this.baseDir, HashHelper.md5String(key).toString(BASE_HEX));
+	}
+
+	protected File tempFile (final String key) throws IOException {
+		return File.createTempFile(HashHelper.md5String(key).toString(BASE_HEX), ".part", this.baseDir);
 	}
 
 	public SyncMgr getSyncMgr () {
@@ -182,14 +195,14 @@ public class HybridBitmapCache {
 
 		@Override
 		public void onError (final Exception e) {
-			this.cache.cacheFailureInMemory(this.key);
+			this.cache.cacheFailureInMemory(this.key, e);
 		}
 
 		@Override
 		public Bitmap handleStream (final InputStream is, final int contentLength) throws IOException {
 			if (this.listener != null) this.listener.onContentLengthToFetch(contentLength);
-			final File f = this.cache.keyToFile(this.key);
-			final OutputStream os = new FileOutputStream(f);
+			final File tmpFile = this.cache.tempFile(this.key);
+			final OutputStream os = new FileOutputStream(tmpFile);
 			try {
 				final long bytesCopied;
 				if (this.listener != null) {
@@ -201,12 +214,16 @@ public class HybridBitmapCache {
 				if (bytesCopied < 1L) throw new IOException(String.format("%s bytes returned.", bytesCopied));
 			}
 			catch (final IOException e) {
-				if (!f.delete()) LOG.e("Failed to delete incomplete download '" + f.getAbsolutePath() + "': " + e.toString());
+				if (!tmpFile.delete()) LOG.e("Failed to delete incomplete download '" + tmpFile.getAbsolutePath() + "': " + e.toString());
 				throw e;
 			}
 			finally {
 				os.close();
 			}
+
+			final File file = this.cache.keyToFile(this.key);
+			if (!tmpFile.renameTo(file)) throw new IOException(String.format("Failed to mv tmp file %s to %s.", tmpFile.getAbsolutePath(), file.getAbsolutePath()));
+
 			return this.cache.getFromDisc(this.key, this.reqWidth, this.listener);
 		}
 

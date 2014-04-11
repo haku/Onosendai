@@ -26,4 +26,12 @@ public final class ExcpetionHelper {
 		return sb.toString();
 	}
 
+	public static String veryShortMessage(final Throwable t) {
+		String msg = t.getMessage();
+		if (!StringHelper.isEmpty(msg)) return msg;
+		msg = t.getClass().getSimpleName();
+		if (!StringHelper.isEmpty(msg)) return msg;
+		return String.valueOf(t);
+	}
+
 }
