@@ -243,7 +243,7 @@ public class HybridBitmapCache {
 
 		public FetchProgressListener (final int contentLength, final LoadListener listener) {
 			this.contentLength = contentLength;
-			this.updateStep = Math.min(contentLength / 100, 10240);
+			this.updateStep = Math.max(contentLength / 100, 10240);
 			this.listener = listener;
 		}
 
