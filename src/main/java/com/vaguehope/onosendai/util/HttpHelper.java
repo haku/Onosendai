@@ -60,7 +60,7 @@ public final class HttpHelper {
 		final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		try {
 			connection.setRequestMethod("GET");
-			connection.setInstanceFollowRedirects(true);
+			connection.setInstanceFollowRedirects(false);
 			connection.setConnectTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_CONNECT_TIMEOUT_SECONDS));
 			connection.setReadTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_READ_TIMEOUT_SECONDS));
 
