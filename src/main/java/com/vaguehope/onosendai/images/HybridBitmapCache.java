@@ -34,14 +34,14 @@ public class HybridBitmapCache {
 	private final MemoryBitmapCache<String> memCache;
 	private final LruCache<String, String> failuresCache;
 	private final File baseDir;
-	private final SyncMgr syncMgr;
+	private final SyncMgr syncMgr = new SyncMgr();
+	private final ImageLoadRequestManager reqMgr = new ImageLoadRequestManager();
 
 	public HybridBitmapCache (final Context context, final int maxMemorySizeBytes) {
 		this.memCache = new MemoryBitmapCache<String>(maxMemorySizeBytes);
 		this.failuresCache = new LruCache<String, String>(100); // TODO extract constant.
 		this.baseDir = getBaseDir(context);
 		if (!this.baseDir.exists() && !this.baseDir.mkdirs()) throw new IllegalStateException("Failed to create cache directory: " + this.baseDir.getAbsolutePath());
-		this.syncMgr = new SyncMgr();
 		LOG.i("in memory cache: %s bytes.", maxMemorySizeBytes);
 	}
 
@@ -71,6 +71,7 @@ public class HybridBitmapCache {
 	public void clean () {
 		this.memCache.evictAll();
 		this.failuresCache.evictAll();
+		this.reqMgr.clear();
 	}
 
 	protected Bitmap getFromDisc (final String key, final int reqWidth, final LoadListener listener) throws UnrederableException {
@@ -107,6 +108,10 @@ public class HybridBitmapCache {
 
 	public SyncMgr getSyncMgr () {
 		return this.syncMgr;
+	}
+
+	public ImageLoadRequestManager getReqMgr () {
+		return this.reqMgr;
 	}
 
 	private static void refreshFileTimestamp (final File f) {

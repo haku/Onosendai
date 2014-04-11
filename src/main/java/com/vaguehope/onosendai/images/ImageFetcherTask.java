@@ -42,10 +42,15 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 		if (values == null || values.length < 1) return;
 		switch ((Integer) values[0]) {
 			case 0:
-				this.req.setLoadingProgressIfRequired((String) values[1]);
+				final String msg = (String) values[1];
+				this.req.setLoadingProgressIfRequired(msg);
+				this.cache.getReqMgr().setLoadingProgressIfRequired(this.req, msg);
 				break;
 			case 1:
-				this.req.setFetchingProgressIfRequired((Integer) values[1], (Integer) values[2]);
+				final Integer progress = (Integer) values[1];
+				final Integer total = (Integer) values[2];
+				this.req.setFetchingProgressIfRequired(progress, total);
+				this.cache.getReqMgr().setFetchingProgressIfRequired(this.req, progress, total);
 				break;
 		}
 	}
@@ -63,8 +68,12 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 	 */
 	@Override
 	public void onContentLengthToFetch (final long contentLength) {
-		if (contentLength < 1) return;
-		publishProgress(0, "fetching " + IoHelper.readableFileSize(contentLength));
+		if (contentLength > 0) {
+			publishProgress(0, "fetching " + IoHelper.readableFileSize(contentLength));
+		}
+		else {
+			publishProgress(0, "fetching ?B");
+		}
 	}
 
 	/**
