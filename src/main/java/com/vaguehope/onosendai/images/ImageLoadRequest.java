@@ -53,10 +53,14 @@ public class ImageLoadRequest {
 		if (this.listener != null) this.listener.imageFetchProgress(progress, total);
 	}
 
-	public void setImageUnavailableIfRequired (final String errMsg) {
-		if (!isRequired()) return;
+	public void setImageUnavailable (final String errMsg) {
 		this.imageView.setImageResource(R.drawable.exclamation_red);
 		if (this.listener != null) this.listener.imageLoadProgress(errMsg);
+	}
+
+	public void setImageUnavailableIfRequired (final String errMsg) {
+		if (!isRequired()) return;
+		setImageUnavailable(errMsg);
 	}
 
 	public void setImageBitmap (final Bitmap bmp) {
@@ -67,8 +71,7 @@ public class ImageLoadRequest {
 
 	public void setImageBitmapIfRequired (final Bitmap bmp) {
 		if (!isRequired()) return;
-		this.imageView.setImageBitmap(bmp);
-		if (this.listener != null) this.listener.imageLoaded(this);
+		setImageBitmap(bmp);
 	}
 
 	public boolean isRequired () {

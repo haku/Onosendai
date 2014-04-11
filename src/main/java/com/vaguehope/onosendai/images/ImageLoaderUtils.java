@@ -32,7 +32,7 @@ public final class ImageLoaderUtils {
 		else {
 			final String failure = cache.getFailure(req.getUrl());
 			if (failure != null) {
-				req.setImageUnavailableIfRequired(failure);
+				req.setImageUnavailable(failure);
 			}
 			else {
 				req.setImagePending();
