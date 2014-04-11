@@ -44,9 +44,10 @@ public class PendingImage extends FrameLayout {
 				ViewGroup.LayoutParams.WRAP_CONTENT,
 				ViewGroup.LayoutParams.WRAP_CONTENT,
 				Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM));
-		this.status.setPadding(this.status.getPaddingLeft(),
+		this.status.setPadding(
+				this.status.getPaddingLeft() + dipToPixels(context, 10),
 				this.status.getPaddingTop(),
-				this.status.getPaddingRight(),
+				this.status.getPaddingRight() + dipToPixels(context, 10),
 				this.status.getPaddingBottom() + dipToPixels(context, 20));
 		addView(this.status);
 
