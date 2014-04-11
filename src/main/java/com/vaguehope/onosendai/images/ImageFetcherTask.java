@@ -63,6 +63,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 	 */
 	@Override
 	public void onContentLengthToFetch (final long contentLength) {
+		if (contentLength < 1) return;
 		publishProgress(0, "fetching " + IoHelper.readableFileSize(contentLength));
 	}
 
