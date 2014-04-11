@@ -42,6 +42,7 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, String, ImageFetchR
 	protected void onProgressUpdate (final String... values) {
 		if (values == null || values.length < 1) return;
 		this.req.setLoadingProgressIfRequired(values[0]);
+		this.cache.getReqMgr().setLoadingProgressIfRequired(this.req, values[0]);
 	}
 
 	/**
@@ -61,6 +62,9 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, String, ImageFetchR
 	@Override
 	protected ImageFetchResult doInBackgroundWithTracking (final Void... unused) {
 		if (!this.req.isRequired()) return null;
+
+		this.cache.getReqMgr().registerRequest(this.req);
+
 		try {
 			publishProgress("loading");
 			final String url = this.req.getUrl();
