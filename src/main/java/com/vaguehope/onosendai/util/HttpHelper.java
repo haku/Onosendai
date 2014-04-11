@@ -63,6 +63,8 @@ public final class HttpHelper {
 			connection.setInstanceFollowRedirects(false);
 			connection.setConnectTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_CONNECT_TIMEOUT_SECONDS));
 			connection.setReadTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_READ_TIMEOUT_SECONDS));
+			//connection.setRequestProperty("Accept-Encoding", "identity"); This fixes missing Content-Length headers but feels wrong.
+			connection.connect();
 
 			InputStream is = null;
 			try {
