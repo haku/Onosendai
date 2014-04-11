@@ -221,13 +221,12 @@ public class HybridBitmapCache {
 
 		public FetchProgressListener (final int contentLength, final LoadListener listener) {
 			this.contentLength = contentLength;
-			this.updateStep = contentLength / 100;
+			this.updateStep = Math.min(contentLength / 100, 10240);
 			this.listener = listener;
 		}
 
 		@Override
 		public void onCopyProgress (final int bytesCopied) {
-			if (this.contentLength < 1) return;
 			if (bytesCopied - this.lastUpdateBytesCopied >= this.updateStep) {
 				this.lastUpdateBytesCopied = bytesCopied;
 				this.listener.onContentFetching(bytesCopied, this.contentLength);
