@@ -51,6 +51,11 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 				final Integer total = (Integer) values[2];
 				this.req.setFetchingProgressIfRequired(progress, total);
 				this.cache.getReqMgr().setFetchingProgressIfRequired(this.req, progress, total);
+				if (total < 1) {
+					final String prgMsg = "fetched " + IoHelper.readableFileSize(progress);
+					this.req.setLoadingProgressIfRequired(prgMsg);
+					this.cache.getReqMgr().setLoadingProgressIfRequired(this.req, prgMsg);
+				}
 				break;
 		}
 	}
