@@ -32,7 +32,8 @@ public class PendingImage extends FrameLayout {
 		super(context, attrs, defStyle);
 
 		final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.PendingImage);
-		final int maxHeightPixels = a.getDimensionPixelSize(R.styleable.PendingImage_maxHeight, -1);
+		final int maxHeightPixels = a.getDimensionPixelSize(R.styleable.PendingImage_maxHeight, -1)
+				- getPaddingTop() - getPaddingBottom();
 		a.recycle();
 
 		this.prg = new ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal);
