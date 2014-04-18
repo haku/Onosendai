@@ -100,7 +100,7 @@ public class ScrollState {
 		final int top = (v == null) ? 0 : v.getTop();
 
 		final long itemId = lv.getAdapter().getItemId(index);
-		if (itemId < 0) return null;
+		if (itemId <= 0) return null;
 
 		long time = ((TweetListCursorAdapter) lv.getAdapter()).getItemTime(index);
 		if (time < 0L) time = 0L;
