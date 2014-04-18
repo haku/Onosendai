@@ -130,6 +130,11 @@ public class PendingImage extends FrameLayout {
 		@Override
 		public void imageLoaded (final ImageLoadRequest req) {}
 
+		@Override
+		public void imageLoadFailed (final ImageLoadRequest req, final String errMsg) {
+			imageLoadProgress(errMsg);
+		}
+
 	};
 
 	private static class ProgressAwareFixedWidthImageView extends FixedWidthImageView {

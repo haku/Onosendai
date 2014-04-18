@@ -22,7 +22,7 @@ class PayloadRowView {
 	private final List<Button> buttons;
 
 	public PayloadRowView (final TextView main) {
-		this(main, null, null);
+		this(main, null, null, null);
 	}
 
 	public PayloadRowView (final TextView main, final ImageView image) {
@@ -46,13 +46,13 @@ class PayloadRowView {
 		this.buttons = null;
 	}
 
-	public PayloadRowView (final TextView main, final PendingImage pendingImage) {
+	public PayloadRowView (final TextView main, final PendingImage pendingImage, final Button button) {
 		this.main = main;
 		this.secondary = null;
 		this.tertiary = null;
 		this.image = null;
 		this.pendingImage = pendingImage;
-		this.buttons = null;
+		this.buttons = button != null ? Collections.singletonList(button) : null;
 	}
 
 	public PayloadRowView (final List<Button> buttons) {
@@ -72,6 +72,13 @@ class PayloadRowView {
 
 	public void hideText () {
 		this.main.setVisibility(View.GONE);
+	}
+
+	public void hideButtons () {
+		if (this.buttons == null) return;
+		for (final Button btn : this.buttons) {
+			btn.setVisibility(View.GONE);
+		}
 	}
 
 	public void setSecondaryText (final String text) {
@@ -94,6 +101,10 @@ class PayloadRowView {
 	public ImageLoadListener getImageLoadListener () {
 		if (this.pendingImage != null) return this.pendingImage.getImageLoadListener();
 		return null;
+	}
+
+	public Button getButton () {
+		return this.buttons != null && this.buttons.size() > 0 ? this.buttons.get(0) : null;
 	}
 
 	public List<Button> getButtons () {

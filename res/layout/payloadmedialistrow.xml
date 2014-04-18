@@ -17,4 +17,11 @@
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content" />
 
+	<Button
+		android:id="@+id/btnRetry"
+		android:text="Retry"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		style="?android:attr/buttonBarButtonStyle" />
+
 </LinearLayout>
