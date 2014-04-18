@@ -66,6 +66,8 @@ import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
+import com.vaguehope.onosendai.storage.DbProvider;
+import com.vaguehope.onosendai.ui.LocalSearchDialog.OnTweetListener;
 import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
 import com.vaguehope.onosendai.update.FetchColumn;
 import com.vaguehope.onosendai.update.KvKeys;
@@ -86,7 +88,7 @@ import com.vaguehope.onosendai.widget.SidebarLayout;
  * https://developer.android.com/intl/fr/guide/components/fragments.html#
  * Creating
  */
-public class TweetListFragment extends Fragment {
+public class TweetListFragment extends Fragment implements DbProvider {
 
 	static final String ARG_COLUMN_ID = "column_id";
 	static final String ARG_COLUMN_POSITION = "column_pos";
@@ -115,6 +117,7 @@ public class TweetListFragment extends Fragment {
 	private Button btnDetailsLater;
 
 	private ScrollState scrollState;
+	private Tweet scrollToTweet;
 	private ScrollIndicator scrollIndicator;
 	private TweetListCursorAdapter adapter;
 	private DbClient bndDb;
@@ -335,6 +338,28 @@ public class TweetListFragment extends Fragment {
 		this.tweetList.setSelectionAfterHeaderView();
 	}
 
+	public void scrollToTweet(final Tweet tweet) {
+		if (tweet == null) return;
+		if (this.adapter.getCount() > 0) {
+			for (int i = 0; i < this.adapter.getCount(); i++) {
+				if (this.adapter.getItemId(i) == tweet.getUid()) {
+					this.tweetList.setSelectionFromTop(i, 0);
+					break;
+				}
+			}
+		}
+		else {
+			this.scrollToTweet = tweet;
+		}
+	}
+
+	private void scrollToStashedTweet () {
+		if (this.scrollToTweet == null) return;
+		final Tweet tweet = this.scrollToTweet;
+		this.scrollToTweet = null;
+		scrollToTweet(tweet);
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private void resumeDb () {
@@ -377,7 +402,8 @@ public class TweetListFragment extends Fragment {
 		this.log.d("DB service released.");
 	}
 
-	protected DbInterface getDb () {
+	@Override
+	public DbInterface getDb () {
 		final DbClient d = this.bndDb;
 		if (d == null) return null;
 		return d.getDb();
@@ -444,7 +470,7 @@ public class TweetListFragment extends Fragment {
 				startActivity(new Intent(getActivity(), OsPreferenceActivity.class));
 				return true;
 			case R.id.mnuLocalSearch:
-				startActivity(new Intent(getActivity(), LocalSearchActivity.class));
+				showLocalSearch();
 				return true;
 			default:
 				return false;
@@ -549,6 +575,15 @@ public class TweetListFragment extends Fragment {
 
 	private void showOutbox () {
 		startActivity(new Intent(getActivity(), OutboxActivity.class));
+	}
+
+	private void showLocalSearch () {
+		LocalSearchDialog.show(getActivity(), this, getMainActivity(), new OnTweetListener() {
+			@Override
+			public void onTweet (final int colId, final Tweet tweet) {
+				getMainActivity().gotoTweet(colId, tweet);
+			}
+		});
 	}
 
 	private void askRt (final Tweet tweet) {
@@ -827,6 +862,7 @@ public class TweetListFragment extends Fragment {
 				this.host.getAdapter().changeCursor(result.getData());
 				this.host.getLog().d("Refreshed tweets cursor.");
 				this.host.restoreScroll();
+				this.host.scrollToStashedTweet();
 				this.host.redrawLastUpdateError();
 			}
 			else {

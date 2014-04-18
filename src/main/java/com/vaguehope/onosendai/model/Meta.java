@@ -41,6 +41,11 @@ public class Meta {
 		return !StringHelper.isEmpty(this.title);
 	}
 
+	public int toInt (final int defaultValue) {
+		if (!hasData()) return defaultValue;
+		return Integer.parseInt(this.data);
+	}
+
 	public long toLong (final long defaultValue) {
 		if (!hasData()) return defaultValue;
 		return Long.parseLong(this.data);
