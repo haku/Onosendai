@@ -11,6 +11,7 @@ public class ImageLoadRequest {
 	private final ImageView imageView;
 	private final int reqWidth;
 	private final ImageLoadListener listener;
+	private final boolean retry;
 
 	public ImageLoadRequest (final String url, final ImageView imageView) {
 		this(url, imageView, -1);
@@ -21,12 +22,22 @@ public class ImageLoadRequest {
 	}
 
 	public ImageLoadRequest (final String url, final ImageView imageView, final int reqWidth, final ImageLoadListener listener) {
+		this(url, imageView, reqWidth, listener, false);
+	}
+
+	private ImageLoadRequest (final String url, final ImageView imageView, final int reqWidth, final ImageLoadListener listener, final boolean retry) {
 		if (url == null) throw new IllegalArgumentException("Missing arg: url.");
 		if (imageView == null) throw new IllegalArgumentException("Missing arg: imageView.");
 		this.url = url;
 		this.imageView = imageView;
 		this.reqWidth = reqWidth;
 		this.listener = listener;
+		this.retry = retry;
+	}
+
+	public ImageLoadRequest withRetry() {
+		if (this.retry) return this;
+		return new ImageLoadRequest(this.url, this.imageView, this.reqWidth, this.listener, true);
 	}
 
 	public String getUrl () {
@@ -35,6 +46,10 @@ public class ImageLoadRequest {
 
 	public int getReqWidth () {
 		return this.reqWidth;
+	}
+
+	public boolean isRetry () {
+		return this.retry;
 	}
 
 	public void setImagePending () {
@@ -55,7 +70,7 @@ public class ImageLoadRequest {
 
 	public void setImageUnavailable (final String errMsg) {
 		this.imageView.setImageResource(R.drawable.exclamation_red);
-		if (this.listener != null) this.listener.imageLoadProgress(errMsg);
+		if (this.listener != null) this.listener.imageLoadFailed(this, errMsg);
 	}
 
 	public void setImageUnavailableIfRequired (final String errMsg) {
@@ -96,6 +111,12 @@ public class ImageLoadRequest {
 		 * called on the UI thread.
 		 */
 		void imageLoaded (ImageLoadRequest req);
+
+		/**
+		 * Called with a short error message (like imageLoadProgress). Must be
+		 * called on the UI thread.
+		 */
+		void imageLoadFailed (ImageLoadRequest req, String errMsg);
 
 	}
 

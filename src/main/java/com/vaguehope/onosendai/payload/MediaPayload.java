@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
@@ -54,13 +56,17 @@ public class MediaPayload extends Payload {
 
 	@Override
 	public PayloadRowView makeRowView (final View view) {
-		return new PayloadRowView((TextView) view.findViewById(R.id.txtMain), (PendingImage) view.findViewById(R.id.imgMain));
+		return new PayloadRowView(
+				(TextView) view.findViewById(R.id.txtMain),
+				(PendingImage) view.findViewById(R.id.imgMain),
+				(Button) view.findViewById(R.id.btnRetry));
 	}
 
 	@Override
 	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final int reqWidth, final PayloadClickListener clickListener) {
 		super.applyTo(rowView, imageLoader, reqWidth, clickListener);
-		imageLoader.loadImage(new ImageLoadRequest(this.imgUrl, rowView.getImage(), reqWidth, new CaptionRemover(rowView)));
+		rowView.getButton().setVisibility(View.GONE);
+		imageLoader.loadImage(new ImageLoadRequest(this.imgUrl, rowView.getImage(), reqWidth, new ImageLoadCallbacks(rowView, imageLoader)));
 	}
 
 	@Override
@@ -82,12 +88,14 @@ public class MediaPayload extends Payload {
 				&& EqualHelper.equal(this.clickUrl, that.clickUrl);
 	}
 
-	private static class CaptionRemover implements ImageLoadListener {
+	private static class ImageLoadCallbacks implements ImageLoadListener {
 
 		private final PayloadRowView rowView;
+		private final ImageLoader imageLoader;
 
-		public CaptionRemover (final PayloadRowView rowView) {
+		public ImageLoadCallbacks (final PayloadRowView rowView, final ImageLoader imageLoader) {
 			this.rowView = rowView;
+			this.imageLoader = imageLoader;
 		}
 
 		@Override
@@ -104,6 +112,21 @@ public class MediaPayload extends Payload {
 		public void imageLoaded (final ImageLoadRequest req) {
 			this.rowView.hideText();
 			if (this.rowView.getImageLoadListener() != null) this.rowView.getImageLoadListener().imageLoaded(req);
+		}
+
+		@Override
+		public void imageLoadFailed (final ImageLoadRequest req, final String errMsg) {
+			final Button button = this.rowView.getButton();
+			button.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick (final View v) {
+					ImageLoadCallbacks.this.imageLoader.loadImage(req.withRetry());
+					v.setVisibility(View.GONE);
+				}
+			});
+			button.setVisibility(View.VISIBLE);
+
+			if (this.rowView.getImageLoadListener() != null) this.rowView.getImageLoadListener().imageLoadFailed(req, errMsg);
 		}
 
 	}

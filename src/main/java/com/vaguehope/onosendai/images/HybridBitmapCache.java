@@ -45,6 +45,15 @@ public class HybridBitmapCache {
 		LOG.i("in memory cache: %s bytes.", maxMemorySizeBytes);
 	}
 
+	public void forget (final String key) throws IOException {
+		this.memCache.remove(key);
+		this.failuresCache.remove(key);
+		final File file = keyToFile(key);
+		if (file.exists() && !file.delete() && file.exists()) {
+			throw new IOException(String.format("Failed to rm cache file %s.", file.getAbsolutePath()));
+		}
+	}
+
 	public String getFailure(final String key) {
 		return this.failuresCache.get(key);
 	}
