@@ -56,7 +56,6 @@
 
 	<string name="outbox_title">Onosendai Outbox</string>
 	<string name="preferences_title">Onosendai Preferences</string>
-	<string name="local_search_title">Onosendai Local Search</string>
 
 	<string name="btn_goto">goto</string>
 	<string name="btn_jump_top">Top</string>

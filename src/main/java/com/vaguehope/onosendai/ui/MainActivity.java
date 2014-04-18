@@ -30,6 +30,7 @@ import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.model.ScrollState;
+import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
@@ -230,6 +231,12 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 			return true;
 		}
 		return false;
+	}
+
+	public void gotoTweet(final int colId, final Tweet tweet) {
+		gotoPage(getConf().getColumnPositionById(colId));
+		final TweetListFragment page = this.activePages.get(colId);
+		if (page != null) page.scrollToTweet(tweet);
 	}
 
 	private boolean showPageFromIntent (final Intent intent) {

@@ -42,7 +42,12 @@ public enum MetaType {
 	 * Time is in seconds (utime).
 	 * Title is unused.
 	 */
-	POST_TIME(9);
+	POST_TIME(9),
+	/**
+	 * This is hack that will never be in the DB.
+	 * This is to attach the source column ID to search results.
+	 */
+	COLUMN_ID(90);
 
 	private final int id;
 

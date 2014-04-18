@@ -304,7 +304,7 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public List<Tweet> getTweets (final int columnId, final int numberOf) {
-		return getTweets(TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) }, TBL_TW_TIME + " desc", numberOf);
+		return getTweets(TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) }, TBL_TW_TIME + " desc", numberOf, false);
 	}
 
 	@Override
@@ -312,7 +312,7 @@ public class DbAdapter implements DbInterface {
 		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweets(columnId, numberOf);
 		final Cursor c = getTweetsCursor(columnId, excludeColumnIds, false, numberOf);
 		try {
-			return readTweets(c);
+			return readTweets(c, false);
 		}
 		finally {
 			IoHelper.closeQuietly(c);
@@ -368,13 +368,13 @@ public class DbAdapter implements DbInterface {
 				.append(" AND ").append(TBL_TW_TIME).append(">?").toString(),
 				new String[] { String.valueOf(columnId), String.valueOf(earliestTime) },
 				TBL_TW_TIME + " asc",
-				numberOf);
+				numberOf, false);
 	}
 
-	private List<Tweet> getTweets (final String where, final String[] whereArgs, final String orderBy, final int numberOf) {
+	private List<Tweet> getTweets (final String where, final String[] whereArgs, final String orderBy, final int numberOf, final boolean addColumMeta) {
 		final Cursor c = getTweetsCursor(where, whereArgs, orderBy, numberOf);
 		try {
-			return readTweets(c);
+			return readTweets(c, addColumMeta);
 		}
 		finally {
 			IoHelper.closeQuietly(c);
@@ -384,14 +384,14 @@ public class DbAdapter implements DbInterface {
 	private Cursor getTweetsCursor (final String where, final String[] whereArgs, final String orderBy, final int numberOf) {
 		if (!checkDbOpen()) return null;
 		return this.mDb.query(true, TBL_TW,
-				new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA },
+				new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_COLID },
 				where, whereArgs,
 				null, null,
 				orderBy,
 				numberOf > 0 ? String.valueOf(numberOf) : null);
 	}
 
-	private static List<Tweet> readTweets (final Cursor c) {
+	private static List<Tweet> readTweets (final Cursor c, final boolean addColumMeta) {
 		if (c != null && c.moveToFirst()) {
 			final int colId = c.getColumnIndex(TBL_TW_ID);
 			final int colSid = c.getColumnIndex(TBL_TW_SID);
@@ -401,6 +401,7 @@ public class DbAdapter implements DbInterface {
 			final int colTime = c.getColumnIndex(TBL_TW_TIME);
 			final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
 			final int colInlineMedia = c.getColumnIndex(TBL_TW_INLINEMEDIA);
+			final int colColId = c.getColumnIndex(TBL_TW_COLID);
 
 			final List<Tweet> ret = new ArrayList<Tweet>();
 			do {
@@ -412,7 +413,11 @@ public class DbAdapter implements DbInterface {
 				final long time = c.getLong(colTime);
 				final String avatar = c.getString(colAvatar);
 				final String inlineMedia = c.getString(colInlineMedia);
-				ret.add(new Tweet(uid, sid, username, fullname, body, time, avatar, inlineMedia, null));
+				List<Meta> metas = null;
+				if (addColumMeta) {
+					metas = Collections.singletonList(new Meta(MetaType.COLUMN_ID, String.valueOf(c.getInt(colColId))));
+				}
+				ret.add(new Tweet(uid, sid, username, fullname, body, time, avatar, inlineMedia, metas));
 			}
 			while (c.moveToNext());
 			return ret;
@@ -433,7 +438,7 @@ public class DbAdapter implements DbInterface {
 					TBL_TW + "." + TBL_TW_ID + "=" + TBL_TM_TWID + " AND " + TBL_TM_TYPE + "=" + metaType.getId() + " AND " + TBL_TM_DATA + "=?",
 					new String[] { data },
 					TBL_TW_SID, null, TBL_TW_TIME + " desc", String.valueOf(numberOf));
-			return readTweets(c);
+			return readTweets(c, false);
 		}
 		finally {
 			IoHelper.closeQuietly(c);
@@ -444,7 +449,7 @@ public class DbAdapter implements DbInterface {
 	public List<Tweet> searchTweets (final String searchTerm, final int numberOf) {
 		return getTweets(TBL_TW_BODY + " LIKE ? ESCAPE ? COLLATE NOCASE",
 				new String[] { "%" + escapeSearch(searchTerm) + "%", SEARCH_ESC },
-				TBL_TW_TIME + " desc", numberOf);
+				TBL_TW_TIME + " desc", numberOf, true);
 	}
 
 	@Override
