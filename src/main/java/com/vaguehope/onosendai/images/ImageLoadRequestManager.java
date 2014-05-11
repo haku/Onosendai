@@ -23,28 +23,36 @@ public class ImageLoadRequestManager {
 			final List<ImageLoadRequest> prevList = this.reqs.putIfAbsent(req.getUrl(), newList);
 			list = prevList != null ? prevList : newList;
 		}
-		list.add(req);
+		synchronized (list) {
+			list.add(req);
+		}
 	}
 
 	public void unregisterRequest (final ImageLoadRequest req) {
 		final List<ImageLoadRequest> list = this.reqs.get(req.getUrl());
 		if (list == null) return;
-		list.remove(req);
+		synchronized (list) {
+			list.remove(req);
+		}
 	}
 
 	public void setLoadingProgressIfRequired (final ImageLoadRequest originReq, final String msg) {
 		final List<ImageLoadRequest> list = this.reqs.get(originReq.getUrl());
 		if (list == null) return;
-		for (final ImageLoadRequest req : list) {
-			if (req != originReq) req.setLoadingProgressIfRequired(msg);
+		synchronized (list) {
+			for (final ImageLoadRequest req : list) {
+				if (req != originReq) req.setLoadingProgressIfRequired(msg);
+			}
 		}
 	}
 
 	public void setFetchingProgressIfRequired (final ImageLoadRequest originReq, final Integer progress, final Integer total) {
 		final List<ImageLoadRequest> list = this.reqs.get(originReq.getUrl());
 		if (list == null) return;
-		for (final ImageLoadRequest req : list) {
-			if (req != originReq) req.setFetchingProgressIfRequired(progress, total);
+		synchronized (list) {
+			for (final ImageLoadRequest req : list) {
+				if (req != originReq) req.setFetchingProgressIfRequired(progress, total);
+			}
 		}
 	}
 
