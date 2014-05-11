@@ -79,6 +79,8 @@ public enum MetaType {
 				return REPLYTO;
 			case 9: // NOSONAR 9 is not magical.
 				return POST_TIME;
+			case 90:// NOSONAR 90 is not that magical.
+				return COLUMN_ID;
 			default:
 				return null;
 		}
