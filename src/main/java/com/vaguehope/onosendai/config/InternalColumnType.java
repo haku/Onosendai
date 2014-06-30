@@ -2,9 +2,22 @@ package com.vaguehope.onosendai.config;
 
 import java.util.Locale;
 
-public enum InternalColumnType {
+import com.vaguehope.onosendai.util.Titleable;
 
-	LATER();
+public enum InternalColumnType implements Titleable {
+
+	LATER("Reading List");
+
+	private final String title;
+
+	private InternalColumnType(final String title) {
+		this.title = title;
+	}
+
+	@Override
+	public String getUiTitle () {
+		return this.title;
+	}
 
 	public boolean matchesColumn(final Column col) {
 		return name().equalsIgnoreCase(col.getResource());
