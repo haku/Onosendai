@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.ui.pref;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -10,6 +11,7 @@ import android.content.Context;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumnsFetcher;
@@ -22,6 +24,7 @@ import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.DialogHelper.Question;
+import com.vaguehope.onosendai.util.Titleable;
 
 class ColumnChooser {
 
@@ -47,9 +50,9 @@ class ColumnChooser {
 		this.listener.onColumn(account, resource, title);
 	}
 
-	private List<Account> readAccountsOrAlert () {
+	private Collection<Account> readAccountsOrAlert () {
 		try {
-			return new ArrayList<Account>(this.prefs.readAccounts());
+			return this.prefs.readAccounts();
 		}
 		catch (final JSONException e) {
 			DialogHelper.alert(this.context, "Failed to read accounts.", e);
@@ -59,13 +62,29 @@ class ColumnChooser {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	private static enum InternalColumn implements Titleable {
+		INSTANCE;
+		@Override
+		public String getUiTitle () {
+			return "(internal)";
+		}
+	}
+
 	protected void promptAddColumn () {
-		final List<Account> items = readAccountsOrAlert();
-		if (items == null) return;
-		DialogHelper.askItem(this.context, "Account", items, new Listener<Account>() {
+		final List<Titleable> items = new ArrayList<Titleable>(readAccountsOrAlert());
+		items.add(InternalColumn.INSTANCE);
+		DialogHelper.askItem(this.context, "Account", items, new Listener<Titleable>() {
 			@Override
-			public void onAnswer (final Account account) {
-				promptAddColumn(account, null);
+			public void onAnswer (final Titleable item) {
+				if (item instanceof Account) {
+					promptAddColumn((Account) item, null);
+				}
+				else if (item == InternalColumn.INSTANCE) {
+					promptAddInternalColumn();
+				}
+				else {
+					DialogHelper.alert(ColumnChooser.this.context, "Unknown item: " + item);
+				}
 			}
 		});
 	}
@@ -82,6 +101,15 @@ class ColumnChooser {
 				onColumn(account, null);
 				break;
 		}
+	}
+
+	protected void promptAddInternalColumn () {
+		DialogHelper.askItem(this.context, "Internal", InternalColumnType.values(), new Listener<InternalColumnType>() {
+			@Override
+			public void onAnswer (final InternalColumnType type) {
+				onColumn(null, type.name(), type.getUiTitle());
+			}
+		});
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

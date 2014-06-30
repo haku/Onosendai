@@ -62,7 +62,9 @@ public class ConfigBuilder {
 	}
 
 	public ConfigBuilder readLater () throws ConfigException {
-		column(new Column(this.columns.size(), "Reading List", null, InternalColumnType.LATER.name(), -1, null, null, InlineMediaStyle.NONE, false));
+		column(new Column(this.columns.size(), InternalColumnType.LATER.getUiTitle(),
+				null, InternalColumnType.LATER.name(),
+				-1, null, null, InlineMediaStyle.NONE, false));
 		return this;
 	}
 
