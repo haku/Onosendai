@@ -26,13 +26,13 @@
 				android:layout_weight="1" />
 
 			<Button
-				android:id="@+id/btnAttach"
+				android:id="@+id/btnMenu"
 				android:layout_width="wrap_content"
 				android:layout_height="fill_parent"
 				style="?android:attr/buttonBarButtonStyle"
 				android:paddingLeft="10dip"
 				android:paddingRight="10dip"
-				android:text="Attach" />
+				android:text="menu" />
 
 		</LinearLayout>
 
