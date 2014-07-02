@@ -254,7 +254,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			}
 		}
 		redrawAttachment();
-		((Button) findViewById(R.id.btnAttach)).setOnClickListener(this.attachClickListener);
+		((Button) findViewById(R.id.btnMenu)).setOnClickListener(this.menuButtonClickListener);
 	}
 
 	private void setupTextBody () {
@@ -496,46 +496,60 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		return redrawAttachment();
 	}
 
-	private final OnClickListener attachClickListener = new OnClickListener() {
+	private final OnClickListener menuButtonClickListener = new OnClickListener() {
 		@Override
 		public void onClick (final View v) {
-			showAttachMenu(v);
+			showMenu(v);
 		}
 	};
 
-	protected void showAttachMenu (final View v) {
+	protected void showMenu (final View v) {
+		final PopupMenu popupMenu = new PopupMenu(this, v);
+		popupMenu.getMenuInflater().inflate(R.menu.postmenu, popupMenu.getMenu());
+		popupMenu.setOnMenuItemClickListener(this.menuClickListener);
 		if (this.attachment == null) {
-			askChoosePicture();
+			popupMenu.getMenu().findItem(R.id.mnuAttachmentGroup).setVisible(false);
 		}
 		else {
-			final PopupMenu popupMenu = new PopupMenu(this, v);
-			popupMenu.getMenuInflater().inflate(R.menu.attachmenu, popupMenu.getMenu());
-			popupMenu.setOnMenuItemClickListener(this.attachMenuClickListener);
-			popupMenu.show();
+			popupMenu.getMenu().findItem(R.id.mnuAttach).setVisible(false);
 		}
+		popupMenu.show();
 	}
 
-	protected final PopupMenu.OnMenuItemClickListener attachMenuClickListener = new PopupMenu.OnMenuItemClickListener() {
+	protected final PopupMenu.OnMenuItemClickListener menuClickListener = new PopupMenu.OnMenuItemClickListener() {
 		@Override
 		public boolean onMenuItemClick (final MenuItem item) {
-			return attachMenuItemClick(item);
+			return menuItemClick(item);
 		}
 	};
 
-	protected boolean attachMenuItemClick (final MenuItem item) {
+	protected boolean menuItemClick (final MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.mnuChange:
+			case R.id.mnuTextFilter:
+				showTextFiltersDlg();
+				return true;
+			case R.id.mnuAttach:
+			case R.id.mnuAttachmentChange:
 				askChoosePicture();
 				return true;
-			case R.id.mnuShrink:
+			case R.id.mnuAttachmentShrink:
 				showShrinkPictureDlg();
 				return true;
-			case R.id.mnuRemove:
+			case R.id.mnuAttachmentRemove:
 				setAndRedrawAttachment(null);
 				return true;
 			default:
 				return false;
 		}
+	}
+
+	private void showTextFiltersDlg () {
+		TextFiltersDialog.show(this, this.txtBody.getText().toString(), new Listener<String>() {
+			@Override
+			public void onAnswer (final String filteredText) {
+				PostActivity.this.txtBody.setText(filteredText);
+			}
+		});
 	}
 
 	private void askChoosePicture () {

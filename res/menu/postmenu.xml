@@ -1,0 +1,35 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<group android:id="@+id/group_popupmenu">
+
+		<item
+			android:id="@+id/mnuAttach"
+			android:title="Attach" />
+
+		<item
+			android:id="@+id/mnuTextFilter"
+			android:title="Text Filters" />
+
+		<item
+			android:id="@+id/mnuAttachmentGroup"
+			android:title="Attachment...">
+
+			<menu>
+
+				<item
+					android:id="@+id/mnuAttachmentChange"
+					android:title="Change" />
+
+				<item
+					android:id="@+id/mnuAttachmentShrink"
+					android:title="Shrink" />
+
+				<item
+					android:id="@+id/mnuAttachmentRemove"
+					android:title="Remove" />
+
+			</menu>
+
+		</item>
+
+	</group>
+</menu>
