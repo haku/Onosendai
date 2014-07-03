@@ -6,10 +6,6 @@
 			android:title="Attach" />
 
 		<item
-			android:id="@+id/mnuTextFilter"
-			android:title="Text Filters" />
-
-		<item
 			android:id="@+id/mnuAttachmentGroup"
 			android:title="Attachment...">
 
@@ -30,6 +26,10 @@
 			</menu>
 
 		</item>
+
+		<item
+			android:id="@+id/mnuTextFilter"
+			android:title="Text Filters" />
 
 	</group>
 </menu>
