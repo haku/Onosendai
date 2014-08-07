@@ -251,5 +251,15 @@ public class DbService extends Service implements DbInterface {
 		this.dbAdaptor.housekeep();
 	}
 
+	@Override
+	public long getTotalTweetsEverSeen () {
+		return this.dbAdaptor.getTotalTweetsEverSeen();
+	}
+
+	@Override
+	public double getTweetsPerHour (final int columnId) {
+		return this.dbAdaptor.getTweetsPerHour(columnId);
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
