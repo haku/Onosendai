@@ -26,15 +26,19 @@ import org.apache.http.client.HttpResponseException;
 
 public final class HttpHelper {
 
-	public static final int HTTP_CONNECT_TIMEOUT_SECONDS = 20;
-	public static final int HTTP_READ_TIMEOUT_SECONDS = 60;
-
+	private static final int HTTP_CONNECT_TIMEOUT_SECONDS = 20;
+	private static final int HTTP_READ_TIMEOUT_SECONDS = 60;
 	private static final int MAX_REDIRECTS = 3;
+	private static final int MAX_ERR_BODY_LENGTH_CHAR = 100;
+
+	private static final int HTTP_NOT_FOUND = 404;
+
 	private static final LogWrapper LOG = new LogWrapper("HH");
 
 	public interface HttpStreamHandler<R> {
 
-		void onError(Exception e);
+		void onError (Exception e);
+
 		R handleStream (InputStream is, int contentLength) throws IOException;
 
 	}
@@ -82,7 +86,7 @@ public final class HttpHelper {
 				}
 
 				if (responseCode < 200 || responseCode >= 300) { // NOSONAR not magic numbers.  Its HTTP spec.
-					throw new HttpResponseException(responseCode, "HTTP " + responseCode + ": " + IoHelper.toString(connection.getErrorStream()));
+					throw new HttpResponseException(responseCode, summariseHttpErrorResponse(connection));
 				}
 
 				is = connection.getInputStream();
@@ -99,4 +103,11 @@ public final class HttpHelper {
 		}
 	}
 
+	private static String summariseHttpErrorResponse (final HttpURLConnection connection) throws IOException {
+		final int responseCode = connection.getResponseCode();
+		if (responseCode == HTTP_NOT_FOUND) return String.format("HTTP %s %s", responseCode, connection.getResponseMessage());
+		return String.format("HTTP %s %s: %s",
+				responseCode, connection.getResponseMessage(),
+				IoHelper.toString(connection.getErrorStream(), MAX_ERR_BODY_LENGTH_CHAR));
+	}
 }
