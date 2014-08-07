@@ -77,4 +77,7 @@ public interface DbInterface extends KvStore {
 
 	void housekeep ();
 
+	long getTotalTweetsEverSeen ();
+	double getTweetsPerHour (int columnId);
+
 }

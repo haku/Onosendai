@@ -56,6 +56,7 @@
 
 	<string name="outbox_title">Onosendai Outbox</string>
 	<string name="preferences_title">Onosendai Preferences</string>
+	<string name="column_stats_title">Column stats</string>
 
 	<string name="btn_goto">goto</string>
 	<string name="btn_jump_top">Top</string>

@@ -86,6 +86,12 @@
 			android:theme="@android:style/Theme.Holo">
 		</activity>
 
+		<activity
+			android:name=".ui.pref.ColumnStatsActivity"
+			android:label="@string/column_stats_title"
+			android:theme="@android:style/Theme.Holo">
+		</activity>
+
 		<receiver android:name=".update.BootReceiver">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED" />

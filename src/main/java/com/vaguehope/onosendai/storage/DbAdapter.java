@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -1042,6 +1043,31 @@ public class DbAdapter implements DbInterface {
 	private void vacuum () {
 		this.mDb.execSQL("VACUUM");
 		this.log.i("Vacuumed.");
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@Override
+	public long getTotalTweetsEverSeen () {
+		return DatabaseUtils.longForQuery(this.mDb, "SELECT max(" + TBL_TW_ID + ") FROM " + TBL_TW, null);
+	}
+
+	@Override
+	public double getTweetsPerHour (final int columnId) {
+		final Cursor c = getTweetsCursor(columnId);
+		try {
+			if (c != null && c.moveToFirst()) {
+				final int colTime = c.getColumnIndex(TBL_TW_TIME);
+				final long newestTime = c.getLong(colTime);
+				c.moveToLast();
+				final long oldestTime = c.getLong(colTime);
+				return c.getCount() / (double) TimeUnit.SECONDS.toHours(newestTime - oldestTime);
+			}
+			return -1;
+		}
+		finally {
+			IoHelper.closeQuietly(c);
+		}
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
