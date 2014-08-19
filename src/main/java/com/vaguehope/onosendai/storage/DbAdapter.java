@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -1061,7 +1060,7 @@ public class DbAdapter implements DbInterface {
 				final long newestTime = c.getLong(colTime);
 				c.moveToLast();
 				final long oldestTime = c.getLong(colTime);
-				return c.getCount() / (double) TimeUnit.SECONDS.toHours(newestTime - oldestTime);
+				return (c.getCount() / (double) (newestTime - oldestTime)) * 60 * 60;
 			}
 			return -1;
 		}
