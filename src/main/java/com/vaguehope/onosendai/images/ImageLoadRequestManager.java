@@ -64,8 +64,10 @@ public class ImageLoadRequestManager {
 		final Iterator<List<ImageLoadRequest>> ittr = this.reqs.values().iterator();
 		while (ittr.hasNext()) {
 			final List<ImageLoadRequest> list = ittr.next();
-			removeExpired(list.iterator());
-			if (list.size() < 1) ittr.remove();
+			synchronized (list) {
+				removeExpired(list.iterator());
+				if (list.size() < 1) ittr.remove();
+			}
 		}
 		if (this.reqs.size() > 100) LOG.e("Manager has %s active requests, is there a leak?", this.reqs.size());
 	}
