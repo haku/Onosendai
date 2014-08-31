@@ -17,6 +17,7 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.URLEntity;
+import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
 import com.vaguehope.onosendai.C;
@@ -82,11 +83,16 @@ public final class TwitterUtils {
 		final List<Meta> metas = new ArrayList<Meta>();
 		metas.add(new Meta(MetaType.ACCOUNT, account.getId()));
 
+		final User viaUser;
 		if (status.isRetweet()) {
+			viaUser = status.getUser();
 			metas.add(new Meta(MetaType.POST_TIME, String.valueOf(TimeUnit.MILLISECONDS.toSeconds(status.getRetweetedStatus().getCreatedAt().getTime()))));
 			if (status.getUser().getId() != ownId) {
-				metas.add(new Meta(MetaType.MENTION, status.getUser().getScreenName(), String.format("RT by %s", status.getUser().getName())));
+				metas.add(new Meta(MetaType.MENTION, status.getUser().getScreenName(),  status.getUser().getName()));
 			}
+		}
+		else {
+			viaUser = null;
 		}
 
 		final Status s = status.isRetweet() ? status.getRetweetedStatus() : status;
@@ -109,8 +115,8 @@ public final class TwitterUtils {
 		// https://dev.twitter.com/docs/user-profile-images-and-banners
 
 		return new Tweet(String.valueOf(s.getId()),
-				s.getUser().getScreenName(),
-				s.getUser().getName(),
+				viaUser != null ? String.format("%s\nvia %s", s.getUser().getScreenName(), viaUser.getScreenName()) : s.getUser().getScreenName(),
+				viaUser != null ? String.format("%s\nvia %s", s.getUser().getName(), viaUser.getName()) : s.getUser().getName(),
 				text,
 				TimeUnit.MILLISECONDS.toSeconds(status.getCreatedAt().getTime()),
 				hdMedia ? s.getUser().getBiggerProfileImageURLHttps() : s.getUser().getProfileImageURLHttps(),

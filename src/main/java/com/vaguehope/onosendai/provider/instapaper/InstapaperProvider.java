@@ -53,13 +53,16 @@ public class InstapaperProvider {
 		final String title;
 		final String tweetUrl;
 		if (networkType == NetworkType.FACEBOOK) {
-			title = (linkTitle != null ? linkTitle + " via " : "Post by ")
-					+ StringHelper.firstLine(tweet.getFullname());
+			title = String.format("%s %s",
+					linkTitle != null ? linkTitle + " via" : "Post by",
+					StringHelper.firstLine(tweet.getFullname()));
 			tweetUrl = facebookUrlOf(tweet);
 		}
 		else if (tweet.getSid() != null) {
-			title = (linkTitle != null ? linkTitle + " via " : "Tweet by ")
-					+ StringHelper.firstLine(tweet.getFullname()) + " (@" + tweet.getUsername() + ")";
+			title = String.format("%s %s (@%s)",
+					linkTitle != null ? linkTitle + " via" : "Tweet by",
+							StringHelper.firstLine(tweet.getFullname()),
+							StringHelper.firstLine(tweet.getUsername()));
 			tweetUrl = twitterUrlOf(tweet);
 		}
 		else {
@@ -100,7 +103,9 @@ public class InstapaperProvider {
 	}
 
 	private static String twitterUrlOf (final Tweet tweet) {
-		return "https://twitter.com/" + tweet.getUsername() + "/status/" + tweet.getSid();
+		return String.format("https://twitter.com/%s/status/%s",
+				StringHelper.firstLine(tweet.getUsername()),
+				tweet.getSid());
 	}
 
 	private static String facebookUrlOf (final Tweet tweet) {

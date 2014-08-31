@@ -127,19 +127,27 @@ public final class PayloadUtils {
 	}
 
 	private static void replyToOwner (final Account account, final Tweet tweet, final Set<Payload> set) {
-		if (tweet.getUsername() != null) set.add(new MentionPayload(account, tweet, tweet.getUsername(), tweet.getFullname()));
+		if (tweet.getUsername() != null) set.add(new MentionPayload(
+				account,
+				tweet,
+				StringHelper.firstLine(tweet.getUsername()),
+				StringHelper.firstLine(tweet.getFullname())));
 	}
 
 	private static void repliesAndExtractMentions (final Account account, final Tweet tweet, final Set<Payload> set) {
+		final String tweetUsername = StringHelper.firstLine(tweet.getUsername());
+		final String tweetFullname = StringHelper.firstLine(tweet.getFullname());
+
 		List<String> allMentions = null;
 		for (final Meta meta : tweet.getMetas()) {
-			if (meta.getType() == MetaType.MENTION && !EqualHelper.equal(tweet.getUsername(), meta.getData())) {
+			if (meta.getType() == MetaType.MENTION && !EqualHelper.equal(tweetUsername, meta.getData())) {
 				if (allMentions == null) allMentions = new ArrayList<String>();
 				allMentions.add(meta.getData());
 			}
 		}
-		if (allMentions != null && tweet.getUsername() != null) {
-			set.add(new MentionPayload(account, tweet, tweet.getUsername(), tweet.getFullname(), allMentions.toArray(new String[allMentions.size()])));
+
+		if (allMentions != null && tweetUsername != null) {
+			set.add(new MentionPayload(account, tweet, tweetUsername, tweetFullname, allMentions.toArray(new String[allMentions.size()])));
 		}
 	}
 
