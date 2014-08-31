@@ -9,7 +9,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.net.ssl.SSLException;
 
@@ -144,10 +146,10 @@ public class TwitterUtilsTest {
 
 		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 200, false);
 		assertEquals("a thing.", t.getBody());
-		assertEquals("them", t.getUsername());
-		assertEquals("Them", t.getFullname());
+		assertEquals("them\nvia friend", t.getUsername());
+		assertEquals("Them\nvia Friend", t.getFullname());
 		assertEquals(s.getUser().getProfileImageURLHttps(), t.getAvatarUrl());
-		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MENTION, "friend", "RT by Friend")));
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MENTION, "friend", "Friend")));
 		assertEquals(rt.getCreatedAt().getTime() / 1000L, t.getTime());
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.POST_TIME, String.valueOf(s.getCreatedAt().getTime() / 1000L))));
 	}
@@ -164,10 +166,10 @@ public class TwitterUtilsTest {
 
 		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 200, false);
 		assertEquals("a thing.", t.getBody());
-		assertEquals("them", t.getUsername());
-		assertEquals("Them", t.getFullname());
+		assertEquals("them\nvia me", t.getUsername());
+		assertEquals("Them\nvia Me", t.getFullname());
 		assertEquals(s.getUser().getProfileImageURLHttps(), t.getAvatarUrl());
-		assertThat(t.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "me", "RT by Me"))));
+		assertThat(t.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "me", "Me"))));
 		assertEquals(rt.getCreatedAt().getTime() / 1000L, t.getTime());
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.POST_TIME, String.valueOf(s.getCreatedAt().getTime() / 1000L))));
 	}
@@ -186,8 +188,11 @@ public class TwitterUtilsTest {
 
 		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 100, false);
 		assertEquals("a thing @bob about a thing.", t.getBody());
-		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MENTION, "bob", "RT by Bob")));
-		assertThat(t.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "bob", "Bob"))));
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MENTION, "bob", "Bob")));
+
+		final List<Meta> metasCopy = new ArrayList<Meta>(t.getMetas());
+		metasCopy.remove(new Meta(MetaType.MENTION, "bob", "Bob"));
+		assertThat(metasCopy, not(hasItem(new Meta(MetaType.MENTION, "bob", "Bob"))));
 	}
 
 	private void testPictureUrlExpansion (final String fromUrl, final boolean hdMedia, final String toUrl) {

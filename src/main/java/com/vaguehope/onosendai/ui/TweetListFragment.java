@@ -78,6 +78,7 @@ import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.NetHelper;
 import com.vaguehope.onosendai.util.Result;
+import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.Titleable;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
@@ -569,7 +570,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		final Account columnAccount = getColumnAccount();
 		if (columnAccount != null) intent.putExtra(PostActivity.ARG_ACCOUNT_ID, columnAccount.getId());
 		if (tweetToQuote != null) intent.putExtra(PostActivity.ARG_BODY,
-				String.format("RT @%s %s", tweetToQuote.getUsername(), tweetToQuote.getBody()));
+				String.format("RT @%s %s", StringHelper.firstLine(tweetToQuote.getUsername()), tweetToQuote.getBody()));
 		startActivity(intent);
 	}
 
