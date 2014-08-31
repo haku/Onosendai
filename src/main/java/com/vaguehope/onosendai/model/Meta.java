@@ -11,6 +11,10 @@ public class Meta {
 	private final String title;
 	private final String data;
 
+	public Meta (final MetaType type, final long data) {
+		this(type, String.valueOf(data));
+	}
+
 	public Meta (final MetaType type, final String data) {
 		this(type, data, null);
 	}

@@ -82,6 +82,7 @@ public final class TwitterUtils {
 	static Tweet convertTweet (final Account account, final Status status, final long ownId, final boolean hdMedia) {
 		final List<Meta> metas = new ArrayList<Meta>();
 		metas.add(new Meta(MetaType.ACCOUNT, account.getId()));
+		if (status.getUser().getId() == ownId) metas.add(new Meta(MetaType.EDIT_SID, status.getId()));
 
 		final User viaUser;
 		if (status.isRetweet()) {

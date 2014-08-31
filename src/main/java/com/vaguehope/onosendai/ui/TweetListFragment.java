@@ -546,11 +546,19 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		if (tweet == null) tweet = getDb().getTweetDetails(tweetSid);
 		// TODO better way of showing this error.
 		if (tweet == null) tweet = new Tweet(tweetSid, "", "", "Error: tweet with SID=" + tweetSid + " not found.",
-				TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), null, null, Collections.EMPTY_LIST);
+				TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), null, null, Collections.<Meta>emptyList());
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 
 		new ReplyLoaderTask(getExecutorEventListener(), getActivity(), getDb(), tweet, this.lstTweetPayloadAdaptor).executeOnExecutor(getLocalEs());
 		new InReplyToLoaderTask(getExecutorEventListener(), getActivity().getApplicationContext(), getConf(), getProviderMgr(), tweet, getColumn().isHdMedia(), this.lstTweetPayloadAdaptor, getNetEs()).executeOnExecutor(getNetEs());
+
+		final Meta editSidMeta = tweet.getFirstMetaOfType(MetaType.EDIT_SID);
+		if (editSidMeta != null) {
+			final long editSid = editSidMeta.toLong(-1);
+			if (editSid != -1) {
+				// TODO show delete btn.
+			}
+		}
 
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
