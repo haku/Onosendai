@@ -44,6 +44,12 @@ public enum MetaType {
 	 */
 	POST_TIME(9),
 	/**
+	 * The SID to use when making changes to this post, such as deleting it.
+	 * e.g. Deleting a RT uses the RT id (this field) not the SID of the RT'ed tweet.
+	 * Title is unused.
+	 */
+	EDIT_SID(10),
+	/**
 	 * This is hack that will never be in the DB.
 	 * This is to attach the source column ID to search results.
 	 */
@@ -79,6 +85,8 @@ public enum MetaType {
 				return REPLYTO;
 			case 9: // NOSONAR 9 is not magical.
 				return POST_TIME;
+			case 10: // NOSONAR 10 is not magical.
+				return EDIT_SID;
 			case 90:// NOSONAR 90 is not that magical.
 				return COLUMN_ID;
 			default:
