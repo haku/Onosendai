@@ -11,7 +11,7 @@
 		android:text="@string/btn_share_rt"
 		android:layout_width="0dip"
 		android:layout_height="wrap_content"
-		android:layout_weight="1"
+		android:layout_weight="2"
 		style="?android:attr/buttonBarButtonStyle" />
 
 	<Button
@@ -19,8 +19,16 @@
 		android:text="@string/btn_share_quote"
 		android:layout_width="0dip"
 		android:layout_height="wrap_content"
-		android:layout_weight="1"
+		android:layout_weight="2"
 		style="?android:attr/buttonBarButtonStyle" />
 
+	<ImageButton
+		android:id="@+id/btnShareIntent"
+		android:src="@android:drawable/ic_menu_share"
+		android:contentDescription="share"
+		android:layout_width="0dip"
+		android:layout_height="wrap_content"
+		android:layout_weight="1"
+		style="?android:attr/buttonBarButtonStyle" />
 
 </LinearLayout>

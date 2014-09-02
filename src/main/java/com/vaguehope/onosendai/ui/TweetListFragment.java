@@ -536,6 +536,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				case 1:
 					showPost(payload.getOwnerTweet());
 					break;
+				case 2:
+					doShareIntent(payload.getOwnerTweet());
+					break;
 				default:
 			}
 		}
@@ -640,16 +643,22 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		new RtTask(getActivity().getApplicationContext(), new RtRequest(account, tweet)).execute();
 	}
 
+	private void doShareIntent(final Tweet tweet) {
+		final Intent i = new Intent();
+		i.setAction(Intent.ACTION_SEND);
+		i.putExtra(Intent.EXTRA_TEXT, tweet.toHumanParagraph());
+		i.setType("text/plain");
+		startActivity(Intent.createChooser(i, "Send text to..."));
+	}
+
 	private static class DetailsLaterClickListener implements OnClickListener {
 
 		private final TweetListFragment tweetListFragment;
-		private final Context context;
 		private final Tweet tweet;
 		private final boolean isLaterColumn;
 
 		public DetailsLaterClickListener (final TweetListFragment tweetListFragment, final Tweet tweet, final boolean isLaterColumn) {
 			this.tweetListFragment = tweetListFragment;
-			this.context = tweetListFragment.getActivity();
 			this.tweet = tweet;
 			this.isLaterColumn = isLaterColumn;
 		}

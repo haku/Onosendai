@@ -1,11 +1,14 @@
 package com.vaguehope.onosendai.model;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class Tweet {
 
@@ -91,6 +94,13 @@ public class Tweet {
 		final List<Meta> newMetas = new ArrayList<Meta>(this.metas);
 		if (getFirstMetaOfType(MetaType.POST_TIME) == null) newMetas.add(new Meta(MetaType.POST_TIME, String.valueOf(this.time)));
 		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.body, utime, this.avatarUrl, this.inlineMediaUrl, newMetas);
+	}
+
+	public String toHumanParagraph () {
+		StringBuilder s = new StringBuilder().append("\"").append(this.body).append("\"\n").append(this.fullname);
+		if (!StringHelper.isEmpty(this.username)) s.append(" (").append(this.username).append(")");
+		s.append("\n").append(DateFormat.getDateTimeInstance().format(new Date(TimeUnit.SECONDS.toMillis(this.time))));
+		return s.toString();
 	}
 
 	@Override
