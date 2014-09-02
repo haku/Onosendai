@@ -19,7 +19,7 @@ class PayloadRowView {
 	private final TextView tertiary;
 	private final ImageView image;
 	private final PendingImage pendingImage;
-	private final List<Button> buttons;
+	private final List<View> buttons;
 
 	public PayloadRowView (final TextView main) {
 		this(main, null, null, null);
@@ -52,16 +52,16 @@ class PayloadRowView {
 		this.tertiary = null;
 		this.image = null;
 		this.pendingImage = pendingImage;
-		this.buttons = button != null ? Collections.singletonList(button) : null;
+		this.buttons = button != null ? Collections.<View>singletonList(button) : null;
 	}
 
-	public PayloadRowView (final List<Button> buttons) {
+	public PayloadRowView (final List<View> buttons) {
 		this.main = null;
 		this.secondary = null;
 		this.tertiary = null;
 		this.image = null;
 		this.pendingImage = null;
-		this.buttons = Collections.unmodifiableList(new ArrayList<Button>(buttons));
+		this.buttons = Collections.unmodifiableList(new ArrayList<View>(buttons));
 	}
 
 	public void setText (final String text) {
@@ -76,7 +76,7 @@ class PayloadRowView {
 
 	public void hideButtons () {
 		if (this.buttons == null) return;
-		for (final Button btn : this.buttons) {
+		for (final View btn : this.buttons) {
 			btn.setVisibility(View.GONE);
 		}
 	}
@@ -104,10 +104,10 @@ class PayloadRowView {
 	}
 
 	public Button getButton () {
-		return this.buttons != null && this.buttons.size() > 0 ? this.buttons.get(0) : null;
+		return (Button) (this.buttons != null && this.buttons.size() > 0 ? this.buttons.get(0) : null);
 	}
 
-	public List<Button> getButtons () {
+	public List<View> getButtons () {
 		return this.buttons;
 	}
 

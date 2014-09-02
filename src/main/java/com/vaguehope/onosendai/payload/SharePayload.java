@@ -42,16 +42,17 @@ public class SharePayload extends Payload {
 	@Override
 	public PayloadRowView makeRowView (final View view) {
 		return new PayloadRowView(CollectionHelper.listOf(
-				(Button) view.findViewById(R.id.btnShareRt),
-				(Button) view.findViewById(R.id.btnShareQuote)
+				view.findViewById(R.id.btnShareRt),
+				view.findViewById(R.id.btnShareQuote),
+				view.findViewById(R.id.btnShareIntent)
 		));
 	}
 
 	@Override
 	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final int reqWidth, final PayloadClickListener clickListener) {
-		final List<Button> btns = rowView.getButtons();
-		final Button btnRt = btns.get(0);
+		final List<View> btns = rowView.getButtons();
 
+		final Button btnRt = (Button) btns.get(0);
 		if (this.networkType != null) {
 			switch (this.networkType) {
 				case TWITTER:
