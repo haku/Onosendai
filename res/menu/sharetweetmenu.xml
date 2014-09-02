@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<group>
+
+		<item
+			android:id="@+id/mnuText"
+			android:title="Text" />
+
+		<item
+			android:id="@+id/mnuPicture"
+			android:title="Picture" />
+
+	</group>
+</menu>

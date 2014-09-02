@@ -14,6 +14,12 @@ public class TweetTest {
 	private static final String FORMATTED_UTIME = DateFormat.getDateTimeInstance().format(new Date(TimeUnit.SECONDS.toMillis(UTIME)));
 
 	@Test
+	public void itConvertsToNiceLine () throws Exception {
+		final Tweet t = new Tweet(null, null, "Their Name", "The tweet's body.", UTIME, null, null, null);
+		assertEquals("\"The tweet's body.\" Their Name", t.toHumanLine());
+	}
+
+	@Test
 	public void itConvertsToNiceParagraph () throws Exception {
 		final Tweet t = new Tweet(null, "someone", "Their Name", "The tweet's body.", UTIME, null, null, null);
 		assertEquals("\"The tweet's body.\"" +

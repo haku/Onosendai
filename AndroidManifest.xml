@@ -112,6 +112,16 @@
 			android:name=".update.CleanupService"
 			android:label="@string/cleanup_service_label" />
 
+		<provider
+			android:name="com.vaguehope.onosendai.images.CachedImageFileProvider"
+			android:authorities="com.vaguehope.onosendai.fileprovider"
+			android:exported="false"
+			android:grantUriPermissions="true">
+			<meta-data
+				android:name="android.support.FILE_PROVIDER_PATHS"
+				android:resource="@xml/exposed_file_paths" />
+		</provider>
+
 	</application>
 
 </manifest>

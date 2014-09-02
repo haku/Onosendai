@@ -90,7 +90,7 @@ public class SharePayload extends Payload {
 
 		@Override
 		public void onClick (final View v) {
-			this.clickListener.subviewClicked(this.payload, this.index);
+			this.clickListener.subviewClicked(v, this.payload, this.index);
 		}
 
 	}

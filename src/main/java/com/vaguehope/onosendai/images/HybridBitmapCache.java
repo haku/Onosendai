@@ -62,6 +62,13 @@ public class HybridBitmapCache {
 		return this.memCache.get(key);
 	}
 
+	public File getCachedFile (final String key) {
+		if (key == null) return null;
+		final File file = keyToFile(key);
+		if (!file.exists()) return null;
+		return file;
+	}
+
 	/**
 	 * @return null if image is not in cache.
 	 * @throws UnrederableException

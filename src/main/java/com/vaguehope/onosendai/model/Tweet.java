@@ -96,9 +96,13 @@ public class Tweet {
 		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.body, utime, this.avatarUrl, this.inlineMediaUrl, newMetas);
 	}
 
+	public String toHumanLine () {
+		return new StringBuilder().append("\"").append(this.body).append("\" ").append(StringHelper.firstLine(this.fullname)).toString();
+	}
+
 	public String toHumanParagraph () {
-		StringBuilder s = new StringBuilder().append("\"").append(this.body).append("\"\n").append(this.fullname);
-		if (!StringHelper.isEmpty(this.username)) s.append(" (").append(this.username).append(")");
+		final StringBuilder s = new StringBuilder().append("\"").append(this.body).append("\"\n").append(StringHelper.firstLine(this.fullname));
+		if (!StringHelper.isEmpty(this.username)) s.append(" (").append(StringHelper.firstLine(this.username)).append(")");
 		s.append("\n").append(DateFormat.getDateTimeInstance().format(new Date(TimeUnit.SECONDS.toMillis(this.time))));
 		return s.toString();
 	}
