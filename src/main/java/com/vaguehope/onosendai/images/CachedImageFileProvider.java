@@ -11,6 +11,7 @@ import android.database.MatrixCursor;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore.MediaColumns;
 import android.provider.OpenableColumns;
 import android.support.v4.content.FileProvider;
 import android.webkit.MimeTypeMap;
@@ -32,10 +33,14 @@ public class CachedImageFileProvider extends FileProvider {
 	}
 
 	public static String identifyFileExtension (final File file) {
+		return MimeTypeMap.getSingleton().getExtensionFromMimeType(identifyFileMimeType(file));
+	}
+
+	public static String identifyFileMimeType (final File file) {
 		final BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds = true;
 		BitmapFactory.decodeFile(file.getAbsolutePath(), options);
-		return MimeTypeMap.getSingleton().getExtensionFromMimeType(options.outMimeType);
+		return options.outMimeType;
 	}
 
 	public static Uri removeExtension (final Uri uri) {
@@ -67,16 +72,21 @@ public class CachedImageFileProvider extends FileProvider {
 		final Object[] values = new Object[projection.length];
 		inputCursor.moveToFirst();
 		int i = 0;
-		for (int colIndex = 0; colIndex < inputCursor.getColumnCount(); colIndex++) {
-			final String colName = inputCursor.getColumnName(colIndex);
-			if (OpenableColumns.DISPLAY_NAME.equals(colName)) {
+		for (final String colName : projection) {
+			final int colIndex = inputCursor.getColumnIndex(colName);
+			if (colIndex >= 0 && OpenableColumns.DISPLAY_NAME.equals(colName)) {
 				cols[i] = OpenableColumns.DISPLAY_NAME;
 				values[i] = inputCursor.getString(colIndex) + dotExtension;
 				i++;
 			}
-			else if (OpenableColumns.SIZE.equals(colName)) {
+			else if (colIndex >= 0 && OpenableColumns.SIZE.equals(colName)) {
 				cols[i] = OpenableColumns.SIZE;
 				values[i] = inputCursor.getLong(colIndex);
+				i++;
+			}
+			else if (MediaColumns.MIME_TYPE.equals(colName)) {
+				cols[i] = MediaColumns.MIME_TYPE;
+				values[i] = getType(uri);
 				i++;
 			}
 		}
@@ -88,7 +98,10 @@ public class CachedImageFileProvider extends FileProvider {
 
 	@Override
 	public String getType (final Uri uri) {
-		return super.getType(removeExtension(uri));
+		// Cheat as file does not have to exist for super class to identify by extension.
+		final String type = super.getType(uri);
+		LOG.i("getType(%s)=%s", uri, type);
+		return type;
 	}
 
 	@Override
