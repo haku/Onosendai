@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.payload;
 
+import android.view.View;
+
 public interface PayloadClickListener {
 
 	/**
@@ -7,6 +9,6 @@ public interface PayloadClickListener {
 	 */
 	boolean payloadClicked (Payload payload);
 
-	void subviewClicked (Payload payload, int index);
+	void subviewClicked (View v, Payload payload, int index);
 
 }

@@ -1,6 +1,8 @@
 package com.vaguehope.onosendai.ui;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -13,6 +15,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,6 +44,7 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.config.InternalColumnType;
+import com.vaguehope.onosendai.images.CachedImageFileProvider;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.model.Meta;
@@ -75,6 +79,7 @@ import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
+import com.vaguehope.onosendai.util.FileHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.NetHelper;
 import com.vaguehope.onosendai.util.Result;
@@ -339,7 +344,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		this.tweetList.setSelectionAfterHeaderView();
 	}
 
-	public void scrollToTweet(final Tweet tweet) {
+	public void scrollToTweet (final Tweet tweet) {
 		if (tweet == null) return;
 		if (this.adapter.getCount() > 0) {
 			for (int i = 0; i < this.adapter.getCount(); i++) {
@@ -511,8 +516,8 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		}
 
 		@Override
-		public void subviewClicked (final Payload payload, final int index) {
-			payloadSubviewClick(payload, index);
+		public void subviewClicked (final View view, final Payload payload, final int index) {
+			payloadSubviewClick(view, payload, index);
 		}
 
 	};
@@ -527,7 +532,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		return false;
 	}
 
-	protected void payloadSubviewClick (final Payload payload, final int index) {
+	protected void payloadSubviewClick (final View btn, final Payload payload, final int index) {
 		if (payload.getType() == PayloadType.SHARE) {
 			switch (index) {
 				case 0:
@@ -537,7 +542,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 					showPost(payload.getOwnerTweet());
 					break;
 				case 2:
-					doShareIntent(payload.getOwnerTweet());
+					shareIntentBtnClicked(btn, payload.getOwnerTweet());
 					break;
 				default:
 			}
@@ -549,7 +554,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		if (tweet == null) tweet = getDb().getTweetDetails(tweetSid);
 		// TODO better way of showing this error.
 		if (tweet == null) tweet = new Tweet(tweetSid, "", "", "Error: tweet with SID=" + tweetSid + " not found.",
-				TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), null, null, Collections.<Meta>emptyList());
+				TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), null, null, Collections.<Meta> emptyList());
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 
 		new ReplyLoaderTask(getExecutorEventListener(), getActivity(), getDb(), tweet, this.lstTweetPayloadAdaptor).executeOnExecutor(getLocalEs());
@@ -643,12 +648,80 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		new RtTask(getActivity().getApplicationContext(), new RtRequest(account, tweet)).execute();
 	}
 
-	private void doShareIntent(final Tweet tweet) {
+	private List<File> cachedPictureFilesFor (final Tweet tweet) {
+		final List<File> ret = new ArrayList<File>();
+		for (final Meta m : tweet.getMetas()) {
+			if (m.getType() == MetaType.MEDIA) {
+				final File file = getMainActivity().getImageCache().getCachedFile(m.getData());
+				if (file != null) ret.add(file);
+			}
+		}
+		return ret;
+	}
+
+	private void shareIntentBtnClicked (final View btn, final Tweet tweet) {
+		final PopupMenu menu = new PopupMenu(getActivity(), btn);
+		menu.getMenuInflater().inflate(R.menu.sharetweetmenu, menu.getMenu());
+		menu.setOnMenuItemClickListener(new ShareMenuClickListener(this, tweet));
+		if (cachedPictureFilesFor(tweet).size() < 1) {
+			menu.getMenu().findItem(R.id.mnuPicture).setVisible(false);
+		}
+		menu.show();
+	}
+
+	private static class ShareMenuClickListener implements PopupMenu.OnMenuItemClickListener {
+		private final TweetListFragment host;
+		private final Tweet tweet;
+
+		public ShareMenuClickListener (final TweetListFragment host, final Tweet tweet) {
+			this.host = host;
+			this.tweet = tweet;
+		}
+
+		@Override
+		public boolean onMenuItemClick (final MenuItem item) {
+			return this.host.shareMenuItemClick(item, this.tweet);
+		}
+	}
+
+	protected boolean shareMenuItemClick (final MenuItem item, final Tweet tweet) {
+		switch (item.getItemId()) {
+			case R.id.mnuText:
+				doShareIntentText(tweet);
+				return true;
+			case R.id.mnuPicture:
+				doShareIntentPicture(tweet);
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	private void doShareIntentText (final Tweet tweet) {
 		final Intent i = new Intent();
 		i.setAction(Intent.ACTION_SEND);
+		i.putExtra(Intent.EXTRA_SUBJECT, tweet.toHumanLine());
 		i.putExtra(Intent.EXTRA_TEXT, tweet.toHumanParagraph());
 		i.setType("text/plain");
 		startActivity(Intent.createChooser(i, "Send text to..."));
+	}
+
+	private void doShareIntentPicture (final Tweet tweet) {
+		final ArrayList<Uri> uris = FileHelper.filesToProvidedUris(getActivity(),
+				CachedImageFileProvider.addFileExtensions(
+						cachedPictureFilesFor(tweet)));
+		this.log.i("Sharing URIs: %s", uris);
+
+		// https://developer.android.com/intl/en/training/sharing/send.html
+		// https://developer.android.com/intl/en/reference/android/content/Intent.html
+		final Intent i = new Intent();
+		i.setAction(Intent.ACTION_SEND_MULTIPLE);
+		i.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+		i.putExtra(Intent.EXTRA_SUBJECT, tweet.toHumanLine());
+		i.putExtra(Intent.EXTRA_TEXT, tweet.toHumanParagraph());
+		i.setType("image/*");
+		i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+		startActivity(Intent.createChooser(i, "Send picutre to..."));
 	}
 
 	private static class DetailsLaterClickListener implements OnClickListener {
@@ -685,19 +758,19 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		private final Tweet tweet;
 		private final LaterState laterState;
 
-		public SetLaterTask(final TweetListFragment parent, final Tweet tweet, final LaterState laterState) {
+		public SetLaterTask (final TweetListFragment parent, final Tweet tweet, final LaterState laterState) {
 			this.parent = parent;
 			this.tweet = tweet;
 			this.laterState = laterState;
 		}
 
 		@Override
-		protected void onPreExecute() {
+		protected void onPreExecute () {
 			this.parent.btnDetailsLater.setEnabled(false);
 		}
 
 		@Override
-		protected Exception doInBackground(final Void... params) {
+		protected Exception doInBackground (final Void... params) {
 			try {
 				final Column col = this.parent.getConf().findInternalColumn(InternalColumnType.LATER);
 				if (col == null) return new IllegalStateException("Read later column not configured.");
@@ -718,18 +791,18 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		}
 
 		@Override
-		protected void onPostExecute(final Exception result) {
+		protected void onPostExecute (final Exception result) {
 			if (result == null) {
 				if (this.parent.lstTweetPayloadAdaptor.isForTweet(this.tweet)) this.parent.setReadLaterButton(this.tweet, this.laterState != LaterState.READ);
 				switch (this.laterState) {
-				case UNREAD:
-					Toast.makeText(this.parent.getMainActivity(), "Saved for later.", Toast.LENGTH_SHORT).show();
-					break;
-				case READ:
-					Toast.makeText(this.parent.getMainActivity(), "Removed.", Toast.LENGTH_SHORT).show();
-					break;
-				default:
-					DialogHelper.alert(this.parent.getMainActivity(), "Unknown read later state: " + this.laterState);
+					case UNREAD:
+						Toast.makeText(this.parent.getMainActivity(), "Saved for later.", Toast.LENGTH_SHORT).show();
+						break;
+					case READ:
+						Toast.makeText(this.parent.getMainActivity(), "Removed.", Toast.LENGTH_SHORT).show();
+						break;
+					default:
+						DialogHelper.alert(this.parent.getMainActivity(), "Unknown read later state: " + this.laterState);
 				}
 			}
 			else {

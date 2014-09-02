@@ -220,6 +220,10 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		this.providerMgr = providerMgr;
 	}
 
+	public HybridBitmapCache getImageCache () {
+		return this.imageCache;
+	}
+
 	@Override
 	public void loadImage (final ImageLoadRequest req) {
 		ImageLoaderUtils.loadImage(this.imageCache, req, this.localEs, this.netEs, this.executorStatus);
