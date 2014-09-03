@@ -9,6 +9,7 @@ public enum PayloadType {
 	MENTION,
 	COMMENT,
 	SHARE,
+	EDIT,
 	INREPLYTO,
 	PLACEHOLDER;
 

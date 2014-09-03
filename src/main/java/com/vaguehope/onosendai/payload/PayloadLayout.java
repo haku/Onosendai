@@ -10,7 +10,8 @@ public enum PayloadLayout {
 	TWEET(3, R.layout.tweetlistrow),
 	SHARE(4, R.layout.payloadsharerow),
 	TEXT_SPINNER(5, R.layout.payloadspinnerlistrow),
-	PRINCIPAL_TWEET(6, R.layout.tweetdetail);
+	PRINCIPAL_TWEET(6, R.layout.tweetdetail),
+	EDIT(7, R.layout.payloadeditrow);
 
 	private final int index;
 	private final int layout;

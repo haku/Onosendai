@@ -91,6 +91,8 @@ public final class PayloadUtils {
 				return new MentionPayload(account, tweet, meta);
 			case URL:
 				return new LinkPayload(tweet, meta);
+			case EDIT_SID:
+				return new EditPayload(tweet, meta);
 			case INREPLYTO:
 			case SERVICE:
 			case ACCOUNT:

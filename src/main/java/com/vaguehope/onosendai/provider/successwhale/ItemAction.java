@@ -7,8 +7,10 @@ public enum ItemAction {
 	RETWEET(NetworkType.TWITTER, "retweet"),
 	FAVORITE(NetworkType.TWITTER, "favorite"),
 	UNFAVORITE(NetworkType.TWITTER, "unfavorite"),
+	DELETE_TWITTER(NetworkType.TWITTER, "delete"),
 	LIKE(NetworkType.FACEBOOK, "like"),
-	UNLIKE(NetworkType.FACEBOOK, "unlike");
+	UNLIKE(NetworkType.FACEBOOK, "unlike"),
+	DELETE_FACEBOOK(NetworkType.FACEBOOK, "delete");
 
 	private final NetworkType networkType;
 	private final String action;
