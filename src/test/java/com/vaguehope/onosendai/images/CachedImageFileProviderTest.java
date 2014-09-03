@@ -47,4 +47,11 @@ public class CachedImageFileProviderTest {
 		assertEquals(output, CachedImageFileProvider.removeExtension(input));
 	}
 
+	@Test
+	public void itMakesIdFromUri () throws Exception {
+		final Uri uri = Uri.parse("content://com.vaguehope.onosendai.fileprovider/images/c8633fb04879b0ca35f662459a88e03b");
+		final long id = CachedImageFileProvider.tryReadId(uri);
+		assertEquals(69350895355748411L, id);
+	}
+
 }
