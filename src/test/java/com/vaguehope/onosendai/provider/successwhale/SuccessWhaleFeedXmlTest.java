@@ -30,7 +30,7 @@ public class SuccessWhaleFeedXmlTest {
 	public void itParsesAllTweets () throws Exception {
 		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_tweets.xml"));
 		TweetList tweets = feed.getTweets();
-		assertEquals(5, tweets.count());
+		assertEquals(6, tweets.count());
 	}
 
 	@Test
@@ -121,6 +121,19 @@ public class SuccessWhaleFeedXmlTest {
 		for (Meta m : t.getMetas()) {
 			if (m.getType() == MetaType.MENTION) fail("Expected no mentions in : " + t.getMetas());
 		}
+	}
+
+	@Test
+	public void itConvertsDeleteActionIntoEditSid () throws Exception {
+		SuccessWhaleFeedXml feed = new SuccessWhaleFeedXml(this.account, getClass().getResourceAsStream("/successwhale_tweets.xml"));
+		TweetList tweets = feed.getTweets();
+
+		Tweet t = tweets.getTweet(5);
+
+		assertEquals("server | uptime=125.10 OK --> WARNING", t.getBody());
+		assertEquals("340589329384209834", t.getSid());
+		assertEquals("sasathu", t.getFullname());
+		assertHasMeta(t.getMetas(), new Meta(MetaType.EDIT_SID, "340589329384209834"));
 	}
 
 	@Test

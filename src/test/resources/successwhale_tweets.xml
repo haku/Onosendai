@@ -171,5 +171,65 @@
         <hashtags type="array"/>
       </content>
     </item>
+    <!-- Item posted by self with actions. -->
+    <item>
+      <service>twitter</service>
+      <fetchedforuserid>38934921</fetchedforuserid>
+      <fetchedforuser>sasathu</fetchedforuser>
+      <content>
+        <type>tweet</type>
+        <escapedtext>server | uptime=125.10 OK --&amp;gt; WARNING</escapedtext>
+        <id>340589329384209834</id>
+        <replytoid>340589329384209834</replytoid>
+        <time type="dateTime">2014-09-03T16:10:03+00:00</time>
+        <fromuser>sasathu</fromuser>
+        <fromusername>sasathu</fromusername>
+        <fromuseravatar>https://pbs.twimg.com/profile_images/3453453428/faery-twitter-purple_normal.png</fromuseravatar>
+        <fromuserid>38934921</fromuserid>
+        <isreply type="boolean">false</isreply>
+        <isretweet type="boolean">false</isretweet>
+        <numfavourited type="integer">0</numfavourited>
+        <numretweeted type="integer">0</numretweeted>
+        <inreplytostatusid nil="true"/>
+        <inreplytouserid nil="true"/>
+        <permalink>https://twitter.com/sasathu/status/340589329384209834</permalink>
+        <links type="array"/>
+        <usernames type="array"/>
+        <hashtags type="array"/>
+        <actions type="array">
+          <action>
+            <name>reply</name>
+            <path>/item</path>
+            <params>
+              <service>twitter</service>
+              <uid>38934921</uid>
+              <replytoid>340589329384209834</replytoid>
+            </params>
+          </action>
+          <action>
+            <name>favorite</name>
+            <path>/actions</path>
+            <params>
+              <service>twitter</service>
+              <uid>38934921</uid>
+              <action>favorite</action>
+              <postid>340589329384209834</postid>
+            </params>
+          </action>
+          <action>
+            <name>delete</name>
+            <path>/item</path>
+            <params>
+              <service>twitter</service>
+              <uid>38934921</uid>
+              <action>delete</action>
+              <postid>340589329384209834</postid>
+            </params>
+          </action>
+        </actions>
+        <text>server | uptime=125.10 OK --&gt; WARNING</text>
+      </content>
+    </item>
+    
   </items>
 </feed>

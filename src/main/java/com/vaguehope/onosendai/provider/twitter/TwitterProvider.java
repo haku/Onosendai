@@ -87,6 +87,10 @@ public class TwitterProvider {
 		getTwitter(account).retweetStatus(id);
 	}
 
+	public void delete (final Account account, final long id) throws TwitterException {
+		getTwitter(account).destroyStatus(id);
+	}
+
 	public List<String> getListSlugs(final Account account) throws TwitterException {
 		final Twitter t = getTwitter(account);
 		final ResponseList<UserList> lists = t.getUserLists(t.getId());

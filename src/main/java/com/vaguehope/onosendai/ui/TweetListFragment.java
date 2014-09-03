@@ -61,6 +61,8 @@ import com.vaguehope.onosendai.payload.PayloadListAdapter;
 import com.vaguehope.onosendai.payload.PayloadListClickListener;
 import com.vaguehope.onosendai.payload.PayloadType;
 import com.vaguehope.onosendai.payload.ReplyLoaderTask;
+import com.vaguehope.onosendai.provider.DeleteTask;
+import com.vaguehope.onosendai.provider.DeleteTask.DeleteRequest;
 import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.RtTask;
@@ -547,6 +549,14 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				default:
 			}
 		}
+		else if (payload.getType() == PayloadType.EDIT) {
+			switch (index) {
+				case 0:
+					askDeleteTweet(payload.getOwnerTweet());
+					break;
+				default:
+			}
+		}
 	}
 
 	protected void showTweetDetails (final String tweetSid) {
@@ -634,13 +644,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 			}
 		});
 
-		dlgBld.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick (final DialogInterface dialog, final int whichButton) {
-				dialog.cancel();
-			}
-		});
-
+		dlgBld.setNegativeButton(android.R.string.cancel, DialogHelper.DLG_CANCEL_CLICK_LISTENER);
 		dlgBld.show();
 	}
 
@@ -722,6 +726,31 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		i.setType("image/*");
 		i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 		startActivity(Intent.createChooser(i, "Send picutre to..."));
+	}
+
+	private void askDeleteTweet (final Tweet tweet) {
+		final Account account = MetaUtils.accountFromMeta(tweet, this.conf);
+		if (account == null) {
+			DialogHelper.alert(getActivity(), "Can not find this tweet's account metadata.");
+			return;
+		}
+
+		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
+		dlgBld.setMessage("Permanently delete update?");
+
+		dlgBld.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int which) {
+				doDelete(account, tweet);
+			}
+		});
+
+		dlgBld.setNegativeButton(android.R.string.cancel, DialogHelper.DLG_CANCEL_CLICK_LISTENER);
+		dlgBld.show();
+	}
+
+	protected void doDelete (final Account account, final Tweet tweet) {
+		new DeleteTask(getActivity().getApplicationContext(), new DeleteRequest(account, tweet)).execute();
 	}
 
 	private static class DetailsLaterClickListener implements OnClickListener {

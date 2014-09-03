@@ -44,6 +44,7 @@ import com.vaguehope.onosendai.model.TweetBuilder;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class SuccessWhaleFeedXml implements ContentHandler {
 
@@ -104,6 +105,8 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 	private String stashedMentionFullName;
 	private String stashedUserId;
 	private String stashedHashtagText;
+	private String stashedActionName;
+	private String stashedActionPostId;
 
 	private final DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 
@@ -231,6 +234,13 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				this.tweets.add(this.currentComment.build());
 				this.addThisItem = false;
 			}
+			else if ("action".equals(elementName)) {
+				if ("delete".equals(this.stashedActionName)) {
+					if (StringHelper.isEmpty(this.stashedActionPostId)) throw new IllegalStateException("Found </action> before </postid>.");
+					this.currentItem.meta(MetaType.EDIT_SID, this.stashedActionPostId);
+					this.stashedActionPostId = null;
+				}
+			}
 		}
 		else if (this.stack.size() == 7) { // NOSONAR not a magic number.
 			if ("url".equals(elementName) && "link".equals(this.stack.get(5))) { // NOSONAR not a magic number.
@@ -270,6 +280,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				final long millis = this.dateFormat.parseMillis(this.currentText.toString());
 				this.currentComment.unitTimeSeconds(TimeUnit.MILLISECONDS.toSeconds(millis));
 			}
+			else if ("name".equals(elementName) && "action".equals(this.stack.get(5))) {
+				this.stashedActionName = this.currentText.toString();
+			}
 		}
 		else if (this.stack.size() == 8) { // NOSONAR not a magic number.
 			if ("name".equals(elementName) && "comment".equals(this.stack.get(5))) { // NOSONAR not a magic number.
@@ -277,6 +290,9 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 			}
 			else if ("fromuseravatar".equals(elementName) && "comment".equals(this.stack.get(5))) { // NOSONAR not a magic number.
 				this.currentComment.avatarUrl(this.currentText.toString());
+			}
+			else if ("postid".equals(elementName) && "action".equals(this.stack.get(5))) {
+				this.stashedActionPostId = this.currentText.toString();
 			}
 		}
 
