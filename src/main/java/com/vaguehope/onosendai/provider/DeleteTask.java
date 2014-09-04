@@ -57,21 +57,25 @@ public class DeleteTask extends DbBindingAsyncTask<Void, Void, DeleteResult> {
 
 	@Override
 	protected DeleteResult doInBackgroundWithDb (final DbInterface db, final Void... params) {
-		LOG.i("Deleting: %s", this.req);
+		final Meta editSidMeta = this.req.getTweet().getFirstMetaOfType(MetaType.EDIT_SID);
+		if (editSidMeta == null) throw new IllegalStateException("Tried to delete a tweet with out EDIT_SID set: " + this.req.getTweet());
+		final String editSid = editSidMeta.getData();
+
+		LOG.i("Deleting: editSid=%s; %s.", editSid, this.req);
 		switch (this.req.getAccount().getProvider()) {
 			case TWITTER:
-				return deleteViaTwitter();
+				return deleteViaTwitter(editSid);
 			case SUCCESSWHALE:
-				return deleteViaSuccessWhale(db);
+				return deleteViaSuccessWhale(db, editSid);
 			default:
 				return new DeleteResult(this.req, new UnsupportedOperationException("Do not know how to delete via account type: " + this.req.getAccount().getUiTitle()));
 		}
 	}
 
-	private DeleteResult deleteViaTwitter () {
+	private DeleteResult deleteViaTwitter (final String editSid) {
 		final TwitterProvider p = new TwitterProvider();
 		try {
-			p.delete(this.req.getAccount(), Long.parseLong(this.req.getTweet().getSid()));
+			p.delete(this.req.getAccount(), Long.parseLong(editSid));
 			return new DeleteResult(this.req);
 		}
 		catch (final TwitterException e) {
@@ -82,21 +86,21 @@ public class DeleteTask extends DbBindingAsyncTask<Void, Void, DeleteResult> {
 		}
 	}
 
-	private DeleteResult deleteViaSuccessWhale (final DbInterface db) {
+	private DeleteResult deleteViaSuccessWhale (final DbInterface db, final String editSid) {
 		final SuccessWhaleProvider p = new SuccessWhaleProvider(db);
 		try {
 			final Meta svcMeta = this.req.getTweet().getFirstMetaOfType(MetaType.SERVICE);
-			if(svcMeta != null) {
+			if (svcMeta != null) {
 				final ServiceRef svc = ServiceRef.parseServiceMeta(svcMeta);
 				if (svc != null) {
 					final NetworkType networkType = svc.getType();
 					if (networkType != null) {
 						switch (networkType) {
 							case TWITTER:
-								p.itemAction(this.req.getAccount(), svc, this.req.getTweet().getSid(), ItemAction.DELETE_TWITTER);
+								p.itemAction(this.req.getAccount(), svc, editSid, ItemAction.DELETE_TWITTER);
 								return new DeleteResult(this.req);
 							case FACEBOOK:
-								p.itemAction(this.req.getAccount(), svc, this.req.getTweet().getSid(), ItemAction.DELETE_FACEBOOK);
+								p.itemAction(this.req.getAccount(), svc, editSid, ItemAction.DELETE_FACEBOOK);
 								return new DeleteResult(this.req);
 							default:
 								return new DeleteResult(this.req, new SuccessWhaleException("Unknown network type: " + networkType));
@@ -193,7 +197,7 @@ public class DeleteTask extends DbBindingAsyncTask<Void, Void, DeleteResult> {
 			return this.e;
 		}
 
-		public String getEmsg() {
+		public String getEmsg () {
 			return TaskUtils.getEmsg(this.e);
 		}
 
