@@ -76,6 +76,7 @@ public class DeleteTask extends DbBindingAsyncTask<Void, Void, DeleteResult> {
 		final TwitterProvider p = new TwitterProvider();
 		try {
 			p.delete(this.req.getAccount(), Long.parseLong(editSid));
+			LOG.i("Deleted tweet: editSid=%s", editSid);
 			return new DeleteResult(this.req);
 		}
 		catch (final TwitterException e) {
@@ -98,9 +99,11 @@ public class DeleteTask extends DbBindingAsyncTask<Void, Void, DeleteResult> {
 						switch (networkType) {
 							case TWITTER:
 								p.itemAction(this.req.getAccount(), svc, editSid, ItemAction.DELETE_TWITTER);
+								LOG.i("Deleted SW tweet: editSid=%s", editSid);
 								return new DeleteResult(this.req);
 							case FACEBOOK:
 								p.itemAction(this.req.getAccount(), svc, editSid, ItemAction.DELETE_FACEBOOK);
+								LOG.i("Deleted FB update: editSid=%s", editSid);
 								return new DeleteResult(this.req);
 							default:
 								return new DeleteResult(this.req, new SuccessWhaleException("Unknown network type: " + networkType));
