@@ -605,6 +605,29 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		});
 	}
 
+	private ServiceRef tweetAndAccoutToServiceRef (final Account account, final Tweet tweet) {
+		final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
+		if (svcMeta != null) {
+			final ServiceRef svc = ServiceRef.parseServiceMeta(svcMeta);
+			if (svc != null) {
+				final ServiceRef fullSvc = findFullService(account, svc);
+				if (fullSvc != null) return fullSvc;
+				return svc;
+			}
+		}
+		return null;
+	}
+
+	private String summariseAccountAndSubAccount (final Account account, final Tweet tweet) {
+		final ServiceRef svcRef = tweetAndAccoutToServiceRef(account, tweet);
+		return summariseAccountAndSubAccount(account, svcRef);
+	}
+
+	private static String summariseAccountAndSubAccount (final Account account, final ServiceRef svcRef) {
+		if (svcRef != null) return String.format("%s via %s", svcRef.getUiTitle(), account.getUiTitle());
+		return account.getUiTitle();
+	}
+
 	private void askRt (final Tweet tweet) {
 		final Account account = MetaUtils.accountFromMeta(tweet, this.conf);
 		if (account == null) {
@@ -613,29 +636,18 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		}
 
 		String action = "RT";
-		String as = account.getUiTitle();
-		final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
-		if (svcMeta != null) {
-			ServiceRef svc = ServiceRef.parseServiceMeta(svcMeta);
-			if (svc != null) {
-				if (svc.getType() == NetworkType.FACEBOOK) action = "Like";
-
-				final ServiceRef fullSvc = findFullService(account, svc);
-				if (fullSvc != null) svc = fullSvc;
-				as = String.format("%s via %s", svc.getUiTitle(), as);
-			}
-		}
+		final ServiceRef svcRef = tweetAndAccoutToServiceRef(account, tweet);
+		if (svcRef != null && svcRef.getType() == NetworkType.FACEBOOK) action = "Like";
+		final String as = summariseAccountAndSubAccount(account, svcRef);
 
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
 		dlgBld.setMessage(String.format("%s as %s?", action, as));
-
 		dlgBld.setPositiveButton("RT", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
 				doRt(account, tweet);
 			}
 		});
-
 		dlgBld.setNegativeButton(android.R.string.cancel, DialogHelper.DLG_CANCEL_CLICK_LISTENER);
 		dlgBld.show();
 	}
@@ -728,7 +740,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		}
 
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
-		dlgBld.setMessage("Permanently delete update?");
+		dlgBld.setMessage(String.format("Permanently delete update as %s?", summariseAccountAndSubAccount(account, tweet)));
 
 		dlgBld.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
 			@Override
