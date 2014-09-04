@@ -570,14 +570,6 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		new ReplyLoaderTask(getExecutorEventListener(), getActivity(), getDb(), tweet, this.lstTweetPayloadAdaptor).executeOnExecutor(getLocalEs());
 		new InReplyToLoaderTask(getExecutorEventListener(), getActivity().getApplicationContext(), getConf(), getProviderMgr(), tweet, getColumn().isHdMedia(), this.lstTweetPayloadAdaptor, getNetEs()).executeOnExecutor(getNetEs());
 
-		final Meta editSidMeta = tweet.getFirstMetaOfType(MetaType.EDIT_SID);
-		if (editSidMeta != null) {
-			final long editSid = editSidMeta.toLong(-1);
-			if (editSid != -1) {
-				// TODO show delete btn.
-			}
-		}
-
 		setReadLaterButton(tweet, this.isLaterColumn);
 		this.sidebar.openSidebar();
 	}
