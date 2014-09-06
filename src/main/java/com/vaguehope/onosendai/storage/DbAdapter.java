@@ -21,6 +21,7 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.OutboxTweet;
+import com.vaguehope.onosendai.model.OutboxTweet.OutboxAction;
 import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
@@ -31,7 +32,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 16;
+	private static final int DB_VERSION = 17;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -106,6 +107,10 @@ public class DbAdapter implements DbInterface {
 				if (oldVersion < 16) { // NOSONAR not a magic number.
 					this.log.w("Adding column %s...", TBL_TW_INLINEMEDIA);
 					db.execSQL("ALTER TABLE " + TBL_TW + " ADD COLUMN " + TBL_TW_INLINEMEDIA + " text;");
+				}
+				if (oldVersion < 17) { // NOSONAR not a magic number.
+					this.log.w("Adding column %s...", TBL_OB_ACTION);
+					db.execSQL("ALTER TABLE " + TBL_OB + " ADD COLUMN " + TBL_OB_ACTION + " integer;");
 				}
 			}
 		}
@@ -790,6 +795,7 @@ public class DbAdapter implements DbInterface {
 
 	private static final String TBL_OB = "ob";
 	private static final String TBL_OB_ID = "_id";
+	private static final String TBL_OB_ACTION = "action";
 	private static final String TBL_OB_ACCOUNT_ID = "actid";
 	private static final String TBL_OB_SERVICES = "svcs";
 	private static final String TBL_OB_BODY = "body";
@@ -801,6 +807,7 @@ public class DbAdapter implements DbInterface {
 
 	private static final String TBL_OB_CREATE = "create table " + TBL_OB + " ("
 			+ TBL_OB_ID + " integer primary key autoincrement,"
+			+ TBL_OB_ACTION + " integer,"
 			+ TBL_OB_ACCOUNT_ID + " text,"
 			+ TBL_OB_SERVICES + " text,"
 			+ TBL_OB_BODY + " text,"
@@ -817,6 +824,7 @@ public class DbAdapter implements DbInterface {
 		this.mDb.beginTransaction();
 		try {
 			final ContentValues values = new ContentValues();
+			values.put(TBL_OB_ACTION, ot.getAction().getCode());
 			values.put(TBL_OB_ACCOUNT_ID, ot.getAccountId());
 			values.put(TBL_OB_SERVICES, ot.getSvcMetasStr());
 			values.put(TBL_OB_BODY, ot.getBody());
@@ -842,6 +850,7 @@ public class DbAdapter implements DbInterface {
 		this.mDb.beginTransaction();
 		try {
 			final ContentValues values = new ContentValues();
+			values.put(TBL_OB_ACTION, ot.getAction().getCode());
 			values.put(TBL_OB_ACCOUNT_ID, ot.getAccountId());
 			values.put(TBL_OB_SERVICES, ot.getSvcMetasStr());
 			values.put(TBL_OB_BODY, ot.getBody());
@@ -878,7 +887,7 @@ public class DbAdapter implements DbInterface {
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_OB,
-					new String[] { TBL_OB_ID, TBL_OB_ACCOUNT_ID, TBL_OB_SERVICES, TBL_OB_BODY, TBL_OB_IN_REPLY_TO_SID, TBL_OB_ATTACHMENT,
+					new String[] { TBL_OB_ID, TBL_OB_ACTION, TBL_OB_ACCOUNT_ID, TBL_OB_SERVICES, TBL_OB_BODY, TBL_OB_IN_REPLY_TO_SID, TBL_OB_ATTACHMENT,
 							TBL_OB_STATUS, TBL_OB_ATTEMPT_COUNT, TBL_OB_LAST_ERROR },
 					where, whereArgs,
 					null, null,
@@ -886,6 +895,7 @@ public class DbAdapter implements DbInterface {
 
 			if (c != null && c.moveToFirst()) {
 				final int colId = c.getColumnIndex(TBL_OB_ID);
+				final int colAction = c.getColumnIndex(TBL_OB_ACTION);
 				final int colAccountId = c.getColumnIndex(TBL_OB_ACCOUNT_ID);
 				final int colServices = c.getColumnIndex(TBL_OB_SERVICES);
 				final int colBody = c.getColumnIndex(TBL_OB_BODY);
@@ -898,6 +908,7 @@ public class DbAdapter implements DbInterface {
 				final List<OutboxTweet> ret = new ArrayList<OutboxTweet>();
 				do {
 					final long uid = c.getLong(colId);
+					final OutboxAction action = OutboxAction.parseCode(c.getInt(colAction));
 					final String accountId = c.getString(colAccountId);
 					final String svcMetas = c.getString(colServices);
 					final String body = c.getString(colBody);
@@ -906,7 +917,7 @@ public class DbAdapter implements DbInterface {
 					final Integer status = c.getInt(colStatus);
 					final Integer attemptCount = c.getInt(colAttemptCount);
 					final String lastError = c.getString(colLastError);
-					ret.add(new OutboxTweet(uid, accountId, svcMetas, body, inReplyToSid, attachment,
+					ret.add(new OutboxTweet(uid, action, accountId, svcMetas, body, inReplyToSid, attachment,
 							status, attemptCount, lastError));
 				}
 				while (c.moveToNext());

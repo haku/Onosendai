@@ -16,6 +16,36 @@ import com.vaguehope.onosendai.util.StringHelper;
 
 public class OutboxTweet {
 
+	public enum OutboxAction {
+		POST(0),
+		RT(1),
+		DELETE(2);
+
+		private final int code;
+
+		private OutboxAction (final int code) {
+			this.code = code;
+		}
+
+		public int getCode () {
+			return this.code;
+		}
+
+		public static OutboxAction parseCode (final Integer code) {
+			if (code == null) throw new IllegalArgumentException("Code can not be null.");
+			switch (code) {
+				case 0:
+					return OutboxAction.POST;
+				case 1:
+					return OutboxAction.RT;
+				case 2:
+					return OutboxAction.DELETE;
+				default:
+					throw new IllegalArgumentException("Code can not be null.");
+			}
+		}
+	}
+
 	public enum OutboxTweetStatus {
 		UNKNOWN(0, "Unknown"),
 		PENDING(1, "Pending"),
@@ -54,6 +84,7 @@ public class OutboxTweet {
 	}
 
 	private final Long uid;
+	private final OutboxAction action;
 	private final String accountId;
 	private final List<String> svcMetas;
 	private final String body;
@@ -66,16 +97,16 @@ public class OutboxTweet {
 	/**
 	 * Initial.
 	 */
-	public OutboxTweet (final Account account, final Set<ServiceRef> svcs, final String body, final String inReplyToSid, final Uri attachment) {
-		this(null, account.getId(), svcsToList(svcs), body, inReplyToSid, attachment, OutboxTweetStatus.PENDING, 0, null);
+	public OutboxTweet (final OutboxAction action, final Account account, final Set<ServiceRef> svcs, final String body, final String inReplyToSid, final Uri attachment) {
+		this(null, action, account.getId(), svcsToList(svcs), body, inReplyToSid, attachment, OutboxTweetStatus.PENDING, 0, null);
 	}
 
 	/**
 	 * From DB.
 	 */
-	public OutboxTweet (final Long uid, final String accountId, final String svcMetas, final String body, final String inReplyToSid, final String attachment,
+	public OutboxTweet (final Long uid, final OutboxAction action, final String accountId, final String svcMetas, final String body, final String inReplyToSid, final String attachment,
 			final Integer statusCode, final Integer attemptCount, final String lastError) {
-		this(uid, accountId, svcsStrToList(svcMetas), body, inReplyToSid, safeParseUri(attachment),
+		this(uid, action, accountId, svcsStrToList(svcMetas), body, inReplyToSid, safeParseUri(attachment),
 				OutboxTweetStatus.parseCode(statusCode), attemptCount, lastError);
 	}
 
@@ -83,13 +114,14 @@ public class OutboxTweet {
 	 * Add error details.
 	 */
 	private OutboxTweet (final OutboxTweet ot, final OutboxTweetStatus status, final Integer attemptCount, final String lastError) {
-		this(ot.getUid(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), ot.getAttachment(),
+		this(ot.getUid(), ot.getAction(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), ot.getAttachment(),
 				status, attemptCount, lastError);
 	}
 
-	private OutboxTweet (final Long uid, final String accountId, final List<String> svcMetas, final String body, final String inReplyToSid, final Uri attachment,
+	private OutboxTweet (final Long uid, final OutboxAction action, final String accountId, final List<String> svcMetas, final String body, final String inReplyToSid, final Uri attachment,
 			final OutboxTweetStatus status, final Integer attemptCount, final String lastError) {
 		this.uid = uid;
+		this.action = action;
 		this.accountId = accountId;
 		this.svcMetas = Collections.unmodifiableList(svcMetas);
 		this.body = body;
@@ -102,6 +134,10 @@ public class OutboxTweet {
 
 	public Long getUid () {
 		return this.uid;
+	}
+
+	public OutboxAction getAction () {
+		return this.action;
 	}
 
 	public String getAccountId () {
@@ -170,6 +206,7 @@ public class OutboxTweet {
 	public String toString () {
 		return new StringBuilder()
 				.append("OutboxTweet{").append(this.uid)
+				.append(",").append(this.action)
 				.append(",").append(this.accountId)
 				.append(",").append(this.getSvcMetasStr())
 				.append(",").append(this.body)
@@ -186,8 +223,10 @@ public class OutboxTweet {
 
 	private static List<String> svcsToList (final Set<ServiceRef> svcs) {
 		final List<String> l = new ArrayList<String>();
-		for (final ServiceRef svc : svcs) {
-			l.add(svc.toServiceMeta());
+		if (svcs != null) {
+			for (final ServiceRef svc : svcs) {
+				l.add(svc.toServiceMeta());
+			}
 		}
 		return l;
 	}

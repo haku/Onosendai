@@ -50,6 +50,7 @@ import com.vaguehope.onosendai.images.ImageLoaderUtils;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.OutboxTweet;
+import com.vaguehope.onosendai.model.OutboxTweet.OutboxAction;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.EnabledServiceRefs;
 import com.vaguehope.onosendai.provider.PostTask;
@@ -451,7 +452,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	}
 
 	protected void submitPostToOutput (final Account account, final Set<ServiceRef> svcs) {
-		getDb().addPostToOutput(new OutboxTweet(account, svcs, this.txtBody.getText().toString(), getReplyToSidToSubmit(), this.attachment));
+		getDb().addPostToOutput(new OutboxTweet(OutboxAction.POST, account, svcs, this.txtBody.getText().toString(), getReplyToSidToSubmit(), this.attachment));
 		startService(new Intent(this, SendOutboxService.class));
 		Toast.makeText(this, "Posted via Outbox", Toast.LENGTH_SHORT).show();
 		finish();

@@ -61,12 +61,10 @@ import com.vaguehope.onosendai.payload.PayloadListAdapter;
 import com.vaguehope.onosendai.payload.PayloadListClickListener;
 import com.vaguehope.onosendai.payload.PayloadType;
 import com.vaguehope.onosendai.payload.ReplyLoaderTask;
-import com.vaguehope.onosendai.provider.DeleteTask;
-import com.vaguehope.onosendai.provider.DeleteTask.DeleteRequest;
 import com.vaguehope.onosendai.provider.NetworkType;
+import com.vaguehope.onosendai.provider.OutboxActionFactory;
 import com.vaguehope.onosendai.provider.ProviderMgr;
-import com.vaguehope.onosendai.provider.RtTask;
-import com.vaguehope.onosendai.provider.RtTask.RtRequest;
+import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
@@ -653,7 +651,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	}
 
 	protected void doRt (final Account account, final Tweet tweet) {
-		new RtTask(getActivity().getApplicationContext(), new RtRequest(account, tweet)).execute();
+		getDb().addPostToOutput(OutboxActionFactory.newRt(account, tweet));
+		getActivity().startService(new Intent(getActivity(), SendOutboxService.class));
+		Toast.makeText(getActivity(), "Requested via Outbox", Toast.LENGTH_SHORT).show();
 	}
 
 	private List<File> cachedPictureFilesFor (final Tweet tweet) {
@@ -754,7 +754,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	}
 
 	protected void doDelete (final Account account, final Tweet tweet) {
-		new DeleteTask(getActivity().getApplicationContext(), new DeleteRequest(account, tweet)).execute();
+		getDb().addPostToOutput(OutboxActionFactory.newDelete(account, tweet));
+		getActivity().startService(new Intent(getActivity(), SendOutboxService.class));
+		Toast.makeText(getActivity(), "Deleted via Outbox", Toast.LENGTH_SHORT).show();
 	}
 
 	private static class DetailsLaterClickListener implements OnClickListener {
