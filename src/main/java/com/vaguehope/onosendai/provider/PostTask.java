@@ -16,11 +16,10 @@ import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
-import com.vaguehope.onosendai.model.TaskOutcome;
 import com.vaguehope.onosendai.model.TweetBuilder;
 import com.vaguehope.onosendai.notifications.NotificationIds;
 import com.vaguehope.onosendai.notifications.Notifications;
-import com.vaguehope.onosendai.provider.PostTask.PostResult;
+import com.vaguehope.onosendai.provider.PostTask.PostRequest;
 import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
 import com.vaguehope.onosendai.provider.instapaper.InstapaperProvider;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
@@ -31,7 +30,7 @@ import com.vaguehope.onosendai.ui.OutboxActivity;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
+public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostRequest>> {
 
 	private static final LogWrapper LOG = new LogWrapper("PT");
 
@@ -78,7 +77,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 	}
 
 	@Override
-	protected PostResult doInBackgroundWithDb (final DbInterface db, final Void... params) {
+	protected SendResult<PostRequest> doInBackgroundWithDb (final DbInterface db, final Void... params) {
 		LOG.i("Posting: %s", this.req);
 		switch (this.req.getAccount().getProvider()) {
 			case TWITTER:
@@ -90,55 +89,55 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 			case INSTAPAPER:
 				return postInstapaper();
 			default:
-				return new PostResult(this.req, new UnsupportedOperationException("Do not know how to post to account type: " + this.req.getAccount().getUiTitle()));
+				return new SendResult<PostRequest>(this.req, new UnsupportedOperationException("Do not know how to post to account type: " + this.req.getAccount().getUiTitle()));
 		}
 	}
 
-	private PostResult postTwitter () {
+	private SendResult<PostRequest> postTwitter () {
 		final TwitterProvider p = new TwitterProvider();
 		try {
 			p.post(this.req.getAccount(), this.req.getBody(), this.req.getInReplyToSidLong(), resolveAttachment());
-			return new PostResult(this.req);
+			return new SendResult<PostRequest>(this.req);
 		}
 		catch (final Exception e) { // NOSONAR need to report all errors.
-			return new PostResult(this.req, e);
+			return new SendResult<PostRequest>(this.req, e);
 		}
 		finally {
 			p.shutdown();
 		}
 	}
 
-	private PostResult postSuccessWhale (final DbInterface db) {
+	private SendResult<PostRequest> postSuccessWhale (final DbInterface db) {
 		final SuccessWhaleProvider s = new SuccessWhaleProvider(db);
 		try {
 			s.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody(), this.req.getInReplyToSid(), resolveAttachment());
-			return new PostResult(this.req);
+			return new SendResult<PostRequest>(this.req);
 		}
 		catch (final Exception e) { // NOSONAR need to report all errors.
-			return new PostResult(this.req, e);
+			return new SendResult<PostRequest>(this.req, e);
 		}
 		finally {
 			s.shutdown();
 		}
 	}
 
-	private PostResult postBufferApp () {
+	private SendResult<PostRequest> postBufferApp () {
 		final BufferAppProvider b = new BufferAppProvider();
 		try {
 			if (this.req.getInReplyToSid() != null) LOG.w("BufferApp does not support inReplyTo field, ignoring it."); // TODO do not get here.
 			if (resolveAttachment() != null) throw new IllegalArgumentException("BufferApp does not support posting images."); // TODO do not get here.
 			b.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody());
-			return new PostResult(this.req);
+			return new SendResult<PostRequest>(this.req);
 		}
 		catch (final Exception e) { // NOSONAR need to report all errors.
-			return new PostResult(this.req, e);
+			return new SendResult<PostRequest>(this.req, e);
 		}
 		finally {
 			b.shutdown();
 		}
 	}
 
-	private PostResult postInstapaper () {
+	private SendResult<PostRequest> postInstapaper () {
 		final InstapaperProvider p = new InstapaperProvider();
 		try {
 			if (this.req.getInReplyToSid() != null) LOG.w("Instapaper does not support inReplyTo field, ignoring it."); // TODO do not get here.
@@ -146,10 +145,10 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 			final TweetBuilder b = new TweetBuilder();
 			b.body(this.req.getBody());
 			p.add(this.req.getAccount(), b.build());
-			return new PostResult(this.req);
+			return new SendResult<PostRequest>(this.req);
 		}
 		catch (final Exception e) { // NOSONAR need to report all errors.
-			return new PostResult(this.req, e);
+			return new SendResult<PostRequest>(this.req, e);
 		}
 		finally {
 			p.shutdown();
@@ -164,7 +163,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 	}
 
 	@Override
-	protected void onPostExecute (final PostResult res) {
+	protected void onPostExecute (final SendResult<PostRequest> res) {
 		switch (res.getOutcome()) {
 			case SUCCESS:
 			case PREVIOUS_ATTEMPT_SUCCEEDED:
@@ -257,42 +256,6 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, PostResult> {
 					.append(",").append(this.inReplyToSid)
 					.append(",").append(this.attachment)
 					.append("}").toString();
-		}
-
-	}
-
-	protected static class PostResult {
-
-		private final TaskOutcome outcome;
-		private final PostRequest request;
-		private final Exception e;
-
-		public PostResult (final PostRequest request) {
-			this.outcome = TaskOutcome.SUCCESS;
-			this.request = request;
-			this.e = null;
-		}
-
-		public PostResult (final PostRequest request, final Exception e) {
-			this.outcome = TaskUtils.failureType(e);
-			this.request = request;
-			this.e = e;
-		}
-
-		public TaskOutcome getOutcome () {
-			return this.outcome;
-		}
-
-		public PostRequest getRequest () {
-			return this.request;
-		}
-
-		public Exception getE () {
-			return this.e;
-		}
-
-		public String getEmsg () {
-			return TaskUtils.getEmsg(this.e);
 		}
 
 	}
