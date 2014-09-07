@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.notifications;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 import android.app.Notification;
@@ -10,12 +11,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
+import android.support.v4.app.NotificationCompat.InboxStyle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.StyleSpan;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.NotificationStyle;
+import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.ui.MainActivity;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public final class Notifications {
 
@@ -55,6 +63,19 @@ public final class Notifications {
 		final int nId = idForColumn(col);
 		final int count = db.getUnreadCount(col);
 		if (count > 0) {
+			final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5), col.getExcludeColumnIds());
+			// https://stackoverflow.com/questions/14602072/styling-notification-inboxstyle
+			final InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+			for (final Tweet tweet : tweets) {
+				final String username = StringHelper.firstLine(tweet.getUsername());
+				final Spannable s = new SpannableString(String.format("%s: %s", username, tweet.getBody()));
+				s.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, username.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+				inboxStyle.addLine(s);
+			}
+			if (tweets.size() < count) {
+				inboxStyle.setSummaryText(String.format("+%s more", count - tweets.size()));
+			}
+
 			final Intent intent = new Intent(context, MainActivity.class)
 					.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
 					.putExtra(MainActivity.ARG_FOCUS_COLUMN_ID, col.getId());
@@ -67,7 +88,8 @@ public final class Notifications {
 					.setNumber(count)
 					.setContentIntent(pendingIntent)
 					.setAutoCancel(true)
-					.setWhen(System.currentTimeMillis());
+					.setWhen(System.currentTimeMillis())
+					.setStyle(inboxStyle);
 			applyStyle(nb, col.getNotificationStyle());
 			nm.notify(nId, nb.build());
 		}
