@@ -3,7 +3,6 @@ package com.vaguehope.onosendai.provider.twitter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -34,9 +33,7 @@ public class TwitterProvider {
 		if (this.accounts.containsKey(account.getId())) return;
 		final TwitterFactory tf = makeTwitterFactory(account);
 		final Twitter t = tf.getInstance();
-		if (this.accounts.putIfAbsent(account.getId(), t) != null) {
-			t.shutdown();
-		}
+		this.accounts.putIfAbsent(account.getId(), t);
 	}
 
 	private Twitter getTwitter (final Account account) {
@@ -47,12 +44,7 @@ public class TwitterProvider {
 	}
 
 	public void shutdown () {
-		final Iterator<Twitter> itr = this.accounts.values().iterator();
-		while (itr.hasNext()) {
-			final Twitter t = itr.next();
-			t.shutdown();
-			itr.remove();
-		}
+		this.accounts.clear();
 	}
 
 	/**
@@ -103,7 +95,6 @@ public class TwitterProvider {
 
 	private static TwitterFactory makeTwitterFactory (final Account account) {
 		final ConfigurationBuilder cb = new ConfigurationBuilder()
-				.setUseSSL(true)
 				.setOAuthConsumerKey(account.getConsumerKey())
 				.setOAuthConsumerSecret(account.getConsumerSecret())
 				.setOAuthAccessToken(account.getAccessToken())

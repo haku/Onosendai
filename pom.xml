@@ -21,7 +21,7 @@
 		<android.platform>11</android.platform>
 		<android-compatibility.version>19.0.1</android-compatibility.version>
 
-		<twitter4j.version>3.0.5</twitter4j.version>
+		<twitter4j.version>4.0.2</twitter4j.version>
 
 		<android-maven.version>3.6.0</android-maven.version>
 		<junit.version>4.11</junit.version>
