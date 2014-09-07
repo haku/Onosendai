@@ -7,8 +7,8 @@ import java.io.IOException;
 import org.junit.Test;
 import org.mockito.internal.util.reflection.Whitebox;
 
+import twitter4j.HttpResponseCode;
 import twitter4j.TwitterException;
-import twitter4j.internal.http.HttpResponseCode;
 
 import com.vaguehope.onosendai.model.TaskOutcome;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;

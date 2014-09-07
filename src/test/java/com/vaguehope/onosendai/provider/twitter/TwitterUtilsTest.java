@@ -20,13 +20,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+import twitter4j.HttpResponse;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
-import twitter4j.internal.http.HttpResponse;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
@@ -302,7 +302,7 @@ public class TwitterUtilsTest {
 
 	@Test
 	public void itMakesFriendlyErrorForInternalJsonError () throws Exception {
-		twitter4j.internal.org.json.JSONException je = new twitter4j.internal.org.json.JSONException("Expected a ',' or '}' at 7733 [character 7734 line 1]");
+		twitter4j.JSONException je = new twitter4j.JSONException("Expected a ',' or '}' at 7733 [character 7734 line 1]");
 		final TwitterException te = new TwitterException(je);
 		assertEquals("Network error: Invalid or incomplete data received.", TwitterUtils.friendlyExceptionMessage(te));
 	}
