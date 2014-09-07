@@ -67,7 +67,9 @@ public final class Notifications {
 			// https://stackoverflow.com/questions/14602072/styling-notification-inboxstyle
 			final InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
 			for (final Tweet tweet : tweets) {
-				final String username = StringHelper.firstLine(tweet.getUsername());
+				final String username = !StringHelper.isEmpty(tweet.getUsername())
+						? StringHelper.firstLine(tweet.getUsername())
+						: StringHelper.firstLine(tweet.getFullname());
 				final Spannable s = new SpannableString(String.format("%s: %s", username, tweet.getBody()));
 				s.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, username.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 				inboxStyle.addLine(s);
