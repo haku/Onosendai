@@ -53,7 +53,11 @@ public final class Notifications {
 	}
 
 	public static void clearColumn (final Context context, final Column col) {
-		getManager(context).cancel(idForColumn(col));
+		clearColumn(context, col.getId());
+	}
+
+	public static void clearColumn (final Context context, final int colId) {
+		getManager(context).cancel(idForColumn(colId));
 	}
 
 	private static NotificationManager getManager (final Context context) {
@@ -64,21 +68,26 @@ public final class Notifications {
 		final int nId = idForColumn(col);
 		final int count = db.getUnreadCount(col);
 		if (count > 0) {
-			final Intent intent = new Intent(context, MainActivity.class)
+			final Intent showMainActI = new Intent(context, MainActivity.class)
 					.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
 					.putExtra(MainActivity.ARG_FOCUS_COLUMN_ID, col.getId());
-			final PendingIntent pendingIntent = PendingIntent.getActivity(context, col.getId(), intent, PendingIntent.FLAG_CANCEL_CURRENT);
-			final Style style = makePreview(db, col, count);
+			final PendingIntent showMainActPi = PendingIntent.getActivity(context, col.getId(), showMainActI, PendingIntent.FLAG_CANCEL_CURRENT);
+
+			final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5), col.getExcludeColumnIds());
+			final Style style = makePreview(tweets, count);
+			final PendingIntent markAsReadPi = MarkAsReadReceiver.makePi(context, col, tweets);
+
 			final Builder nb = new NotificationCompat.Builder(context)
 					.setOnlyAlertOnce(true)
 					.setSmallIcon(notificationIcon())
 					.setContentTitle(col.getTitle())
 					.setContentText(String.format("%d new updates.", count))
 					.setNumber(count)
-					.setContentIntent(pendingIntent)
+					.setContentIntent(showMainActPi)
 					.setAutoCancel(true)
 					.setWhen(System.currentTimeMillis())
 					.setStyle(style);
+			if (markAsReadPi != null) nb.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Mark as read", markAsReadPi);
 			applyStyle(nb, col.getNotificationStyle());
 			nm.notify(nId, nb.build());
 		}
@@ -88,7 +97,11 @@ public final class Notifications {
 	}
 
 	private static int idForColumn (final Column col) {
-		return NotificationIds.BASE_NOTIFICATION_ID + col.getId();
+		return idForColumn(col.getId());
+	}
+
+	private static int idForColumn (final int colId) {
+		return NotificationIds.BASE_NOTIFICATION_ID + colId;
 	}
 
 	private static void applyStyle (final Builder nb, final NotificationStyle ns) {
@@ -100,8 +113,7 @@ public final class Notifications {
 	}
 
 	// https://stackoverflow.com/questions/14602072/styling-notification-inboxstyle
-	private static Style makePreview (final DbInterface db, final Column col, final int count) {
-		final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5), col.getExcludeColumnIds());
+	private static Style makePreview (final List<Tweet> tweets, final int count) {
 		if (tweets == null || tweets.size() < 1) return null;
 
 		if (tweets.size() == 1) return new NotificationCompat.BigTextStyle()
