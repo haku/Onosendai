@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
 import android.support.v4.app.NotificationCompat.InboxStyle;
+import android.support.v4.app.NotificationCompat.Style;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -63,25 +64,11 @@ public final class Notifications {
 		final int nId = idForColumn(col);
 		final int count = db.getUnreadCount(col);
 		if (count > 0) {
-			final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5), col.getExcludeColumnIds());
-			// https://stackoverflow.com/questions/14602072/styling-notification-inboxstyle
-			final InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-			for (final Tweet tweet : tweets) {
-				final String username = !StringHelper.isEmpty(tweet.getUsername())
-						? StringHelper.firstLine(tweet.getUsername())
-						: StringHelper.firstLine(tweet.getFullname());
-				final Spannable s = new SpannableString(String.format("%s: %s", username, tweet.getBody()));
-				s.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, username.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-				inboxStyle.addLine(s);
-			}
-			if (tweets.size() < count) {
-				inboxStyle.setSummaryText(String.format("+%s more", count - tweets.size()));
-			}
-
 			final Intent intent = new Intent(context, MainActivity.class)
 					.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
 					.putExtra(MainActivity.ARG_FOCUS_COLUMN_ID, col.getId());
 			final PendingIntent pendingIntent = PendingIntent.getActivity(context, col.getId(), intent, PendingIntent.FLAG_CANCEL_CURRENT);
+			final Style style = makePreview(db, col, count);
 			final Builder nb = new NotificationCompat.Builder(context)
 					.setOnlyAlertOnce(true)
 					.setSmallIcon(notificationIcon())
@@ -91,7 +78,7 @@ public final class Notifications {
 					.setContentIntent(pendingIntent)
 					.setAutoCancel(true)
 					.setWhen(System.currentTimeMillis())
-					.setStyle(inboxStyle);
+					.setStyle(style);
 			applyStyle(nb, col.getNotificationStyle());
 			nm.notify(nId, nb.build());
 		}
@@ -110,6 +97,33 @@ public final class Notifications {
 		if (ns.isVibrate()) defaults |= Notification.DEFAULT_VIBRATE;
 		if (ns.isSound()) defaults |= Notification.DEFAULT_SOUND;
 		nb.setDefaults(defaults);
+	}
+
+	// https://stackoverflow.com/questions/14602072/styling-notification-inboxstyle
+	private static Style makePreview (final DbInterface db, final Column col, final int count) {
+		final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5), col.getExcludeColumnIds());
+		if (tweets == null || tweets.size() < 1) return null;
+
+		if (tweets.size() == 1) return new NotificationCompat.BigTextStyle()
+				.bigText(tweetToSpanable(tweets.iterator().next()));
+
+		final InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+		for (final Tweet tweet : tweets) {
+			inboxStyle.addLine(tweetToSpanable(tweet));
+		}
+		if (tweets.size() < count) {
+			inboxStyle.setSummaryText(String.format("+%s more", count - tweets.size()));
+		}
+		return inboxStyle;
+	}
+
+	private static Spannable tweetToSpanable (final Tweet tweet) {
+		final String username = !StringHelper.isEmpty(tweet.getUsername())
+				? StringHelper.firstLine(tweet.getUsername())
+				: StringHelper.firstLine(tweet.getFullname());
+		final Spannable s = new SpannableString(String.format("%s: %s", username, tweet.getBody()));
+		s.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, username.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+		return s;
 	}
 
 }
