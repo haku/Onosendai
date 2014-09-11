@@ -92,6 +92,7 @@ public class ScrollState {
 		bundle.putLong(KEY_ITEM_ID, this.itemId);
 		bundle.putInt(KEY_TOP, this.top);
 		bundle.putLong(KEY_ITEM_TIME, this.itemTime);
+		bundle.putLong(KEY_UNREAD_TIME, this.unreadTime);
 	}
 
 	public static ScrollState from (final ListView lv, final ScrollIndicator scrollIndicator) {
