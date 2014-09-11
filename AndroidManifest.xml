@@ -98,6 +98,7 @@
 			</intent-filter>
 		</receiver>
 		<receiver android:name=".update.AlarmReceiver" />
+		<receiver android:name=".notifications.MarkAsReadReceiver" />
 
 		<service
 			android:name=".update.UpdateService"
@@ -111,6 +112,9 @@
 		<service
 			android:name=".update.CleanupService"
 			android:label="@string/cleanup_service_label" />
+		<service
+			android:name=".notifications.MarkAsReadService"
+			android:label="@string/mark_as_read_service_label" />
 
 		<provider
 			android:name="com.vaguehope.onosendai.images.CachedImageFileProvider"
