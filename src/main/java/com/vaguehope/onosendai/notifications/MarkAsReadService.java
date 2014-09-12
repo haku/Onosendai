@@ -2,7 +2,6 @@ package com.vaguehope.onosendai.notifications;
 
 import android.content.Intent;
 
-import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.storage.DbBindingService;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -22,14 +21,9 @@ public class MarkAsReadService extends DbBindingService {
 			LOG.e("Invalid mark as read, colId=%s, upToTime=%s.", colId, upToTime);
 			return;
 		}
-
 		if (!waitForDbReady()) return;
-
 		try {
-			// TODO could make this more efficient with a specific DbInterface method.
-			final ScrollState s = getDb().getScroll(colId);
-			getDb().storeScroll(colId, new ScrollState(s.getItemId(), s.getTop(), s.getItemTime(), upToTime));
-
+			getDb().storeUnreadTime(colId, upToTime);
 			LOG.i("Set col=%s as read upToTime=%s.", colId, upToTime);
 			Notifications.clearColumn(this, colId);
 		}

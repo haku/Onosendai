@@ -695,6 +695,12 @@ public class DbAdapter implements DbInterface {
 		}
 	}
 
+	private void notifyTwListenersUnreadChanged (final int columnId) {
+		for (final TwUpdateListener l : this.twUpdateListeners) {
+			l.unreadChanged(columnId);
+		}
+	}
+
 	@Override
 	public void notifyTwListenersColumnState (final int columnId, final ColumnState state) {
 		this.columnStates.put(Integer.valueOf(columnId), state);
@@ -756,6 +762,24 @@ public class DbAdapter implements DbInterface {
 			this.mDb.endTransaction();
 		}
 		this.log.d("Stored scroll for col %d: %s", columnId, state);
+	}
+
+	@Override
+	public void storeUnreadTime (final int columnId, final long unreadTime) {
+		this.mDb.beginTransaction();
+		try {
+			final ContentValues values = new ContentValues();
+			values.put(TBL_SC_UNREAD, unreadTime);
+			final int affected = this.mDb.update(TBL_SC, values, TBL_SC_COLID + "=?", new String[] { String.valueOf(columnId) });
+			if (affected > 1) throw new IllegalStateException("Updating " + columnId + " unreadTime affected " + affected + " rows, expected 1.");
+			if (affected < 1) this.log.w("Updating %s unreadTime to %s affected %s rows, expected 1.", columnId, unreadTime, affected);
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+		this.log.d("Stored unreadTime for col %d: %s", columnId, unreadTime);
+		notifyTwListenersUnreadChanged(columnId);
 	}
 
 	@Override
