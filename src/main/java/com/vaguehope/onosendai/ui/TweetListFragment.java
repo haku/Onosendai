@@ -340,6 +340,11 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		this.scrollState = getDb().getScroll(this.columnId);
 	}
 
+	protected void restoreJustUnreadFromDb () {
+		final ScrollState ss = getDb().getScroll(this.columnId);
+		this.scrollIndicator.setUnreadTime(ss.getUnreadTime());
+	}
+
 	protected void scrollTop () {
 		this.tweetList.setSelectionAfterHeaderView();
 	}
@@ -868,12 +873,19 @@ public class TweetListFragment extends Fragment implements DbProvider {
 			statusChanged(eventType);
 		}
 
+		@Override
+		public void unreadChanged (final int eventColumnId) {
+			if (eventColumnId != getColumnId()) return;
+			refreshUnread();
+		}
+
 	};
 
 	private static final int MSG_REFRESH = 1;
 	private static final int MSG_UPDATE_RUNNING = 2;
 	private static final int MSG_UPDATE_OVER = 3;
 	private static final int MSG_STILL_SCROLLING_CHECK = 4;
+	private static final int MSG_UNREAD_CHANGED = 5;
 
 	protected void refreshUi () {
 		this.refreshUiHandler.sendEmptyMessage(MSG_REFRESH);
@@ -889,6 +901,10 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				break;
 			default:
 		}
+	}
+
+	protected void refreshUnread () {
+		this.refreshUiHandler.sendEmptyMessage(MSG_UNREAD_CHANGED);
 	}
 
 	private static class RefreshUiHandler extends Handler {
@@ -922,6 +938,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				break;
 			case MSG_STILL_SCROLLING_CHECK:
 				checkIfTweetListStillScrolling();
+				break;
+			case MSG_UNREAD_CHANGED:
+				restoreJustUnreadFromDb();
 				break;
 			default:
 		}

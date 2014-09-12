@@ -192,6 +192,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public void storeUnreadTime (final int columnId, final long unreadTime) {
+		this.dbAdaptor.storeUnreadTime(columnId, unreadTime);
+	}
+
+	@Override
 	public ScrollState getScroll (final int columnId) {
 		return this.dbAdaptor.getScroll(columnId);
 	}

@@ -48,6 +48,7 @@ public interface DbInterface extends KvStore {
 	void removeTwUpdateListener (TwUpdateListener listener);
 
 	void storeScroll(int columnId, ScrollState state);
+	void storeUnreadTime(int columnId, long unreadTime);
 	ScrollState getScroll(int columnId);
 
 	void notifyTwListenersColumnState (final int columnId, final ColumnState state);
@@ -60,6 +61,7 @@ public interface DbInterface extends KvStore {
 	interface TwUpdateListener {
 		void columnChanged(int columnId);
 		void columnStatus(int columnId, ColumnState state);
+		void unreadChanged(int columnId);
 	}
 
 	void addPostToOutput (OutboxTweet ot);
