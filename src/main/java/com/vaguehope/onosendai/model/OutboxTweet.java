@@ -83,7 +83,11 @@ public class OutboxTweet {
 		}
 	}
 
+	/**
+	 * _id from DB.
+	 */
 	private final Long uid;
+
 	private final OutboxAction action;
 	private final String accountId;
 	private final List<String> svcMetas;

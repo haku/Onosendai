@@ -120,13 +120,13 @@ public class SendOutboxService extends DbBindingService {
 	}
 
 	private static RtRequest outboxTweetToRtRequest (final OutboxTweet ot, final Config conf) {
-		return new RtRequest(conf.getAccount(ot.getAccountId()),
+		return new RtRequest(ot.getUid(), conf.getAccount(ot.getAccountId()),
 				atMostOne(ot.getSvcMetasParsed()),
 				ot.getInReplyToSid());
 	}
 
 	private static DeleteRequest outboxTweetToDeleteRequest (final OutboxTweet ot, final Config conf) {
-		return new DeleteRequest(conf.getAccount(ot.getAccountId()),
+		return new DeleteRequest(ot.getUid(), conf.getAccount(ot.getAccountId()),
 				atMostOne(ot.getSvcMetasParsed()),
 				ot.getInReplyToSid());
 	}

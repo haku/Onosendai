@@ -3,7 +3,9 @@ package com.vaguehope.onosendai.provider;
 import twitter4j.TwitterException;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
@@ -16,6 +18,7 @@ import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.ui.OutboxActivity;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class DeleteTask extends DbBindingAsyncTask<Void, Void, SendResult<DeleteRequest>> {
@@ -32,7 +35,7 @@ public class DeleteTask extends DbBindingAsyncTask<Void, Void, SendResult<Delete
 		super(context);
 		this.context = context;
 		this.req = req;
-		this.notificationId = (int) System.currentTimeMillis(); // Probably unique.
+		this.notificationId = (int) (req.getReqId() != null ? req.getReqId() : System.currentTimeMillis()); // Probably unique.
 	}
 
 	@Override
@@ -129,6 +132,8 @@ public class DeleteTask extends DbBindingAsyncTask<Void, Void, SendResult<Delete
 						.setAutoCancel(true)
 						.setUsesChronometer(false)
 						.setWhen(System.currentTimeMillis())
+						.setContentIntent(PendingIntent.getActivity(getContext(), this.notificationId,
+								new Intent(getContext(), OutboxActivity.class), PendingIntent.FLAG_CANCEL_CURRENT))
 						.build();
 				this.notificationMgr.notify(this.notificationId, n);
 		}
@@ -136,14 +141,20 @@ public class DeleteTask extends DbBindingAsyncTask<Void, Void, SendResult<Delete
 
 	public static class DeleteRequest {
 
+		private final Long reqId;
 		private final Account account;
 		private final ServiceRef svc;
 		private final String sid;
 
-		public DeleteRequest (final Account account, final ServiceRef svc, final String sid) {
+		public DeleteRequest (final Long reqId, final Account account, final ServiceRef svc, final String sid) {
+			this.reqId = reqId;
 			this.account = account;
 			this.svc = svc;
 			this.sid = sid;
+		}
+
+		public Long getReqId () {
+			return this.reqId;
 		}
 
 		public Account getAccount () {
