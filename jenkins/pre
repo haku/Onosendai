@@ -1,0 +1,20 @@
+#!/bin/bash
+set -eu
+
+f="./AndroidManifest.xml"
+if ! [ -e "$f" ] ; then
+  echo "Not found: $f"
+  exit 1
+fi
+
+mf_code="$(sed -ne 's/.*android:versionCode="\([0-9]*\).*"/\1/p' "$f" )"
+echo "mf_code=$mf_code"
+
+echo "BUILD_NUMBER=$BUILD_NUMBER"
+b_code="$(( ($mf_code * 100000) + $BUILD_NUMBER ))"
+echo "b_code=$b_code"
+
+sed -i \
+  -e "s/\(android:versionCode=\"\)[^\"]*\(\"\)/\1${b_code}\2/" \
+  -e "s/\(android:versionName=\"\)[^\"]*\(\"\)/\1${mf_code}.${BUILD_NUMBER}\2/" \
+  "$f"
