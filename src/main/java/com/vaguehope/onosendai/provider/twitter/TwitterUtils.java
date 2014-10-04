@@ -168,7 +168,8 @@ public final class TwitterUtils {
 	}
 
 	private static void addMedia (final Status s, final List<Meta> metas, final boolean hdMedia) {
-		final MediaEntity[] mes = s.getMediaEntities();
+		MediaEntity[] mes = s.getExtendedMediaEntities();
+		if (mes == null || mes.length < 1) mes = s.getMediaEntities();
 		if (mes == null) return;
 		for (final MediaEntity me : mes) {
 			final String clickUrl = me.getExpandedURL() != null ? me.getExpandedURL() : me.getURL();
