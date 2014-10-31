@@ -28,10 +28,12 @@ public class HybridBitmapCache {
 		void onContentFetching (int bytesFetched, int contentLength);
 	}
 
+	private static final double MAX_CACHE_ENTRY_SIZE_RATIO = 0.2d;
 	private static final int BASE_HEX = 16;
 	static final LogWrapper LOG = new LogWrapper("HC");
 
 	private final MemoryBitmapCache<String> memCache;
+	private final int maxMemCacheEntrySize;
 	private final LruCache<String, String> failuresCache;
 	private final File baseDir;
 	private final SyncMgr syncMgr = new SyncMgr();
@@ -42,7 +44,8 @@ public class HybridBitmapCache {
 		this.failuresCache = new LruCache<String, String>(100); // TODO extract constant.
 		this.baseDir = getBaseDir(context);
 		if (!this.baseDir.exists() && !this.baseDir.mkdirs()) throw new IllegalStateException("Failed to create cache directory: " + this.baseDir.getAbsolutePath());
-		LOG.i("in memory cache: %s bytes.", maxMemorySizeBytes);
+		this.maxMemCacheEntrySize = (int) (maxMemorySizeBytes * MAX_CACHE_ENTRY_SIZE_RATIO);
+		LOG.i("in memory cache: total %s bytes, max entry %s bytes.", maxMemorySizeBytes, this.maxMemCacheEntrySize);
 	}
 
 	public void forget (final String key) throws IOException {
@@ -105,7 +108,7 @@ public class HybridBitmapCache {
 			cacheFailureInMemory(key, unEx);
 			throw unEx;
 		}
-		this.memCache.put(key, bmp);
+		if (MemoryBitmapCache.bmpByteCount(bmp) <= this.maxMemCacheEntrySize) this.memCache.put(key, bmp);
 		refreshFileTimestamp(file);
 		return bmp;
 	}
