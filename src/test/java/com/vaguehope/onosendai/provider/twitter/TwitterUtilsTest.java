@@ -53,27 +53,28 @@ public class TwitterUtilsTest {
 
 	@Test
 	public void itExpandsInstagramUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://instagram.com/p/cT0bSXnMqi/", false, "http://instagram.com/p/cT0bSXnMqi/media/?size=m");
+		testPictureUrlExpansion("http://instagram.com/p/cT0bSXnMqi", false, "https://instagram.com/p/cT0bSXnMqi/media/?size=m");
+		testPictureUrlExpansion("http://instagram.com/p/cT0bSXnMqi/", false, "https://instagram.com/p/cT0bSXnMqi/media/?size=m");
 	}
 
 	@Test
 	public void itExpandsInstagramUrlsToMediaHd () throws Exception {
-		testPictureUrlExpansion("http://instagram.com/p/cT0bSXnMqi/", true, "http://instagram.com/p/cT0bSXnMqi/media/?size=l");
+		testPictureUrlExpansion("http://instagram.com/p/cT0bSXnMqi/", true, "https://instagram.com/p/cT0bSXnMqi/media/?size=l");
 	}
 
 	@Test
 	public void itExpandsTwitpicUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://twitpic.com/d53yth", false, "http://twitpic.com/show/thumb/d53yth.jpg");
+		testPictureUrlExpansion("http://twitpic.com/d53yth", false, "https://twitpic.com/show/thumb/d53yth.jpg");
 	}
 
 	@Test
 	public void itExpandsImgurPageUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://imgur.com/oxyFqMy", false, "http://i.imgur.com/oxyFqMyl.jpg");
+		testPictureUrlExpansion("http://imgur.com/oxyFqMy", false, "https://i.imgur.com/oxyFqMyl.jpg");
 	}
 
 	@Test
 	public void itExpandsImgurPageUrlsToMediaHd () throws Exception {
-		testPictureUrlExpansion("http://imgur.com/oxyFqMy", true, "http://i.imgur.com/oxyFqMyh.jpg");
+		testPictureUrlExpansion("http://imgur.com/oxyFqMy", true, "https://i.imgur.com/oxyFqMyh.jpg");
 	}
 
 	/**
@@ -87,17 +88,22 @@ public class TwitterUtilsTest {
 
 	@Test
 	public void itConvertsImgurJpgUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://i.imgur.com/dhadb0b.jpg", false, "http://i.imgur.com/dhadb0bl.jpg");
+		testPictureUrlExpansion("http://i.imgur.com/dhadb0b.jpg", false, "https://i.imgur.com/dhadb0bl.jpg");
+	}
+
+	@Test
+	public void itConvertsImgurJpgUrlsToMediaHttps () throws Exception {
+		testPictureUrlExpansion("https://i.imgur.com/dhadb0b.jpg", false, "https://i.imgur.com/dhadb0bl.jpg");
 	}
 
 	@Test
 	public void itConvertsImgurPngUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://i.imgur.com/SOLlJFo.png", false, "http://i.imgur.com/SOLlJFol.jpg");
+		testPictureUrlExpansion("http://i.imgur.com/SOLlJFo.png", false, "https://i.imgur.com/SOLlJFol.jpg");
 	}
 
 	@Test
 	public void itConvertsImgurGifUrlsToMedia () throws Exception {
-		testPictureUrlExpansion("http://i.imgur.com/AyLnEoz.gif", false, "http://i.imgur.com/AyLnEozl.jpg");
+		testPictureUrlExpansion("http://i.imgur.com/AyLnEoz.gif", false, "https://i.imgur.com/AyLnEozl.jpg");
 	}
 
 	@Test
