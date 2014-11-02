@@ -9,6 +9,7 @@ public final class ImageHostHelper {
 	private static final Pattern TWITPIC_URL = Pattern.compile("^https?://twitpic.com/(.+)$");
 	private static final Pattern IMGUR_URL = Pattern.compile("^https?://(?:i\\.)?imgur.com/(.+?)(?:\\..+)?$");
 	private static final Pattern YFROG_URL = Pattern.compile("^https?://yfrog.com/(.+)$");
+	private static final Pattern TWIPPLE_URL = Pattern.compile("^https?://p.twipple.jp/(.+)$");
 
 	private ImageHostHelper () {
 		throw new AssertionError();
@@ -37,6 +38,11 @@ public final class ImageHostHelper {
 		{ // http://twitter.yfrog.com/page/api#a5
 			final Matcher m = YFROG_URL.matcher(linkUrl);
 			if (m.matches()) return "http://yfrog.com/" + m.group(1) + (hdMedia ? ":medium" : ":small");
+		}
+
+		{ // http://p.twipple.jp/wiki/API_Thumbnail
+			final Matcher m = TWIPPLE_URL.matcher(linkUrl);
+			if (m.matches()) return "http://p.twipple.jp/show/large/" + m.group(1);
 		}
 
 		return null;

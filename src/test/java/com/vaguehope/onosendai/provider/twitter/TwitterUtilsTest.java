@@ -117,6 +117,11 @@ public class TwitterUtilsTest {
 	}
 
 	@Test
+	public void itConvertsTwippleUrlsToMedia () throws Exception {
+		testPictureUrlExpansion("http://p.twipple.jp/4pzli", false, "http://p.twipple.jp/show/large/4pzli");
+	}
+
+	@Test
 	public void itCanAddHdProfileImages () throws Exception {
 		final Status s = mockTweet("foo @twitter desu");
 		final Tweet t = TwitterUtils.convertTweet(this.account, s, 201, true);
