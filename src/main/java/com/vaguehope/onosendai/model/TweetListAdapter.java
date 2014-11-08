@@ -80,6 +80,7 @@ public class TweetListAdapter extends BaseAdapter {
 		}
 		else {
 			rowView = (TweetRowView) view.getTag();
+			rowView.reset();
 		}
 
 		layoutType.applyTweetTo(item, rowView, this.imageLoader, this.listView.getWidth());
