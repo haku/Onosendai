@@ -11,7 +11,22 @@ public final class C {
 	public static final String TAG = "onosendai";
 	public static final String CONFIG_FILE_NAME = "deck.conf";
 
-	public static final int MAX_MEMORY_IMAGE_CACHE = (int) (Runtime.getRuntime().maxMemory() / 5);
+	/**
+	 * 20% of 60M heap is 12M.
+	 */
+	public static final int MAX_MEMORY_IMAGE_CACHE = (int) (Runtime.getRuntime().maxMemory() / 5L);
+
+	/**
+	 * Do not let an image use more than 10% of the in memory cache.
+	 */
+	public static final double MAX_MEMORY_IMAGE_CACHE_ENTRY_SIZE_RATIO = 0.1d; // relative to cache size.
+
+	/**
+	 * Do not load images larger than this.
+	 * 5% of 60M heap is 3M.
+	 */
+	public static final int MAX_IMAGE_SIZE_BYTES = (int) (Runtime.getRuntime().maxMemory() / 20L);
+
 	public static final int DB_CONNECT_TIMEOUT_SECONDS = 5;
 
 	public static final int TWEET_FETCH_PAGE_SIZE = 20;

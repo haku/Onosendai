@@ -28,7 +28,6 @@ public class HybridBitmapCache {
 		void onContentFetching (int bytesFetched, int contentLength);
 	}
 
-	private static final double MAX_CACHE_ENTRY_SIZE_RATIO = 0.2d;
 	private static final int BASE_HEX = 16;
 	static final LogWrapper LOG = new LogWrapper("HC");
 
@@ -44,7 +43,7 @@ public class HybridBitmapCache {
 		this.failuresCache = new LruCache<String, String>(100); // TODO extract constant.
 		this.baseDir = getBaseDir(context);
 		if (!this.baseDir.exists() && !this.baseDir.mkdirs()) throw new IllegalStateException("Failed to create cache directory: " + this.baseDir.getAbsolutePath());
-		this.maxMemCacheEntrySize = (int) (maxMemorySizeBytes * MAX_CACHE_ENTRY_SIZE_RATIO);
+		this.maxMemCacheEntrySize = (int) (maxMemorySizeBytes * C.MAX_MEMORY_IMAGE_CACHE_ENTRY_SIZE_RATIO);
 		LOG.i("in memory cache: total %s bytes, max entry %s bytes.", maxMemorySizeBytes, this.maxMemCacheEntrySize);
 	}
 
@@ -177,8 +176,9 @@ public class HybridBitmapCache {
 		opts.inJustDecodeBounds = true;
 		BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
 		final int srcWidth = opts.outWidth;
+		final int srcHeight = opts.outHeight;
 
-		opts.inSampleSize = calculateInSampleSize(srcWidth, reqWidth);
+		opts.inSampleSize = calculateInSampleSize(srcWidth, srcHeight, reqWidth, C.MAX_IMAGE_SIZE_BYTES);
 		//LOG.i("Decoding '%s' reqWidth=%s srcWidth=%s sampleSize=%s.", file.getAbsolutePath(), reqWidth, srcWidth, opts.inSampleSize);
 		opts.inJustDecodeBounds = false;
 		try {
@@ -193,14 +193,18 @@ public class HybridBitmapCache {
 		}
 	}
 
-	private static int calculateInSampleSize (final int srcWidth, final int reqWidth) {
+	private static int calculateInSampleSize (final int srcWidth, final int srcHeight, final int reqWidth, final int maxSize) {
 		int inSampleSize = 1;
-		if (srcWidth > reqWidth) {
-			while ((srcWidth / 2) / inSampleSize >= reqWidth) {
+		if (srcWidth > reqWidth || estimateSize(srcWidth, srcHeight, inSampleSize) > maxSize) {
+			while ((srcWidth / 2) / inSampleSize >= reqWidth || estimateSize(srcWidth, srcHeight, inSampleSize) > maxSize) {
 				inSampleSize *= 2;
 			}
 		}
 		return inSampleSize;
+	}
+
+	private static int estimateSize (final int w, final int h, final int inSampleSize) {
+		return (w * h * 8) / inSampleSize;
 	}
 
 	private static class DiscCacheHandler implements HttpStreamHandler<Bitmap> {
