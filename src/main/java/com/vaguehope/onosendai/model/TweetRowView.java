@@ -28,6 +28,10 @@ class TweetRowView {
 		this.inlineMedia = inImageView;
 	}
 
+	public void reset () {
+		if (this.inlineMedia != null) this.inlineMedia.getImage().setImageDrawable(null);
+	}
+
 	public ImageView getAvatar () {
 		return this.avatar;
 	}
