@@ -39,7 +39,7 @@ public class HybridBitmapCache {
 	private final ImageLoadRequestManager reqMgr = new ImageLoadRequestManager();
 
 	public HybridBitmapCache (final Context context, final int maxMemorySizeBytes) {
-		this.memCache = new MemoryBitmapCache<String>(maxMemorySizeBytes);
+		this.memCache = maxMemorySizeBytes > 0 ? new MemoryBitmapCache<String>(maxMemorySizeBytes) : null;
 		this.failuresCache = new LruCache<String, String>(100); // TODO extract constant.
 		this.baseDir = getBaseDir(context);
 		if (!this.baseDir.exists() && !this.baseDir.mkdirs()) throw new IllegalStateException("Failed to create cache directory: " + this.baseDir.getAbsolutePath());
@@ -48,7 +48,7 @@ public class HybridBitmapCache {
 	}
 
 	public void forget (final String key) throws IOException {
-		this.memCache.remove(key);
+		if (this.memCache != null) this.memCache.remove(key);
 		this.failuresCache.remove(key);
 		final File file = keyToFile(key);
 		if (file.exists() && !file.delete() && file.exists()) {
@@ -61,9 +61,14 @@ public class HybridBitmapCache {
 	}
 
 	public Bitmap quickGet (final String key) {
+		if (this.memCache == null) return null;
 		return this.memCache.get(key);
 	}
 
+	/**
+	 * If a file is returned the image is cached.
+	 * This does NOT refresh the file time stamp.
+	 */
 	public File getCachedFile (final String key) {
 		if (key == null) return null;
 		final File file = keyToFile(key);
@@ -72,12 +77,24 @@ public class HybridBitmapCache {
 	}
 
 	/**
+	 * Check if the cache has this file and mark it as just been used if so.
+	 */
+	public boolean touchFileIfExists (final String key) {
+		final File f = getCachedFile(key);
+		if (f != null) {
+			refreshFileTimestamp(f);
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * @return null if image is not in cache.
 	 * @throws UnrederableException
 	 *             if image is in cache but can not be rendered.
 	 */
 	public Bitmap get (final String key, final int reqWidth, final LoadListener listener) throws UnrederableException {
-		Bitmap bmp = this.memCache.get(key);
+		Bitmap bmp = this.memCache != null ? this.memCache.get(key) : null;
 		if (bmp == null) bmp = getFromDisc(key, reqWidth, listener);
 		return bmp;
 	}
@@ -86,8 +103,17 @@ public class HybridBitmapCache {
 		return new DiscCacheHandler(this, key, reqWidth, listener);
 	}
 
+	/**
+	 * This specifically does not return the decoded bitmap.
+	 * It is for background prefetching.
+	 * It always returns null;
+	 */
+	public HttpStreamHandler<?> fromHttp (final String key) {
+		return new DiscCacheHandler(this, key);
+	}
+
 	public void clean () {
-		this.memCache.evictAll();
+		if (this.memCache != null) this.memCache.evictAll();
 		this.failuresCache.evictAll();
 		this.reqMgr.clear();
 	}
@@ -107,7 +133,7 @@ public class HybridBitmapCache {
 			cacheFailureInMemory(key, unEx);
 			throw unEx;
 		}
-		if (MemoryBitmapCache.bmpByteCount(bmp) <= this.maxMemCacheEntrySize) this.memCache.put(key, bmp);
+		if (this.memCache != null && MemoryBitmapCache.bmpByteCount(bmp) <= this.maxMemCacheEntrySize) this.memCache.put(key, bmp);
 		refreshFileTimestamp(file);
 		return bmp;
 	}
@@ -213,12 +239,19 @@ public class HybridBitmapCache {
 		private final String key;
 		private final int reqWidth;
 		private final LoadListener listener;
+		private boolean decodeBitmap;
+
+		public DiscCacheHandler (final HybridBitmapCache cache, final String key) {
+			this(cache, key, 0, null);
+			this.decodeBitmap = false;
+		}
 
 		public DiscCacheHandler (final HybridBitmapCache cache, final String key, final int reqWidth, final LoadListener listener) {
 			this.cache = cache;
 			this.key = key;
 			this.reqWidth = reqWidth;
 			this.listener = listener;
+			this.decodeBitmap = true;
 		}
 
 		@Override
@@ -252,7 +285,8 @@ public class HybridBitmapCache {
 			final File file = this.cache.keyToFile(this.key);
 			if (!tmpFile.renameTo(file)) throw new IOException(String.format("Failed to mv tmp file %s to %s.", tmpFile.getAbsolutePath(), file.getAbsolutePath()));
 
-			return this.cache.getFromDisc(this.key, this.reqWidth, this.listener);
+			if (this.decodeBitmap) return this.cache.getFromDisc(this.key, this.reqWidth, this.listener);
+			return null;
 		}
 
 	}
