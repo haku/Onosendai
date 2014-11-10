@@ -12,12 +12,30 @@ public final class NetHelper {
 	}
 
 	public static boolean connectionPresent (final Context context) {
-		final ConnectivityManager cMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		final ConnectivityManager cMgr = getConnectivityManager(context);
+		if (cMgr == null) return false;
+
 		final NetworkInfo netInfo = cMgr.getActiveNetworkInfo();
-		if ((netInfo != null) && (netInfo.getState() != null)) {
-			return netInfo.getState().equals(State.CONNECTED);
-		}
-		return false;
+		if (netInfo == null) return false;
+
+		final State state = netInfo.getState();
+		if (state == null) return false;
+
+		return state.equals(State.CONNECTED);
+	}
+
+	public static boolean isWifi (final Context context) {
+		final ConnectivityManager cMgr = getConnectivityManager(context);
+		if (cMgr == null) return false;
+
+		final NetworkInfo wifi = cMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+		if (wifi == null) return false;
+
+		return wifi.isConnected();
+	}
+
+	private static ConnectivityManager getConnectivityManager (final Context context) {
+		return (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 	}
 
 }

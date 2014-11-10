@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.update;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,15 +17,22 @@ import java.util.concurrent.TimeUnit;
 import org.json.JSONException;
 
 import android.content.Intent;
+import android.database.Cursor;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
+import com.vaguehope.onosendai.images.HybridBitmapCache;
+import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbBindingService;
+import com.vaguehope.onosendai.storage.TweetCursorReader;
+import com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment;
+import com.vaguehope.onosendai.util.BatteryHelper;
+import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.NetHelper;
 
@@ -59,9 +67,11 @@ public class UpdateService extends DbBindingService {
 	}
 
 	private void fetchColumns (final int columnId, final boolean manual) {
+		final Prefs prefs = new Prefs(getBaseContext());
+
 		Config conf;
 		try {
-			conf = new Prefs(getBaseContext()).asConfig();
+			conf = prefs.asConfig();
 		}
 		catch (final JSONException e) {
 			LOG.w("Can not update: %s", e.toString());
@@ -76,6 +86,8 @@ public class UpdateService extends DbBindingService {
 		finally {
 			providerMgr.shutdown();
 		}
+
+		considerFetchingPictures(prefs, conf);
 	}
 
 	private void fetchColumns (final Config conf, final int columnId, final boolean manual, final ProviderMgr providerMgr) {
@@ -171,6 +183,109 @@ public class UpdateService extends DbBindingService {
 					LOG.w("Error fetching column '%s': %s %s", job.getKey().getTitle(), e.getClass().getName(), e.toString());
 				}
 			}
+		}
+		finally {
+			ex.shutdownNow();
+		}
+	}
+
+	private void considerFetchingPictures (final Prefs prefs, final Config conf) {
+		try {
+			if (prefs.getSharedPreferences().getBoolean(AdvancedPrefFragment.KEY_PREFETCH_MEDIA, false)) {
+				if (NetHelper.isWifi(this)) {
+					final float bl = BatteryHelper.level(getApplicationContext());
+					if (bl >= C.MIN_BAT_BG_FETCH_PICTURES) {
+						LOG.i("Fetching pictures (bl=%s) ...", bl);
+						fetchPictures(conf);
+					}
+					else {
+						LOG.i("Not fetching pictures; battery %s < %s.", bl, C.MIN_BAT_BG_FETCH_PICTURES);
+					}
+				}
+				else {
+					LOG.i("Not fetching pictures; not on WiFi.");
+				}
+			}
+		}
+		catch (Exception e) {
+			LOG.e("Failed to fetch pictures.", e);
+		}
+	}
+
+	private void fetchPictures (final Config conf) {
+		final long startTime = System.nanoTime();
+
+		final List<String> mediaUrls = new ArrayList<String>();
+		for (final Column col : conf.getColumns()) {
+			mediaUrls.addAll(findPicturesToFetch(col));
+		}
+		final int downloadCount = downloadPictures(mediaUrls);
+
+		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+		LOG.i("Fetched %d pictures in %d millis.", downloadCount, durationMillis);
+	}
+
+	/**
+	 * Ordered oldest (first to be scrolled up to) first.
+	 */
+	private List<String> findPicturesToFetch (final Column col) {
+		final ScrollState scroll = getDb().getScroll(col.getId());
+		final Cursor cursor = getDb().getTweetsCursor(col.getId(), col.getExcludeColumnIds(), true); // XXX for now only get first image, later include extra images?
+		try {
+			final TweetCursorReader reader = new TweetCursorReader();
+			if (cursor != null && cursor.moveToFirst()) {
+				final List<String> mediaUrls = new ArrayList<String>();
+				do {
+					if (reader.readTime(cursor) < scroll.getUnreadTime()) break; // Stop gathering URLs at unread point.
+					final String mediaUrl = reader.readInlineMedia(cursor);
+					if (mediaUrl != null) mediaUrls.add(mediaUrl);
+				}
+				while (cursor.moveToNext());
+				Collections.reverse(mediaUrls); // Fetch oldest pictures first.
+				return mediaUrls;
+			}
+			return Collections.emptyList();
+		}
+		finally {
+			IoHelper.closeQuietly(cursor);
+		}
+	}
+
+	private int downloadPictures (final List<String> mediaUrls) {
+		if (mediaUrls == null || mediaUrls.size() < 1) return 0;
+
+		final HybridBitmapCache hybridBitmapCache = new HybridBitmapCache(this, 0);
+
+		final Map<String, FetchPicture> jobs = new LinkedHashMap<String, FetchPicture>();
+		for (final String mediaUrl : mediaUrls) {
+			if (!hybridBitmapCache.touchFileIfExists(mediaUrl)) {
+				jobs.put(mediaUrl, new FetchPicture(hybridBitmapCache, mediaUrl));
+			}
+		}
+		if (jobs.size() < 1) return 0;
+
+		final int poolSize = Math.min(jobs.size(), C.UPDATER_MAX_THREADS);
+		LOG.i("Downloading %s pictures using %s threads.", jobs.size(), poolSize);
+		final ExecutorService ex = Executors.newFixedThreadPool(poolSize);
+		try {
+			final Map<String, Future<Void>> futures = new LinkedHashMap<String, Future<Void>>();
+			for (Entry<String, FetchPicture> job : jobs.entrySet()) {
+				futures.put(job.getKey(), ex.submit(job.getValue()));
+			}
+
+			for (final Entry<String, Future<Void>> future : futures.entrySet()) {
+				try {
+					future.getValue().get();
+				}
+				catch (final InterruptedException e) {
+					LOG.w("Error fetching picture '%s': %s %s", future.getKey(), e.getClass().getName(), e.toString());
+				}
+				catch (final ExecutionException e) {
+					LOG.w("Error fetching picture '%s': %s %s", future.getKey(), e.getClass().getName(), e.toString());
+				}
+			}
+
+			return futures.size();
 		}
 		finally {
 			ex.shutdownNow();

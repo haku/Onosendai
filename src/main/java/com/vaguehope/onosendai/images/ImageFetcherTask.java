@@ -191,13 +191,13 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 		public String getEmsg () {
 			if (this.e != null) return ExcpetionHelper.causeTrace(this.e, "|");
 			if (this.errMsg != null) return this.errMsg;
-			return "Invalid response.";
+			return "Unknown error.";
 		}
 
 		public String getShortEmsg () {
 			if (this.e != null) return ExcpetionHelper.veryShortMessage(this.e);
 			if (this.errMsg != null) return this.errMsg;
-			return "Invalid response.";
+			return "Unknown error.";
 		}
 
 	}
