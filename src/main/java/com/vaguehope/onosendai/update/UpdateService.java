@@ -79,18 +79,19 @@ public class UpdateService extends DbBindingService {
 		}
 
 		if (!waitForDbReady()) return;
+		final Collection<Column> columnsFetched;
 		final ProviderMgr providerMgr = new ProviderMgr(getDb());
 		try {
-			fetchColumns(conf, columnId, manual, providerMgr);
+			columnsFetched = fetchColumns(conf, columnId, manual, providerMgr);
 		}
 		finally {
 			providerMgr.shutdown();
 		}
 
-		considerFetchingPictures(prefs, conf);
+		considerFetchingPictures(prefs, columnsFetched, manual);
 	}
 
-	private void fetchColumns (final Config conf, final int columnId, final boolean manual, final ProviderMgr providerMgr) {
+	private Collection<Column> fetchColumns (final Config conf, final int columnId, final boolean manual, final ProviderMgr providerMgr) {
 		final long startTime = System.nanoTime();
 
 		final Collection<Column> columns = columnsToFetch(conf, columnId, manual);
@@ -99,6 +100,8 @@ public class UpdateService extends DbBindingService {
 
 		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 		LOG.i("Fetched %d columns in %d millis.", columns.size(), durationMillis);
+
+		return columns;
 	}
 
 	private Collection<Column> columnsToFetch (final Config conf, final int columnId, final boolean manual) {
@@ -189,34 +192,35 @@ public class UpdateService extends DbBindingService {
 		}
 	}
 
-	private void considerFetchingPictures (final Prefs prefs, final Config conf) {
+	private void considerFetchingPictures (final Prefs prefs, final Collection<Column> columnsToFetch, final boolean manual) {
 		try {
-			if (prefs.getSharedPreferences().getBoolean(AdvancedPrefFragment.KEY_PREFETCH_MEDIA, false)) {
-				if (NetHelper.isWifi(this)) {
-					final float bl = BatteryHelper.level(getApplicationContext());
-					if (bl >= C.MIN_BAT_BG_FETCH_PICTURES) {
-						LOG.i("Fetching pictures (bl=%s) ...", bl);
-						fetchPictures(conf);
-					}
-					else {
-						LOG.i("Not fetching pictures; battery %s < %s.", bl, C.MIN_BAT_BG_FETCH_PICTURES);
-					}
-				}
-				else {
-					LOG.i("Not fetching pictures; not on WiFi.");
-				}
+			if (!prefs.getSharedPreferences().getBoolean(AdvancedPrefFragment.KEY_PREFETCH_MEDIA, false)) return;
+
+			if (!NetHelper.isWifi(this)) {
+				LOG.i("Not fetching pictures; not on WiFi.");
+				return;
 			}
+
+			final double batLimit = manual ? C.MIN_BAT_BG_FETCH_PICTURES_MANUAL : C.MIN_BAT_BG_FETCH_PICTURES_SCHEDULED;
+			final float bl = BatteryHelper.level(getApplicationContext());
+			if (bl < batLimit) {
+				LOG.i("Not fetching pictures; battery %s < %s.", bl, batLimit);
+				return;
+			}
+
+			LOG.i("Fetching pictures (bl=%s, m=%s) ...", bl, manual);
+			fetchPictures(columnsToFetch);
 		}
 		catch (Exception e) {
 			LOG.e("Failed to fetch pictures.", e);
 		}
 	}
 
-	private void fetchPictures (final Config conf) {
+	private void fetchPictures (final Collection<Column> columnsToFetch) {
 		final long startTime = System.nanoTime();
 
 		final List<String> mediaUrls = new ArrayList<String>();
-		for (final Column col : conf.getColumns()) {
+		for (final Column col : columnsToFetch) {
 			mediaUrls.addAll(findPicturesToFetch(col));
 		}
 		final int downloadCount = downloadPictures(mediaUrls);
