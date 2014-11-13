@@ -25,12 +25,13 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.images.HybridBitmapCache;
+import com.vaguehope.onosendai.model.PrefetchImages;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbBindingService;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
-import com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment;
+import com.vaguehope.onosendai.ui.pref.FetchingPrefFragment;
 import com.vaguehope.onosendai.util.BatteryHelper;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -194,26 +195,43 @@ public class UpdateService extends DbBindingService {
 
 	private void considerFetchingPictures (final Prefs prefs, final Collection<Column> columnsToFetch, final boolean manual) {
 		try {
-			if (!prefs.getSharedPreferences().getBoolean(AdvancedPrefFragment.KEY_PREFETCH_MEDIA, false)) return;
+			final PrefetchImages prefetchMode = PrefetchImages.parseValue(
+					prefs.getSharedPreferences().getString(
+							FetchingPrefFragment.KEY_PREFETCH_MEDIA,
+							PrefetchImages.NO.getValue()));
 
-			if (!NetHelper.isWifi(this)) {
-				LOG.i("Not fetching pictures; not on WiFi.");
+			if (prefetchMode == PrefetchImages.NO) {
 				return;
 			}
-
-			final double batLimit = manual ? C.MIN_BAT_BG_FETCH_PICTURES_MANUAL : C.MIN_BAT_BG_FETCH_PICTURES_SCHEDULED;
-			final float bl = BatteryHelper.level(getApplicationContext());
-			if (bl < batLimit) {
-				LOG.i("Not fetching pictures; battery %s < %s.", bl, batLimit);
-				return;
+			else if (prefetchMode == PrefetchImages.ALWAYS) {
+				fetchPicutresIfBatteryOk(columnsToFetch, manual);
 			}
-
-			LOG.i("Fetching pictures (bl=%s, m=%s) ...", bl, manual);
-			fetchPictures(columnsToFetch);
+			else if (prefetchMode == PrefetchImages.WIFI_ONLY) {
+				if (NetHelper.isWifi(this)) {
+					fetchPicutresIfBatteryOk(columnsToFetch, manual);
+				}
+				else {
+					LOG.i("Not fetching pictures; not on WiFi.");
+				}
+			}
+			else {
+				LOG.i("Not fetching pictures; unknown mode: %s.", prefetchMode);
+			}
 		}
-		catch (Exception e) {
+		catch (final Exception e) {
 			LOG.e("Failed to fetch pictures.", e);
 		}
+	}
+
+	private void fetchPicutresIfBatteryOk (final Collection<Column> columnsToFetch, final boolean manual) {
+		final double batLimit = manual ? C.MIN_BAT_BG_FETCH_PICTURES_MANUAL : C.MIN_BAT_BG_FETCH_PICTURES_SCHEDULED;
+		final float bl = BatteryHelper.level(getApplicationContext());
+		if (bl < batLimit) {
+			LOG.i("Not fetching pictures; battery %s < %s.", bl, batLimit);
+			return;
+		}
+		LOG.i("Fetching pictures (bl=%s, m=%s) ...", bl, manual);
+		fetchPictures(columnsToFetch);
 	}
 
 	private void fetchPictures (final Collection<Column> columnsToFetch) {
@@ -273,7 +291,7 @@ public class UpdateService extends DbBindingService {
 		final ExecutorService ex = Executors.newFixedThreadPool(poolSize);
 		try {
 			final Map<String, Future<Void>> futures = new LinkedHashMap<String, Future<Void>>();
-			for (Entry<String, FetchPicture> job : jobs.entrySet()) {
+			for (final Entry<String, FetchPicture> job : jobs.entrySet()) {
 				futures.put(job.getKey(), ex.submit(job.getValue()));
 			}
 

@@ -32,7 +32,6 @@ import com.vaguehope.onosendai.util.LogcatHelper;
 
 public class AdvancedPrefFragment extends PreferenceFragment {
 
-	public static final String KEY_PREFETCH_MEDIA = "pref_adv_prefetch_media";
 	public static final String KEY_THREAD_INSPECTOR = "pref_adv_thread_inspector";
 
 	private static final LogWrapper LOG = new LogWrapper("ADVPREF");
@@ -53,7 +52,6 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 
 	private void addEntries () {
 		addColumnStats();
-		addPrefetchMedia();
 		addThreadInspector();
 		addImportConfPref();
 		addDumpLogPref();
@@ -65,14 +63,6 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		final Preference pref = new Preference(getActivity());
 		pref.setTitle("Column stats");
 		pref.setOnPreferenceClickListener(this.columnStatsClickListener);
-		getPreferenceScreen().addPreference(pref);
-	}
-
-	private void addPrefetchMedia () {
-		final CheckBoxPreference pref = new CheckBoxPreference(getActivity());
-		pref.setKey(KEY_PREFETCH_MEDIA);
-		pref.setTitle("Prefetch Media");
-		pref.setSummary("BETA testing only. Fetch new pictures during background updates on WiFi with >= 50% battery.");
 		getPreferenceScreen().addPreference(pref);
 	}
 
