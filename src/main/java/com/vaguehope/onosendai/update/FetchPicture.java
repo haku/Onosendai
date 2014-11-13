@@ -19,7 +19,9 @@ public class FetchPicture implements Callable<Void> {
 
 	@Override
 	public Void call () throws Exception {
-		HttpHelper.get(this.mediaUrl, this.hybridBitmapCache.fromHttp(this.mediaUrl));
+		if (this.hybridBitmapCache.getCachedFile(this.mediaUrl) == null) {
+			HttpHelper.get(this.mediaUrl, this.hybridBitmapCache.fromHttp(this.mediaUrl));
+		}
 		return null;
 	}
 
