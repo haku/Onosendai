@@ -54,7 +54,8 @@ public final class C {
 	public static final float MIN_BAT_UPDATE = 0.30f;
 	public static final float MIN_BAT_SEND = 0.20f;
 	public static final float MIN_BAT_CLEANUP = 0.50f;
-	public static final float MIN_BAT_BG_FETCH_PICTURES = 0.50f;
+	public static final float MIN_BAT_BG_FETCH_PICTURES_SCHEDULED = 0.50f;
+	public static final float MIN_BAT_BG_FETCH_PICTURES_MANUAL = 0.20f;
 
 	// Disc caches.
 	public static final long IMAGE_DISC_CACHE_TOUCH_AFTER_MILLIS = TimeUnit.DAYS.toMillis(5);
