@@ -12,6 +12,11 @@
 		android:summary="Add, update and remove columns" />
 
 	<header
+		android:fragment="com.vaguehope.onosendai.ui.pref.FetchingPrefFragment"
+		android:title="Fetching"
+		android:summary="Configure prefetching pictures" />
+
+	<header
 		android:fragment="com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment"
 		android:title="Advanced"
 		android:summary="For when things go wrong" />
