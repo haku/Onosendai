@@ -26,8 +26,9 @@ Supported Services
 Download
 --------
 
-Currently there are no 'official' releases of Onosendai.
-Recent snapshot builds can be downloaded from http://builds.onosendai.mobi
+There are no 'official' releases of Onosendai, but,
+* Probably stable releases can be installed via this [F-Droid](https://f-droid.org/) repo: https://onosendai.herokuapp.com/repo
+* Recent snapshot builds are here: http://builds.onosendai.mobi
 
 Background Tasks
 ----------------
