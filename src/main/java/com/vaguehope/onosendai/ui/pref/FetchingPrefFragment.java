@@ -21,7 +21,7 @@ public class FetchingPrefFragment extends PreferenceFragment {
 		final ListPreference pref = new ListPreference(getActivity());
 		pref.setKey(KEY_PREFETCH_MEDIA);
 		pref.setTitle("Prefetch Media");
-		pref.setSummary("BETA testing only. Fetch new pictures during background updates.");
+		pref.setSummary("Fetch new pictures during background updates.");
 		pref.setEntries(PrefetchImages.prefEntries());
 		pref.setEntryValues(PrefetchImages.prefEntryValues());
 		pref.setDefaultValue(PrefetchImages.NO.getValue());
