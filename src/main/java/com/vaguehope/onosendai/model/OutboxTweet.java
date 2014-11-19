@@ -13,22 +13,37 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.util.ArrayHelper;
 import com.vaguehope.onosendai.util.StringHelper;
+import com.vaguehope.onosendai.util.Titleable;
 
 public class OutboxTweet {
 
-	public enum OutboxAction {
-		POST(0),
-		RT(1),
-		DELETE(2);
+	public enum OutboxAction implements Titleable {
+		POST(0, "Post", "Posting"),
+		RT(1, "RT", "RTing"),
+		DELETE(2, "Delete", "Deleting"),
+		FAV(3, "Favourite", "Favouriting");
 
 		private final int code;
+		private final String title;
+		private final String verb;
 
-		private OutboxAction (final int code) {
+		private OutboxAction (final int code, final String title, final String verb) {
 			this.code = code;
+			this.title = title;
+			this.verb = verb;
+		}
+
+		@Override
+		public String getUiTitle () {
+			return this.title;
 		}
 
 		public int getCode () {
 			return this.code;
+		}
+
+		public String getUiVerb () {
+			return this.verb;
 		}
 
 		public static OutboxAction parseCode (final Integer code) {
@@ -40,6 +55,8 @@ public class OutboxTweet {
 					return OutboxAction.RT;
 				case 2:
 					return OutboxAction.DELETE;
+				case 3:
+					return OutboxAction.FAV;
 				default:
 					throw new IllegalArgumentException("Code can not be null.");
 			}

@@ -23,6 +23,15 @@
 		style="?android:attr/buttonBarButtonStyle" />
 
 	<ImageButton
+		android:id="@+id/btnShareFav"
+		android:src="@android:drawable/btn_star"
+		android:contentDescription="favourite"
+		android:layout_width="0dip"
+		android:layout_height="wrap_content"
+		android:layout_weight="1"
+		style="?android:attr/buttonBarButtonStyle" />
+
+	<ImageButton
 		android:id="@+id/btnShareIntent"
 		android:src="@android:drawable/ic_menu_share"
 		android:contentDescription="share"

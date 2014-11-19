@@ -61,6 +61,7 @@ import com.vaguehope.onosendai.payload.PayloadListAdapter;
 import com.vaguehope.onosendai.payload.PayloadListClickListener;
 import com.vaguehope.onosendai.payload.PayloadType;
 import com.vaguehope.onosendai.payload.ReplyLoaderTask;
+import com.vaguehope.onosendai.payload.SharePayload;
 import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.OutboxActionFactory;
 import com.vaguehope.onosendai.provider.ProviderMgr;
@@ -540,13 +541,16 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	protected void payloadSubviewClick (final View btn, final Payload payload, final int index) {
 		if (payload.getType() == PayloadType.SHARE) {
 			switch (index) {
-				case 0:
+				case SharePayload.BTN_SHARE_RT:
 					askRt(payload.getOwnerTweet());
 					break;
-				case 1:
+				case SharePayload.BTN_SHARE_QUOTE:
 					showPost(payload.getOwnerTweet());
 					break;
-				case 2:
+				case SharePayload.BTN_SHARE_FAV:
+					askFav(payload.getOwnerTweet());
+					break;
+				case SharePayload.BTN_SHARE_INTENT:
 					shareIntentBtnClicked(btn, payload.getOwnerTweet());
 					break;
 				default:
@@ -631,6 +635,8 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		return account.getUiTitle();
 	}
 
+	// TODO Dedup between next few methods.
+
 	private void askRt (final Tweet tweet) {
 		final Account account = MetaUtils.accountFromMeta(tweet, this.conf);
 		if (account == null) {
@@ -657,6 +663,34 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	protected void doRt (final Account account, final Tweet tweet) {
 		getDb().addPostToOutput(OutboxActionFactory.newRt(account, tweet));
+		getActivity().startService(new Intent(getActivity(), SendOutboxService.class));
+		Toast.makeText(getActivity(), "Requested via Outbox", Toast.LENGTH_SHORT).show();
+	}
+
+	private void askFav (final Tweet tweet) {
+		final Account account = MetaUtils.accountFromMeta(tweet, this.conf);
+		if (account == null) {
+			DialogHelper.alert(getActivity(), "Can not find this tweet's account metadata.");
+			return;
+		}
+
+		final ServiceRef svcRef = tweetAndAccoutToServiceRef(account, tweet);
+		final String as = summariseAccountAndSubAccount(account, svcRef);
+
+		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
+		dlgBld.setMessage(String.format("Favourite as %s?", as));
+		dlgBld.setPositiveButton("Favourite", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int which) {
+				doFav(account, tweet);
+			}
+		});
+		dlgBld.setNegativeButton(android.R.string.cancel, DialogHelper.DLG_CANCEL_CLICK_LISTENER);
+		dlgBld.show();
+	}
+
+	protected void doFav (final Account account, final Tweet tweet) {
+		getDb().addPostToOutput(OutboxActionFactory.newFav(account, tweet));
 		getActivity().startService(new Intent(getActivity(), SendOutboxService.class));
 		Toast.makeText(getActivity(), "Requested via Outbox", Toast.LENGTH_SHORT).show();
 	}

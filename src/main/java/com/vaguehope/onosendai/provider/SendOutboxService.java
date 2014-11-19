@@ -11,10 +11,10 @@ import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.model.OutboxTweet;
+import com.vaguehope.onosendai.model.OutboxTweet.OutboxAction;
 import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
-import com.vaguehope.onosendai.provider.DeleteTask.DeleteRequest;
+import com.vaguehope.onosendai.provider.OutboxTask.OtRequest;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
-import com.vaguehope.onosendai.provider.RtTask.RtRequest;
 import com.vaguehope.onosendai.storage.DbBindingService;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.exec.ExecUtils;
@@ -69,10 +69,13 @@ public class SendOutboxService extends DbBindingService {
 					task = new PostTask(getApplicationContext(), outboxTweetToPostRequest(ot, conf));
 					break;
 				case RT:
-					task = new RtTask(getApplicationContext(), outboxTweetToRtRequest(ot, conf));
+					task = new OutboxTask(getApplicationContext(), outboxTweetToOtRequest(OutboxAction.RT, ot, conf));
+					break;
+				case FAV:
+					task = new OutboxTask(getApplicationContext(), outboxTweetToOtRequest(OutboxAction.FAV, ot, conf));
 					break;
 				case DELETE:
-					task = new DeleteTask(getApplicationContext(), outboxTweetToDeleteRequest(ot, conf));
+					task = new OutboxTask(getApplicationContext(), outboxTweetToOtRequest(OutboxAction.DELETE, ot, conf));
 					break;
 				default:
 					throw new IllegalStateException("Do not know how to process action: " + ot.getAction());
@@ -119,14 +122,8 @@ public class SendOutboxService extends DbBindingService {
 				ot.getAttachment());
 	}
 
-	private static RtRequest outboxTweetToRtRequest (final OutboxTweet ot, final Config conf) {
-		return new RtRequest(ot.getUid(), conf.getAccount(ot.getAccountId()),
-				atMostOne(ot.getSvcMetasParsed()),
-				ot.getInReplyToSid());
-	}
-
-	private static DeleteRequest outboxTweetToDeleteRequest (final OutboxTweet ot, final Config conf) {
-		return new DeleteRequest(ot.getUid(), conf.getAccount(ot.getAccountId()),
+	private static OtRequest outboxTweetToOtRequest (final OutboxAction action, final OutboxTweet ot, final Config conf) {
+		return new OtRequest(action, ot.getUid(), conf.getAccount(ot.getAccountId()),
 				atMostOne(ot.getSvcMetasParsed()),
 				ot.getInReplyToSid());
 	}
