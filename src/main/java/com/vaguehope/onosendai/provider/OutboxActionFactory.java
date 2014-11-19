@@ -19,6 +19,10 @@ public final class OutboxActionFactory {
 		return newAction(OutboxAction.RT, account, tweet.getSid(), tweet);
 	}
 
+	public static OutboxTweet newFav (final Account account, final Tweet tweet) {
+		return newAction(OutboxAction.FAV, account, tweet.getSid(), tweet);
+	}
+
 	public static OutboxTweet newDelete (final Account account, final Tweet tweet) {
 		final Meta editSidMeta = tweet.getFirstMetaOfType(MetaType.EDIT_SID);
 		if (editSidMeta == null) throw new IllegalStateException("Tried to delete a tweet with out EDIT_SID set: " + tweet);

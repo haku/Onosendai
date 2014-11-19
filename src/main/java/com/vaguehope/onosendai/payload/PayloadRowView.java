@@ -1,8 +1,7 @@
 package com.vaguehope.onosendai.payload;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 
 import android.view.View;
 import android.widget.Button;
@@ -19,7 +18,7 @@ class PayloadRowView {
 	private final TextView tertiary;
 	private final ImageView image;
 	private final PendingImage pendingImage;
-	private final List<View> buttons;
+	private final Map<Integer, View> buttons;
 
 	public PayloadRowView (final TextView main) {
 		this(main, null, null, null);
@@ -52,16 +51,16 @@ class PayloadRowView {
 		this.tertiary = null;
 		this.image = null;
 		this.pendingImage = pendingImage;
-		this.buttons = button != null ? Collections.<View>singletonList(button) : null;
+		this.buttons = button != null ? Collections.<Integer, View>singletonMap(0, button) : null;
 	}
 
-	public PayloadRowView (final List<View> buttons) {
+	public PayloadRowView (final Map<Integer, View> buttons) {
 		this.main = null;
 		this.secondary = null;
 		this.tertiary = null;
 		this.image = null;
 		this.pendingImage = null;
-		this.buttons = Collections.unmodifiableList(new ArrayList<View>(buttons));
+		this.buttons = buttons;
 	}
 
 	public void setText (final String text) {
@@ -72,13 +71,6 @@ class PayloadRowView {
 
 	public void hideText () {
 		this.main.setVisibility(View.GONE);
-	}
-
-	public void hideButtons () {
-		if (this.buttons == null) return;
-		for (final View btn : this.buttons) {
-			btn.setVisibility(View.GONE);
-		}
 	}
 
 	public void setSecondaryText (final String text) {
@@ -107,7 +99,7 @@ class PayloadRowView {
 		return (Button) (this.buttons != null && this.buttons.size() > 0 ? this.buttons.get(0) : null);
 	}
 
-	public List<View> getButtons () {
+	public Map<Integer, View> getButtons () {
 		return this.buttons;
 	}
 

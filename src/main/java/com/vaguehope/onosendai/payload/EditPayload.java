@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.payload;
 
+import java.util.Collections;
+
 import android.view.View;
 import android.view.View.OnClickListener;
 
@@ -8,7 +10,6 @@ import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
-import com.vaguehope.onosendai.util.CollectionHelper;
 
 public class EditPayload extends Payload {
 
@@ -29,9 +30,7 @@ public class EditPayload extends Payload {
 
 	@Override
 	public PayloadRowView makeRowView (final View view) {
-		return new PayloadRowView(CollectionHelper.listOf(
-				view.findViewById(R.id.btnDelete)
-		));
+		return new PayloadRowView(Collections.singletonMap(0, view.findViewById(R.id.btnDelete)));
 	}
 
 	@Override

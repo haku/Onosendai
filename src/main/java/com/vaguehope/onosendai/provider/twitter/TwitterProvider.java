@@ -79,6 +79,10 @@ public class TwitterProvider {
 		getTwitter(account).retweetStatus(id);
 	}
 
+	public void fav (final Account account, final long id) throws TwitterException {
+		getTwitter(account).createFavorite(id);
+	}
+
 	public void delete (final Account account, final long id) throws TwitterException {
 		getTwitter(account).destroyStatus(id);
 	}
