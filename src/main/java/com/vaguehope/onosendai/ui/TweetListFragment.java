@@ -570,7 +570,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		Tweet tweet = getDb().getTweetDetails(this.columnId, tweetSid);
 		if (tweet == null) tweet = getDb().getTweetDetails(tweetSid);
 		// TODO better way of showing this error.
-		if (tweet == null) tweet = new Tweet(tweetSid, "", "", "Error: tweet with SID=" + tweetSid + " not found.",
+		if (tweet == null) tweet = new Tweet(tweetSid, "", "", null, null, "Error: tweet with SID=" + tweetSid + " not found.",
 				TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), null, null, Collections.<Meta> emptyList());
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 

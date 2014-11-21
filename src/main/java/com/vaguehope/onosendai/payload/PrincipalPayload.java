@@ -47,7 +47,7 @@ public class PrincipalPayload extends Payload {
 		final Tweet tweet = getOwnerTweet();
 
 		rowView.setText(tweet.getBody());
-		rowView.setSecondaryText(tweet.getFullname());
+		rowView.setSecondaryText(tweet.getFullnameWithSubtitle());
 
 		final Meta postTimeMeta = tweet.getFirstMetaOfType(MetaType.POST_TIME);
 		final long tweetTime = postTimeMeta != null ? postTimeMeta.toLong(0L) : tweet.getTime();

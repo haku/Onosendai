@@ -8,6 +8,8 @@ public class TweetBuilder {
 	private String id;
 	private String username;
 	private String fullname;
+	private String userSubtitle;
+	private String fullSubtitle;
 	private String body;
 	private long unitTimeSeconds;
 	private String avatarUrl;
@@ -25,6 +27,8 @@ public class TweetBuilder {
 		this.id = null;
 		this.username = null;
 		this.fullname = null;
+		this.userSubtitle = null;
+		this.fullSubtitle = null;
 		this.body = null;
 		this.unitTimeSeconds = 0L;
 		this.avatarUrl = null;
@@ -46,6 +50,16 @@ public class TweetBuilder {
 
 	public TweetBuilder fullname (final String v) {
 		this.fullname = v;
+		return this;
+	}
+
+	public TweetBuilder userSubtitle (final String v) {
+		this.userSubtitle = v;
+		return this;
+	}
+
+	public TweetBuilder fullSubtitle (final String v) {
+		this.fullSubtitle = v;
 		return this;
 	}
 
@@ -103,10 +117,16 @@ public class TweetBuilder {
 		return this;
 	}
 
+	private String resolveFullSubtitle () {
+		if (this.subTitles == null) return this.fullSubtitle;
+		if (this.fullSubtitle == null) return this.subTitles.toString();
+		return this.fullSubtitle + "\n" + this.subTitles.toString();
+	}
+
 	public Tweet build () {
 		if (this.replyToId != null && !this.replyToId.equals(this.id)) meta(MetaType.REPLYTO, this.replyToId);
-		final Tweet t = new Tweet(this.id, this.username,
-				this.subTitles != null ? this.fullname + "\n" + this.subTitles.toString() : this.fullname,
+		final Tweet t = new Tweet(this.id, this.username, this.fullname,
+				this.userSubtitle, resolveFullSubtitle(),
 				this.body, this.unitTimeSeconds, this.avatarUrl, this.inlineMediaUrl, this.metas);
 		reset();
 		return t;

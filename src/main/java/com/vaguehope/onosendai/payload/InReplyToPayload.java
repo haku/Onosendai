@@ -44,7 +44,9 @@ public class InReplyToPayload extends Payload {
 	@Override
 	public void applyTo (final PayloadRowView rowView, final ImageLoader imageLoader, final int reqWidth, final PayloadClickListener clickListener) {
 		rowView.setText(this.inReplyToTweet.getBody());
-		rowView.setSecondaryText(this.inReplyToTweet.getUsername() != null ? this.inReplyToTweet.getUsername() : this.inReplyToTweet.getFullname());
+
+		final String usernameWithSubtitle = this.inReplyToTweet.getUsernameWithSubtitle();
+		rowView.setSecondaryText(usernameWithSubtitle != null ? usernameWithSubtitle : this.inReplyToTweet.getFullnameWithSubtitle());
 
 		final String avatarUrl = this.inReplyToTweet.getAvatarUrl();
 		if (avatarUrl != null) {
