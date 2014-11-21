@@ -163,7 +163,7 @@ public class FetchPictureService extends DbBindingService {
 			if (cursor != null && cursor.moveToFirst()) {
 				final List<String> mediaUrls = new ArrayList<String>();
 				do {
-					if (reader.readTime(cursor) < scroll.getUnreadTime()) break; // Stop gathering URLs at unread point.
+					if (scroll != null && reader.readTime(cursor) < scroll.getUnreadTime()) break; // Stop gathering URLs at unread point.
 					final String mediaUrl = reader.readInlineMedia(cursor);
 					if (mediaUrl != null) mediaUrls.add(mediaUrl);
 				}
