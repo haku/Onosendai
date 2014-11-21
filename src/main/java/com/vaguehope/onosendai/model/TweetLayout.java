@@ -26,7 +26,9 @@ public enum TweetLayout {
 		@Override
 		public void applyTweetTo (final Tweet item, final TweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
 			rowView.getTweet().setText(item.getBody());
-			rowView.getName().setText(item.getUsername() != null ? item.getUsername() : item.getFullname());
+
+			final String usernameWithSubtitle = item.getUsernameWithSubtitle();
+			rowView.getName().setText(usernameWithSubtitle != null ? usernameWithSubtitle : item.getFullnameWithSubtitle());
 
 			final String avatarUrl = item.getAvatarUrl();
 			if (avatarUrl != null) {
@@ -39,13 +41,20 @@ public enum TweetLayout {
 
 		@Override
 		public void applyCursorTo (final Cursor c, final TweetCursorReader cursorReader, final TweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
-			final String username = cursorReader.readUsername(c);
-			final String fullname = cursorReader.readFullname(c);
+			final String name;
+			final String username = cursorReader.readUsernameWithSubtitle(c);
+			if (username != null) {
+				name = username;
+			}
+			else {
+				name = cursorReader.readFullnameWithSubtitle(c);
+			}
+
 			final String body = cursorReader.readBody(c);
 			final String avatarUrl = cursorReader.readAvatar(c);
 
 			rowView.getTweet().setText(body);
-			rowView.getName().setText(username != null ? username : fullname);
+			rowView.getName().setText(name);
 
 			if (avatarUrl != null) {
 				imageLoader.loadImage(new ImageLoadRequest(avatarUrl, rowView.getAvatar()));

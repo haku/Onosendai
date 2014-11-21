@@ -157,8 +157,10 @@ public class TwitterUtilsTest {
 
 		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 200, false);
 		assertEquals("a thing.", t.getBody());
-		assertEquals("them\nvia friend", t.getUsername());
-		assertEquals("Them\nvia Friend", t.getFullname());
+		assertEquals("them", t.getUsername());
+		assertEquals("via friend", t.getUserSubtitle());
+		assertEquals("Them", t.getFullname());
+		assertEquals("via Friend", t.getFullSubtitle());
 		assertEquals(s.getUser().getProfileImageURLHttps(), t.getAvatarUrl());
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MENTION, "friend", "Friend")));
 		assertEquals(rt.getCreatedAt().getTime() / 1000L, t.getTime());
@@ -177,8 +179,10 @@ public class TwitterUtilsTest {
 
 		final Tweet t = TwitterUtils.convertTweet(this.account, rt, 200, false);
 		assertEquals("a thing.", t.getBody());
-		assertEquals("them\nvia me", t.getUsername());
-		assertEquals("Them\nvia Me", t.getFullname());
+		assertEquals("them", t.getUsername());
+		assertEquals("via me", t.getUserSubtitle());
+		assertEquals("Them", t.getFullname());
+		assertEquals("via Me", t.getFullSubtitle());
 		assertEquals(s.getUser().getProfileImageURLHttps(), t.getAvatarUrl());
 		assertThat(t.getMetas(), not(hasItem(new Meta(MetaType.MENTION, "me", "Me"))));
 		assertEquals(rt.getCreatedAt().getTime() / 1000L, t.getTime());

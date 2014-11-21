@@ -188,7 +188,8 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals("happy birthday m8", t.getBody());
 		assertEquals("723423452_10152608678789223", t.getSid());
 		assertEquals(null, t.getUsername());
-		assertEquals("Will Brown > Rich Green\n1 comment, 1 like", t.getFullname());
+		assertEquals("Will Brown > Rich Green", t.getFullname());
+		assertEquals("1 comment, 1 like", t.getFullSubtitle());
 		assertEquals(1385254098L, t.getTime());
 
 		assertEquals(2, t.getMetas().size());
@@ -206,7 +207,8 @@ public class SuccessWhaleFeedXmlTest {
 		assertEquals("Fun feature of new mp3 player: the Nightwish track 'I Want My Tears Back' has been abbreviated to 'I Want My Tea'. :)", t.getBody());
 		assertEquals("799999161_19999992321999162", t.getSid());
 		assertEquals(null, t.getUsername());
-		assertEquals("Kerrith Orange\n6 comments, 8 likes", t.getFullname());
+		assertEquals("Kerrith Orange", t.getFullname());
+		assertEquals("6 comments, 8 likes", t.getFullSubtitle());
 		assertEquals(1385571037L, t.getTime());
 
 		assertEquals(2, t.getMetas().size());

@@ -16,21 +16,25 @@ public class Tweet {
 	private final String sid;
 	private final String username;
 	private final String fullname;
+	private final String userSubtitle;
+	private final String fullSubtitle;
 	private final String body;
 	private final long time;
 	private final String avatarUrl;
 	private final String inlineMediaUrl;
 	private final List<Meta> metas;
 
-	public Tweet (final String sid, final String username, final String fullname, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final List<Meta> metas) {
-		this(-1L, sid, username, fullname, body, unitTimeSeconds, avatarUrl, inlineMediaUrl, metas);
+	public Tweet (final String sid, final String username, final String fullname, final String userSubtitle, final String fullSubtitle, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final List<Meta> metas) {
+		this(-1L, sid, username, fullname, userSubtitle, fullSubtitle, body, unitTimeSeconds, avatarUrl, inlineMediaUrl, metas);
 	}
 
-	public Tweet (final long uid, final String sid, final String username, final String fullname, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final List<Meta> metas) {
+	public Tweet (final long uid, final String sid, final String username, final String fullname, final String userSubtitle, final String fullSubtitle, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final List<Meta> metas) {
 		this.uid = uid;
 		this.sid = sid;
 		this.username = username;
 		this.fullname = fullname;
+		this.userSubtitle = userSubtitle;
+		this.fullSubtitle = fullSubtitle;
 		this.body = body;
 		this.time = unitTimeSeconds;
 		this.avatarUrl = avatarUrl;
@@ -57,8 +61,28 @@ public class Tweet {
 		return this.username;
 	}
 
+	public String getUsernameWithSubtitle () {
+		if (this.username == null) return null;
+		if (this.userSubtitle == null) return this.username;
+		return String.format("%s\n%s", this.username, this.userSubtitle);
+	}
+
 	public String getFullname () {
 		return this.fullname;
+	}
+
+	public String getFullnameWithSubtitle () {
+		if (this.fullname == null) return null;
+		if (this.fullSubtitle == null) return this.fullname;
+		return String.format("%s\n%s", this.fullname, this.fullSubtitle);
+	}
+
+	public String getUserSubtitle () {
+		return this.userSubtitle;
+	}
+
+	public String getFullSubtitle () {
+		return this.fullSubtitle;
 	}
 
 	public String getBody () {
@@ -93,7 +117,7 @@ public class Tweet {
 		final long utime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
 		final List<Meta> newMetas = new ArrayList<Meta>(this.metas);
 		if (getFirstMetaOfType(MetaType.POST_TIME) == null) newMetas.add(new Meta(MetaType.POST_TIME, String.valueOf(this.time)));
-		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.body, utime, this.avatarUrl, this.inlineMediaUrl, newMetas);
+		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.userSubtitle, this.fullSubtitle, this.body, utime, this.avatarUrl, this.inlineMediaUrl, newMetas);
 	}
 
 	public String toHumanLine () {
@@ -121,6 +145,8 @@ public class Tweet {
 				.append(",").append(this.sid)
 				.append(",").append(this.username)
 				.append(",").append(this.fullname)
+				.append(",").append(this.userSubtitle)
+				.append(",").append(this.fullSubtitle)
 				.append(",").append(this.body)
 				.append(",").append(this.time)
 				.append(",").append(this.avatarUrl)
@@ -133,6 +159,7 @@ public class Tweet {
 	public int hashCode () {
 		return Arrays.hashCode(new Object[] {
 				this.uid, this.sid, this.username, this.fullname,
+				this.userSubtitle, this.fullSubtitle,
 				this.body, this.time, this.avatarUrl, this.inlineMediaUrl, this.metas });
 	}
 
@@ -149,6 +176,8 @@ public class Tweet {
 				&& EqualHelper.equal(this.sid, that.sid)
 				&& EqualHelper.equal(this.username, that.username)
 				&& EqualHelper.equal(this.fullname, that.fullname)
+				&& EqualHelper.equal(this.userSubtitle, that.userSubtitle)
+				&& EqualHelper.equal(this.fullSubtitle, that.fullSubtitle)
 				&& EqualHelper.equal(this.body, that.body)
 				&& this.time == that.time
 				&& EqualHelper.equal(this.avatarUrl, that.avatarUrl)

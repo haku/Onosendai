@@ -116,8 +116,9 @@ public final class TwitterUtils {
 		// https://dev.twitter.com/docs/user-profile-images-and-banners
 
 		return new Tweet(String.valueOf(s.getId()),
-				viaUser != null ? String.format("%s\nvia %s", s.getUser().getScreenName(), viaUser.getScreenName()) : s.getUser().getScreenName(),
-				viaUser != null ? String.format("%s\nvia %s", s.getUser().getName(), viaUser.getName()) : s.getUser().getName(),
+				s.getUser().getScreenName(), s.getUser().getName(),
+				viaUser != null ? String.format("via %s", viaUser.getScreenName()) : null,
+				viaUser != null ? String.format("via %s", viaUser.getName()) : null,
 				text,
 				TimeUnit.MILLISECONDS.toSeconds(status.getCreatedAt().getTime()),
 				hdMedia ? s.getUser().getBiggerProfileImageURLHttps() : s.getUser().getProfileImageURLHttps(),

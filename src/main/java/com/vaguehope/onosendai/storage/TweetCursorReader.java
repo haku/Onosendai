@@ -8,6 +8,8 @@ public class TweetCursorReader {
 	private int colTime = -1;
 	private int colUsername = -1;
 	private int colFullname = -1;
+	private int colUserSubtitle = -1;
+	private int colFullSubtitle = -1;
 	private int colBody = -1;
 	private int colAvatar = -1;
 	private int colInlineMedia = -1;
@@ -30,10 +32,46 @@ public class TweetCursorReader {
 		return c.getString(this.colUsername);
 	}
 
+	public String readUserSubtitle (final Cursor c) {
+		if (c == null) return null;
+		if (this.colUserSubtitle < 0) this.colUserSubtitle = c.getColumnIndexOrThrow(DbAdapter.TBL_TW_USERSUBTITLE);
+		return c.getString(this.colUserSubtitle);
+	}
+
+	public String readUsernameWithSubtitle (final Cursor c) {
+		if (c == null) return null;
+
+		final String username = readUsername(c);
+		if (username == null) return null;
+
+		final String userSubtitle = readUserSubtitle(c);
+		if (userSubtitle == null) return username;
+
+		return String.format("%s\n%s", username, userSubtitle);
+	}
+
 	public String readFullname (final Cursor c) {
 		if (c == null) return null;
 		if (this.colFullname < 0) this.colFullname = c.getColumnIndexOrThrow(DbAdapter.TBL_TW_FULLNAME);
 		return c.getString(this.colFullname);
+	}
+
+	public String readFullSubtitle (final Cursor c) {
+		if (c == null) return null;
+		if (this.colFullSubtitle < 0) this.colFullSubtitle = c.getColumnIndexOrThrow(DbAdapter.TBL_TW_FULLSUBTITLE);
+		return c.getString(this.colFullSubtitle);
+	}
+
+	public String readFullnameWithSubtitle (final Cursor c) {
+		if (c == null) return null;
+
+		final String fullname = readFullname(c);
+		if (fullname == null) return null;
+
+		final String fullSubtitle = readFullSubtitle(c);
+		if (fullSubtitle == null) return fullname;
+
+		return String.format("%s\n%s", fullname, fullSubtitle);
 	}
 
 	public String readBody (final Cursor c) {
