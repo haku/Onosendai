@@ -74,7 +74,7 @@ public class ImageLoadRequestManager {
 
 	private static void removeExpired (final Iterator<ImageLoadRequest> ittr) {
 		while (ittr.hasNext()) {
-			if (!ittr.next().isRequired()) ittr.remove();
+			if (!ittr.next().shouldFinishLoading()) ittr.remove();
 		}
 	}
 

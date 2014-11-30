@@ -31,6 +31,8 @@ public final class ImageLoaderUtils {
 		if (localEs == null) throw new IllegalArgumentException("Must specificy a local executor.");
 		if (netEs == null) throw new IllegalArgumentException("Must specificy a network executor.");
 
+		if (!req.shouldStartLoading()) return;
+
 		if (req.isRetry()) {
 			try {
 				cache.forget(req.getUrl());
