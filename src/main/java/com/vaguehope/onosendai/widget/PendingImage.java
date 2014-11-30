@@ -115,9 +115,9 @@ public class PendingImage extends FrameLayout {
 
 		@Override
 		public void imageLoaded (final ImageLoadRequest req) {
-			this.image.setVisibility(View.VISIBLE);
-			this.prg.setVisibility(View.GONE);
-			this.status.setVisibility(View.GONE);
+			if (this.image.getVisibility() != View.VISIBLE) this.image.setVisibility(View.VISIBLE);
+			if (this.prg.getVisibility() != View.GONE) this.prg.setVisibility(View.GONE);
+			if (this.status.getVisibility() != View.GONE) this.status.setVisibility(View.GONE);
 		}
 
 		@Override
