@@ -100,18 +100,27 @@ public class MediaPayload extends Payload {
 
 		@Override
 		public void imageLoadProgress (final String msg) {
-			if (this.rowView.getImageLoadListener() != null) this.rowView.getImageLoadListener().imageLoadProgress(msg);
+			final ImageLoadListener listener = this.rowView.getImageLoadListener();
+			if (listener != null) listener.imageLoadProgress(msg);
 		}
 
 		@Override
 		public void imageFetchProgress (final int progress, final int total) {
-			if (this.rowView.getImageLoadListener() != null) this.rowView.getImageLoadListener().imageFetchProgress(progress, total);
+			final ImageLoadListener listener = this.rowView.getImageLoadListener();
+			if (listener != null) listener.imageFetchProgress(progress, total);
+		}
+
+		@Override
+		public void imagePreShow (final ImageLoadRequest req) {
+			final ImageLoadListener listener = this.rowView.getImageLoadListener();
+			if (listener != null) listener.imagePreShow(req);
 		}
 
 		@Override
 		public void imageLoaded (final ImageLoadRequest req) {
 			this.rowView.hideText();
-			if (this.rowView.getImageLoadListener() != null) this.rowView.getImageLoadListener().imageLoaded(req);
+			final ImageLoadListener listener = this.rowView.getImageLoadListener();
+			if (listener != null) listener.imageLoaded(req);
 		}
 
 		@Override
@@ -126,7 +135,8 @@ public class MediaPayload extends Payload {
 			});
 			button.setVisibility(View.VISIBLE);
 
-			if (this.rowView.getImageLoadListener() != null) this.rowView.getImageLoadListener().imageLoadFailed(req, errMsg);
+			final ImageLoadListener listener = this.rowView.getImageLoadListener();
+			if (listener != null) listener.imageLoadFailed(req, errMsg);
 		}
 
 	}

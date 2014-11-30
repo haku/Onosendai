@@ -82,6 +82,7 @@ public class ImageLoadRequest {
 	}
 
 	public void setImageBitmap (final Bitmap bmp) {
+		if (this.listener != null) this.listener.imagePreShow(this);
 		this.imageView.setImageBitmap(bmp);
 		this.imageView.setTag(R.id.imageLoading, null);
 		this.imageView.setTag(R.id.imageLoaded, this.url);
@@ -124,6 +125,11 @@ public class ImageLoadRequest {
 		 * Must be called on the UI thread.
 		 */
 		void imageFetchProgress (int progress, int total);
+
+		/**
+		 * Called just before image is set on ImageView.
+		 */
+		void imagePreShow (ImageLoadRequest req);
 
 		/**
 		 * Called only after the image has been successfully loaded. Must be
