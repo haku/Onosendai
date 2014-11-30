@@ -94,6 +94,12 @@ public class ImageLoadRequest {
 		setImageBitmap(bmp);
 	}
 
+	public boolean skipLoadingIfLoaded () {
+		final boolean skip = !shouldStartLoading();
+		if (skip && this.listener != null) this.listener.imageLoaded(this);
+		return skip;
+	}
+
 	public boolean shouldStartLoading () {
 		if (this.imageView.getDrawable() == null) return true; // In case something else set imageView to a resource.
 		return !this.url.equals(this.imageView.getTag(R.id.imageLoaded));
