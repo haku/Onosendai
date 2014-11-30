@@ -91,7 +91,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 
 	@Override
 	protected ImageFetchResult doInBackgroundWithTracking (final Void... unused) {
-		if (!this.req.isRequired()) return null;
+		if (!this.req.shouldFinishLoading()) return null;
 		try {
 			final String url = this.req.getUrl();
 			Bitmap bmp = this.cache.get(url, this.req.getReqWidth(), this);

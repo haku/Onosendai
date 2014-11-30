@@ -35,7 +35,7 @@ public class ImageLoadRequest {
 		this.retry = retry;
 	}
 
-	public ImageLoadRequest withRetry() {
+	public ImageLoadRequest withRetry () {
 		if (this.retry) return this;
 		return new ImageLoadRequest(this.url, this.imageView, this.reqWidth, this.listener, true);
 	}
@@ -54,43 +54,62 @@ public class ImageLoadRequest {
 
 	public void setImagePending () {
 		this.imageView.setImageResource(R.drawable.question_blue);
+		this.imageView.setTag(R.id.imageLoading, this.url);
+		this.imageView.setTag(R.id.imageLoaded, null);
 		if (this.listener != null) this.listener.imageFetchProgress(0, 0);
-		this.imageView.setTag(this.url);
 	}
 
 	public void setLoadingProgressIfRequired (final String msg) {
-		if (!isRequired()) return;
+		if (!shouldFinishLoading()) return;
 		if (this.listener != null) this.listener.imageLoadProgress(msg);
 	}
 
 	public void setFetchingProgressIfRequired (final int progress, final int total) {
-		if (!isRequired()) return;
+		if (!shouldFinishLoading()) return;
 		if (this.listener != null) this.listener.imageFetchProgress(progress, total);
 	}
 
 	public void setImageUnavailable (final String errMsg) {
 		this.imageView.setImageResource(R.drawable.exclamation_red);
+		this.imageView.setTag(R.id.imageLoading, null);
+		this.imageView.setTag(R.id.imageLoaded, null);
 		if (this.listener != null) this.listener.imageLoadFailed(this, errMsg);
 	}
 
 	public void setImageUnavailableIfRequired (final String errMsg) {
-		if (!isRequired()) return;
+		if (!shouldFinishLoading()) return;
 		setImageUnavailable(errMsg);
 	}
 
 	public void setImageBitmap (final Bitmap bmp) {
 		this.imageView.setImageBitmap(bmp);
-		this.imageView.setTag(null);
+		this.imageView.setTag(R.id.imageLoading, null);
+		this.imageView.setTag(R.id.imageLoaded, this.url);
 		if (this.listener != null) this.listener.imageLoaded(this);
 	}
 
 	public void setImageBitmapIfRequired (final Bitmap bmp) {
-		if (!isRequired()) return;
+		if (!shouldFinishLoading()) return;
 		setImageBitmap(bmp);
 	}
 
-	public boolean isRequired () {
-		return this.url.equals(this.imageView.getTag());
+	public boolean shouldStartLoading () {
+		if (this.imageView.getDrawable() == null) return true; // In case something else set imageView to a resource.
+		return !this.url.equals(this.imageView.getTag(R.id.imageLoaded));
+	}
+
+	public boolean shouldFinishLoading () {
+		return this.url.equals(this.imageView.getTag(R.id.imageLoading));
+	}
+
+	@Override
+	public String toString () {
+		return new StringBuilder("ImageLoadRequest{").append(this.url)
+				.append(",").append(this.imageView)
+				.append(",").append(this.reqWidth)
+				.append(",").append(this.listener)
+				.append(",").append(this.retry)
+				.append("}").toString();
 	}
 
 	public interface ImageLoadListener {

@@ -61,7 +61,7 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, String, ImageFetchR
 
 	@Override
 	protected ImageFetchResult doInBackgroundWithTracking (final Void... unused) {
-		if (!this.req.isRequired()) return null;
+		if (!this.req.shouldFinishLoading()) return null;
 
 		this.cache.getReqMgr().registerRequest(this.req);
 
@@ -88,7 +88,7 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, String, ImageFetchR
 	@Override
 	protected void onPostExecute (final ImageFetchResult result) {
 		if (result == null) {
-			if (this.req.isRequired()) {
+			if (this.req.shouldFinishLoading()) {
 				publishProgress("fetch requested");
 				new ImageFetcherTask(getEventListener(), this.cache, this.req).executeOnExecutor(this.netEs);
 			}

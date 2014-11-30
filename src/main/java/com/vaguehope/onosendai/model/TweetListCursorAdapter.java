@@ -64,7 +64,6 @@ public class TweetListCursorAdapter extends CursorAdapter {
 	public void bindView (final View view, final Context context, final Cursor cursor) {
 		final TweetLayout layoutType = tweetLayoutType(cursor);
 		final TweetRowView rowView = (TweetRowView) view.getTag();
-		rowView.reset();
 		layoutType.applyCursorTo(cursor, this.cursorReader, rowView, this.imageLoader, this.listView.getWidth());
 	}
 
