@@ -2,7 +2,6 @@ package com.vaguehope.onosendai.widget;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -10,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.ImageView.ScaleType;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -20,9 +18,10 @@ import com.vaguehope.onosendai.images.ImageLoadRequest.ImageLoadListener;
 
 public class PendingImage extends FrameLayout {
 
-	private final FixedWidthImageView image;
+	private final ExpandingFixedWidthImageView image;
 	private final ProgressBar prg;
 	private final TextView status;
+	private final ExpandingImageLoadListener imageLoadListener;
 
 	public PendingImage (final Context context, final AttributeSet attrs) {
 		this(context, attrs, 0);
@@ -37,7 +36,6 @@ public class PendingImage extends FrameLayout {
 		a.recycle();
 
 		this.prg = new ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal);
-		this.imageLoadListener.imageFetchProgress(0, 0);
 		addView(this.prg);
 
 		this.status = new TextView(context);
@@ -52,10 +50,13 @@ public class PendingImage extends FrameLayout {
 				this.status.getPaddingBottom() + dipToPixels(context, 20));
 		addView(this.status);
 
-		this.image = new ProgressAwareFixedWidthImageView(context, this.prg, this.status, maxHeightPixels);
-		setupImageView(this.image, maxHeightPixels);
+		this.image = new ExpandingFixedWidthImageView(context, this.prg, this.status, maxHeightPixels);
+		this.image.setupImageView();
 		this.image.setVisibility(View.GONE);
 		addView(this.image);
+
+		this.imageLoadListener = new ExpandingImageLoadListener(this.image, this.status, this.prg);
+		this.imageLoadListener.imageFetchProgress(0, 0);
 	}
 
 	public ImageView getImage () {
@@ -66,60 +67,40 @@ public class PendingImage extends FrameLayout {
 		return this.imageLoadListener;
 	}
 
-	private static void setupImageView (final FixedWidthImageView image, final int maxHeightPixels) {
-		if (maxHeightPixels > 0) {
-			setImageLimitedHeight(image, maxHeightPixels);
+	private static class ExpandingImageLoadListener implements ImageLoadListener {
+
+		private final ExpandingFixedWidthImageView image;
+		private final TextView status;
+		private final ProgressBar prg;
+
+		public ExpandingImageLoadListener (final ExpandingFixedWidthImageView image, final TextView status, final ProgressBar prg) {
+			this.image = image;
+			this.status = status;
+			this.prg = prg;
 		}
-		else {
-			setImageFullHeight(image);
-		}
-	}
-
-	protected static void resetImageView (final FixedWidthImageView image, final int maxHeightPixels) {
-		if (maxHeightPixels > 0) setImageLimitedHeight(image, maxHeightPixels);
-	}
-
-	private static void setImageLimitedHeight (final FixedWidthImageView image, final int maxHeightPixels) {
-		image.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, maxHeightPixels));
-		image.setScaleType(ScaleType.CENTER_CROP);
-		image.setMaxHeight(maxHeightPixels);
-		image.setClickable(true);
-		image.setOnClickListener(new GoFullHeightListener(image));
-	}
-
-	protected static void setImageFullHeight (final FixedWidthImageView image) {
-		image.setMaxHeight(-1);
-		image.setOnClickListener(null);
-		image.setClickable(false);
-		image.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-		image.setScaleType(ScaleType.FIT_CENTER);
-		image.setAdjustViewBounds(true);
-	}
-
-	private final ImageLoadListener imageLoadListener = new ImageLoadListener() {
 
 		@Override
 		public void imageLoadProgress (final String msg) {
-			PendingImage.this.status.setText(msg);
+			this.status.setText(msg);
 		}
 
 		@Override
 		public void imageFetchProgress (final int progress, final int total) {
 			if (total > 0) {
-				if (PendingImage.this.prg.isIndeterminate()) {
-					PendingImage.this.prg.setIndeterminate(false);
-					PendingImage.this.prg.setLayoutParams(new FrameLayout.LayoutParams(
+				if (this.prg.isIndeterminate()) {
+					this.prg.setIndeterminate(false);
+					this.prg.setLayoutParams(new FrameLayout.LayoutParams(
 							ViewGroup.LayoutParams.MATCH_PARENT,
 							ViewGroup.LayoutParams.WRAP_CONTENT,
 							Gravity.CENTER));
 				}
-				PendingImage.this.prg.setMax(total);
-				PendingImage.this.prg.setProgress(progress);
+				this.prg.setMax(total);
+				this.prg.setProgress(progress);
 			}
 			else {
-				if (!PendingImage.this.prg.isIndeterminate()) {
-					PendingImage.this.prg.setIndeterminate(true);
-					PendingImage.this.prg.setLayoutParams(new FrameLayout.LayoutParams(
+				if (!this.prg.isIndeterminate()) {
+					this.prg.setIndeterminate(true);
+					this.prg.setLayoutParams(new FrameLayout.LayoutParams(
 							ViewGroup.LayoutParams.WRAP_CONTENT,
 							ViewGroup.LayoutParams.WRAP_CONTENT,
 							Gravity.CENTER));
@@ -128,26 +109,65 @@ public class PendingImage extends FrameLayout {
 		}
 
 		@Override
-		public void imageLoaded (final ImageLoadRequest req) {}
+		public void imagePreShow (final ImageLoadRequest req) {
+			this.image.resetImageView();
+		}
+
+		@Override
+		public void imageLoaded (final ImageLoadRequest req) {
+			this.image.setVisibility(View.VISIBLE);
+			this.prg.setVisibility(View.GONE);
+			this.status.setVisibility(View.GONE);
+		}
 
 		@Override
 		public void imageLoadFailed (final ImageLoadRequest req, final String errMsg) {
 			imageLoadProgress(errMsg);
 		}
 
-	};
+	}
 
-	private static class ProgressAwareFixedWidthImageView extends FixedWidthImageView {
+	private static class ExpandingFixedWidthImageView extends FixedWidthImageView {
 
 		private final ProgressBar prg;
 		private final TextView status;
 		private final int maxHeightPixels;
 
-		public ProgressAwareFixedWidthImageView (final Context context, final ProgressBar prg, final TextView status, final int maxHeightPixels) {
+		public ExpandingFixedWidthImageView (final Context context, final ProgressBar prg, final TextView status, final int maxHeightPixels) {
 			super(context);
 			this.status = status;
 			this.maxHeightPixels = maxHeightPixels;
 			this.prg = prg;
+		}
+
+		public void setupImageView () {
+			if (this.maxHeightPixels > 0) {
+				setImageLimitedHeight();
+			}
+			else {
+				setImageFullHeight();
+			}
+		}
+
+		public void resetImageView () {
+			if (this.maxHeightPixels > 0) setImageLimitedHeight();
+		}
+
+		public void setImageLimitedHeight () {
+			setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, this.maxHeightPixels));
+			setScaleType(ScaleType.CENTER_CROP);
+			setMaxHeight(this.maxHeightPixels);
+			setClickable(true);
+			setOnClickListener(new GoFullHeightListener(this));
+		}
+
+		public void setImageFullHeight () {
+			setMaxHeight(-1);
+			setOnClickListener(null);
+			setClickable(false);
+			setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+			setScaleType(ScaleType.FIT_CENTER);
+			setAdjustViewBounds(true);
 		}
 
 		// XXX these are icky hacks to get 'show pending' and 'show image' events.
@@ -167,7 +187,7 @@ public class PendingImage extends FrameLayout {
 				this.status.setVisibility(View.VISIBLE);
 			}
 			else {
-				resetImageView(this, this.maxHeightPixels);
+				resetImageView();
 				super.setImageResource(resId);
 				setVisibility(View.VISIBLE);
 				this.prg.setVisibility(View.GONE);
@@ -175,28 +195,19 @@ public class PendingImage extends FrameLayout {
 			}
 		}
 
-		@Override
-		public void setImageBitmap (final Bitmap bm) {
-			resetImageView(this, this.maxHeightPixels);
-			super.setImageBitmap(bm);
-			setVisibility(View.VISIBLE);
-			this.prg.setVisibility(View.GONE);
-			this.status.setVisibility(View.GONE);
-		}
-
 	}
 
 	private static class GoFullHeightListener implements OnClickListener {
 
-		private final FixedWidthImageView image;
+		private final ExpandingFixedWidthImageView image;
 
-		public GoFullHeightListener (final FixedWidthImageView image) {
+		public GoFullHeightListener (final ExpandingFixedWidthImageView image) {
 			this.image = image;
 		}
 
 		@Override
 		public void onClick (final View v) {
-			setImageFullHeight(this.image);
+			this.image.setImageFullHeight();
 		}
 
 	}
