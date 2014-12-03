@@ -38,7 +38,7 @@ public class SharePayload extends Payload {
 	}
 
 	public SharePayload (final Tweet ownerTweet, final NetworkType networkType) {
-		super(ownerTweet, PayloadType.SHARE);
+		super(ownerTweet, null, PayloadType.SHARE);
 		this.networkType = networkType;
 	}
 

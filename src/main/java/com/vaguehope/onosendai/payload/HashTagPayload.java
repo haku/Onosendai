@@ -15,11 +15,15 @@ public class HashTagPayload extends Payload {
 	private final String hashtag;
 
 	public HashTagPayload (final Tweet ownerTweet, final Meta meta) {
-		this(ownerTweet, '#' + meta.getData());
+		this(ownerTweet, meta, '#' + meta.getData());
 	}
 
 	public HashTagPayload (final Tweet ownerTweet, final String hashtag) {
-		super(ownerTweet, PayloadType.HASHTAG);
+		this(ownerTweet, null, hashtag);
+	}
+
+	private HashTagPayload (final Tweet ownerTweet, final Meta meta, final String hashtag) {
+		super(ownerTweet, meta, PayloadType.HASHTAG);
 		this.hashtag = hashtag;
 	}
 

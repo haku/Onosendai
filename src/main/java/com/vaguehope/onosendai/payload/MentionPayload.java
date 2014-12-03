@@ -26,15 +26,19 @@ public class MentionPayload extends Payload {
 	private String titleCache;
 
 	public MentionPayload (final Account account, final Tweet ownerTweet, final Meta meta) {
-		this(account, ownerTweet, meta.getData(), meta.getTitle());
+		this(account, ownerTweet, meta, meta.getData(), meta.getTitle());
 	}
 
 	public MentionPayload (final Account account, final Tweet ownerTweet, final String screenName, final String fullName) {
-		this(account, ownerTweet, screenName, fullName, (String[]) null);
+		this(account, ownerTweet, null, screenName, fullName, (String[]) null);
 	}
 
 	public MentionPayload (final Account account, final Tweet ownerTweet, final String screenName, final String fullName, final String... alsoMentions) {
-		super(ownerTweet, PayloadType.MENTION);
+		this(account, ownerTweet, null, screenName, fullName, alsoMentions);
+	}
+
+	private MentionPayload (final Account account, final Tweet ownerTweet, final Meta meta, final String screenName, final String fullName, final String... alsoMentions) {
+		super(ownerTweet, meta, PayloadType.MENTION);
 		this.account = account;
 		this.screenName = screenName;
 		this.fullName = fullName;

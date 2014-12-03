@@ -10,6 +10,7 @@ import android.widget.BaseAdapter;
 
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.images.ImageLoader;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 
 public class PayloadListAdapter extends BaseAdapter {
@@ -39,6 +40,10 @@ public class PayloadListAdapter extends BaseAdapter {
 		notifyDataSetChanged();
 	}
 
+	Payload findForMeta(final Meta meta) {
+		return this.listData.findForMeta(meta);
+	}
+
 	void addItem (final Payload payload) {
 		this.listData.addItem(payload);
 		notifyDataSetChanged();
@@ -47,6 +52,11 @@ public class PayloadListAdapter extends BaseAdapter {
 	// FIXME refactor so this can be package private.
 	public void addItemsTop (final List<Payload> payloads) {
 		this.listData.addItemsTop(payloads);
+		notifyDataSetChanged();
+	}
+
+	void addItemAfter(final Payload toAdd, final Payload marker) {
+		this.listData.addItemAfter(toAdd, marker);
 		notifyDataSetChanged();
 	}
 

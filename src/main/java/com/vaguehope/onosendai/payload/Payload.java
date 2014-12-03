@@ -9,20 +9,27 @@ import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.images.ImageLoader;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 
 public abstract class Payload {
 
 	private final Tweet ownerTweet;
+	private final Meta meta;
 	private final PayloadType type;
 
-	public Payload (final Tweet ownerTweet, final PayloadType type) {
+	public Payload (final Tweet ownerTweet, final Meta meta, final PayloadType type) {
 		this.ownerTweet = ownerTweet;
+		this.meta = meta;
 		this.type = type;
 	}
 
 	public Tweet getOwnerTweet () {
 		return this.ownerTweet;
+	}
+
+	public Meta getMeta () {
+		return this.meta;
 	}
 
 	public PayloadType getType () {

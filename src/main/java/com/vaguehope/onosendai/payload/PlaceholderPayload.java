@@ -13,7 +13,7 @@ public class PlaceholderPayload extends Payload {
 	}
 
 	public PlaceholderPayload (final Tweet ownerTweet, final String msg, final boolean showSpinner) {
-		super(ownerTweet, PayloadType.PLACEHOLDER);
+		super(ownerTweet, null, PayloadType.PLACEHOLDER);
 		this.msg = msg;
 		this.showSpinner = showSpinner;
 	}

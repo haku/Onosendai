@@ -15,7 +15,7 @@ public class AddCommentPayload extends Payload {
 	private final Account account;
 
 	public AddCommentPayload (final Account account, final Tweet ownerTweet) {
-		super(ownerTweet, PayloadType.COMMENT);
+		super(ownerTweet, null, PayloadType.COMMENT);
 		this.account = account;
 	}
 

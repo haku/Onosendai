@@ -14,7 +14,7 @@ import com.vaguehope.onosendai.model.Tweet;
 public class EditPayload extends Payload {
 
 	public EditPayload (final Tweet ownerTweet, final Meta editSidMeta) {
-		super(ownerTweet, PayloadType.EDIT);
+		super(ownerTweet, null, PayloadType.EDIT);
 		if (editSidMeta.getType() != MetaType.EDIT_SID) throw new IllegalArgumentException();
 	}
 

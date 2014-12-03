@@ -20,7 +20,7 @@ public class PrincipalPayload extends Payload {
 	private final DateFormat dateFormat = DateFormat.getDateTimeInstance();
 
 	public PrincipalPayload (final Tweet tweet) {
-		super(tweet, PayloadType.PRINCIPAL);
+		super(tweet, null, PayloadType.PRINCIPAL);
 	}
 
 	@Override

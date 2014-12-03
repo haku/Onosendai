@@ -3,6 +3,8 @@ package com.vaguehope.onosendai.payload;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vaguehope.onosendai.model.Meta;
+
 public class PayloadList {
 
 	private final List<Payload> payloads;
@@ -11,12 +13,28 @@ public class PayloadList {
 		this.payloads = new ArrayList<Payload>(payloads);
 	}
 
+	Payload findForMeta(final Meta meta) {
+		if (meta == null) return null;
+		for (final Payload p : this.payloads) {
+			if (meta.equals(p.getMeta())) return p;
+		}
+		return null;
+	}
+
 	void addItem (final Payload payload) {
 		this.payloads.add(payload);
 	}
 
 	void addItemsTop(final List<Payload> items) {
 		this.payloads.addAll(0, items);
+	}
+
+	void addItemAfter(final Payload toAdd, final Payload marker) {
+		if (marker == null) return;
+		final int x = this.payloads.indexOf(marker);
+		if (x >= 0) {
+			this.payloads.add(x + 1, toAdd);
+		}
 	}
 
 	void replaceItem (final Payload find, final Payload with) {
