@@ -113,12 +113,26 @@ public final class TwitterUtils {
 		addHashtags(s, metas);
 		addMentions(s, metas, status.getUser().getId(), ownId);
 
+		String userSubtitle = viaUser != null ? String.format("via %s", viaUser.getScreenName()) : null;
+		final String fullSubtitle = viaUser != null ? String.format("via %s", viaUser.getName()) : null;
+
+		final int mediaCount = MetaUtils.countMetaOfType(metas, MetaType.MEDIA);
+		if (mediaCount > 1) {
+			final String mediaCountMsg = String.format("%s pictures", mediaCount);
+			if (userSubtitle != null) {
+				userSubtitle += ", " + mediaCountMsg;
+			}
+			else {
+				userSubtitle = mediaCountMsg;
+			}
+		}
+
 		// https://dev.twitter.com/docs/user-profile-images-and-banners
 
 		return new Tweet(String.valueOf(s.getId()),
 				s.getUser().getScreenName(), s.getUser().getName(),
-				viaUser != null ? String.format("via %s", viaUser.getScreenName()) : null,
-				viaUser != null ? String.format("via %s", viaUser.getName()) : null,
+				userSubtitle,
+				fullSubtitle,
 				text,
 				TimeUnit.MILLISECONDS.toSeconds(status.getCreatedAt().getTime()),
 				hdMedia ? s.getUser().getBiggerProfileImageURLHttps() : s.getUser().getProfileImageURLHttps(),

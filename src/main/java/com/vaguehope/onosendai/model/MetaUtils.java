@@ -24,4 +24,12 @@ public final class MetaUtils {
 		return null;
 	}
 
+	public static int countMetaOfType (final Collection<Meta> metas, final MetaType type) {
+		int c = 0;
+		for (final Meta meta : metas) {
+			if (type == meta.getType()) c += 1;
+		}
+		return c;
+	}
+
 }

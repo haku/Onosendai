@@ -52,6 +52,20 @@ public class TwitterUtilsTest {
 	}
 
 	@Test
+	public void itExpandsTwitterTwoMedias () throws Exception {
+		final Status s = mockTweet("media.");
+		final MediaEntity me1 = mockMediaEntry("https://twitter.com/some*user/status/1235430985/photo/1", "https://pbs.twimg.com/media/BjwsdkfjsAAI-4x.jpg");
+		final MediaEntity me2 = mockMediaEntry("https://twitter.com/some*user/status/1235430986/photo/1", "https://pbs.twimg.com/media/BjwsdkfjsAAJ-4y.jpg");
+		when(s.getExtendedMediaEntities()).thenReturn(new MediaEntity[] { me1, me2 });
+
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false);
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, "https://pbs.twimg.com/media/BjwsdkfjsAAI-4x.jpg", "https://twitter.com/some*user/status/1235430985/photo/1")));
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, "https://pbs.twimg.com/media/BjwsdkfjsAAJ-4y.jpg", "https://twitter.com/some*user/status/1235430986/photo/1")));
+		assertNoMetaOfType(t, MetaType.URL);
+		assertEquals("2 pictures", t.getUserSubtitle());
+	}
+
+	@Test
 	public void itExpandsInstagramUrlsToMedia () throws Exception {
 		testPictureUrlExpansion("http://instagram.com/p/cT0bSXnMqi", false, "https://instagram.com/p/cT0bSXnMqi/media/?size=m");
 		testPictureUrlExpansion("http://instagram.com/p/cT0bSXnMqi/", false, "https://instagram.com/p/cT0bSXnMqi/media/?size=m");
@@ -66,6 +80,8 @@ public class TwitterUtilsTest {
 	public void itExpandsTwitpicUrlsToMedia () throws Exception {
 		testPictureUrlExpansion("http://twitpic.com/d53yth", false, "https://twitpic.com/show/thumb/d53yth.jpg");
 	}
+
+	// TODO know that http://twitpic.com/photos/dalelane is a gallery (and has no thumb)
 
 	@Test
 	public void itExpandsImgurPageUrlsToMedia () throws Exception {
@@ -241,17 +257,19 @@ public class TwitterUtilsTest {
 
 	private static Status mockTweetWithMedia (final String mediaPageUrl, final String mediaImgUrl) {
 		final Status s = mockTweet("media: " + mediaPageUrl);
+		final MediaEntity me = mockMediaEntry(mediaPageUrl, mediaImgUrl);
+		when(s.getMediaEntities()).thenReturn(new MediaEntity[] { me });
+		return s;
+	}
 
+	private static MediaEntity mockMediaEntry (final String mediaPageUrl, final String mediaImgUrl) {
 		final MediaEntity me = mock(MediaEntity.class);
 		when(me.getURL()).thenReturn(mediaPageUrl);
 		when(me.getExpandedURL()).thenReturn(mediaPageUrl);
 		when(me.getMediaURLHttps()).thenReturn(mediaImgUrl);
 		when(me.getStart()).thenReturn(7);
 		when(me.getEnd()).thenReturn(7 + mediaPageUrl.length());
-
-		when(s.getMediaEntities()).thenReturn(new MediaEntity[] { me });
-
-		return s;
+		return me;
 	}
 
 	private static Status mockTweet (final String msg) {
