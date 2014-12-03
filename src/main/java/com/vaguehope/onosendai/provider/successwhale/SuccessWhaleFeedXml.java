@@ -132,6 +132,8 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 				if (this.stashedRetweetedByUserId != null && !this.stashedRetweetedByUserId.equals(this.stashedFetchedForUserid)) {
 					this.currentItem.meta(MetaType.MENTION, this.stashedRetweetedByUser, String.format("RT by %s", this.stashedRetweetedByUserName));
 				}
+				final int mediaCount = this.currentItem.countMetaOfType(MetaType.MEDIA);
+				if (mediaCount > 1) this.currentItem.subtitle(String.format("%s pictures", mediaCount));
 				this.tweets.add(this.currentItem.build());
 			}
 			this.stashedFromUserName = null;

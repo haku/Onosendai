@@ -107,6 +107,11 @@ public class TweetBuilder {
 		return meta(new Meta(type, data, title));
 	}
 
+	public int countMetaOfType (final MetaType type) {
+		if (this.metas == null) return 0;
+		return MetaUtils.countMetaOfType(this.metas, type);
+	}
+
 	public TweetBuilder subtitle (final String subTitle) {
 		if (this.subTitles == null) {
 			this.subTitles = new StringBuilder(subTitle);
