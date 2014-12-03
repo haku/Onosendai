@@ -38,14 +38,15 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 	private final boolean hdMedia;
 	private final Executor es;
 	private final Payload placeholderPayload;
+	private final boolean firstRun;
 
 	public InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr,
 			final Tweet rootTweet, final boolean hdMedia, final PayloadListAdapter payloadListAdapter, final Executor es) {
-		this(eventListener, context, conf, provMgr, rootTweet, rootTweet, hdMedia, payloadListAdapter, es);
+		this(eventListener, context, conf, provMgr, rootTweet, rootTweet, hdMedia, payloadListAdapter, es, true);
 	}
 
-	public InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr,
-			final Tweet rootTweet, final Tweet threadTweet, final boolean hdMedia, final PayloadListAdapter payloadListAdapter, final Executor es) {
+	private InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr,
+			final Tweet rootTweet, final Tweet threadTweet, final boolean hdMedia, final PayloadListAdapter payloadListAdapter, final Executor es, final boolean firstRun) {
 		super(eventListener, context);
 		this.conf = conf;
 		this.provMgr = provMgr;
@@ -55,6 +56,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 		this.payloadListAdapter = payloadListAdapter;
 		this.es = es;
 		this.placeholderPayload = new PlaceholderPayload(null, "Fetching conversation...", true);
+		this.firstRun = firstRun;
 	}
 
 	@Override
@@ -76,6 +78,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 	protected ReplyLoaderResult doInBackgroundWithDb (final DbInterface db, final Void... unused) {
 		final Account account = MetaUtils.accountFromMeta(this.threadTweet, this.conf);
 		if (account != null) {
+			if (this.firstRun) TweetLinkExpanderTask.checkAndRun(getEventListener(), getContext(), this.provMgr, this.rootTweet, this.hdMedia, account, this.payloadListAdapter, this.es);
 			switch (account.getProvider()) {
 				case TWITTER:
 					return twitter(db, account, this.threadTweet);
@@ -188,7 +191,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 		}
 		this.payloadListAdapter.replaceItem(this.placeholderPayload, result.getPayloads());
 		if (result.checkAgain()) {
-			new InReplyToLoaderTask(getEventListener(), getContext(), this.conf, this.provMgr, this.rootTweet, result.getFirstTweet(), this.hdMedia, this.payloadListAdapter, this.es).executeOnExecutor(this.es);
+			new InReplyToLoaderTask(getEventListener(), getContext(), this.conf, this.provMgr, this.rootTweet, result.getFirstTweet(), this.hdMedia, this.payloadListAdapter, this.es, false).executeOnExecutor(this.es);
 		}
 	}
 

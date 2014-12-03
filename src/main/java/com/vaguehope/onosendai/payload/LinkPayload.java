@@ -18,15 +18,15 @@ public class LinkPayload extends Payload {
 	private final String title;
 
 	public LinkPayload (final Tweet ownerTweet, final Meta meta) {
-		this(ownerTweet, meta.getData(), meta.getTitle());
+		this(ownerTweet, meta, meta.getData(), meta.getTitle());
 	}
 
 	public LinkPayload (final Tweet ownerTweet, final String url) {
-		this(ownerTweet, url, null);
+		this(ownerTweet, null, url, null);
 	}
 
-	public LinkPayload (final Tweet ownerTweet, final String url, final String title) {
-		super(ownerTweet, PayloadType.LINK);
+	private LinkPayload (final Tweet ownerTweet, final Meta meta, final String url, final String title) {
+		super(ownerTweet, meta, PayloadType.LINK);
 		this.url = url;
 		this.title = title != null ? title : url;
 	}

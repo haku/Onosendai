@@ -15,7 +15,7 @@ public class InReplyToPayload extends Payload {
 	private final Tweet inReplyToTweet;
 
 	public InReplyToPayload (final Tweet ownerTweet, final Tweet inReplyToTweet) {
-		super(ownerTweet, PayloadType.INREPLYTO);
+		super(ownerTweet, null, PayloadType.INREPLYTO);
 		this.inReplyToTweet = inReplyToTweet;
 	}
 

@@ -23,13 +23,9 @@ public class MediaPayload extends Payload {
 	private final String clickUrl;
 
 	public MediaPayload (final Tweet ownerTweet, final Meta meta) {
-		this(ownerTweet, meta.getData(), meta.getTitle());
-	}
-
-	public MediaPayload (final Tweet ownerTweet, final String imgUrl, final String clickUrl) {
-		super(ownerTweet, PayloadType.MEDIA);
-		this.imgUrl = imgUrl;
-		this.clickUrl = clickUrl;
+		super(ownerTweet, meta, PayloadType.MEDIA);
+		this.imgUrl = meta.getData();
+		this.clickUrl = meta.getTitle();
 	}
 
 	@Override
