@@ -19,6 +19,8 @@ import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.TaskUtils;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.util.HtmlTitleParser;
+import com.vaguehope.onosendai.util.HttpHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 
@@ -30,10 +32,8 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 	public static void checkAndRun (final ExecutorEventListener eventListener, final Context context, final ProviderMgr provMgr, final Tweet tweet, final boolean hdMedia, final Account account, final PayloadListAdapter payloadListAdapter, final Executor es) {
 		for (final Meta meta : tweet.getMetas()) {
 			if (meta.getType() != MetaType.URL) continue;
-			if (TWEET_URL.matcher(meta.getData()).matches()) {
-				new TweetLinkExpanderTask(eventListener, context, provMgr, tweet, hdMedia, account, payloadListAdapter).executeOnExecutor(es);
-				return;
-			}
+			new TweetLinkExpanderTask(eventListener, context, provMgr, tweet, hdMedia, account, payloadListAdapter).executeOnExecutor(es);
+			return;
 		}
 	}
 
@@ -67,35 +67,49 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 		for (final Meta meta : this.tweet.getMetas()) {
 			if (meta.getType() != MetaType.URL) continue;
 			final Matcher m = TWEET_URL.matcher(meta.getData());
-			if (m.matches()) fetchLinkedTweet(db, meta, m.group(2));
+			if (m.matches()) {
+				fetchLinkedTweet(db, meta, m.group(2));
+			}
+			else {
+				fetchLinkTitle(meta);
+			}
 		}
 		return null;
 	}
 
-	private final Map<String, Payload> placeHolders = new HashMap<String, Payload>();
+	private enum Prg {
+		INIT,
+		TITLE,
+		TWEET,
+		FAIL;
+	}
+	private final Map<Meta, Payload> metaToPayload = new HashMap<Meta, Payload>();
 
 	@Override
 	protected void onProgressUpdate (final Object... values) {
 		if (values == null || values.length < 1) return;
 		if (!this.payloadListAdapter.isForTweet(this.tweet)) return;
 
-		switch ((Integer) values[0]) {
-			case 0: // initial(meta, linkedTweetSid).
+		switch ((Prg) values[0]) {
+			case INIT: // (meta, msg).
 				displayPlaceholder((Meta) values[1], (String) values[2]);
 				break;
-			case 1: // successResult(linkedTweetSid, linkedTweet).
-				displayTweet((String) values[1], (Tweet) values[2]);
+			case TITLE: // (meta, title).
+				displayLinkTitle((Meta) values[1], (CharSequence) values[2]);
 				break;
-			case 2: // failResult(linkedTweetSid, exception).
-				displayError((String) values[1], (Exception) values[2]);
+			case TWEET: // (meta, tweet).
+				displayTweet((Meta) values[1], (Tweet) values[2]);
+				break;
+			case FAIL: // (meta, exception).
+				displayError((Meta) values[1], (Exception) values[2]);
 				break;
 			default:
 		}
 	}
 
-	private void displayPlaceholder (final Meta meta, final String linkedTweetSid) {
-		final Payload placeHolder = new PlaceholderPayload(this.tweet, String.format("Fetching %s...", linkedTweetSid), true);
-		this.placeHolders.put(linkedTweetSid, placeHolder);
+	private void displayPlaceholder (final Meta meta, final String msg) {
+		final Payload placeHolder = new PlaceholderPayload(this.tweet, msg, true);
+		this.metaToPayload.put(meta, placeHolder);
 
 		final Payload linkPayload = this.payloadListAdapter.findForMeta(meta);
 		if (linkPayload != null) {
@@ -106,9 +120,23 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 		}
 	}
 
-	private void displayTweet (final String linkedTweetSid, final Tweet linkedTweet) {
-		final Payload placeHolder = this.placeHolders.get(linkedTweetSid);
-		if (placeHolder == null) throw new IllegalStateException("No cached placeholder for " + linkedTweetSid);
+	private void displayLinkTitle (final Meta meta, final CharSequence title) {
+		final Payload placeHolder = this.metaToPayload.get(meta);
+		if (placeHolder == null) throw new IllegalStateException("No cached placeholder for " + meta);
+
+		final Payload linkPayload = this.payloadListAdapter.findForMeta(meta);
+		if (linkPayload != null) {
+			this.payloadListAdapter.replaceItem(linkPayload, new LinkPayload(this.tweet, meta, title));
+			this.payloadListAdapter.removeItem(placeHolder);
+		}
+		else {
+			this.payloadListAdapter.replaceItem(placeHolder, new PlaceholderPayload(this.tweet, title));
+		}
+	}
+
+	private void displayTweet (final Meta meta, final Tweet linkedTweet) {
+		final Payload placeHolder = this.metaToPayload.get(meta);
+		if (placeHolder == null) throw new IllegalStateException("No cached placeholder for " + meta);
 
 		if (linkedTweet != null) {
 			this.payloadListAdapter.replaceItem(placeHolder, new InReplyToPayload(this.tweet, linkedTweet));
@@ -118,12 +146,25 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 		}
 	}
 
-	private void displayError (final String linkedTweetSid, final Exception exception) {
-		final Payload placeHolder = this.placeHolders.get(linkedTweetSid);
-		if (placeHolder == null) throw new IllegalStateException("No cached placeholder for " + linkedTweetSid);
+	private void displayError (final Meta meta, final Exception exception) {
+		final Payload placeHolder = this.metaToPayload.get(meta);
+		if (placeHolder == null) throw new IllegalStateException("No cached placeholder for " + meta);
 
 		final String msg = exception != null ? TaskUtils.getEmsg(exception) : "Error: null exception.";
 		this.payloadListAdapter.replaceItem(placeHolder, new PlaceholderPayload(this.tweet, msg));
+	}
+
+	private void fetchLinkTitle (final Meta meta) {
+		publishProgress(Prg.INIT, meta, "Fetching title...");
+		try {
+			// TODO some form of caching of titles?
+			final CharSequence title = HttpHelper.get(meta.getData(), HtmlTitleParser.INSTANCE);
+			publishProgress(Prg.TITLE, meta, title);
+		}
+		catch (final Exception e) {
+			LOG.w("Failed to retrieve title: %s", e.toString());
+			publishProgress(Prg.FAIL, meta, e);
+		}
 	}
 
 	private void fetchLinkedTweet (final DbInterface db, final Meta meta, final String linkedTweetSid) {
@@ -135,12 +176,12 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 	}
 
 	private void fetchFromTwitter (final DbInterface db, final Meta meta, final String linkedTweetSid) {
-		publishProgress(0, meta, linkedTweetSid);
+		publishProgress(Prg.INIT, meta, String.format("Fetching %s...", linkedTweetSid));
 
 		final Tweet fromCache = db.getTweetDetails(linkedTweetSid);
 		if (fromCache != null) {
 			LOG.i("From cache: %s=%s", linkedTweetSid, fromCache);
-			publishProgress(1, linkedTweetSid, fromCache);
+			publishProgress(Prg.TWEET, meta, fromCache);
 			return;
 		}
 
@@ -150,11 +191,11 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 			if (linkedTweet != null) {
 				db.storeTweets(Column.ID_CACHED, Collections.singletonList(linkedTweet));
 			}
-			publishProgress(1, linkedTweetSid, linkedTweet);
+			publishProgress(Prg.TWEET, meta, linkedTweet);
 		}
 		catch (final TwitterException e) {
 			LOG.w("Failed to retrieve tweet %s: %s", linkedTweetSid, e.toString());
-			publishProgress(2, linkedTweetSid, e);
+			publishProgress(Prg.FAIL, meta, e);
 		}
 	}
 }

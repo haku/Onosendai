@@ -15,17 +15,21 @@ import com.vaguehope.onosendai.util.EqualHelper;
 public class LinkPayload extends Payload {
 
 	private final String url;
-	private final String title;
+	private final CharSequence title;
 
 	public LinkPayload (final Tweet ownerTweet, final Meta meta) {
 		this(ownerTweet, meta, meta.getData(), meta.getTitle());
+	}
+
+	public LinkPayload (final Tweet ownerTweet, final Meta meta, final CharSequence altTitle) {
+		this(ownerTweet, meta, meta.getData(), altTitle);
 	}
 
 	public LinkPayload (final Tweet ownerTweet, final String url) {
 		this(ownerTweet, null, url, null);
 	}
 
-	private LinkPayload (final Tweet ownerTweet, final Meta meta, final String url, final String title) {
+	private LinkPayload (final Tweet ownerTweet, final Meta meta, final String url, final CharSequence title) {
 		super(ownerTweet, meta, PayloadType.LINK);
 		this.url = url;
 		this.title = title != null ? title : url;
@@ -36,7 +40,7 @@ public class LinkPayload extends Payload {
 	}
 
 	@Override
-	public String getTitle () {
+	public CharSequence getTitle () {
 		return this.title;
 	}
 

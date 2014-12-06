@@ -110,21 +110,24 @@ public final class IoHelper {
 	}
 
 	public static String toString (final InputStream is, final int maxLength) throws IOException {
+		return toString(is, maxLength, null);
+	}
+
+	public static String toString (final InputStream is, final int maxLength, final String charsetName) throws IOException {
 		if (is == null) return null;
 		final StringBuilder sb = new StringBuilder();
-		final BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+		final BufferedReader rd = new BufferedReader(new InputStreamReader(is, charsetName != null ? charsetName : "UTF-8"));
 		try {
 			String line;
 			while ((line = rd.readLine()) != null) {
-				final int sbLength = sb.length();
-				if (maxLength >= 0 && sbLength > maxLength) break;
-				if (sbLength > 0) sb.append("\n");
-				if (maxLength < 0 || sbLength + line.length() < maxLength) {
+				if (sb.length() > 0) sb.append("\n");
+				if (maxLength < 0 || sb.length() + line.length() < maxLength) {
 					sb.append(line);
 				}
 				else {
-					sb.append(line.subSequence(0, maxLength - sbLength));
+					sb.append(line.subSequence(0, maxLength - sb.length()));
 				}
+				if (maxLength >= 0 && sb.length() >= maxLength) break;
 			}
 			return sb.toString();
 		}
