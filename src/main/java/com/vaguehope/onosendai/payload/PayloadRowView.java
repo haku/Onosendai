@@ -63,7 +63,7 @@ class PayloadRowView {
 		this.buttons = buttons;
 	}
 
-	public void setText (final String text) {
+	public void setText (final CharSequence text) {
 		if (this.main == null) return;
 		this.main.setText(text);
 		this.main.setVisibility(View.VISIBLE);

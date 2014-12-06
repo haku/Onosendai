@@ -19,7 +19,10 @@ package com.vaguehope.onosendai.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.client.HttpResponseException;
@@ -37,9 +40,12 @@ public final class HttpHelper {
 
 	public interface HttpStreamHandler<R> {
 
+		/**
+		 * Does not need to do anything, will still be thrown.
+		 */
 		void onError (Exception e);
 
-		R handleStream (InputStream is, int contentLength) throws IOException;
+		R handleStream (URLConnection connection, InputStream is, int contentLength) throws IOException;
 
 	}
 
@@ -49,7 +55,7 @@ public final class HttpHelper {
 
 	public static <R> R get (final String sUrl, final HttpStreamHandler<R> streamHandler) throws IOException {
 		try {
-			return getWithFollowRedirects(sUrl, streamHandler, 0);
+			return getWithFollowRedirects(new URL(sUrl), streamHandler, 0);
 		}
 		catch (final Exception e) { // NOSONAR need to report failures to onError().
 			streamHandler.onError(e);
@@ -59,8 +65,7 @@ public final class HttpHelper {
 		}
 	}
 
-	private static <R> R getWithFollowRedirects (final String sUrl, final HttpStreamHandler<R> streamHandler, final int redirectCount) throws IOException {
-		final URL url = new URL(sUrl);
+	private static <R> R getWithFollowRedirects (final URL url, final HttpStreamHandler<R> streamHandler, final int redirectCount) throws IOException, URISyntaxException {
 		final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		try {
 			connection.setRequestMethod("GET");
@@ -78,11 +83,19 @@ public final class HttpHelper {
 				// For some reason some devices do not follow redirects. :(
 				if (responseCode == 301 || responseCode == 302 || responseCode == 307) { // NOSONAR not magic numbers.  Its HTTP spec.
 					if (redirectCount >= MAX_REDIRECTS) throw new HttpResponseException(responseCode, "Max redirects of " + MAX_REDIRECTS + " exceeded.");
-					final String location = connection.getHeaderField("Location");
-					if (location == null) throw new HttpResponseException(responseCode, "Location header missing.  Headers present: "
+					final String locationHeader = connection.getHeaderField("Location");
+					if (locationHeader == null) throw new HttpResponseException(responseCode, "Location header missing.  Headers present: "
 							+ connection.getHeaderFields() + ".");
 					connection.disconnect();
-					return getWithFollowRedirects(location, streamHandler, redirectCount + 1);
+
+					final URL locationUrl;
+					if (locationHeader.toLowerCase(Locale.ENGLISH).startsWith("http")) {
+						locationUrl = new URL(locationHeader);
+					}
+					else {
+						locationUrl = url.toURI().resolve(locationHeader).toURL();
+					}
+					return getWithFollowRedirects(locationUrl, streamHandler, redirectCount + 1);
 				}
 
 				if (responseCode < 200 || responseCode >= 300) { // NOSONAR not magic numbers.  Its HTTP spec.
@@ -91,8 +104,8 @@ public final class HttpHelper {
 
 				is = connection.getInputStream();
 				final int contentLength = connection.getContentLength();
-				if (contentLength < 1) LOG.w("Content-Length=%s for %s.", contentLength, sUrl);
-				return streamHandler.handleStream(is, contentLength);
+				if (contentLength < 1) LOG.w("Content-Length=%s for %s.", contentLength, url);
+				return streamHandler.handleStream(connection, is, contentLength);
 			}
 			finally {
 				IoHelper.closeQuietly(is);

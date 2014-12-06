@@ -5,21 +5,21 @@ import com.vaguehope.onosendai.util.EqualHelper;
 
 public class PlaceholderPayload extends Payload {
 
-	private final String msg;
+	private final CharSequence msg;
 	private final boolean showSpinner;
 
-	public PlaceholderPayload (final Tweet ownerTweet, final String msg) {
+	public PlaceholderPayload (final Tweet ownerTweet, final CharSequence msg) {
 		this(ownerTweet, msg, false);
 	}
 
-	public PlaceholderPayload (final Tweet ownerTweet, final String msg, final boolean showSpinner) {
+	public PlaceholderPayload (final Tweet ownerTweet, final CharSequence msg, final boolean showSpinner) {
 		super(ownerTweet, null, PayloadType.PLACEHOLDER);
 		this.msg = msg;
 		this.showSpinner = showSpinner;
 	}
 
 	@Override
-	public String getTitle () {
+	public CharSequence getTitle () {
 		return this.msg;
 	}
 

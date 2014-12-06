@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLConnection;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -260,7 +261,7 @@ public class HybridBitmapCache {
 		}
 
 		@Override
-		public Bitmap handleStream (final InputStream is, final int contentLength) throws IOException {
+		public Bitmap handleStream (final URLConnection connection, final InputStream is, final int contentLength) throws IOException {
 			if (this.listener != null) this.listener.onContentLengthToFetch(contentLength);
 			final File tmpFile = this.cache.tempFile(this.key);
 			final OutputStream os = new FileOutputStream(tmpFile);

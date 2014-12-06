@@ -36,7 +36,7 @@ public abstract class Payload {
 		return this.type;
 	}
 
-	public abstract String getTitle ();
+	public abstract CharSequence getTitle ();
 
 	/**
 	 * This method may be overridden.
