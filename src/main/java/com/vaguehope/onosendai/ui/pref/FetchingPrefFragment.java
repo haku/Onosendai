@@ -1,7 +1,10 @@
 package com.vaguehope.onosendai.ui.pref;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.ListPreference;
+import android.preference.Preference;
+import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceFragment;
 
 import com.vaguehope.onosendai.model.PrefetchImages;
@@ -15,6 +18,7 @@ public class FetchingPrefFragment extends PreferenceFragment {
 		super.onCreate(savedInstanceState);
 		setPreferenceScreen(getPreferenceManager().createPreferenceScreen(getActivity()));
 		addPrefetchMedia();
+		addColumnStats();
 	}
 
 	private void addPrefetchMedia () {
@@ -26,6 +30,25 @@ public class FetchingPrefFragment extends PreferenceFragment {
 		pref.setEntryValues(PrefetchImages.prefEntryValues());
 		pref.setDefaultValue(PrefetchImages.NO.getValue());
 		getPreferenceScreen().addPreference(pref);
+	}
+
+	private void addColumnStats () {
+		final Preference pref = new Preference(getActivity());
+		pref.setTitle("Column stats");
+		pref.setOnPreferenceClickListener(this.columnStatsClickListener);
+		getPreferenceScreen().addPreference(pref);
+	}
+
+	private final OnPreferenceClickListener columnStatsClickListener = new OnPreferenceClickListener() {
+		@Override
+		public boolean onPreferenceClick (final Preference preference) {
+			showColumnStats();
+			return true;
+		}
+	};
+
+	protected void showColumnStats () {
+		startActivity(new Intent(getActivity(), ColumnStatsActivity.class));
 	}
 
 }

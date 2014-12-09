@@ -6,7 +6,6 @@ import java.util.List;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -51,19 +50,11 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 	}
 
 	private void addEntries () {
-		addColumnStats();
 		addThreadInspector();
 		addImportConfPref();
 		addDumpLogPref();
 		addDumpReadLaterPref();
 		addHousekeepPref();
-	}
-
-	private void addColumnStats () {
-		final Preference pref = new Preference(getActivity());
-		pref.setTitle("Column stats");
-		pref.setOnPreferenceClickListener(this.columnStatsClickListener);
-		getPreferenceScreen().addPreference(pref);
 	}
 
 	private void addThreadInspector () {
@@ -112,14 +103,6 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		getPreferenceScreen().addPreference(pref);
 	}
 
-	private final OnPreferenceClickListener columnStatsClickListener = new OnPreferenceClickListener() {
-		@Override
-		public boolean onPreferenceClick (final Preference preference) {
-			showColumnStats();
-			return true;
-		}
-	};
-
 	private final OnPreferenceClickListener importClickListener = new OnPreferenceClickListener() {
 		@Override
 		public boolean onPreferenceClick (final Preference preference) {
@@ -151,10 +134,6 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 			return true;
 		}
 	};
-
-	protected void showColumnStats () {
-		startActivity(new Intent(getActivity(), ColumnStatsActivity.class));
-	}
 
 	protected void askImport () {
 		DialogHelper.askYesNo(getActivity(),

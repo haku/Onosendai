@@ -14,7 +14,7 @@
 	<header
 		android:fragment="com.vaguehope.onosendai.ui.pref.FetchingPrefFragment"
 		android:title="Fetching"
-		android:summary="Configure prefetching pictures" />
+		android:summary="Configure fetching" />
 
 	<header
 		android:fragment="com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment"
