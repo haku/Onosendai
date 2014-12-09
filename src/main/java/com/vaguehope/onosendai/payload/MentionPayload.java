@@ -42,7 +42,7 @@ public class MentionPayload extends Payload {
 		this.account = account;
 		this.screenName = screenName;
 		this.fullName = fullName;
-		this.alsoMentions = alsoMentions;
+		this.alsoMentions = (alsoMentions != null && alsoMentions.length > 0) ? alsoMentions : null;
 	}
 
 	@Override
