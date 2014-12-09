@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.net.URLConnection;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -26,13 +27,27 @@ public class HtmlTitleParserTest {
 			+ "</body>\n"
 			+ "</html>\n";
 
+	private URLConnection con;
+
+	@Before
+	public void before () throws Exception {
+		this.con = mock(URLConnection.class);
+		when(this.con.getHeaderField("Content-Type")).thenReturn("Content-Type: text/html; charset=ISO-8859-1");
+	}
+
 	@Test
 	public void itParsesSimpleTitle () throws Exception {
-		final URLConnection con = mock(URLConnection.class);
-		when(con.getHeaderField("Content-Type")).thenReturn("Content-Type: text/html; charset=ISO-8859-1");
+		runTest(SIMPLE_HTML_TITLE, "some title > goes here");
+	}
 
-		assertEquals(new SpannableStringBuilder("some title > goes here"),
-				HtmlTitleParser.INSTANCE.handleStream(con, new ByteArrayInputStream(SIMPLE_HTML_TITLE.getBytes()), SIMPLE_HTML_TITLE.length()));
+	@Test
+	public void itParsesSimpleTitleInIncompleteHtml () throws Exception {
+		runTest(SIMPLE_HTML_TITLE.substring(0, SIMPLE_HTML_TITLE.length() - 10), "some title > goes here");
+	}
+
+	private void runTest (final String body, final String expectedTitle) throws Exception {
+		assertEquals(new SpannableStringBuilder(expectedTitle),
+				HtmlTitleParser.INSTANCE.handleStream(this.con, new ByteArrayInputStream(body.getBytes()), body.length()));
 	}
 
 }
