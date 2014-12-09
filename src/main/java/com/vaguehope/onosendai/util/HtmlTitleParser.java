@@ -31,7 +31,9 @@ public enum HtmlTitleParser implements HttpStreamHandler<Spanned> {
 		try {
 			final HtmlTitleHandler h = new HtmlTitleHandler();
 			SAXParserImpl.newInstance(null).parse(new InputSource(new StringReader(IoHelper.toString(is, MAX_SEARCH_LENGTH, charset))), h);
-			return Html.fromHtml(h.getTitle());
+			final String title = h.getTitle();
+			if (StringHelper.isEmpty(title)) return null;
+			return Html.fromHtml(title);
 		}
 		catch (final SAXException e) {
 			throw new IOException(e.toString(), e);

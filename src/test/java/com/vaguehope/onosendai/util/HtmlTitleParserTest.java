@@ -36,6 +36,11 @@ public class HtmlTitleParserTest {
 	}
 
 	@Test
+	public void itReturnsNullForNotFound () throws Exception {
+		runTest("<html></html>", null);
+	}
+
+	@Test
 	public void itParsesSimpleTitle () throws Exception {
 		runTest(SIMPLE_HTML_TITLE, "some title > goes here");
 	}
@@ -46,7 +51,7 @@ public class HtmlTitleParserTest {
 	}
 
 	private void runTest (final String body, final String expectedTitle) throws Exception {
-		assertEquals(new SpannableStringBuilder(expectedTitle),
+		assertEquals(expectedTitle != null ? new SpannableStringBuilder(expectedTitle) : null,
 				HtmlTitleParser.INSTANCE.handleStream(this.con, new ByteArrayInputStream(body.getBytes()), body.length()));
 	}
 

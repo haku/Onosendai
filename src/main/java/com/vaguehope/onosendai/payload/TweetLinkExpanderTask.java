@@ -81,6 +81,7 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 		INIT,
 		TITLE,
 		TWEET,
+		MSG,
 		FAIL;
 	}
 	private final Map<Meta, Payload> metaToPayload = new HashMap<Meta, Payload>();
@@ -99,6 +100,9 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 				break;
 			case TWEET: // (meta, tweet).
 				displayTweet((Meta) values[1], (Tweet) values[2]);
+				break;
+			case MSG: // (meta, msg).
+				displayError((Meta) values[1], (String) values[2]);
 				break;
 			case FAIL: // (meta, exception).
 				displayError((Meta) values[1], (Exception) values[2]);
@@ -147,10 +151,13 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 	}
 
 	private void displayError (final Meta meta, final Exception exception) {
+		displayError(meta, exception != null ? TaskUtils.getEmsg(exception) : "Error: null exception.");
+	}
+
+	private void displayError (final Meta meta, final String msg) {
 		final Payload placeHolder = this.metaToPayload.get(meta);
 		if (placeHolder == null) throw new IllegalStateException("No cached placeholder for " + meta);
 
-		final String msg = exception != null ? TaskUtils.getEmsg(exception) : "Error: null exception.";
 		this.payloadListAdapter.replaceItem(placeHolder, new PlaceholderPayload(this.tweet, msg));
 	}
 
@@ -159,7 +166,12 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 		try {
 			// TODO some form of caching of titles?
 			final CharSequence title = HttpHelper.get(meta.getData(), HtmlTitleParser.INSTANCE);
-			publishProgress(Prg.TITLE, meta, title);
+			if (title != null) {
+				publishProgress(Prg.TITLE, meta, title);
+			}
+			else {
+				publishProgress(Prg.MSG, meta, "Title not found.");
+			}
 		}
 		catch (final Exception e) {
 			LOG.w("Failed to retrieve title: %s", e.toString());
