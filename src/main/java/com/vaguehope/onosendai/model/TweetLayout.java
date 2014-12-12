@@ -15,7 +15,7 @@ public enum TweetLayout {
 
 	MAIN(0, R.layout.tweetlistrow) {
 		@Override
-		public TweetRowView makeRowView (final View view) {
+		public TweetRowView makeRowView (final View view, final TweetListViewState tweetListViewState) {
 			return new TweetRowView(
 					(ImageView) view.findViewById(R.id.imgMain),
 					(TextView) view.findViewById(R.id.txtTweet),
@@ -66,12 +66,14 @@ public enum TweetLayout {
 	},
 	INLINE_MEDIA(1, R.layout.tweetlistinlinemediarow) {
 		@Override
-		public TweetRowView makeRowView (final View view) {
+		public TweetRowView makeRowView (final View view, final TweetListViewState tweetListViewState) {
+			final PendingImage pendingImage = (PendingImage) view.findViewById(R.id.imgMedia);
+			pendingImage.setExpandedTracker(tweetListViewState.getExpandedImagesTracker());
 			return new TweetRowView(
 					(ImageView) view.findViewById(R.id.imgMain),
 					(TextView) view.findViewById(R.id.txtTweet),
 					(TextView) view.findViewById(R.id.txtName),
-					(PendingImage) view.findViewById(R.id.imgMedia)
+					pendingImage
 			);
 		}
 
@@ -89,8 +91,10 @@ public enum TweetLayout {
 	},
 	SEAMLESS_MEDIA(2, R.layout.tweetlistseamlessmediarow) {
 		@Override
-		public TweetRowView makeRowView (final View view) {
-			return new TweetRowView((PendingImage) view.findViewById(R.id.imgMedia));
+		public TweetRowView makeRowView (final View view, final TweetListViewState tweetListViewState) {
+			final PendingImage pendingImage = (PendingImage) view.findViewById(R.id.imgMedia);
+			pendingImage.setExpandedTracker(tweetListViewState.getExpandedImagesTracker());
+			return new TweetRowView(pendingImage);
 		}
 
 		@Override
@@ -129,7 +133,7 @@ public enum TweetLayout {
 		return this.layout;
 	}
 
-	public abstract TweetRowView makeRowView (final View view);
+	public abstract TweetRowView makeRowView (final View view, final TweetListViewState tweetListViewState);
 
 	public abstract void applyTweetTo (Tweet item, TweetRowView rowView, ImageLoader imageLoader, int reqWidth);
 
