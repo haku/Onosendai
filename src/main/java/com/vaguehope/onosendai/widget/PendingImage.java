@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoadRequest.ImageLoadListener;
+import com.vaguehope.onosendai.util.MutableState;
 
 public class PendingImage extends FrameLayout {
 
@@ -67,16 +68,27 @@ public class PendingImage extends FrameLayout {
 		return this.imageLoadListener;
 	}
 
+	public void setExpandedTracker (final MutableState<String, Boolean> expandedTracker) {
+		this.imageLoadListener.setExpandedTracker(expandedTracker);
+		this.image.setExpandedTracker(expandedTracker);
+	}
+
 	private static class ExpandingImageLoadListener implements ImageLoadListener {
 
 		private final ExpandingFixedWidthImageView image;
 		private final TextView status;
 		private final ProgressBar prg;
 
+		private MutableState<String, Boolean> expandedTracker;
+
 		public ExpandingImageLoadListener (final ExpandingFixedWidthImageView image, final TextView status, final ProgressBar prg) {
 			this.image = image;
 			this.status = status;
 			this.prg = prg;
+		}
+
+		public void setExpandedTracker (final MutableState<String, Boolean> expandedTracker) {
+			this.expandedTracker = expandedTracker;
 		}
 
 		@Override
@@ -110,7 +122,8 @@ public class PendingImage extends FrameLayout {
 
 		@Override
 		public void imagePreShow (final ImageLoadRequest req) {
-			this.image.resetImageView();
+			final Boolean expanded = this.expandedTracker != null ? this.expandedTracker.get(req.getUrl()) : null;
+			this.image.setExpanded(expanded != null ? expanded : false);
 		}
 
 		@Override
@@ -133,11 +146,17 @@ public class PendingImage extends FrameLayout {
 		private final TextView status;
 		private final int maxHeightPixels;
 
+		private final GoFullHeightListener goFullHeightClickListener = new GoFullHeightListener(this);
+
 		public ExpandingFixedWidthImageView (final Context context, final ProgressBar prg, final TextView status, final int maxHeightPixels) {
 			super(context);
 			this.status = status;
 			this.maxHeightPixels = maxHeightPixels;
 			this.prg = prg;
+		}
+
+		public void setExpandedTracker (final MutableState<String, Boolean> expandedTracker) {
+			this.goFullHeightClickListener.setExpandedTracker(expandedTracker);
 		}
 
 		public void setupImageView () {
@@ -149,8 +168,15 @@ public class PendingImage extends FrameLayout {
 			}
 		}
 
-		public void resetImageView () {
-			if (this.maxHeightPixels > 0) setImageLimitedHeight();
+		public void setExpanded (final boolean expanded) {
+			if (this.maxHeightPixels > 0) {
+				if (expanded) {
+					setImageFullHeight();
+				}
+				else {
+					setImageLimitedHeight();
+				}
+			}
 		}
 
 		public void setImageLimitedHeight () {
@@ -158,7 +184,7 @@ public class PendingImage extends FrameLayout {
 			setScaleType(ScaleType.CENTER_CROP);
 			setMaxHeight(this.maxHeightPixels);
 			setClickable(true);
-			setOnClickListener(new GoFullHeightListener(this));
+			setOnClickListener(this.goFullHeightClickListener);
 		}
 
 		public void setImageFullHeight () {
@@ -187,7 +213,7 @@ public class PendingImage extends FrameLayout {
 				this.status.setVisibility(View.VISIBLE);
 			}
 			else {
-				resetImageView();
+				setExpanded(false);
 				super.setImageResource(resId);
 				setVisibility(View.VISIBLE);
 				this.prg.setVisibility(View.GONE);
@@ -201,13 +227,24 @@ public class PendingImage extends FrameLayout {
 
 		private final ExpandingFixedWidthImageView image;
 
+		private MutableState<String, Boolean> expandedTracker;
+
 		public GoFullHeightListener (final ExpandingFixedWidthImageView image) {
 			this.image = image;
+		}
+
+		public void setExpandedTracker (final MutableState<String, Boolean> expandedTracker) {
+			this.expandedTracker = expandedTracker;
 		}
 
 		@Override
 		public void onClick (final View v) {
 			this.image.setImageFullHeight();
+
+			if (this.expandedTracker != null) {
+				final String url = (String) this.image.getTag(R.id.imageLoaded);
+				if (url != null) this.expandedTracker.put(url, Boolean.TRUE);
+			}
 		}
 
 	}

@@ -15,6 +15,8 @@ public class TweetListAdapter extends BaseAdapter {
 	private final View listView;
 	private final LayoutInflater layoutInflater;
 
+	private final TweetListViewState tweetListViewState = new TweetListViewState();
+
 	private TweetList listData;
 
 	public TweetListAdapter (final Context context, final boolean showInlineMedia, final ImageLoader imageLoader, final View listView) {
@@ -75,7 +77,7 @@ public class TweetListAdapter extends BaseAdapter {
 		TweetRowView rowView;
 		if (view == null) {
 			view = this.layoutInflater.inflate(layoutType.getLayout(), null);
-			rowView = layoutType.makeRowView(view);
+			rowView = layoutType.makeRowView(view, this.tweetListViewState);
 			view.setTag(rowView);
 		}
 		else {
