@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
@@ -35,8 +36,8 @@ public class LocalSearchDialog {
 		void onTweet (int colId, Tweet tweet);
 	}
 
-	public static void show (final Context context, final DbProvider dbProvider, final ImageLoader imageLoader, final OnTweetListener onTweetListener) {
-		final LocalSearchDialog lsDlg = new LocalSearchDialog(context, dbProvider, imageLoader, onTweetListener);
+	public static void show (final Context context, final Config conf, final DbProvider dbProvider, final ImageLoader imageLoader, final OnTweetListener onTweetListener) {
+		final LocalSearchDialog lsDlg = new LocalSearchDialog(context, conf, dbProvider, imageLoader, onTweetListener);
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(context);
 		dlgBuilder.setView(lsDlg.getRootView());
 		final AlertDialog dlg = dlgBuilder.create();
@@ -45,14 +46,17 @@ public class LocalSearchDialog {
 	}
 
 	private final Context context;
+	private final Config conf;
 	private final DbProvider dbProvider;
 	private final View llParent;
 	private final EditText txtSearch;
 	private final TweetListAdapter tweetAdaptor;
+
 	private Dialog dialog;
 
-	private LocalSearchDialog (final Context context, final DbProvider dbProvider, final ImageLoader imageLoader, final OnTweetListener onTweetListener) {
+	private LocalSearchDialog (final Context context, final Config conf, final DbProvider dbProvider, final ImageLoader imageLoader, final OnTweetListener onTweetListener) {
 		this.context = context;
+		this.conf = conf;
 		this.dbProvider = dbProvider;
 		final LayoutInflater inflater = LayoutInflater.from(context);
 		this.llParent = inflater.inflate(R.layout.localsearch, null);
@@ -116,7 +120,7 @@ public class LocalSearchDialog {
 		@Override
 		protected Result<TweetList> doInBackground (final Void... params) {
 			try {
-				final List<Tweet> tweets = this.dlg.dbProvider.getDb().searchTweets(this.searchTerm, 50);
+				final List<Tweet> tweets = this.dlg.dbProvider.getDb().searchTweets(this.searchTerm, this.dlg.conf.getColumns(), 50);
 				return new Result<TweetList>(new TweetList(tweets));
 			}
 			catch (final Exception e) { // NOSONAR needed to report errors.

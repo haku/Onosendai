@@ -604,7 +604,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	}
 
 	private void showLocalSearch () {
-		LocalSearchDialog.show(getActivity(), this, getMainActivity(), new OnTweetListener() {
+		LocalSearchDialog.show(getActivity(), getConf(), this, getMainActivity(), new OnTweetListener() {
 			@Override
 			public void onTweet (final int colId, final Tweet tweet) {
 				getMainActivity().gotoTweet(colId, tweet);
