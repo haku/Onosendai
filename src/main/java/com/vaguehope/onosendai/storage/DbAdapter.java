@@ -467,9 +467,60 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public List<Tweet> searchTweets (final String searchTerm, final int numberOf) {
-		return getTweets(TBL_TW_BODY + " LIKE ? ESCAPE ? COLLATE NOCASE",
-				new String[] { "%" + escapeSearch(searchTerm) + "%", SEARCH_ESC },
+	public List<Tweet> searchTweets (final String searchTerm, final List<Column> columns, final int numberOf) {
+		// WHERE body LIKE ? ESCAPE ? COLLATE NOCASE
+		//   AND (
+		//          (colid=? [AND sid NOT IN (SELECT sid FROM tw WHERE colid=? [OR colid=?]]))
+		//     [ OR (colid=? [AND sid NOT IN (SELECT sid FROM tw WHERE colid=? [OR colid=?]]))]
+		//   )
+
+		final StringBuilder where = new StringBuilder()
+				.append(TBL_TW_BODY).append(" LIKE ? ESCAPE ? COLLATE NOCASE");
+		final List<String> whereArgs = new ArrayList<String>();
+		whereArgs.add("%" + escapeSearch(searchTerm) + "%");
+		whereArgs.add(SEARCH_ESC);
+
+		if (columns != null && columns.size() > 0) {
+			int columnI = -1;
+			for (final Column column : columns) {
+				final Set<Integer> excludeColumnIds = column.getExcludeColumnIds();
+
+				columnI++;
+				if (columnI == 0) {
+					where.append(" AND (");
+				}
+				else {
+					where.append(" OR");
+				}
+
+				where.append(" (")
+						.append(TBL_TW_COLID).append("=?");
+				whereArgs.add(String.valueOf(column.getId()));
+
+				if (excludeColumnIds != null && excludeColumnIds.size() > 0) {
+					where.append(" AND ").append(TBL_TW_SID)
+					.append(" NOT IN (SELECT ").append(TBL_TW_SID)
+					.append(" FROM ").append(TBL_TW)
+					.append(" WHERE ");
+
+					int excludeI = 0;
+					for (final Integer id : excludeColumnIds) {
+						if (excludeI > 0) where.append(" OR ");
+						where.append(TBL_TW_COLID).append("=?");
+						whereArgs.add(String.valueOf(id));
+						excludeI++;
+					}
+					where.append(")");
+				}
+
+				where.append(")");
+			}
+			if (columnI >= 0) where.append(")");
+		}
+
+		//this.log.i("search: %s %s", where, whereArgs);
+
+		return getTweets(where.toString(), whereArgs.toArray(new String[whereArgs.size()]),
 				TBL_TW_TIME + " desc", numberOf, true);
 	}
 
