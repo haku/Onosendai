@@ -26,7 +26,7 @@ import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 
 public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void> {
 
-	private static final Pattern TWEET_URL = Pattern.compile("^https?://twitter.com/([^/]+)/status/([^/]+)$");
+	private static final Pattern TWEET_URL = Pattern.compile("^https?://(?:mobile\\.)?twitter.com/([^/]+)/status/([^/]+)$");
 	private static final LogWrapper LOG = new LogWrapper("LE");
 
 	public static void checkAndRun (final ExecutorEventListener eventListener, final Context context, final ProviderMgr provMgr, final Tweet tweet, final boolean hdMedia, final Account account, final PayloadListAdapter payloadListAdapter, final Executor es) {
