@@ -6,6 +6,7 @@ import java.util.Set;
 import android.database.Cursor;
 
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.OutboxTweet;
 import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
@@ -16,6 +17,7 @@ public interface DbInterface extends KvStore {
 
 	void storeTweets(Column column, List<Tweet> tweets);
 	void storeTweets(int columnId, List<Tweet> tweets);
+	void appendToTweet(Tweet tweet, Meta meta);
 	void deleteTweet(Column column, Tweet tweet);
 	void deleteTweets(Column column);
 
@@ -27,6 +29,7 @@ public interface DbInterface extends KvStore {
 	Cursor getTweetsCursor(int columnId, Set<Integer> excludeColumnIds, boolean withInlineMediaOnly);
 
 	List<Tweet> getTweetsSinceTime (final int columnId, final long earliestTime, final int numberOf);
+	List<Tweet> getTweetsWithSid (String sid);
 	List<Tweet> findTweetsWithMeta (MetaType metaType, String data, final int numberOf);
 	List<Tweet> searchTweets(String searchTerm, List<Column> columns, int numberOf);
 

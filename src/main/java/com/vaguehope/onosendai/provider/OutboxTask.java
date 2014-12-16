@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.provider;
 
+import java.util.concurrent.TimeUnit;
+
 import twitter4j.TwitterException;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -10,7 +12,10 @@ import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.OutboxTweet.OutboxAction;
+import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.OutboxTask.OtRequest;
 import com.vaguehope.onosendai.provider.successwhale.ItemAction;
@@ -61,7 +66,7 @@ public class OutboxTask extends DbBindingAsyncTask<Void, Void, SendResult<OtRequ
 		LOG.i("%s: %s", this.req.getAction().getUiVerb(), this.req);
 		switch (this.req.getAccount().getProvider()) {
 			case TWITTER:
-				return viaTwitter();
+				return viaTwitter(db);
 			case SUCCESSWHALE:
 				return viaSuccessWhale(db);
 			default:
@@ -69,7 +74,7 @@ public class OutboxTask extends DbBindingAsyncTask<Void, Void, SendResult<OtRequ
 		}
 	}
 
-	private SendResult<OtRequest> viaTwitter () {
+	private SendResult<OtRequest> viaTwitter (final DbInterface db) {
 		final TwitterProvider p = new TwitterProvider();
 		try {
 			switch (this.req.getAction()) {
@@ -84,6 +89,7 @@ public class OutboxTask extends DbBindingAsyncTask<Void, Void, SendResult<OtRequ
 				case DELETE:
 					p.delete(this.req.getAccount(), Long.parseLong(this.req.getSid()));
 					LOG.i("Deleted tweet: editSid=%s", this.req.getSid());
+					markAsDeleted(db);
 					return new SendResult<OtRequest>(this.req);
 				default:
 					return new SendResult<OtRequest>(this.req, new UnsupportedOperationException("Do not know how to " + this.req.getAction().getUiTitle() + " via account type: " + this.req.getAccount().getUiTitle()));
@@ -118,6 +124,7 @@ public class OutboxTask extends DbBindingAsyncTask<Void, Void, SendResult<OtRequ
 								case DELETE:
 									p.itemAction(this.req.getAccount(), svc, this.req.getSid(), ItemAction.DELETE_TWITTER);
 									LOG.i("Deleted SW tweet: editSid=%s", this.req.getSid());
+									markAsDeleted(db);
 									return new SendResult<OtRequest>(this.req);
 								default:
 									return new SendResult<OtRequest>(this.req, new UnsupportedOperationException("Do not know how to " + this.req.getAction().getUiTitle() + " via account type: " + this.req.getAccount().getUiTitle()));
@@ -131,6 +138,7 @@ public class OutboxTask extends DbBindingAsyncTask<Void, Void, SendResult<OtRequ
 								case DELETE:
 									p.itemAction(this.req.getAccount(), svc, this.req.getSid(), ItemAction.DELETE_FACEBOOK);
 									LOG.i("Deleted FB update: editSid=%s", this.req.getSid());
+									markAsDeleted(db);
 									return new SendResult<OtRequest>(this.req);
 								default:
 									return new SendResult<OtRequest>(this.req, new UnsupportedOperationException("Do not know how to " + this.req.getAction().getUiTitle() + " via account type: " + this.req.getAccount().getUiTitle()));
@@ -148,6 +156,14 @@ public class OutboxTask extends DbBindingAsyncTask<Void, Void, SendResult<OtRequ
 		}
 		finally {
 			p.shutdown();
+		}
+	}
+
+	private void markAsDeleted (final DbInterface db) {
+		final Meta meta = new Meta(MetaType.DELETED, TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()));
+		for (final Tweet t : db.getTweetsWithSid(this.req.getSid())) {
+			db.appendToTweet(t, meta);
+			LOG.i("Marked as deleted: uid=%s sid=%s", t.getUid(), this.req.getSid());
 		}
 	}
 

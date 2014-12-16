@@ -10,6 +10,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.OutboxTweet;
 import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
@@ -72,6 +73,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public void appendToTweet (final Tweet tweet, final Meta meta) {
+		this.dbAdaptor.appendToTweet(tweet, meta);
+	}
+
+	@Override
 	public void deleteTweet (final Column column, final Tweet tweet) {
 		this.dbAdaptor.deleteTweet(column, tweet);
 	}
@@ -109,6 +115,11 @@ public class DbService extends Service implements DbInterface {
 	@Override
 	public List<Tweet> getTweetsSinceTime (final int columnId, final long earliestTime, final int numberOf) {
 		return this.dbAdaptor.getTweetsSinceTime(columnId, earliestTime, numberOf);
+	}
+
+	@Override
+	public List<Tweet> getTweetsWithSid (final String sid) {
+		return this.dbAdaptor.getTweetsWithSid(sid);
 	}
 
 	@Override
