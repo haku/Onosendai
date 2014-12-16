@@ -50,6 +50,12 @@ public enum MetaType {
 	 */
 	EDIT_SID(10),
 	/**
+	 * This tweet has been successfully deleted.
+	 * Data is the utime in seconds of when it was deleted.
+	 * Title is unused.
+	 */
+	DELETED(11),
+	/**
 	 * This is hack that will never be in the DB.
 	 * This is to attach the source column ID to search results.
 	 */
@@ -87,6 +93,8 @@ public enum MetaType {
 				return POST_TIME;
 			case 10: // NOSONAR 10 is not magical.
 				return EDIT_SID;
+			case 11: // NOSONAR 11 is not magical.
+				return DELETED;
 			case 90:// NOSONAR 90 is not that magical.
 				return COLUMN_ID;
 			default:

@@ -291,6 +291,23 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public void appendToTweet (final Tweet tweet, final Meta meta) {
+		final ContentValues values = new ContentValues();
+		this.mDb.beginTransaction();
+		try {
+			values.put(TBL_TM_TWID, tweet.getUid());
+			values.put(TBL_TM_TYPE, meta.getType().getId());
+			values.put(TBL_TM_DATA, meta.getData());
+			if (meta.getTitle() != null) values.put(TBL_TM_TITLE, meta.getTitle());
+			this.mDb.insertWithOnConflict(TBL_TM, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+	}
+
+	@Override
 	public void deleteTweet (final Column column, final Tweet tweet) {
 		this.mDb.beginTransaction();
 		try {
@@ -386,6 +403,11 @@ public class DbAdapter implements DbInterface {
 				new String[] { String.valueOf(columnId), String.valueOf(earliestTime) },
 				TBL_TW_TIME + " asc",
 				numberOf, false);
+	}
+
+	@Override
+	public List<Tweet> getTweetsWithSid (final String sid) {
+		return getTweets(TBL_TW_SID + "=?", new String[] { sid }, TBL_TW_TIME + " asc", -1, false);
 	}
 
 	private List<Tweet> getTweets (final String where, final String[] whereArgs, final String orderBy, final int numberOf, final boolean addColumMeta) {

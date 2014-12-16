@@ -1,11 +1,14 @@
 package com.vaguehope.onosendai.payload;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -93,6 +96,9 @@ public final class PayloadUtils {
 				return new LinkPayload(tweet, meta);
 			case EDIT_SID:
 				return new EditPayload(tweet, meta);
+			case DELETED:
+				return new PlaceholderPayload(tweet, String.format("Deleted at %s.",
+						DateFormat.getDateTimeInstance().format(new Date(TimeUnit.SECONDS.toMillis(meta.toLong(0L))))));
 			case INREPLYTO:
 			case SERVICE:
 			case ACCOUNT:
