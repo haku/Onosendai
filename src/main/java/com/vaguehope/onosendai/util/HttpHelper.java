@@ -49,6 +49,32 @@ public final class HttpHelper {
 
 	}
 
+	public static class FinalUrlHandler<R> implements HttpStreamHandler<R> {
+
+		private final HttpStreamHandler<R> delagate;
+		private URL url;
+
+		public FinalUrlHandler (final HttpStreamHandler<R> delagate) {
+			this.delagate = delagate;
+		}
+
+		public URL getUrl () {
+			return this.url;
+		}
+
+		@Override
+		public void onError (final Exception e) {
+			this.delagate.onError(e);
+		}
+
+		@Override
+		public R handleStream (final URLConnection connection, final InputStream is, final int contentLength) throws IOException {
+			this.url = connection.getURL();
+			return this.delagate.handleStream(connection, is, contentLength);
+		}
+
+	}
+
 	private HttpHelper () {
 		throw new AssertionError();
 	}
