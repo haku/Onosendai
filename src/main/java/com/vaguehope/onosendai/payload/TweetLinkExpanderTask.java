@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.payload;
 
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +10,7 @@ import java.util.regex.Pattern;
 
 import twitter4j.TwitterException;
 import android.content.Context;
+import android.text.Spanned;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
@@ -21,6 +23,7 @@ import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.HtmlTitleParser;
 import com.vaguehope.onosendai.util.HttpHelper;
+import com.vaguehope.onosendai.util.HttpHelper.FinalUrlHandler;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 
@@ -79,7 +82,7 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 
 	private enum Prg {
 		INIT,
-		TITLE,
+		URL_AND_TITLE,
 		TWEET,
 		MSG,
 		FAIL;
@@ -95,8 +98,8 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 			case INIT: // (meta, msg).
 				displayPlaceholder((Meta) values[1], (String) values[2]);
 				break;
-			case TITLE: // (meta, title).
-				displayLinkTitle((Meta) values[1], (CharSequence) values[2]);
+			case URL_AND_TITLE: // (meta, url, title).
+				displayLinkTitle((Meta) values[1], (URL) values[2], (CharSequence) values[3]);
 				break;
 			case TWEET: // (meta, tweet).
 				displayTweet((Meta) values[1], (Tweet) values[2]);
@@ -124,13 +127,14 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 		}
 	}
 
-	private void displayLinkTitle (final Meta meta, final CharSequence title) {
+	private void displayLinkTitle (final Meta meta, final URL finalUrl, final CharSequence title) {
 		final Payload placeHolder = this.metaToPayload.get(meta);
 		if (placeHolder == null) throw new IllegalStateException("No cached placeholder for " + meta);
 
 		final Payload linkPayload = this.payloadListAdapter.findForMeta(meta);
 		if (linkPayload != null) {
-			this.payloadListAdapter.replaceItem(linkPayload, new LinkPayload(this.tweet, meta, title));
+			final String url = finalUrl != null ? finalUrl.toExternalForm() : meta.getData();
+			this.payloadListAdapter.replaceItem(linkPayload, new LinkPayload(this.tweet, meta, url, title));
 			this.payloadListAdapter.removeItem(placeHolder);
 		}
 		else {
@@ -165,9 +169,10 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 		publishProgress(Prg.INIT, meta, "Fetching title...");
 		try {
 			// TODO some form of caching of titles?
-			final CharSequence title = HttpHelper.get(meta.getData(), HtmlTitleParser.INSTANCE);
+			final FinalUrlHandler<Spanned> handler = new FinalUrlHandler<Spanned>(HtmlTitleParser.INSTANCE);
+			final CharSequence title = HttpHelper.get(meta.getData(), handler);
 			if (title != null) {
-				publishProgress(Prg.TITLE, meta, title);
+				publishProgress(Prg.URL_AND_TITLE, meta, handler.getUrl(), title);
 			}
 			else {
 				publishProgress(Prg.MSG, meta, "Title not found.");

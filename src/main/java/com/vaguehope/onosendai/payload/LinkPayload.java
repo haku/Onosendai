@@ -21,15 +21,11 @@ public class LinkPayload extends Payload {
 		this(ownerTweet, meta, meta.getData(), meta.getTitle());
 	}
 
-	public LinkPayload (final Tweet ownerTweet, final Meta meta, final CharSequence altTitle) {
-		this(ownerTweet, meta, meta.getData(), altTitle);
-	}
-
 	public LinkPayload (final Tweet ownerTweet, final String url) {
 		this(ownerTweet, null, url, null);
 	}
 
-	private LinkPayload (final Tweet ownerTweet, final Meta meta, final String url, final CharSequence title) {
+	public LinkPayload (final Tweet ownerTweet, final Meta meta, final String url, final CharSequence title) {
 		super(ownerTweet, meta, PayloadType.LINK);
 		this.url = url;
 		this.title = title != null ? title : url;
