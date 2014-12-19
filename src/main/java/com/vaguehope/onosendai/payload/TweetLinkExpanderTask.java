@@ -8,7 +8,6 @@ import java.util.concurrent.Executor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import twitter4j.TwitterException;
 import android.content.Context;
 import android.text.Spanned;
 
@@ -29,7 +28,7 @@ import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 
 public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void> {
 
-	private static final Pattern TWEET_URL = Pattern.compile("^https?://(?:mobile\\.)?twitter.com/([^/]+)/status/([^/]+)$");
+	private static final Pattern TWEET_URL = Pattern.compile("^https?://(?:mobile\\.)?twitter.com/([^/]+)/status/([0-9]+)[^/]*$");
 	private static final LogWrapper LOG = new LogWrapper("LE");
 
 	public static void checkAndRun (final ExecutorEventListener eventListener, final Context context, final ProviderMgr provMgr, final Tweet tweet, final boolean hdMedia, final Account account, final PayloadListAdapter payloadListAdapter, final Executor es) {
@@ -210,7 +209,7 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 			}
 			publishProgress(Prg.TWEET, meta, linkedTweet);
 		}
-		catch (final TwitterException e) {
+		catch (final Exception e) { // NOSONAR report all errors to UI.
 			LOG.w("Failed to retrieve tweet %s: %s", linkedTweetSid, e.toString());
 			publishProgress(Prg.FAIL, meta, e);
 		}
