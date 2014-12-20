@@ -2,6 +2,8 @@ package com.vaguehope.onosendai.ui;
 
 import java.io.File;
 
+import org.json.JSONException;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -29,7 +31,8 @@ import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumnsFetcher;
 import com.vaguehope.onosendai.provider.twitter.TwitterColumnFactory;
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard;
-import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthCallback;
+import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthComplete;
+import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -136,22 +139,29 @@ public class SetupActivity extends Activity {
 
 	private void initTwitterOauthWizard () {
 		if (this.twitterOauthWizard != null) return;
-		this.twitterOauthWizard = new TwitterOauthWizard(this, getPrefs(), new TwitterOauthCallback() {
+		this.twitterOauthWizard = new TwitterOauthWizard(this, new TwitterOauthHelper() {
 			@Override
 			public void deligateStartActivityForResult (final Intent intent, final int requestCode) {
 				startActivityForResult(intent, requestCode);
-			}
-
-			@Override
-			public void onAccountAdded (final Account account) {
-				onTwitterAccountAdded(account);
 			}
 		});
 	}
 
 	private void doTwitter () {
 		initTwitterOauthWizard();
-		this.twitterOauthWizard.start();
+		this.twitterOauthWizard.start(new TwitterOauthComplete() {
+			@Override
+			public String getAccountId () {
+				return SetupActivity.this.prefs.getNextAccountId();
+			}
+
+			@Override
+			public void onAccount (final Account account, final String screenName) throws JSONException {
+				SetupActivity.this.prefs.writeNewAccount(account);
+				DialogHelper.alert(SetupActivity.this, "Twitter account added:\n" + screenName);
+				onTwitterAccountAdded(account);
+			}
+		});
 	}
 
 	@Override

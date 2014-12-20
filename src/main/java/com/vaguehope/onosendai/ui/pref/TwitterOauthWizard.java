@@ -1,5 +1,11 @@
 package com.vaguehope.onosendai.ui.pref;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.json.JSONException;
+
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
@@ -8,12 +14,12 @@ import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
-import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.twitter.TwitterOauth;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -21,42 +27,48 @@ import com.vaguehope.onosendai.util.Result;
 
 public class TwitterOauthWizard {
 
-	private static final int INTERNAL_REQUEST_CODE = 100; // Just a constant number.
 	private static final LogWrapper LOG = new LogWrapper("TOW");
 
-	private final Activity activity;
-	private final Prefs prefs;
-	private final TwitterOauthCallback callback;
+	private final Context context;
+	private final TwitterOauthHelper helperCallback;
 
 	private Configuration twitterConfiguration;
 	private Twitter twitter;
 	private RequestToken requestToken;
 
-	public interface TwitterOauthCallback {
-		void onAccountAdded (Account account);
+	public interface TwitterOauthHelper {
 		void deligateStartActivityForResult (Intent intent, int requestCode);
 	}
 
-	public TwitterOauthWizard (final Activity activity, final Prefs prefs, final TwitterOauthCallback callback) {
-		this.activity = activity;
-		this.prefs = prefs;
-		this.callback = callback;
+	public interface TwitterOauthComplete {
+		String getAccountId ();
+		void onAccount (Account account, String screenName) throws JSONException;
 	}
 
-	public void start () {
-		new TwitterOauthInitTask(this).execute();
+	private final AtomicInteger requestCode = new AtomicInteger(100);
+	private final Map<Integer, TwitterOauthComplete> completeCallbacks = new ConcurrentHashMap<Integer, TwitterOauthWizard.TwitterOauthComplete>();
+
+	public TwitterOauthWizard (final Context context, final TwitterOauthHelper helperCallback) {
+		this.context = context;
+		this.helperCallback = helperCallback;
+	}
+
+	public void start (final TwitterOauthComplete completeCallback) {
+		final int requestCode = Integer.valueOf(this.requestCode.incrementAndGet());
+		this.completeCallbacks.put(requestCode, completeCallback);
+		new TwitterOauthInitTask(this, requestCode).execute();
 	}
 
 	protected static LogWrapper getLog () {
 		return LOG;
 	}
 
-	protected Activity getActivity () {
-		return this.activity;
+	protected Context getContext () {
+		return this.context;
 	}
 
-	protected TwitterOauthCallback getCallback () {
-		return this.callback;
+	public TwitterOauthHelper getHelperCallback () {
+		return this.helperCallback;
 	}
 
 	private Configuration getTwitterConfiguration () {
@@ -93,15 +105,17 @@ public class TwitterOauthWizard {
 	private static class TwitterOauthInitTask extends AsyncTask<Void, Void, Result<RequestToken>> {
 
 		private final TwitterOauthWizard host;
+		private final Integer requestCode;
 		private ProgressDialog dialog;
 
-		public TwitterOauthInitTask (final TwitterOauthWizard host) {
+		public TwitterOauthInitTask (final TwitterOauthWizard host, final Integer requestCode) {
 			this.host = host;
+			this.requestCode = requestCode;
 		}
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.host.getActivity(), "Onosendai", "Starting Oauth...", true);
+			this.dialog = ProgressDialog.show(this.host.getContext(), "Onosendai", "Starting Oauth...", true);
 		}
 
 		@Override
@@ -118,15 +132,15 @@ public class TwitterOauthWizard {
 		protected void onPostExecute (final Result<RequestToken> result) {
 			this.dialog.dismiss();
 			if (result.isSuccess()) {
-				final Intent intent = new Intent(this.host.getActivity(), TwitterLoginActivity.class);
+				final Intent intent = new Intent(this.host.getContext(), TwitterLoginActivity.class);
 				final RequestToken requtestToken = result.getData();
 				this.host.stashRequestToken(requtestToken);
 				intent.putExtra(TwitterOauth.IEXTRA_AUTH_URL, requtestToken.getAuthorizationURL());
-				this.host.getCallback().deligateStartActivityForResult(intent, INTERNAL_REQUEST_CODE);
+				this.host.getHelperCallback().deligateStartActivityForResult(intent, this.requestCode);
 			}
 			else {
 				getLog().e("Failed to init OAuth.", result.getE());
-				DialogHelper.alert(this.host.getActivity(), result.getE());
+				DialogHelper.alert(this.host.getContext(), result.getE());
 			}
 		}
 
@@ -134,13 +148,14 @@ public class TwitterOauthWizard {
 
 	public void onActivityResult (final int requestCode, final int resultCode, final Intent intent) {
 		LOG.d("onActivityResult(%d, %d, %s)", requestCode, resultCode, intent);
-		if (requestCode == INTERNAL_REQUEST_CODE) {
+		final TwitterOauthComplete completeCallback = this.completeCallbacks.get(Integer.valueOf(requestCode));
+		if (completeCallback != null) {
 			if (resultCode == Activity.RESULT_OK) {
 				final String oauthVerifier = intent.getExtras().getString(TwitterOauth.IEXTRA_OAUTH_VERIFIER);
-				new TwitterOauthPostTask(this, oauthVerifier).execute();
+				new TwitterOauthPostTask(this, oauthVerifier, completeCallback).execute();
 			}
 			else if (resultCode == Activity.RESULT_CANCELED) {
-				DialogHelper.alert(getActivity(), "Twitter auth canceled.");
+				DialogHelper.alert(getContext(), "Twitter auth canceled.");
 			}
 		}
 	}
@@ -149,16 +164,18 @@ public class TwitterOauthWizard {
 
 		private final TwitterOauthWizard host;
 		private final String oauthVerifier;
+		private final TwitterOauthComplete completeCallback;
 		private ProgressDialog dialog;
 
-		public TwitterOauthPostTask (final TwitterOauthWizard host, final String oauthVerifier) {
+		public TwitterOauthPostTask (final TwitterOauthWizard host, final String oauthVerifier, final TwitterOauthComplete completeCallback) {
 			this.host = host;
 			this.oauthVerifier = oauthVerifier;
+			this.completeCallback = completeCallback;
 		}
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.host.getActivity(), "Onosendai", "Completing Oauth...", true);
+			this.dialog = ProgressDialog.show(this.host.getContext(), "Onosendai", "Completing Oauth...", true);
 		}
 
 		@Override
@@ -176,30 +193,27 @@ public class TwitterOauthWizard {
 		protected void onPostExecute (final Result<AccessToken> result) {
 			this.dialog.dismiss();
 			if (result.isSuccess()) {
-				this.host.onGotTwitterAccessToken(result.getData());
+				this.host.onGotTwitterAccessToken(result.getData(), this.completeCallback);
 			}
 			else {
 				getLog().e("Failed to complete OAuth.", result.getE());
-				DialogHelper.alert(this.host.getActivity(), result.getE());
+				DialogHelper.alert(this.host.getContext(), result.getE());
 			}
 		}
 
 	}
 
-	protected void onGotTwitterAccessToken (final AccessToken accessToken) {
+	protected void onGotTwitterAccessToken (final AccessToken accessToken, final TwitterOauthComplete completeCallback) {
 		try {
 			LOG.i("Account authorised %s.", accessToken.getScreenName());
-			final String id = this.prefs.getNextAccountId();
-			final Account account = new Account(id, accessToken.getScreenName(), AccountProvider.TWITTER,
+			final Account account = new Account(completeCallback.getAccountId(), accessToken.getScreenName(), AccountProvider.TWITTER,
 					getTwitterConfiguration().getOAuthConsumerKey(), getTwitterConfiguration().getOAuthConsumerSecret(),
 					accessToken.getToken(), accessToken.getTokenSecret());
-			this.prefs.writeNewAccount(account);
-			DialogHelper.alert(getActivity(), "Twitter account added:\n" + accessToken.getScreenName());
-			this.callback.onAccountAdded(account);
+			completeCallback.onAccount(account, accessToken.getScreenName());
 		}
 		catch (final Exception e) { // NOSONAR want to show any errors to the user.
 			LOG.e("Failed to write new Twitter account.", e);
-			DialogHelper.alert(getActivity(), e);
+			DialogHelper.alert(getContext(), e);
 		}
 	}
 

@@ -58,6 +58,9 @@ public class AccountDialogPreference extends DialogPreference {
 				else if (this.dialog.isSaveable()) {
 					persistString(this.dialog.getValue().toJson().toString());
 					this.accountsPrefFragment.refreshAccountsList();
+					if (this.dialog.isReauthenticateSelected()) {
+						this.accountsPrefFragment.askReauthenticateAccount(this.dialog.getInitialValue());
+					}
 				}
 			}
 			catch (JSONException e) {

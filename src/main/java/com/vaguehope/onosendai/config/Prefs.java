@@ -104,6 +104,19 @@ public class Prefs {
 		LOG.i("Wrote new account %s.", id);
 	}
 
+	public void updateExistingAccount (final Account account) throws JSONException {
+		final String id = account.getId();
+		if (id == null || id.isEmpty()) throw new IllegalArgumentException("Account has no ID.");
+
+		final String json = account.toJson().toString();
+
+		final Editor e = this.sharedPreferences.edit();
+		e.putString(id, json);
+		e.commit();
+
+		LOG.i("Updated account %s.", id);
+	}
+
 	public void deleteAccount (final Account account) {
 		deleteAccount(account.getId());
 	}
