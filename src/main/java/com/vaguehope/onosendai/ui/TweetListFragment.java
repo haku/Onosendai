@@ -111,6 +111,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	private boolean isLaterColumn;
 	private InlineMediaStyle inlineMediaStyle;
 	private Config conf;
+	private ImageLoader imageLoader;
 	private RefreshUiHandler refreshUiHandler;
 
 	private MainActivity mainActivity;
@@ -147,7 +148,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 		this.mainActivity = (MainActivity) getActivity();
 		this.conf = this.mainActivity.getConf();
-		final ImageLoader imageLoader = ImageLoaderUtils.fromActivity(getActivity());
+		this.imageLoader = ImageLoaderUtils.fromActivity(getActivity());
 
 		/*
 		 * Fragment life cycles are strange. onCreateView() is called multiple
@@ -186,7 +187,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		this.tweetListEmptyRefresh.setOnClickListener(this.refreshClickListener);
 
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
-		this.adapter = new TweetListCursorAdapter(container.getContext(), this.inlineMediaStyle, imageLoader, this.tweetList);
+		this.adapter = new TweetListCursorAdapter(container.getContext(), this.inlineMediaStyle, this.imageLoader, this.tweetList);
 		this.tweetList.setAdapter(this.adapter);
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
 		this.tweetList.setEmptyView(this.tweetListEmptyRefresh);
@@ -194,7 +195,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		this.refreshUiHandler = new RefreshUiHandler(this);
 
 		final ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
-		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), imageLoader, lstTweetPayload, this.payloadClickListener);
+		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), this.imageLoader, lstTweetPayload, this.payloadClickListener);
 		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
 		final PayloadListClickListener payloadListClickListener = new PayloadListClickListener(this.payloadClickListener);
 		lstTweetPayload.setOnItemClickListener(payloadListClickListener);
@@ -553,7 +554,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				DialogHelper.alert(getActivity(), "Can not find this tweet's account metadata.");
 			}
 			else {
-				ProfileDialog.show(getActivity(), getNetEs(), account, ((MentionPayload) payload).getScreenName());
+				ProfileDialog.show(getActivity(), getNetEs(), this.imageLoader, account, ((MentionPayload) payload).getScreenName());
 			}
 			return true;
 		}
