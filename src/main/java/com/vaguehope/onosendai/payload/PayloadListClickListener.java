@@ -3,10 +3,11 @@ package com.vaguehope.onosendai.payload;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class PayloadListClickListener implements OnItemClickListener {
+public class PayloadListClickListener implements OnItemClickListener, OnItemLongClickListener {
 
 	private final PayloadClickListener clickListener;
 
@@ -24,6 +25,11 @@ public class PayloadListClickListener implements OnItemClickListener {
 		else if (!this.clickListener.payloadClicked(payload)) {
 			Toast.makeText(parent.getContext(), "Do not know how to show: " + payload.getTitle(), Toast.LENGTH_LONG).show();
 		}
+	}
+
+	@Override
+	public boolean onItemLongClick (final AdapterView<?> parent, final View view, final int position, final long id) {
+		return this.clickListener.payloadLongClicked((Payload) ((ListView) parent).getAdapter().getItem(position));
 	}
 
 }

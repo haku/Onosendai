@@ -55,6 +55,7 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetListCursorAdapter;
 import com.vaguehope.onosendai.payload.InReplyToLoaderTask;
 import com.vaguehope.onosendai.payload.InReplyToPayload;
+import com.vaguehope.onosendai.payload.MentionPayload;
 import com.vaguehope.onosendai.payload.Payload;
 import com.vaguehope.onosendai.payload.PayloadClickListener;
 import com.vaguehope.onosendai.payload.PayloadListAdapter;
@@ -195,7 +196,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		final ListView lstTweetPayload = (ListView) rootView.findViewById(R.id.tweetDetailPayloadList);
 		this.lstTweetPayloadAdaptor = new PayloadListAdapter(container.getContext(), imageLoader, lstTweetPayload, this.payloadClickListener);
 		lstTweetPayload.setAdapter(this.lstTweetPayloadAdaptor);
-		lstTweetPayload.setOnItemClickListener(new PayloadListClickListener(this.payloadClickListener));
+		final PayloadListClickListener payloadListClickListener = new PayloadListClickListener(this.payloadClickListener);
+		lstTweetPayload.setOnItemClickListener(payloadListClickListener);
+		lstTweetPayload.setOnItemLongClickListener(payloadListClickListener);
 		((Button) rootView.findViewById(R.id.tweetDetailClose)).setOnClickListener(new SidebarLayout.ToggleSidebarListener(this.sidebar));
 		this.btnDetailsLater = (Button) rootView.findViewById(R.id.tweetDetailLater);
 
@@ -522,6 +525,11 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		}
 
 		@Override
+		public boolean payloadLongClicked (final Payload payload) {
+			return payloadLongClick(payload);
+		}
+
+		@Override
 		public void subviewClicked (final View view, final Payload payload, final int index) {
 			payloadSubviewClick(view, payload, index);
 		}
@@ -533,6 +541,20 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	protected boolean payloadClick (final Payload payload) {
 		if (payload.getType() == PayloadType.INREPLYTO) {
 			showTweetDetails(((InReplyToPayload) payload).getInReplyToTweet().getSid());
+			return true;
+		}
+		return false;
+	}
+
+	protected boolean payloadLongClick (final Payload payload) {
+		if (payload.getType() == PayloadType.MENTION) {
+			final Account account = MetaUtils.accountFromMeta(payload.getOwnerTweet(), this.conf);
+			if (account == null) {
+				DialogHelper.alert(getActivity(), "Can not find this tweet's account metadata.");
+			}
+			else {
+				ProfileDialog.show(getActivity(), getNetEs(), account, ((MentionPayload) payload).getScreenName());
+			}
 			return true;
 		}
 		return false;
