@@ -9,6 +9,11 @@ public interface PayloadClickListener {
 	 */
 	boolean payloadClicked (Payload payload);
 
+	/**
+	 * Return true if handled.
+	 */
+	boolean payloadLongClicked (Payload payload);
+
 	void subviewClicked (View v, Payload payload, int index);
 
 }

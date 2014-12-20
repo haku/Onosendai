@@ -12,6 +12,7 @@ import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.User;
 import twitter4j.UserList;
 import twitter4j.conf.ConfigurationBuilder;
 
@@ -95,6 +96,10 @@ public class TwitterProvider {
 			slugs.add(list.getSlug());
 		}
 		return slugs;
+	}
+
+	public User getUser (final Account account, final String screenName) throws TwitterException {
+		return getTwitter(account).showUser(screenName);
 	}
 
 	private static TwitterFactory makeTwitterFactory (final Account account) {

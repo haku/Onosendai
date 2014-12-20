@@ -85,6 +85,10 @@ public class MentionPayload extends Payload {
 		return intent;
 	}
 
+	public String getScreenName () {
+		return this.screenName;
+	}
+
 	@Override
 	public int hashCode () {
 		final int prime = 31;
