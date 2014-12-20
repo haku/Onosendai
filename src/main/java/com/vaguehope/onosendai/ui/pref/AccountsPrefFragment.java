@@ -18,7 +18,8 @@ import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
-import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthCallback;
+import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthComplete;
+import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -95,22 +96,29 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 	private void initTwitterOauthWizard () {
 		if (this.twitterOauthWizard != null) return;
-		this.twitterOauthWizard = new TwitterOauthWizard(getActivity(), getPrefs(), new TwitterOauthCallback() {
+		this.twitterOauthWizard = new TwitterOauthWizard(getActivity(), new TwitterOauthHelper() {
 			@Override
 			public void deligateStartActivityForResult (final Intent intent, final int requestCode) {
 				startActivityForResult(intent, requestCode);
-			}
-
-			@Override
-			public void onAccountAdded (final Account account) {
-				refreshAccountsList();
 			}
 		});
 	}
 
 	private void promptAddTwitterAccount () {
 		initTwitterOauthWizard();
-		this.twitterOauthWizard.start();
+		this.twitterOauthWizard.start(new TwitterOauthComplete() {
+			@Override
+			public String getAccountId () {
+				return AccountsPrefFragment.this.prefs.getNextAccountId();
+			}
+
+			@Override
+			public void onAccount (final Account account, final String screenName) throws JSONException {
+				AccountsPrefFragment.this.prefs.writeNewAccount(account);
+				DialogHelper.alert(getActivity(), "Twitter account added:\n" + screenName);
+				refreshAccountsList();
+			}
+		});
 	}
 
 	@Override
@@ -156,6 +164,28 @@ public class AccountsPrefFragment extends PreferenceFragment {
 				LOG.i("Updated column %s to use account %s.", later.getId(), account.getId());
 			}
 		}
+	}
+
+	protected void askReauthenticateAccount (final Account oldAccount) {
+		if (oldAccount.getProvider() != AccountProvider.TWITTER) {
+			DialogHelper.alert(getActivity(), "Reauthenticate not supported for: " + oldAccount.getProvider());
+			return;
+		}
+
+		initTwitterOauthWizard();
+		this.twitterOauthWizard.start(new TwitterOauthComplete() {
+			@Override
+			public String getAccountId () {
+				return oldAccount.getId();
+			}
+
+			@Override
+			public void onAccount (final Account newAccount, final String screenName) throws JSONException {
+				AccountsPrefFragment.this.prefs.updateExistingAccount(newAccount);
+				DialogHelper.alert(getActivity(), "Twitter account updated:\n" + screenName);
+				refreshAccountsList();
+			}
+		});
 	}
 
 	protected void askDeleteAccount (final Account account) {

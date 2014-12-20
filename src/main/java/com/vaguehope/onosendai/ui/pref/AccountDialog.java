@@ -35,6 +35,7 @@ class AccountDialog {
 	private final View rowPassword;
 	private final EditText txtPassword;
 	private final Button btnTest;
+	private final CheckBox chkReauthenticate;
 	private final CheckBox chkDelete;
 
 	public AccountDialog (final Context context, final String id, final AccountProvider accountProvider) {
@@ -68,6 +69,7 @@ class AccountDialog {
 		this.rowPassword = this.llParent.findViewById(R.id.rowPassword);
 		this.txtPassword = (EditText) this.llParent.findViewById(R.id.txtPassword);
 		this.btnTest = (Button) this.llParent.findViewById(R.id.btnTestLogin);
+		this.chkReauthenticate = (CheckBox) this.llParent.findViewById(R.id.chkReauthenticate);
 		this.chkDelete = (CheckBox) this.llParent.findViewById(R.id.chkDelete);
 
 		if (this.initialValue != null) {
@@ -100,6 +102,9 @@ class AccountDialog {
 			default:
 		}
 
+		this.chkReauthenticate.setChecked(false);
+		this.chkReauthenticate.setVisibility(initialValue != null && accountProvider == AccountProvider.TWITTER ? View.VISIBLE : View.GONE);
+
 		this.chkDelete.setChecked(false);
 		this.chkDelete.setVisibility(initialValue != null ? View.VISIBLE : View.GONE);
 	}
@@ -121,6 +126,10 @@ class AccountDialog {
 
 	public View getRootView () {
 		return this.llParent;
+	}
+
+	public boolean isReauthenticateSelected () {
+		return this.chkReauthenticate.isChecked();
 	}
 
 	public boolean isDeleteSelected () {

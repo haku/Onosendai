@@ -80,6 +80,19 @@
 			android:orientation="horizontal">
 
 			<CheckBox
+				android:id="@+id/chkReauthenticate"
+				android:layout_width="fill_parent"
+				android:layout_weight="1"
+				android:text="Reauthenticate" />
+
+		</TableRow>
+
+		<TableRow
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal">
+
+			<CheckBox
 				android:id="@+id/chkDelete"
 				android:layout_width="fill_parent"
 				android:layout_weight="1"
