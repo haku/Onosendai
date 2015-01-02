@@ -52,6 +52,7 @@ class ColumnChooser {
 
 	private Collection<Account> readAccountsOrAlert () {
 		try {
+			// FIXME filter accounts by type.
 			return this.prefs.readAccounts();
 		}
 		catch (final JSONException e) {
