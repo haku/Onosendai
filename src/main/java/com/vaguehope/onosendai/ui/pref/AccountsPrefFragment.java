@@ -66,7 +66,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 	protected void promptNewAccountType () {
 		DialogHelper.askItem(getActivity(), "Account Type",
-				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.SUCCESSWHALE, AccountProvider.INSTAPAPER, AccountProvider.BUFFER },
+				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.SUCCESSWHALE, AccountProvider.INSTAPAPER, AccountProvider.BUFFER, AccountProvider.HOSAKA },
 				new Listener<AccountProvider>() {
 					@Override
 					public void onAnswer (final AccountProvider answer) {
@@ -83,6 +83,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 			case SUCCESSWHALE:
 			case INSTAPAPER:
 			case BUFFER:
+			case HOSAKA:
 				promptAddUsernamePasswordLikeAccount(accountProvider);
 				break;
 			default:

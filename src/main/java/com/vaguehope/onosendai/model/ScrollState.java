@@ -61,10 +61,13 @@ public class ScrollState {
 
 		// NOTE if this seems unreliable try wrapping setSelection*() calls in lv.post(...).
 		final ListAdapter adapter = lv.getAdapter();
-		for (int i = 0; i < adapter.getCount(); i++) {
-			if (adapter.getItemId(i) == this.itemId) {
-				lv.setSelectionFromTop(i, this.top);
-				return;
+
+		if (this.itemId >= 0L) {
+			for (int i = 0; i < adapter.getCount(); i++) {
+				if (adapter.getItemId(i) == this.itemId) {
+					lv.setSelectionFromTop(i, this.top);
+					return;
+				}
 			}
 		}
 
