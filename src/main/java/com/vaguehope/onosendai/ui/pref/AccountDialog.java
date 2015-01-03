@@ -84,6 +84,7 @@ class AccountDialog {
 				break;
 			case SUCCESSWHALE:
 			case INSTAPAPER:
+			case HOSAKA:
 				this.txtPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 				if (initialValue != null) {
 					this.txtUsername.setText(initialValue.getAccessToken());
@@ -145,6 +146,7 @@ class AccountDialog {
 			case SUCCESSWHALE:
 			case INSTAPAPER:
 			case BUFFER:
+			case HOSAKA:
 				return true;
 			default:
 		}
@@ -162,6 +164,7 @@ class AccountDialog {
 						this.initialValue.getAccessToken(), this.initialValue.getAccessSecret());
 			case SUCCESSWHALE:
 			case INSTAPAPER:
+			case HOSAKA:
 				final String username = this.txtUsername.getText().toString();
 				final String password = this.txtPassword.getText().toString();
 				return new Account(this.id, title,

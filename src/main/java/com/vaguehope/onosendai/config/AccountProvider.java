@@ -8,7 +8,8 @@ public enum AccountProvider implements Titleable {
 	TWITTER("Twitter"),
 	SUCCESSWHALE("SuccessWhale"),
 	INSTAPAPER("Instapaper"),
-	BUFFER("Buffer");
+	BUFFER("Buffer"),
+	HOSAKA("Hosaka");
 
 	private final String humanName;
 
