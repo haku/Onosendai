@@ -16,6 +16,7 @@ Features
 * Background feed fetching and caching.
 * In-line image previews from Twitter, Instagram, Twitpic and Imgur.
 * Preemptive background image fetching (handy when out of network range).
+* Posts sent via local outbox - automatically retried when network access is unreliable.
 
 Supported Services
 ------------------
@@ -23,6 +24,7 @@ Supported Services
 * Twitter columns are supported directly.
 * Twitter and Facebook columns via [SuccessWhale](http://successwhale.com).
 * Posting to [Buffer](https://bufferapp.com) (currently requires advanced config to add account).
+* Forwarding Read Later column to [Instapaper](https://www.instapaper.com).
 
 Download
 --------
