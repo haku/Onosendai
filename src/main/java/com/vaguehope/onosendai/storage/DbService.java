@@ -224,6 +224,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public Set<Integer> requestStoreScrollNow () {
+		return this.dbAdaptor.requestStoreScrollNow();
+	}
+
+	@Override
 	public void addPostToOutput (final OutboxTweet ot) {
 		this.dbAdaptor.addPostToOutput(ot);
 	}

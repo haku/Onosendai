@@ -57,6 +57,10 @@ public interface DbInterface extends KvStore {
 	ScrollState getScroll(int columnId);
 
 	void notifyTwListenersColumnState (final int columnId, final ColumnState state);
+	/**
+	 * Returns column IDs of saves requested.
+	 */
+	Set<Integer> requestStoreScrollNow();
 
 	enum ColumnState {
 		UPDATE_RUNNING,
@@ -67,6 +71,11 @@ public interface DbInterface extends KvStore {
 		void columnChanged(int columnId);
 		void columnStatus(int columnId, ColumnState state);
 		void unreadChanged(int columnId);
+		/**
+		 * returns columnId or null.
+		 */
+		Integer requestStoreScrollStateNow();
+		void scrollStored(int columnId);
 	}
 
 	void addPostToOutput (OutboxTweet ot);

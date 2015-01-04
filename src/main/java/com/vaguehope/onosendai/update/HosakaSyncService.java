@@ -1,9 +1,12 @@
 package com.vaguehope.onosendai.update;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
@@ -22,6 +25,8 @@ import com.vaguehope.onosendai.provider.hosaka.HosakaColumn;
 import com.vaguehope.onosendai.provider.hosaka.HosakaProvider;
 import com.vaguehope.onosendai.storage.DbBindingService;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
+import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -67,7 +72,7 @@ public class HosakaSyncService extends DbBindingService {
 		if (!waitForDbReady()) return;
 		final DbInterface db = getDb();
 
-		// TODO trigger UI to write current scroll state to DB.
+		requestAndWaitForUiToSaveScroll(db);
 
 		final Map<String, Column> hashToCol = new HashMap<String, Column>();
 		final Map<String, HosakaColumn> toPush = new HashMap<String, HosakaColumn>();
@@ -87,9 +92,9 @@ public class HosakaSyncService extends DbBindingService {
 		final HosakaProvider prov = new HosakaProvider();
 		try {
 			// Make POST even if not really sending anything new, as may be fetching new state.
-			final long startTime = System.nanoTime();
+			final long startTime = now();
 			final Map<String, HosakaColumn> returnedColumns = prov.sendColumns(account, toPush);
-			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(now() - startTime);
 			LOG.i("Sent %s in %d millis: %s", account.getAccessToken(), durationMillis, toPush);
 
 			final Map<Column, ScrollState> colToNewScroll = new HashMap<Column, ScrollState>();
@@ -105,6 +110,7 @@ public class HosakaSyncService extends DbBindingService {
 			LOG.i("Merged %s columns: %s.", colToNewScroll.size(), colToNewScroll);
 
 			// TODO Trigger UI to scroll to new position if new value is greater.
+			//      Or is this covered by DB listeners?
 
 		}
 		catch (final IOException e) {
@@ -118,6 +124,75 @@ public class HosakaSyncService extends DbBindingService {
 		finally {
 			prov.shutdown();
 		}
+	}
+
+	private static void requestAndWaitForUiToSaveScroll (final DbInterface db) {
+		final ScrollStoreCountingListener twUpdateListener = new ScrollStoreCountingListener();
+		db.addTwUpdateListener(twUpdateListener);
+		try {
+			final long startTime = now();
+			final Set<Integer> requestedColumnIds = db.requestStoreScrollNow();
+			if (requestedColumnIds.size() > 0) {
+				final boolean storedSuccessfully = twUpdateListener.awaitScrollStores(requestedColumnIds, 5, TimeUnit.SECONDS);
+				final long durationMillis = TimeUnit.NANOSECONDS.toMillis(now() - startTime);
+				LOG.i("Request UI store %s scrolls success=%s in %d millis.", requestedColumnIds, storedSuccessfully, durationMillis);
+			}
+		}
+		finally {
+			db.removeTwUpdateListener(twUpdateListener);
+		}
+	}
+
+	private static class ScrollStoreCountingListener implements TwUpdateListener {
+
+		private final Set<Integer> requestedColumnIds = Collections.synchronizedSet(new HashSet<Integer>());
+
+		public ScrollStoreCountingListener () {}
+
+		public boolean awaitScrollStores (final Set<Integer> columnIds, final int timeout, final TimeUnit unit) {
+			final long timeoutNanos = unit.toNanos(timeout);
+			final long startTime = now();
+			while (true) {
+				synchronized (this.requestedColumnIds) {
+					if (columnIds.equals(this.requestedColumnIds)) return true;
+				}
+				if (now() - startTime > timeoutNanos) return false;
+				try {
+					Thread.sleep(100);
+				}
+				catch (InterruptedException e) {
+					return false;
+				}
+			}
+		}
+
+		@Override
+		public void columnChanged (final int columnId) {/* unused */}
+
+		@Override
+		public void columnStatus (final int columnId, final ColumnState state) {/* unused */}
+
+		@Override
+		public void unreadChanged (final int columnId) {/* unused */}
+
+		@Override
+		public Integer requestStoreScrollStateNow () {
+			return null;
+		}
+
+		@Override
+		public void scrollStored (final int columnId) {
+			synchronized (this.requestedColumnIds) {
+				this.requestedColumnIds.add(columnId);
+			}
+		}
+
+	}
+
+	private static final long NANO_ORIGIN = System.nanoTime();
+
+	protected static long now () {
+		return System.nanoTime() - NANO_ORIGIN;
 	}
 
 }

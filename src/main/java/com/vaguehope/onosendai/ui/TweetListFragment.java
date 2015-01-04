@@ -340,6 +340,12 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		if (db != null) db.storeScroll(this.columnId, this.scrollState);
 	}
 
+	protected void saveCurrentScrollToDb () {
+		final ScrollState newState = getCurrentScroll();
+		final DbInterface db = getDb();
+		if (db != null) db.storeScroll(this.columnId, newState);
+	}
+
 	protected void restoreSavedScrollFromDb () {
 		if (this.scrollState != null) return;
 		this.scrollState = getDb().getScroll(this.columnId);
@@ -936,6 +942,15 @@ public class TweetListFragment extends Fragment implements DbProvider {
 			refreshUnread();
 		}
 
+		@Override
+		public Integer requestStoreScrollStateNow() {
+			requestSaveCurrentScrollToDb();
+			return getColumnId();
+		}
+
+		@Override
+		public void scrollStored (final int eventColumnId) {/* unused */}
+
 	};
 
 	private static final int MSG_REFRESH = 1;
@@ -943,6 +958,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	private static final int MSG_UPDATE_OVER = 3;
 	private static final int MSG_STILL_SCROLLING_CHECK = 4;
 	private static final int MSG_UNREAD_CHANGED = 5;
+	private static final int MSG_SAVE_SCROLL = 6;
 
 	protected void refreshUi () {
 		this.refreshUiHandler.sendEmptyMessage(MSG_REFRESH);
@@ -962,6 +978,10 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	protected void refreshUnread () {
 		this.refreshUiHandler.sendEmptyMessage(MSG_UNREAD_CHANGED);
+	}
+
+	protected void requestSaveCurrentScrollToDb () {
+		this.refreshUiHandler.sendEmptyMessage(MSG_SAVE_SCROLL);
 	}
 
 	private static class RefreshUiHandler extends Handler {
@@ -998,6 +1018,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				break;
 			case MSG_UNREAD_CHANGED:
 				restoreJustUnreadFromDb();
+				break;
+			case MSG_SAVE_SCROLL:
+				saveCurrentScrollToDb();
 				break;
 			default:
 		}
