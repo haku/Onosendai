@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
 
@@ -86,8 +87,10 @@ public class HosakaSyncService extends DbBindingService {
 		final HosakaProvider prov = new HosakaProvider();
 		try {
 			// Make POST even if not really sending anything new, as may be fetching new state.
+			final long startTime = System.nanoTime();
 			final Map<String, HosakaColumn> returnedColumns = prov.sendColumns(account, toPush);
-			LOG.i("Sent %s: %s", account.getAccessToken(), toPush);
+			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+			LOG.i("Sent %s in %d millis: %s", account.getAccessToken(), durationMillis, toPush);
 
 			final Map<Column, ScrollState> colToNewScroll = new HashMap<Column, ScrollState>();
 			for (final Entry<String, HosakaColumn> e : returnedColumns.entrySet()) {
