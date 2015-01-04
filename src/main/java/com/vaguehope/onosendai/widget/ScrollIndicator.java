@@ -148,6 +148,7 @@ public final class ScrollIndicator {
 		}
 
 		public void setUnreadTime (final long unreadTime) {
+			if (unreadTime > 0L && unreadTime <= this.unreadTime) return; // Can only go forwards.
 			this.unreadTime = unreadTime;
 			for (int i = 0; i < this.listAdaptor.getCount(); i++) {
 				if (this.listAdaptor.getItemTime(i) <= this.unreadTime) {
