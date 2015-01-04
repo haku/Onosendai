@@ -15,6 +15,7 @@ Features
 * Read Later column: any tweet can be saved locally for reading later.
 * Background feed fetching and caching.
 * In-line image previews from Twitter, Instagram, Twitpic and Imgur.
+* Preemptive background image fetching (handy when out of network range).
 
 Supported Services
 ------------------
