@@ -17,6 +17,12 @@ public final class HashHelper {
 		return new BigInteger(1, md.digest());
 	}
 
+	public static BigInteger sha1String (final String s) {
+		final MessageDigest md = MD_SHA1_FACTORY.get();
+		md.update(getBytes(s));
+		return new BigInteger(1, md.digest());
+	}
+
 	private static byte[] getBytes (final String s) {
 		try {
 			return s.getBytes("UTF-8");
@@ -30,11 +36,21 @@ public final class HashHelper {
 	 * MessageDigest.getInstance("MD5") can take up to a second, so using this
 	 * to cache it and improve performance.
 	 */
-	private static final ThreadLocal<MessageDigest> MD_MD5_FACTORY = new ThreadLocal<MessageDigest>() {
+	private static final ThreadLocal<MessageDigest> MD_MD5_FACTORY = new HashFactory("MD5");
+	private static final ThreadLocal<MessageDigest> MD_SHA1_FACTORY = new HashFactory("SHA-1");
+
+	private static class HashFactory extends ThreadLocal<MessageDigest> {
+
+		private final String algorithm;
+
+		public HashFactory (final String algorithm) {
+			this.algorithm = algorithm;
+		}
+
 		@Override
 		protected MessageDigest initialValue () {
 			try {
-				final MessageDigest md = MessageDigest.getInstance("MD5");
+				final MessageDigest md = MessageDigest.getInstance(this.algorithm);
 				md.reset();
 				return md;
 			}
@@ -42,6 +58,6 @@ public final class HashHelper {
 				throw new IllegalStateException("JVM is missing MD5.", e);
 			}
 		}
-	};
+	}
 
 }

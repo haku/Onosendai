@@ -876,6 +876,29 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public void mergeAndStoreScrolls (final Map<Column, ScrollState> colToSs) {
+		this.mDb.beginTransaction();
+		try {
+			final ContentValues values = new ContentValues();
+			for (Entry<Column, ScrollState> e : colToSs.entrySet()) {
+				int columnId = e.getKey().getId();
+				final ScrollState ss = e.getValue();
+				values.clear();
+				values.put(TBL_SC_UNREAD, ss.getUnreadTime()); // TODO For initial impl only merge unread time.
+				final int affected = this.mDb.update(TBL_SC, values,
+						TBL_SC_COLID + "=? AND " + TBL_SC_UNREAD + "<?",
+						new String[] { String.valueOf(columnId), String.valueOf(ss.getUnreadTime()) });
+				if (affected > 1) throw new IllegalStateException("Merging " + columnId + " unreadTime affected " + affected + " rows, expected 1.");
+				if (affected > 0) this.log.i("Merged %s into col %s.", ss, columnId);
+			}
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+	}
+
+	@Override
 	public ScrollState getScroll (final int columnId) {
 		if (!checkDbOpen()) return null;
 		ScrollState ret = null;

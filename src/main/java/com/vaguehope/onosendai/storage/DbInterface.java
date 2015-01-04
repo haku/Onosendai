@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.storage;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import android.database.Cursor;
@@ -52,6 +53,7 @@ public interface DbInterface extends KvStore {
 
 	void storeScroll(int columnId, ScrollState state);
 	void storeUnreadTime(int columnId, long unreadTime);
+	void mergeAndStoreScrolls(Map<Column, ScrollState> colToSs);
 	ScrollState getScroll(int columnId);
 
 	void notifyTwListenersColumnState (final int columnId, final ColumnState state);

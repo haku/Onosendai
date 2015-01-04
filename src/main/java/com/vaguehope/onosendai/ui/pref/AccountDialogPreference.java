@@ -32,6 +32,7 @@ public class AccountDialogPreference extends DialogPreference {
 			case SUCCESSWHALE:
 			case INSTAPAPER:
 			case BUFFER:
+			case HOSAKA:
 				break;
 			default:
 				setEnabled(false);

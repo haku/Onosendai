@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.storage;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import android.app.Service;
@@ -205,6 +206,11 @@ public class DbService extends Service implements DbInterface {
 	@Override
 	public void storeUnreadTime (final int columnId, final long unreadTime) {
 		this.dbAdaptor.storeUnreadTime(columnId, unreadTime);
+	}
+
+	@Override
+	public void mergeAndStoreScrolls (final Map<Column, ScrollState> colToSs) {
+		this.dbAdaptor.mergeAndStoreScrolls(colToSs);
 	}
 
 	@Override

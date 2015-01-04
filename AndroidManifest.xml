@@ -107,6 +107,9 @@
 			android:name=".update.FetchPictureService"
 			android:label="@string/fetch_picture_service_label" />
 		<service
+			android:name=".update.HosakaSyncService"
+			android:label="@string/hosaka_sync_service_label" />
+		<service
 			android:name=".storage.DbService"
 			android:label="@string/storage_service_label" />
 		<service

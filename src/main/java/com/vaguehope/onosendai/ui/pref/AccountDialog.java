@@ -211,6 +211,9 @@ class AccountDialog {
 					case BUFFER:
 						provMgr.getBufferAppProvider().testAccountLogin(this.account);
 						return "Success.";
+					case HOSAKA:
+						provMgr.getHosakaProvider().testAccountLogin(this.account);
+						return "Success.";
 					default:
 						return "Do not know how to test account type: " + this.account.getProvider().getUiTitle();
 				}

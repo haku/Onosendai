@@ -4,6 +4,7 @@
 	<string name="app_name">Onosendai</string>
 	<string name="update_service_label">Onosendai update service</string>
 	<string name="fetch_picture_service_label">Onosendai fetch picture service</string>
+	<string name="hosaka_sync_service_label">Onosendai Hosaka Sync service</string>
 	<string name="storage_service_label">Onosendai storage service</string>
 	<string name="send_outbox_service_label">Onosendai send outbox service</string>
 	<string name="cleanup_service_label">Onosendai cleanup service</string>
