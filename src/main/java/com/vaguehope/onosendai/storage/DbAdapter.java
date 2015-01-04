@@ -1,12 +1,15 @@
 package com.vaguehope.onosendai.storage;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -43,8 +46,8 @@ public class DbAdapter implements DbInterface {
 	private SQLiteDatabase mDb;
 
 	private final Map<Integer, ColumnState> columnStates = new ConcurrentHashMap<Integer, ColumnState>();
-	private final List<TwUpdateListener> twUpdateListeners = new ArrayList<TwUpdateListener>();
-	private final List<OutboxListener> outboxListeners = new ArrayList<OutboxListener>();
+	private final List<TwUpdateListener> twUpdateListeners = new CopyOnWriteArrayList<TwUpdateListener>();
+	private final List<OutboxListener> outboxListeners = new CopyOnWriteArrayList<OutboxListener>();
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -788,6 +791,12 @@ public class DbAdapter implements DbInterface {
 		}
 	}
 
+	private void notifyTwListenersScrollStored (final int columnId) {
+		for (final TwUpdateListener l : this.twUpdateListeners) {
+			l.scrollStored(columnId);
+		}
+	}
+
 	private void notifyTwListenersUnreadChanged (final int columnId) {
 		for (final TwUpdateListener l : this.twUpdateListeners) {
 			l.unreadChanged(columnId);
@@ -800,6 +809,16 @@ public class DbAdapter implements DbInterface {
 		for (final TwUpdateListener l : this.twUpdateListeners) {
 			l.columnStatus(columnId, state);
 		}
+	}
+
+	@Override
+	public Set<Integer> requestStoreScrollNow () {
+		final Set<Integer> ret = new HashSet<Integer>();
+		for (final TwUpdateListener l : this.twUpdateListeners) {
+			final Integer columnId = l.requestStoreScrollStateNow();
+			if (columnId != null) ret.add(columnId);
+		}
+		return ret;
 	}
 
 	@Override
@@ -838,23 +857,24 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public void storeScroll (final int columnId, final ScrollState state) {
-		if (state == null) return;
-
-		this.mDb.beginTransaction();
-		try {
-			final ContentValues values = new ContentValues();
-			values.put(TBL_SC_COLID, columnId);
-			values.put(TBL_SC_ITEMID, state.getItemId());
-			values.put(TBL_SC_TOP, state.getTop());
-			values.put(TBL_SC_TIME, state.getItemTime());
-			values.put(TBL_SC_UNREAD, state.getUnreadTime());
-			this.mDb.insertWithOnConflict(TBL_SC, null, values, SQLiteDatabase.CONFLICT_REPLACE);
-			this.mDb.setTransactionSuccessful();
-		}
-		finally {
-			this.mDb.endTransaction();
+		if (state != null) {
+			this.mDb.beginTransaction();
+			try {
+				final ContentValues values = new ContentValues();
+				values.put(TBL_SC_COLID, columnId);
+				values.put(TBL_SC_ITEMID, state.getItemId());
+				values.put(TBL_SC_TOP, state.getTop());
+				values.put(TBL_SC_TIME, state.getItemTime());
+				values.put(TBL_SC_UNREAD, state.getUnreadTime());
+				this.mDb.insertWithOnConflict(TBL_SC, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+				this.mDb.setTransactionSuccessful();
+			}
+			finally {
+				this.mDb.endTransaction();
+			}
 		}
 		this.log.d("Stored scroll for col %d: %s", columnId, state);
+		notifyTwListenersScrollStored(columnId);
 	}
 
 	@Override
@@ -877,6 +897,7 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public void mergeAndStoreScrolls (final Map<Column, ScrollState> colToSs) {
+		final Collection<Integer> updatedColumnIds = new ArrayList<Integer>();
 		this.mDb.beginTransaction();
 		try {
 			final ContentValues values = new ContentValues();
@@ -889,12 +910,18 @@ public class DbAdapter implements DbInterface {
 						TBL_SC_COLID + "=? AND " + TBL_SC_UNREAD + "<?",
 						new String[] { String.valueOf(columnId), String.valueOf(ss.getUnreadTime()) });
 				if (affected > 1) throw new IllegalStateException("Merging " + columnId + " unreadTime affected " + affected + " rows, expected 1.");
-				if (affected > 0) this.log.i("Merged %s into col %s.", ss, columnId);
+				if (affected > 0) {
+					this.log.i("Merged %s into col %s.", ss, columnId);
+					updatedColumnIds.add(columnId);
+				}
 			}
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
 			this.mDb.endTransaction();
+		}
+		for (final Integer columnId : updatedColumnIds) { // XXX While only merging unread time, only tell UI to update unread time.
+			notifyTwListenersUnreadChanged(columnId);
 		}
 	}
 
