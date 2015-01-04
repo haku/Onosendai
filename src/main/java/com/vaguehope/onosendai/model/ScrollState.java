@@ -32,7 +32,7 @@ public class ScrollState {
 	@Override
 	public String toString () {
 		return new StringBuilder()
-				.append("SaveScrollState{").append(this.itemId)
+				.append("ScrollState{").append(this.itemId)
 				.append(',').append(this.top)
 				.append(',').append(this.itemTime)
 				.append(',').append(this.unreadTime)
