@@ -133,6 +133,7 @@ public class Account implements Titleable {
 				break;
 			case SUCCESSWHALE:
 			case INSTAPAPER:
+			case HOSAKA:
 				json.put(KEY_USERNAME, this.accessToken);
 				json.put(KEY_PASSWORD, this.accessSecret);
 				break;
@@ -164,6 +165,9 @@ public class Account implements Titleable {
 				break;
 			case INSTAPAPER:
 				account = parseUsernamePasswordLikeAccount(json, id, AccountProvider.INSTAPAPER);
+				break;
+			case HOSAKA:
+				account = parseUsernamePasswordLikeAccount(json, id, AccountProvider.HOSAKA);
 				break;
 			case BUFFER:
 				account = parseBufferAccount(json, id);

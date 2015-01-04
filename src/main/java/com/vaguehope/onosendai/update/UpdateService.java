@@ -61,7 +61,7 @@ public class UpdateService extends DbBindingService {
 	private void fetchColumns (final int columnId, final boolean manual) {
 		final Prefs prefs = new Prefs(getBaseContext());
 
-		Config conf;
+		final Config conf;
 		try {
 			conf = prefs.asConfig();
 		}
@@ -80,6 +80,7 @@ public class UpdateService extends DbBindingService {
 			providerMgr.shutdown();
 		}
 
+		HosakaSyncService.startServiceIfConfigured(this, conf, columnId);
 		FetchPictureService.startServiceIfConfigured(this, prefs, columnsFetched, manual);
 	}
 

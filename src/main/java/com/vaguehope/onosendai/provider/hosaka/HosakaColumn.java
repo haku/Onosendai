@@ -3,8 +3,10 @@ package com.vaguehope.onosendai.provider.hosaka;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.ScrollState;
+import com.vaguehope.onosendai.util.HashHelper;
 
 public class HosakaColumn {
 
@@ -30,6 +32,16 @@ public class HosakaColumn {
 		return this.unreadTime;
 	}
 
+	@Override
+	public String toString () {
+		return new StringBuilder()
+				.append("HosakaColumn{").append(this.itemId)
+				.append(',').append(this.itemTime)
+				.append(',').append(this.unreadTime)
+				.append('}')
+				.toString();
+	}
+
 	public JSONObject toJson () throws JSONException {
 		final JSONObject json = new JSONObject();
 		if (this.itemId != null) json.put("item_id", this.itemId);
@@ -46,9 +58,10 @@ public class HosakaColumn {
 		return new HosakaColumn(itemId, itemTime, unreadTime);
 	}
 
-	public static String columnHash (final Column column) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Not implemented.");
+	public static String columnHash (final Account account, final Column column) {
+		return HashHelper.sha1String(String.format("%s:%s",
+				account.getTitle(), column.getResource()
+				)).toString(16);
 	}
 
 	public ScrollState toScrollState () {

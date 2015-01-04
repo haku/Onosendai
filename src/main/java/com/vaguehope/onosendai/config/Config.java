@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,6 +91,13 @@ public class Config {
 		return this.accounts.get(accountId);
 	}
 
+	public Account firstAccountOfType (final AccountProvider provider) {
+		for (final Account a : this.accounts.values()) {
+			if (a.getProvider() == provider) return a;
+		}
+		return null;
+	}
+
 	public List<Column> getColumns () {
 		return this.feeds;
 	}
@@ -122,7 +128,7 @@ public class Config {
 	}
 
 	private static Map<String, Account> parseAccounts (final JSONArray accountsJson) throws JSONException {
-		final Map<String, Account> ret = new HashMap<String, Account>();
+		final Map<String, Account> ret = new LinkedHashMap<String, Account>();
 		for (int i = 0; i < accountsJson.length(); i++) {
 			final Account account = Account.parseJson(accountsJson.getJSONObject(i));
 			ret.put(account.getId(), account);
