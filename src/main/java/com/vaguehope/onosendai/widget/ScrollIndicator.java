@@ -44,6 +44,10 @@ public final class ScrollIndicator {
 		this.barMover.setUnreadTime(unreadTime);
 	}
 
+	public void setUnreadTimeIfNewer (final long unreadTime) {
+		if (unreadTime > this.barMover.getUnreadTime()) this.barMover.setUnreadTime(unreadTime);
+	}
+
 	public long getUnreadTime () {
 		return this.barMover.getUnreadTime();
 	}
@@ -148,7 +152,6 @@ public final class ScrollIndicator {
 		}
 
 		public void setUnreadTime (final long unreadTime) {
-			if (unreadTime > 0L && unreadTime <= this.unreadTime) return; // Can only go forwards.
 			this.unreadTime = unreadTime;
 			for (int i = 0; i < this.listAdaptor.getCount(); i++) {
 				if (this.listAdaptor.getItemTime(i) <= this.unreadTime) {
