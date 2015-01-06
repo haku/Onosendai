@@ -353,7 +353,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	protected void restoreJustUnreadFromDb () {
 		final ScrollState ss = getDb().getScroll(this.columnId);
-		this.scrollIndicator.setUnreadTime(ss.getUnreadTime());
+		this.scrollIndicator.setUnreadTimeIfNewer(ss.getUnreadTime());
 	}
 
 	protected void scrollTop () {
