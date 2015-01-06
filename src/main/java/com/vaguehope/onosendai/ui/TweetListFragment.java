@@ -51,6 +51,7 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.ScrollState;
+import com.vaguehope.onosendai.model.ScrollState.ScrollDirection;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetListCursorAdapter;
 import com.vaguehope.onosendai.payload.InReplyToLoaderTask;
@@ -71,6 +72,7 @@ import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
+import com.vaguehope.onosendai.storage.DbInterface.ScrollChangeType;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
 import com.vaguehope.onosendai.storage.DbProvider;
 import com.vaguehope.onosendai.ui.LocalSearchDialog.OnTweetListener;
@@ -312,7 +314,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	protected ScrollState getCurrentScroll () {
-		return ScrollState.from(this.tweetList, this.scrollIndicator);
+		return ScrollState.from(this.tweetList, this.scrollIndicator, this.lastScrollDirection);
 	}
 
 	private void saveScroll () {
@@ -351,13 +353,19 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		this.scrollState = getDb().getScroll(this.columnId);
 	}
 
-	protected void restoreJustUnreadFromDb () {
-		final ScrollState ss = getDb().getScroll(this.columnId);
-		this.scrollIndicator.setUnreadTimeIfNewer(ss.getUnreadTime());
+	protected void restoreScrollFromDbIfNewer (final ScrollChangeType type) {
+		final DbInterface db = getDb();
+		if (db == null) return;
+		final ScrollState ss = db.getScroll(this.columnId);
+		if (ss != null) {
+			ss.applyToIfNewer(this.scrollIndicator);
+			if (type == ScrollChangeType.UNREAD_AND_SCROLL) ss.applyToIfNewer(this.tweetList, this.lastScrollDirection);
+		}
 	}
 
 	protected void scrollTop () {
 		this.tweetList.setSelectionAfterHeaderView();
+		this.lastScrollDirection = ScrollDirection.UP;
 	}
 
 	public void scrollToTweet (final Tweet tweet) {
@@ -518,7 +526,16 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		@Override
 		public void onScroll (final AbsListView view, final int firstVisibleItem, final int visibleItemCount, final int totalItemCount) {
 			if (this.scrolling || firstVisibleItem != this.lastFirstVisibleItem) {
-				onTweetListScroll();
+				ScrollDirection direction = ScrollDirection.UNKNOWN;
+				if (this.lastFirstVisibleItem >= 0) {
+					if (firstVisibleItem < this.lastFirstVisibleItem) {
+						direction = ScrollDirection.UP;
+					}
+					else if (firstVisibleItem > this.lastFirstVisibleItem) {
+						direction = ScrollDirection.DOWN;
+					}
+				}
+				onTweetListScroll(direction);
 				this.lastFirstVisibleItem = firstVisibleItem;
 			}
 		}
@@ -937,13 +954,13 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		}
 
 		@Override
-		public void unreadChanged (final int eventColumnId) {
+		public void unreadOrScrollChanged (final int eventColumnId, final ScrollChangeType type) {
 			if (eventColumnId != getColumnId()) return;
-			refreshUnread();
+			refreshUnread(type);
 		}
 
 		@Override
-		public Integer requestStoreScrollStateNow() {
+		public Integer requestStoreScrollStateNow () {
 			requestSaveCurrentScrollToDb();
 			return getColumnId();
 		}
@@ -958,7 +975,8 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	private static final int MSG_UPDATE_OVER = 3;
 	private static final int MSG_STILL_SCROLLING_CHECK = 4;
 	private static final int MSG_UNREAD_CHANGED = 5;
-	private static final int MSG_SAVE_SCROLL = 6;
+	private static final int MSG_UNREAD_AND_SCROLL_CHANGED = 6;
+	private static final int MSG_SAVE_SCROLL = 7;
 
 	protected void refreshUi () {
 		this.refreshUiHandler.sendEmptyMessage(MSG_REFRESH);
@@ -976,8 +994,16 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		}
 	}
 
-	protected void refreshUnread () {
-		this.refreshUiHandler.sendEmptyMessage(MSG_UNREAD_CHANGED);
+	protected void refreshUnread (final ScrollChangeType type) {
+		switch (type) {
+			case UNREAD:
+				this.refreshUiHandler.sendEmptyMessage(MSG_UNREAD_CHANGED);
+				break;
+			case UNREAD_AND_SCROLL:
+				this.refreshUiHandler.sendEmptyMessage(MSG_UNREAD_AND_SCROLL_CHANGED);
+				break;
+			default:
+		}
 	}
 
 	protected void requestSaveCurrentScrollToDb () {
@@ -1017,7 +1043,10 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				checkIfTweetListStillScrolling();
 				break;
 			case MSG_UNREAD_CHANGED:
-				restoreJustUnreadFromDb();
+				restoreScrollFromDbIfNewer(ScrollChangeType.UNREAD);
+				break;
+			case MSG_UNREAD_AND_SCROLL_CHANGED:
+				restoreScrollFromDbIfNewer(ScrollChangeType.UNREAD_AND_SCROLL);
 				break;
 			case MSG_SAVE_SCROLL:
 				saveCurrentScrollToDb();
@@ -1110,8 +1139,11 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	private long lastScrollFirstVisiblePosition = -1;
 	private long lastScrollTime = 0L;
+	private ScrollDirection lastScrollDirection = ScrollDirection.UNKNOWN;
 
-	protected void onTweetListScroll () {
+	protected void onTweetListScroll (final ScrollDirection direction) {
+		if (direction != ScrollDirection.UNKNOWN) this.lastScrollDirection = direction;
+
 		final int position = this.tweetList.getFirstVisiblePosition();
 		if (position < 0 || position == this.lastScrollFirstVisiblePosition) return;
 		this.lastScrollFirstVisiblePosition = position;

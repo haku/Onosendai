@@ -23,12 +23,15 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.model.ScrollState;
+import com.vaguehope.onosendai.model.ScrollState.ScrollDirection;
 import com.vaguehope.onosendai.provider.hosaka.HosakaColumn;
 import com.vaguehope.onosendai.provider.hosaka.HosakaProvider;
 import com.vaguehope.onosendai.storage.DbBindingService;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
+import com.vaguehope.onosendai.storage.DbInterface.ScrollChangeType;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
+import com.vaguehope.onosendai.ui.pref.FetchingPrefFragment;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -88,7 +91,7 @@ public class HosakaSyncService extends DbBindingService {
 			// - Old / regressed values will be filtered server side.
 			// - Values sent can be used to filter response.
 			// - Also useful as do not know state of remote DB.
-			toPush.put(hash, new HosakaColumn(null /* ss.getItemId(); TODO ScrollState to also store sid? */, ss.getItemTime(), ss.getUnreadTime()));
+			toPush.put(hash, new HosakaColumn(null /* ss.getItemId(); TODO ScrollState to also store sid? */, ss.getItemTime(), ss.getUnreadTime(), ss.getScrollDirection()));
 		}
 
 		final HosakaProvider prov = new HosakaProvider();
@@ -99,20 +102,22 @@ public class HosakaSyncService extends DbBindingService {
 			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(now() - startTime);
 			LOG.i("Sent %s in %d millis: %s", account.getAccessToken(), durationMillis, toPush);
 
+			final boolean syncScroll = prefs.getSharedPreferences().getBoolean(FetchingPrefFragment.KEY_SYNC_SCROLL, false);
+
 			final Map<Column, ScrollState> colToNewScroll = new HashMap<Column, ScrollState>();
 			for (final Entry<String, HosakaColumn> e : returnedColumns.entrySet()) {
 				final String hash = e.getKey();
 				final Column col = hashToCol.get(hash);
 				final HosakaColumn before = toPush.get(hash);
 				final HosakaColumn after = e.getValue();
-				// TODO currently only merge if unread time has moved.
-				if (col != null && before != null && after.getUnreadTime() > before.getUnreadTime()) colToNewScroll.put(col, after.toScrollState());
+				if (col != null && before != null &&
+						(after.getUnreadTime() > before.getUnreadTime() ||
+						(syncScroll && before.getScrollDirection() == ScrollDirection.UP && after.getItemTime() > before.getItemTime()))) {
+					colToNewScroll.put(col, after.toScrollState());
+				}
 			}
-			db.mergeAndStoreScrolls(colToNewScroll);
+			db.mergeAndStoreScrolls(colToNewScroll, syncScroll ? ScrollChangeType.UNREAD_AND_SCROLL : ScrollChangeType.UNREAD);
 			LOG.i("Merged %s columns: %s.", colToNewScroll.size(), colToNewScroll);
-
-			// TODO Trigger UI to scroll to new position if new value is greater.
-			//      Or is this covered by DB listeners?
 
 			storeResult(db, toPush.size(), colToNewScroll.size(), null);
 		}
@@ -189,7 +194,7 @@ public class HosakaSyncService extends DbBindingService {
 		public void columnStatus (final int columnId, final ColumnState state) {/* unused */}
 
 		@Override
-		public void unreadChanged (final int columnId) {/* unused */}
+		public void unreadOrScrollChanged (final int columnId, final ScrollChangeType type) {/* unused */}
 
 		@Override
 		public Integer requestStoreScrollStateNow () {

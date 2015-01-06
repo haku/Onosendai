@@ -209,8 +209,8 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public void mergeAndStoreScrolls (final Map<Column, ScrollState> colToSs) {
-		this.dbAdaptor.mergeAndStoreScrolls(colToSs);
+	public void mergeAndStoreScrolls (final Map<Column, ScrollState> colToSs, final ScrollChangeType type) {
+		this.dbAdaptor.mergeAndStoreScrolls(colToSs, type);
 	}
 
 	@Override

@@ -13,8 +13,8 @@
 
 	<header
 		android:fragment="com.vaguehope.onosendai.ui.pref.FetchingPrefFragment"
-		android:title="Fetching"
-		android:summary="Configure fetching" />
+		android:title="Fetching and Sync'ing"
+		android:summary="Prefetch images, etc." />
 
 	<header
 		android:fragment="com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment"

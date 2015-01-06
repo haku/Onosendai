@@ -53,7 +53,7 @@ public interface DbInterface extends KvStore {
 
 	void storeScroll(int columnId, ScrollState state);
 	void storeUnreadTime(int columnId, long unreadTime);
-	void mergeAndStoreScrolls(Map<Column, ScrollState> colToSs);
+	void mergeAndStoreScrolls(Map<Column, ScrollState> colToSs, ScrollChangeType type);
 	ScrollState getScroll(int columnId);
 
 	void notifyTwListenersColumnState (final int columnId, final ColumnState state);
@@ -67,10 +67,15 @@ public interface DbInterface extends KvStore {
 		UPDATE_OVER;
 	}
 
+	enum ScrollChangeType {
+		UNREAD,
+		UNREAD_AND_SCROLL
+	}
+
 	interface TwUpdateListener {
 		void columnChanged(int columnId);
 		void columnStatus(int columnId, ColumnState state);
-		void unreadChanged(int columnId);
+		void unreadOrScrollChanged(int columnId, ScrollChangeType type);
 		/**
 		 * returns columnId or null.
 		 */
