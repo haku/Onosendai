@@ -1,7 +1,9 @@
 package com.vaguehope.onosendai.update;
 
 import java.io.IOException;
+import java.text.DateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -112,14 +114,13 @@ public class HosakaSyncService extends DbBindingService {
 			// TODO Trigger UI to scroll to new position if new value is greater.
 			//      Or is this covered by DB listeners?
 
+			storeResult(db, toPush.size(), colToNewScroll.size(), null);
 		}
 		catch (final IOException e) {
-			// TODO notify user in some way?
-			LOG.w("Failed to update Hosaka: %s", ExcpetionHelper.causeTrace(e));
+			storeResult(db, toPush.size(), 0, e);
 		}
 		catch (final JSONException e) {
-			// TODO notify user in some way?
-			LOG.w("Failed to update Hosaka: %s", ExcpetionHelper.causeTrace(e));
+			storeResult(db, toPush.size(), 0, e);
 		}
 		finally {
 			prov.shutdown();
@@ -141,6 +142,21 @@ public class HosakaSyncService extends DbBindingService {
 		finally {
 			db.removeTwUpdateListener(twUpdateListener);
 		}
+	}
+
+	private static void storeResult (final DbInterface db, final int pushedCount, final int pulledCount, final Exception e) {
+		final String status;
+		if (e != null) {
+			status = String.format("Failed: %s", ExcpetionHelper.causeTrace(e));
+			LOG.w(status);
+		}
+		else {
+			status = String.format("Success: pushed %s and pulled %s columns.", pushedCount, pulledCount);
+		}
+		db.storeValue(KvKeys.KEY_HOSAKA_STATUS,
+				String.format("%s %s",
+						DateFormat.getDateTimeInstance().format(new Date()),
+						status));
 	}
 
 	private static class ScrollStoreCountingListener implements TwUpdateListener {
