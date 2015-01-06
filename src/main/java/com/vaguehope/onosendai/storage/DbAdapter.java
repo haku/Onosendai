@@ -27,6 +27,7 @@ import com.vaguehope.onosendai.model.OutboxTweet;
 import com.vaguehope.onosendai.model.OutboxTweet.OutboxAction;
 import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
 import com.vaguehope.onosendai.model.ScrollState;
+import com.vaguehope.onosendai.model.ScrollState.ScrollDirection;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -35,7 +36,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 18;
+	private static final int DB_VERSION = 19;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -120,6 +121,10 @@ public class DbAdapter implements DbInterface {
 					db.execSQL("ALTER TABLE " + TBL_TW + " ADD COLUMN " + TBL_TW_USERSUBTITLE + " text;");
 					this.log.w("Adding column %s...", TBL_TW_FULLSUBTITLE);
 					db.execSQL("ALTER TABLE " + TBL_TW + " ADD COLUMN " + TBL_TW_FULLSUBTITLE + " text;");
+				}
+				if (oldVersion < 19) { // NOSONAR not a magic number.
+					this.log.w("Adding column %s...", TBL_SC_DIRECTION);
+					db.execSQL("ALTER TABLE " + TBL_SC + " ADD COLUMN " + TBL_SC_DIRECTION + " integer;");
 				}
 			}
 		}
@@ -797,9 +802,9 @@ public class DbAdapter implements DbInterface {
 		}
 	}
 
-	private void notifyTwListenersUnreadChanged (final int columnId) {
+	private void notifyTwListenersUnreadOrScrollChanged (final int columnId, final ScrollChangeType type) {
 		for (final TwUpdateListener l : this.twUpdateListeners) {
-			l.unreadChanged(columnId);
+			l.unreadOrScrollChanged(columnId, type);
 		}
 	}
 
@@ -844,6 +849,7 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_SC_TOP = "top";
 	private static final String TBL_SC_TIME = "time";
 	private static final String TBL_SC_UNREAD = "unread";
+	private static final String TBL_SC_DIRECTION = "direction";
 
 	private static final String TBL_SC_CREATE = "create table " + TBL_SC + " ("
 			+ TBL_SC_ID + " integer primary key autoincrement,"
@@ -852,6 +858,7 @@ public class DbAdapter implements DbInterface {
 			+ TBL_SC_TOP + " integer,"
 			+ TBL_SC_TIME + " integer,"
 			+ TBL_SC_UNREAD + " integer,"
+			+ TBL_SC_DIRECTION + " integer,"
 			+ "UNIQUE(" + TBL_SC_COLID + ") ON CONFLICT REPLACE" +
 			");";
 
@@ -866,6 +873,7 @@ public class DbAdapter implements DbInterface {
 				values.put(TBL_SC_TOP, state.getTop());
 				values.put(TBL_SC_TIME, state.getItemTime());
 				values.put(TBL_SC_UNREAD, state.getUnreadTime());
+				if (state.getScrollDirection() != ScrollDirection.UNKNOWN) values.put(TBL_SC_DIRECTION, state.getScrollDirection().getValue());
 				this.mDb.insertWithOnConflict(TBL_SC, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 				this.mDb.setTransactionSuccessful();
 			}
@@ -892,26 +900,43 @@ public class DbAdapter implements DbInterface {
 			this.mDb.endTransaction();
 		}
 		this.log.d("Stored unreadTime for col %d: %s", columnId, unreadTime);
-		notifyTwListenersUnreadChanged(columnId);
+		notifyTwListenersUnreadOrScrollChanged(columnId, ScrollChangeType.UNREAD);
 	}
 
 	@Override
-	public void mergeAndStoreScrolls (final Map<Column, ScrollState> colToSs) {
+	public void mergeAndStoreScrolls (final Map<Column, ScrollState> colToSs, final ScrollChangeType type) {
 		final Collection<Integer> updatedColumnIds = new ArrayList<Integer>();
 		this.mDb.beginTransaction();
 		try {
 			final ContentValues values = new ContentValues();
-			for (Entry<Column, ScrollState> e : colToSs.entrySet()) {
-				int columnId = e.getKey().getId();
+			for (final Entry<Column, ScrollState> e : colToSs.entrySet()) {
+				final int columnId = e.getKey().getId();
 				final ScrollState ss = e.getValue();
+
 				values.clear();
-				values.put(TBL_SC_UNREAD, ss.getUnreadTime()); // TODO For initial impl only merge unread time.
-				final int affected = this.mDb.update(TBL_SC, values,
+				values.put(TBL_SC_UNREAD, ss.getUnreadTime());
+				final int affectedUnread = this.mDb.update(TBL_SC, values,
 						TBL_SC_COLID + "=? AND " + TBL_SC_UNREAD + "<?",
 						new String[] { String.valueOf(columnId), String.valueOf(ss.getUnreadTime()) });
-				if (affected > 1) throw new IllegalStateException("Merging " + columnId + " unreadTime affected " + affected + " rows, expected 1.");
-				if (affected > 0) {
-					this.log.i("Merged %s into col %s.", ss, columnId);
+				if (affectedUnread > 1) throw new IllegalStateException("Merging " + columnId + " unreadTime affected " + affectedUnread + " rows, expected 1.");
+
+				final int affectedScroll;
+				if (type == ScrollChangeType.UNREAD_AND_SCROLL) {
+					values.clear();
+					values.put(TBL_SC_ITEMID, ss.getItemId());
+					values.put(TBL_SC_TOP, ss.getTop());
+					values.put(TBL_SC_TIME, ss.getItemTime());
+					affectedScroll = this.mDb.update(TBL_SC, values,
+							TBL_SC_COLID + "=? AND " + TBL_SC_TIME + "<? AND " + TBL_SC_DIRECTION + "=?",
+							new String[] { String.valueOf(columnId), String.valueOf(ss.getItemTime()), String.valueOf(ScrollDirection.UP.getValue()) });
+					if (affectedScroll > 1) throw new IllegalStateException("Merging " + columnId + " itemTime affected " + affectedScroll + " rows, expected 1.");
+				}
+				else {
+					affectedScroll = 0;
+				}
+
+				if (affectedUnread > 0 || affectedScroll > 0) {
+					this.log.i("Merged %s %s u=%s s=%s into col %s.", type, ss, affectedUnread, affectedScroll, columnId);
 					updatedColumnIds.add(columnId);
 				}
 			}
@@ -920,8 +945,8 @@ public class DbAdapter implements DbInterface {
 		finally {
 			this.mDb.endTransaction();
 		}
-		for (final Integer columnId : updatedColumnIds) { // XXX While only merging unread time, only tell UI to update unread time.
-			notifyTwListenersUnreadChanged(columnId);
+		for (final Integer columnId : updatedColumnIds) {
+			notifyTwListenersUnreadOrScrollChanged(columnId, type);
 		}
 	}
 
@@ -932,7 +957,7 @@ public class DbAdapter implements DbInterface {
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_SC,
-					new String[] { TBL_SC_ITEMID, TBL_SC_TOP, TBL_SC_TIME, TBL_SC_UNREAD },
+					new String[] { TBL_SC_ITEMID, TBL_SC_TOP, TBL_SC_TIME, TBL_SC_UNREAD, TBL_SC_DIRECTION },
 					TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) },
 					null, null, null, null);
 
@@ -941,12 +966,14 @@ public class DbAdapter implements DbInterface {
 				final int colTop = c.getColumnIndex(TBL_SC_TOP);
 				final int colTime = c.getColumnIndex(TBL_SC_TIME);
 				final int colUnread = c.getColumnIndex(TBL_SC_UNREAD);
+				final int colDirection = c.getColumnIndex(TBL_SC_DIRECTION);
 
 				final long itemId = c.getLong(colItemId);
 				final int top = c.getInt(colTop);
 				final long time = c.getLong(colTime);
 				final long unread = c.getLong(colUnread);
-				ret = new ScrollState(itemId, top, time, unread);
+				final ScrollDirection direction = ScrollDirection.parseValue(c.getInt(colDirection));
+				ret = new ScrollState(itemId, top, time, unread, direction);
 			}
 		}
 		finally {
