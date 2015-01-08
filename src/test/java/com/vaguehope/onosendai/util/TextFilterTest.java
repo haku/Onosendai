@@ -24,4 +24,10 @@ public class TextFilterTest {
 		assertThat(TextFilter.UPSIDE_DOWN.apply("This is a test."), equalTo(".ʇsǝʇ ɐ sᴉ sᴉɥ┴"));
 	}
 
+	@Test
+	public void itThToThorns () throws Exception {
+		assertThat(TextFilter.TH_TO_THORN.apply(""), equalTo(""));
+		assertThat(TextFilter.TH_TO_THORN.apply("This is the thorn test."), equalTo("Þis is þe þorn test."));
+	}
+
 }
