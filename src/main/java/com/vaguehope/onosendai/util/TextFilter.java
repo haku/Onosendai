@@ -14,6 +14,12 @@ public enum TextFilter {
 		public String apply (final String in) {
 			return heavyMetalUmlauts(in);
 		}
+	},
+	TH_TO_THORN("Th to Thorn") {
+		@Override
+		public String apply (final String in) {
+			return thToThorn(in);
+		}
 	};
 
 	private final String title;
@@ -59,6 +65,10 @@ public enum TextFilter {
 		}
 		reverse(arr);
 		return new String(arr);
+	}
+
+	protected static String thToThorn (final String in) {
+		return in.replace("Th", "Þ").replace("th", "þ");
 	}
 
 	private static int occurrences (final char[] s, final char... chars) {
