@@ -73,4 +73,12 @@
 		android:text="Profile"
 		style="?android:attr/buttonBarButtonStyle" />
 
+	<Button
+		android:id="@+id/btnFollowUnfollow"
+		android:layout_width="fill_parent"
+		android:layout_height="50dip"
+		android:text="Follow / Unfollow"
+		android:enabled="false"
+		style="?android:attr/buttonBarButtonStyle" />
+
 </LinearLayout>
