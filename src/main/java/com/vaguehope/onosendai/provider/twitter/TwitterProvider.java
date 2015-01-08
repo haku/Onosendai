@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import twitter4j.Relationship;
 import twitter4j.ResponseList;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
@@ -100,6 +101,19 @@ public class TwitterProvider {
 
 	public User getUser (final Account account, final String screenName) throws TwitterException {
 		return getTwitter(account).showUser(screenName);
+	}
+
+	public Relationship getRelationship (final Account account, final User otherUser) throws TwitterException {
+		final Twitter t = getTwitter(account);
+		return t.showFriendship(t.getId(), otherUser.getId());
+	}
+
+	public void follow (final Account account, final User targetUser) throws TwitterException {
+		getTwitter(account).createFriendship(targetUser.getId());
+	}
+
+	public void unfollow (final Account account, final User targetUser) throws TwitterException {
+		getTwitter(account).destroyFriendship(targetUser.getId());
 	}
 
 	private static TwitterFactory makeTwitterFactory (final Account account) {
