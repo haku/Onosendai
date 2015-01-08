@@ -87,6 +87,7 @@ public class HosakaSyncService extends DbBindingService {
 			final String hash = HosakaColumn.columnHash(conf.getAccount(col.getAccountId()), col);
 			hashToCol.put(hash, col);
 			final ScrollState ss = db.getScroll(col.getId());
+			if (ss == null) continue; // In case of (new) empty columns.
 			// Always add all columns, even if sent before new values.
 			// - Old / regressed values will be filtered server side.
 			// - Values sent can be used to filter response.
