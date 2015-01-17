@@ -5,7 +5,7 @@
 	android:layout_height="match_parent"
 	android:orientation="vertical">
 
-	<LinearLayout
+	<RelativeLayout
 		android:id="@+id/tweetListTitleBar"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
@@ -18,22 +18,33 @@
 			android:layout_width="wrap_content"
 			android:layout_height="40dip"
 			android:textSize="16sp"
-			android:layout_weight="0"
+			android:layout_alignParentLeft="true"
 			style="?android:attr/buttonBarButtonStyle"
 			android:textColor="@android:color/darker_gray" />
 
+		<Button
+			android:id="@+id/tweetListMenu"
+			android:text="@string/btn_menu"
+			android:layout_width="wrap_content"
+			android:layout_height="40dip"
+			android:textSize="16sp"
+			android:layout_alignParentRight="true"
+			style="?android:attr/buttonBarButtonStyle"
+			android:textColor="@android:color/darker_gray" />
+		
 		<android.support.v4.view.ColumnTitleStrip
 			android:id="@+id/columnTitleStrip"
 			android:layout_width="match_parent"
 			android:layout_height="40dip"
 			android:layout_gravity="top"
-			android:layout_weight="1" />
+			android:layout_toRightOf="@id/tweetListGoto"
+			android:layout_toLeftOf="@id/tweetListMenu" />
 
 		<ProgressBar
 			android:id="@+id/mainBusyPrg"
 			android:layout_width="wrap_content"
 			android:layout_height="40dip"
-			android:layout_weight="0"
+			android:layout_toLeftOf="@id/tweetListMenu"
 			android:minHeight="40dip"
 			android:minWidth="40dip"
 			android:paddingTop="5dip"
@@ -43,18 +54,8 @@
 			android:indeterminate="true"
 			android:indeterminateOnly="true"
 			android:visibility="gone" />
-		
-		<Button
-			android:id="@+id/tweetListMenu"
-			android:text="@string/btn_menu"
-			android:layout_width="wrap_content"
-			android:layout_height="40dip"
-			android:textSize="16sp"
-			android:layout_weight="0"
-			style="?android:attr/buttonBarButtonStyle"
-			android:textColor="@android:color/darker_gray" />
 
-	</LinearLayout>
+	</RelativeLayout>
 
 	<com.vaguehope.onosendai.widget.SidebarAwareViewPager
 		android:id="@+id/pager"
