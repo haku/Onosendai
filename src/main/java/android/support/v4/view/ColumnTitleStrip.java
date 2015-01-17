@@ -168,8 +168,10 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		}
 		this.mUpdatingPositions = true;
 
-		final int columnWidth = (int) ((getWidth() - getPaddingLeft() - getPaddingRight()) * this.relativePageWidth); // FIXME rounding error may be introduced.
-		final int firstColumnLeft = 0 - (columnWidth * position);
+		// XXX Use pager's width.
+		final int contentWidth = this.pager.getWidth() - getPaddingLeft() - getPaddingRight();
+		final int columnWidth = (int) (contentWidth * this.relativePageWidth); // FIXME rounding error may be introduced.
+		final int firstColumnLeft = 0 - (columnWidth * position) - getLeft(); // XXX Offset Left.
 
 		for (int i = 0; i < this.labels.size(); i++) {
 			final TextView tv = this.labels.get(i);
@@ -191,7 +193,9 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 
 		if (widthMode != MeasureSpec.EXACTLY) throw new IllegalStateException("Must measure with an exact width.");
 
-		final int columnWidth = (int) ((widthSize - getPaddingLeft() - getPaddingRight()) * this.relativePageWidth); // FIXME rounding error may be introduced.
+		// XXX Use pager's width.
+		final int contentWidth = this.pager.getWidth() - getPaddingLeft() - getPaddingRight();
+		final int columnWidth = (int) (contentWidth * this.relativePageWidth); // FIXME rounding error may be introduced.
 
 		final int vPadding = getPaddingTop() + getPaddingBottom();
 		final int childHeight = heightSize - vPadding;

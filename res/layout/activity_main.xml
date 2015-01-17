@@ -12,16 +12,6 @@
 		android:orientation="horizontal"
 		style="?android:attr/buttonBarStyle">
 
-		<android.support.v4.view.ColumnTitleStrip
-			android:id="@+id/columnTitleStrip"
-			android:layout_width="match_parent"
-			android:layout_height="40dip"
-			android:layout_gravity="top"
-			android:layout_alignParentLeft="true"
-			android:layout_alignParentRight="true" />
-
-		<!-- Note: set background to disable transparency. -->
-
 		<Button
 			android:id="@+id/tweetListGoto"
 			android:text="@string/btn_goto"
@@ -30,7 +20,6 @@
 			android:textSize="16sp"
 			android:layout_alignParentLeft="true"
 			style="?android:attr/buttonBarButtonStyle"
-			android:background="@android:color/background_dark"
 			android:textColor="@android:color/darker_gray" />
 
 		<Button
@@ -40,9 +29,16 @@
 			android:layout_height="40dip"
 			android:textSize="16sp"
 			android:layout_alignParentRight="true"
-			android:background="@android:color/background_dark"
 			style="?android:attr/buttonBarButtonStyle"
 			android:textColor="@android:color/darker_gray" />
+
+		<android.support.v4.view.ColumnTitleStrip
+			android:id="@+id/columnTitleStrip"
+			android:layout_width="match_parent"
+			android:layout_height="40dip"
+			android:layout_gravity="top"
+			android:layout_toRightOf="@id/tweetListGoto"
+			android:layout_toLeftOf="@id/tweetListMenu" />
 
 		<ProgressBar
 			android:id="@+id/mainBusyPrg"
