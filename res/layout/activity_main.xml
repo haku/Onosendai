@@ -5,20 +5,48 @@
 	android:layout_height="match_parent"
 	android:orientation="vertical">
 
-	<com.vaguehope.onosendai.widget.SidebarAwareViewPager
-		android:id="@+id/pager"
+	<LinearLayout
+		android:id="@+id/tweetListTitleBar"
 		android:layout_width="match_parent"
-		android:layout_height="0dip"
-		android:layout_weight="1"
-		tools:context=".MainActivity">
+		android:layout_height="wrap_content"
+		android:orientation="horizontal"
+		style="?android:attr/buttonBarStyle">
+
+		<Button
+			android:id="@+id/tweetListGoto"
+			android:text="@string/btn_goto"
+			android:layout_width="wrap_content"
+			android:layout_height="40dip"
+			android:textSize="16sp"
+			android:layout_weight="0"
+			style="?android:attr/buttonBarButtonStyle"
+			android:textColor="@android:color/darker_gray" />
 
 		<android.support.v4.view.ColumnTitleStrip
 			android:id="@+id/columnTitleStrip"
 			android:layout_width="match_parent"
 			android:layout_height="40dip"
-			android:layout_gravity="top" />
+			android:layout_gravity="top"
+			android:layout_weight="1" />
 
-	</com.vaguehope.onosendai.widget.SidebarAwareViewPager>
+		<Button
+			android:id="@+id/tweetListMenu"
+			android:text="@string/btn_menu"
+			android:layout_width="wrap_content"
+			android:layout_height="40dip"
+			android:textSize="16sp"
+			android:layout_weight="0"
+			style="?android:attr/buttonBarButtonStyle"
+			android:textColor="@android:color/darker_gray" />
+
+	</LinearLayout>
+
+	<com.vaguehope.onosendai.widget.SidebarAwareViewPager
+		android:id="@+id/pager"
+		android:layout_width="match_parent"
+		android:layout_height="0dip"
+		android:layout_weight="1"
+		tools:context=".MainActivity" />
 
 	<TextView
 		android:id="@+id/jobStatus"

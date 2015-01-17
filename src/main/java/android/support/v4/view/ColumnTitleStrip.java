@@ -16,7 +16,6 @@ import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
@@ -33,7 +32,7 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 	private final int textSizePx;
 
 	private final PageListener mPageListener = new PageListener();
-	private ViewPager mPager;
+	private ViewPager pager;
 	private WeakReference<PagerAdapter> mWatchingAdapter;
 
 	private int mLastKnownCurrentPage = -1;
@@ -57,29 +56,24 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		a.recycle();
 	}
 
-	@Override
-	protected void onAttachedToWindow () {
-		super.onAttachedToWindow();
-
-		final ViewParent parent = getParent();
-		if (!(parent instanceof ViewPager)) throw new IllegalStateException("PagerTitleStrip must be a direct child of a ViewPager.");
-
-		final ViewPager pager = (ViewPager) parent;
-		pager.setInternalPageChangeListener(this.mPageListener);
-		pager.setOnAdapterChangeListener(this.mPageListener);
-		this.mPager = pager;
-		updateAdapter(this.mWatchingAdapter != null ? this.mWatchingAdapter.get() : null, pager.getAdapter());
+	public void setViewPager(final ViewPager newPager) {
+		if (this.pager != null) {
+			updateAdapter(this.pager.getAdapter(), null);
+			this.pager.setInternalPageChangeListener(null);
+			this.pager.setOnAdapterChangeListener(null);
+		}
+		this.pager = newPager;
+		if (this.pager != null) {
+			this.pager.setInternalPageChangeListener(this.mPageListener);
+			this.pager.setOnAdapterChangeListener(this.mPageListener);
+			updateAdapter(this.mWatchingAdapter != null ? this.mWatchingAdapter.get() : null, this.pager.getAdapter());
+		}
 	}
 
 	@Override
 	protected void onDetachedFromWindow () {
 		super.onDetachedFromWindow();
-		if (this.mPager != null) {
-			updateAdapter(this.mPager.getAdapter(), null);
-			this.mPager.setInternalPageChangeListener(null);
-			this.mPager.setOnAdapterChangeListener(null);
-			this.mPager = null;
-		}
+		setViewPager(null);
 	}
 
 	/**
@@ -107,10 +101,10 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 			this.mWatchingAdapter = new WeakReference<PagerAdapter>(newAdapter);
 			createWidgets(newAdapter);
 		}
-		if (this.mPager != null) {
+		if (this.pager != null) {
 			this.mLastKnownCurrentPage = -1;
 			this.mLastKnownPositionOffset = -1;
-			updateText(this.mPager.getCurrentItem());
+			updateText(this.pager.getCurrentItem());
 			requestLayout();
 		}
 	}
@@ -203,7 +197,7 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 
 	@Override
 	protected void onLayout (final boolean changed, final int l, final int t, final int r, final int b) {
-		if (this.mPager != null) {
+		if (this.pager != null) {
 			final float offset = this.mLastKnownPositionOffset >= 0 ? this.mLastKnownPositionOffset : 0;
 			updateTextPositions(this.mLastKnownCurrentPage, offset, true);
 		}
@@ -238,10 +232,10 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 
 		@Override
 		public void onChanged () {
-			updateText(ColumnTitleStrip.this.mPager.getCurrentItem());
+			updateText(ColumnTitleStrip.this.pager.getCurrentItem());
 
 			final float offset = ColumnTitleStrip.this.mLastKnownPositionOffset >= 0 ? ColumnTitleStrip.this.mLastKnownPositionOffset : 0;
-			updateTextPositions(ColumnTitleStrip.this.mPager.getCurrentItem(), offset, true);
+			updateTextPositions(ColumnTitleStrip.this.pager.getCurrentItem(), offset, true);
 		}
 	}
 

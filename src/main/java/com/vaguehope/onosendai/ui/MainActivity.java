@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ColumnTitleStrip;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
 import android.util.SparseArray;
 import android.view.View;
@@ -109,6 +110,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		this.viewPager.setOnPageChangeListener(onPageChangeListener);
 		this.viewPager.setAdapter(sectionsPagerAdapter);
 		if (!showPageFromIntent(getIntent())) onPageChangeListener.onPageSelected(this.viewPager.getCurrentItem());
+
+		((ColumnTitleStrip) findViewById(R.id.columnTitleStrip)).setViewPager(this.viewPager);
 
 		AlarmReceiver.configureAlarms(this); // FIXME be more smart about this?
 	}
