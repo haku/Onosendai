@@ -15,10 +15,16 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ColumnTitleStrip;
+import android.support.v4.view.ColumnTitleStrip.ColumnClickListener;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
 import android.util.SparseArray;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
@@ -36,16 +42,22 @@ import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbProvider;
+import com.vaguehope.onosendai.ui.LocalSearchDialog.OnTweetListener;
 import com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment;
+import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
 import com.vaguehope.onosendai.update.AlarmReceiver;
+import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.MultiplexingOnPageChangeListener;
+import com.vaguehope.onosendai.util.NetHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.exec.ExecUtils;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.widget.SidebarAwareViewPager;
 
-public class MainActivity extends FragmentActivity implements ImageLoader, OnSharedPreferenceChangeListener {
+public class MainActivity extends FragmentActivity implements ImageLoader, DbProvider, OnSharedPreferenceChangeListener {
 
 	public static final String ARG_FOCUS_COLUMN_ID = "focus_column_id";
 
@@ -111,7 +123,14 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		this.viewPager.setAdapter(sectionsPagerAdapter);
 		if (!showPageFromIntent(getIntent())) onPageChangeListener.onPageSelected(this.viewPager.getCurrentItem());
 
-		((ColumnTitleStrip) findViewById(R.id.columnTitleStrip)).setViewPager(this.viewPager);
+		((Button) findViewById(R.id.tweetListGoto)).setOnClickListener(new GotoMenu(this));
+
+		final ColumnTitleStrip columnTitleStrip = (ColumnTitleStrip) findViewById(R.id.columnTitleStrip);
+		columnTitleStrip.setViewPager(this.viewPager);
+		columnTitleStrip.setColumnClickListener(new TitleClickListener(this.conf, this.activePages));
+
+		final Button btnMenu = (Button) findViewById(R.id.tweetListMenu);
+		btnMenu.setOnClickListener(this.menuClickListener);
 
 		AlarmReceiver.configureAlarms(this); // FIXME be more smart about this?
 	}
@@ -190,7 +209,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		return dbReady;
 	}
 
-	protected DbInterface getDb () {
+	@Override
+	public DbInterface getDb () {
 		final DbClient d = this.bndDb;
 		if (d == null) return null;
 		return d.getDb();
@@ -202,7 +222,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		return this.conf;
 	}
 
-	public ExecutorEventListener getExecutorEventListener() {
+	public ExecutorEventListener getExecutorEventListener () {
 		return this.executorStatus;
 	}
 
@@ -240,7 +260,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		return false;
 	}
 
-	public void gotoTweet(final int colId, final Tweet tweet) {
+	public void gotoTweet (final int colId, final Tweet tweet) {
 		gotoPage(getConf().getColumnPositionById(colId));
 		final TweetListFragment page = this.activePages.get(colId);
 		if (page != null) page.scrollToTweet(tweet);
@@ -276,6 +296,91 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 		}
 		super.onBackPressed();
 	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private final OnClickListener menuClickListener = new OnClickListener() {
+		@Override
+		public void onClick (final View v) {
+			final PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
+			popupMenu.getMenuInflater().inflate(R.menu.listmenu, popupMenu.getMenu());
+			popupMenu.setOnMenuItemClickListener(MainActivity.this.menuItemClickListener);
+			popupMenu.show();
+		}
+	};
+
+	protected final PopupMenu.OnMenuItemClickListener menuItemClickListener = new PopupMenu.OnMenuItemClickListener() {
+		@Override
+		public boolean onMenuItemClick (final MenuItem item) {
+			return menuItemClick(item);
+		}
+	};
+
+	protected boolean menuItemClick (final MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.mnuPost:
+				showPost(null);
+				return true;
+			case R.id.mnuOutbox:
+				showOutbox();
+				return true;
+			case R.id.mnuRefreshColumnNow:
+//				scheduleRefresh(column); // TODO FIXME long-hold column title or something?
+				DialogHelper.alert(this, "Not implemented.");
+				return true;
+			case R.id.mnuRefreshAllNow:
+				scheduleRefresh(null);
+				return true;
+			case R.id.mnuPreferences:
+				startActivity(new Intent(this, OsPreferenceActivity.class));
+				return true;
+			case R.id.mnuLocalSearch:
+				showLocalSearch();
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	private void showPost (final Tweet tweetToQuote) {
+		final Intent intent = new Intent(this, PostActivity.class);
+		// TODO FIXME
+//		final Account columnAccount = getColumnAccount();
+//		if (columnAccount != null) intent.putExtra(PostActivity.ARG_ACCOUNT_ID, columnAccount.getId());
+		if (tweetToQuote != null) intent.putExtra(PostActivity.ARG_BODY,
+				String.format("RT @%s %s", StringHelper.firstLine(tweetToQuote.getUsername()), tweetToQuote.getBody()));
+		startActivity(intent);
+	}
+
+	private void showOutbox () {
+		startActivity(new Intent(this, OutboxActivity.class));
+	}
+
+	protected void scheduleRefresh (final Column column) {
+		if (!NetHelper.connectionPresent(this)) {
+			DialogHelper.alert(this, "No internet connection available.");
+			return;
+		}
+
+		final Intent intent = new Intent(this, UpdateService.class);
+		intent.putExtra(UpdateService.ARG_IS_MANUAL, true);
+		if (column != null) intent.putExtra(UpdateService.ARG_COLUMN_ID, column.getId());
+		startService(intent);
+
+		final String msg = column == null ? "Refresh all columns requested." : "Refresh column requested.";
+		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+	}
+
+	private void showLocalSearch () {
+		LocalSearchDialog.show(this, getConf(), this, this, new OnTweetListener() {
+			@Override
+			public void onTweet (final int colId, final Tweet tweet) {
+				MainActivity.this.gotoTweet(colId, tweet);
+			}
+		});
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static class SectionsPagerAdapter extends FragmentPagerAdapter {
 
@@ -335,6 +440,27 @@ public class MainActivity extends FragmentActivity implements ImageLoader, OnSha
 
 		public boolean isVisible (final int position) {
 			return position >= this.selectedPagePosition && position < this.selectedPagePosition + this.visiblePages;
+		}
+
+	}
+
+	private static class TitleClickListener implements ColumnClickListener {
+
+		private final Config conf;
+		private final SparseArray<TweetListFragment> activePages;
+
+		public TitleClickListener (final Config conf, final SparseArray<TweetListFragment> activePages) {
+			this.conf = conf;
+			this.activePages = activePages;
+		}
+
+		@Override
+		public void onColumnTitleClick (final int position) {
+			final Column col = this.conf.getColumnByPosition(position);
+			if (col == null) return;
+			final TweetListFragment page = this.activePages.get(col.getId());
+			if (page == null) return;
+			page.scrollTop();
 		}
 
 	}

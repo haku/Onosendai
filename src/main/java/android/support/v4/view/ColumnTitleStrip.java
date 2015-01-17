@@ -15,25 +15,28 @@ import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
-import com.vaguehope.onosendai.util.LogWrapper;
 
 public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* Decor is package-private :( */{
+
+	public interface ColumnClickListener {
+		void onColumnTitleClick (int position);
+	}
 
 	private static final int[] ATTRS = new int[] {
 			android.R.attr.textSize
 	};
-
-	private static final LogWrapper LOG = new LogWrapper("CTS");
 
 	private final int textSizePx;
 
 	private final PageListener mPageListener = new PageListener();
 	private ViewPager pager;
 	private WeakReference<PagerAdapter> mWatchingAdapter;
+	private ColumnClickListener columnClickListener;
 
 	private int mLastKnownCurrentPage = -1;
 	private float mLastKnownPositionOffset = -1;
@@ -56,7 +59,7 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		a.recycle();
 	}
 
-	public void setViewPager(final ViewPager newPager) {
+	public void setViewPager (final ViewPager newPager) {
 		if (this.pager != null) {
 			updateAdapter(this.pager.getAdapter(), null);
 			this.pager.setInternalPageChangeListener(null);
@@ -68,6 +71,10 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 			this.pager.setOnAdapterChangeListener(this.mPageListener);
 			updateAdapter(this.mWatchingAdapter != null ? this.mWatchingAdapter.get() : null, this.pager.getAdapter());
 		}
+	}
+
+	public void setColumnClickListener (final ColumnClickListener listener) {
+		this.columnClickListener = listener;
 	}
 
 	@Override
@@ -118,6 +125,7 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 				if (inflater == null) inflater = LayoutInflater.from(getContext());
 				final TextView tv = (TextView) inflater.inflate(R.layout.titlestripbutton, this, false);
 				if (this.textSizePx != 0) tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.textSizePx);
+				tv.setOnClickListener(new TitleClickListener(this, this.labels.size()));
 				this.labels.add(tv);
 				addView(tv);
 			}
@@ -237,6 +245,23 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 			final float offset = ColumnTitleStrip.this.mLastKnownPositionOffset >= 0 ? ColumnTitleStrip.this.mLastKnownPositionOffset : 0;
 			updateTextPositions(ColumnTitleStrip.this.pager.getCurrentItem(), offset, true);
 		}
+	}
+
+	private static class TitleClickListener implements OnClickListener {
+
+		private final ColumnTitleStrip host;
+		private final int position;
+
+		public TitleClickListener (final ColumnTitleStrip host, final int position) {
+			this.host = host;
+			this.position = position;
+		}
+
+		@Override
+		public void onClick (final View v) {
+			this.host.columnClickListener.onColumnTitleClick(this.position);
+		}
+
 	}
 
 }

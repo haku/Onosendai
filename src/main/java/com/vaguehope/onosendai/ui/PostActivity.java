@@ -132,10 +132,12 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		this.exec = ExecUtils.newBoundedCachedThreadPool(C.NET_MAX_THREADS, LOG);
 
 		this.intentExtras = getIntent().getExtras();
-		this.inReplyToUid = this.intentExtras.getLong(ARG_IN_REPLY_TO_UID);
-		this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
-		this.altReplyToSid = this.intentExtras.getString(ARG_ALT_REPLY_TO_SID);
-		this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
+		if (this.intentExtras != null) {
+			this.inReplyToUid = this.intentExtras.getLong(ARG_IN_REPLY_TO_UID);
+			this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
+			this.altReplyToSid = this.intentExtras.getString(ARG_ALT_REPLY_TO_SID);
+			this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
+		}
 		LOG.i("inReplyToUid=%d inReplyToSid=%s altReplyToSid=%s alsoMentions=%s",
 				this.inReplyToUid, this.inReplyToSid, this.altReplyToSid, Arrays.toString(this.alsoMentions));
 
@@ -209,10 +211,10 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		Account account = null;
 
 		if (savedInstanceState != null) accountId = savedInstanceState.getString(ARG_ACCOUNT_ID);
-		if (accountId == null) accountId = this.intentExtras.getString(ARG_ACCOUNT_ID);
+		if (accountId == null && this.intentExtras != null) accountId = this.intentExtras.getString(ARG_ACCOUNT_ID);
 		if (accountId != null) {
 			account = conf.getAccount(accountId);
-			final List<String> svcs = this.intentExtras.getStringArrayList(ARG_SVCS);
+			final List<String> svcs = this.intentExtras != null ? this.intentExtras.getStringArrayList(ARG_SVCS) : null;
 			LOG.i("accountId=%s svcs=%s", account.getId(), svcs);
 
 			this.enabledPostToAccounts.setAccount(account);
@@ -242,7 +244,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			this.attachment = savedInstanceState.getParcelable(ARG_ATTACHMENT);
 			this.tmpAttachment = savedInstanceState.getParcelable(ARG_TMP_ATTACHMENT);
 		}
-		if (this.attachment == null) this.attachment = this.intentExtras.getParcelable(ARG_ATTACHMENT);
+		if (this.attachment == null && this.intentExtras != null) this.attachment = this.intentExtras.getParcelable(ARG_ATTACHMENT);
 		if (this.attachment == null && Intent.ACTION_SEND.equals(getIntent().getAction())
 				&& getIntent().getType() != null
 				&& getIntent().getType().startsWith("image/")) {
@@ -367,7 +369,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	}
 
 	private void initBody (final Tweet tweet) {
-		final String intialBody = this.intentExtras.getString(ARG_BODY);
+		final String intialBody = this.intentExtras != null ? this.intentExtras.getString(ARG_BODY) : null;
 		if (intialBody != null) {
 			this.txtBody.setText(intialBody);
 		}
