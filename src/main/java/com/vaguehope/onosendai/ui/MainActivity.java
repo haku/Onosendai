@@ -7,10 +7,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import android.annotation.TargetApi;
+import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -20,12 +23,11 @@ import android.support.v4.view.ColumnTitleStrip;
 import android.support.v4.view.ColumnTitleStrip.ColumnClickListener;
 import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
 import android.util.SparseArray;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
-import android.widget.PopupMenu;
-import android.widget.ProgressBar;
+import android.view.ViewGroup.LayoutParams;
+import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,6 +63,7 @@ import com.vaguehope.onosendai.util.exec.ExecUtils;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.widget.SidebarAwareViewPager;
 
+@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH) // FIXME either remove this or bump min SDK version.
 public class MainActivity extends FragmentActivity implements ImageLoader, DbProvider, OnSharedPreferenceChangeListener {
 
 	public static final String ARG_FOCUS_COLUMN_ID = "focus_column_id";
@@ -76,7 +79,6 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	private ExecutorService netEs;
 
 	private ColumnTitleStrip columnTitleStrip;
-	private ProgressBar prgMainBusy;
 	private SidebarAwareViewPager viewPager;
 	private VisiblePageSelectionListener pageSelectionListener;
 	private final SparseArray<TweetListFragment> activePages = new SparseArray<TweetListFragment>();
@@ -95,6 +97,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		}
 		this.prefs.getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
 
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.activity_main);
 
 		try {
@@ -129,16 +132,17 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		this.viewPager.setAdapter(sectionsPagerAdapter);
 		if (!showPageFromIntent(getIntent())) onPageChangeListener.onPageSelected(this.viewPager.getCurrentItem());
 
-		((Button) findViewById(R.id.tweetListGoto)).setOnClickListener(new GotoMenu(this));
+		final ActionBar ab = getActionBar();
+		ab.setDisplayShowHomeEnabled(true);
+		ab.setHomeButtonEnabled(true);
+		ab.setDisplayShowTitleEnabled(false);
+		ab.setDisplayShowCustomEnabled(true);
 
-		this.columnTitleStrip = (ColumnTitleStrip) findViewById(R.id.columnTitleStrip);
+		this.columnTitleStrip = new ColumnTitleStrip(this); // TODO ab.getThemedContext() in v14?
 		this.columnTitleStrip.setViewPager(this.viewPager);
+		this.columnTitleStrip.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 		this.columnTitleStrip.setColumnClickListener(new TitleClickListener(this.conf, this.activePages));
-
-		this.prgMainBusy = (ProgressBar) findViewById(R.id.mainBusyPrg);
-
-		final Button btnMenu = (Button) findViewById(R.id.tweetListMenu);
-		btnMenu.setOnClickListener(this.menuClickListener);
+		ab.setCustomView(this.columnTitleStrip);
 
 		AlarmReceiver.configureAlarms(this); // FIXME be more smart about this?
 	}
@@ -305,7 +309,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		super.onBackPressed();
 	}
 
-	public int getVisiblePageCount() {
+	public int getVisiblePageCount () {
 		return this.pageSelectionListener.getVisiblePageCount();
 	}
 
@@ -329,28 +333,21 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private final OnClickListener menuClickListener = new OnClickListener() {
-		@Override
-		public void onClick (final View v) {
-			final PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
-			popupMenu.getMenuInflater().inflate(R.menu.listmenu, popupMenu.getMenu());
-			if (getVisiblePageCount() > 1) {
-				popupMenu.getMenu().findItem(R.id.mnuRefreshColumnNow).setTitle(R.string.menu_refresh_visible_columns);
-			}
-			popupMenu.setOnMenuItemClickListener(MainActivity.this.menuItemClickListener);
-			popupMenu.show();
+	@Override
+	public boolean onCreateOptionsMenu (final Menu menu) {
+		getMenuInflater().inflate(R.menu.listmenu, menu);
+		if (getVisiblePageCount() > 1) {
+			menu.findItem(R.id.mnuRefreshColumnNow).setTitle(R.string.menu_refresh_visible_columns);
 		}
-	};
+		return true;
+	}
 
-	protected final PopupMenu.OnMenuItemClickListener menuItemClickListener = new PopupMenu.OnMenuItemClickListener() {
-		@Override
-		public boolean onMenuItemClick (final MenuItem item) {
-			return menuItemClick(item);
-		}
-	};
-
-	protected boolean menuItemClick (final MenuItem item) {
+	@Override
+	public boolean onOptionsItemSelected (final MenuItem item) {
 		switch (item.getItemId()) {
+			case android.R.id.home:
+				new GotoMenu(this).onClick(this.columnTitleStrip); // TODO FIXME position it correctly under icon.
+				return true;
 			case R.id.mnuPost:
 				showPost(null, null);
 				return true;
@@ -370,7 +367,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 				showLocalSearch();
 				return true;
 			default:
-				return false;
+				return super.onOptionsItemSelected(item);
 		}
 	}
 
@@ -424,7 +421,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	 */
 	protected void progressIndicator (final boolean inProgress) {
 		this.progressIndicatorCounter += (inProgress ? 1 : -1);
-		this.prgMainBusy.setVisibility(this.progressIndicatorCounter > 0 ? View.VISIBLE : View.GONE);
+		setProgressBarIndeterminateVisibility(this.progressIndicatorCounter > 0);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
