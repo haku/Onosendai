@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.update;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -30,7 +31,7 @@ import com.vaguehope.onosendai.util.NetHelper;
 
 public class UpdateService extends DbBindingService {
 
-	public static final String ARG_COLUMN_ID = "column_id";
+	public static final String ARG_COLUMN_IDS = "column_ids";
 	public static final String ARG_IS_MANUAL = "is_manual";
 
 	protected static final LogWrapper LOG = new LogWrapper("US");
@@ -41,24 +42,24 @@ public class UpdateService extends DbBindingService {
 
 	@Override
 	protected void doWork (final Intent i) {
-		final int columnId = i.getIntExtra(ARG_COLUMN_ID, Integer.MIN_VALUE);
+		final int[] columnIds = i.getIntArrayExtra(ARG_COLUMN_IDS);
 		final boolean manual = i.getBooleanExtra(ARG_IS_MANUAL, false);
-		LOG.i("UpdateService invoked (column_id=%d, is_manual=%b).", columnId, manual);
-		doWork(columnId, manual);
+		LOG.i("UpdateService invoked (column_ids=%s, is_manual=%b).", Arrays.toString(columnIds), manual);
+		doWork(columnIds, manual);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private void doWork (final int columnId, final boolean manual) {
+	private void doWork (final int[] columnIds, final boolean manual) {
 		if (NetHelper.connectionPresent(this)) {
-			fetchColumns(columnId, manual);
+			fetchColumns(columnIds, manual);
 		}
 		else {
 			LOG.i("No connection, all updating aborted.");
 		}
 	}
 
-	private void fetchColumns (final int columnId, final boolean manual) {
+	private void fetchColumns (final int[] columnIds, final boolean manual) {
 		final Prefs prefs = new Prefs(getBaseContext());
 
 		final Config conf;
@@ -74,20 +75,20 @@ public class UpdateService extends DbBindingService {
 		final Collection<Column> columnsFetched;
 		final ProviderMgr providerMgr = new ProviderMgr(getDb());
 		try {
-			columnsFetched = fetchColumns(conf, columnId, manual, providerMgr);
+			columnsFetched = fetchColumns(conf, columnIds, manual, providerMgr);
 		}
 		finally {
 			providerMgr.shutdown();
 		}
 
-		HosakaSyncService.startServiceIfConfigured(this, conf, columnId);
+		HosakaSyncService.startServiceIfConfigured(this, conf, columnIds);
 		FetchPictureService.startServiceIfConfigured(this, prefs, columnsFetched, manual);
 	}
 
-	private Collection<Column> fetchColumns (final Config conf, final int columnId, final boolean manual, final ProviderMgr providerMgr) {
+	private Collection<Column> fetchColumns (final Config conf, final int[] columnIds, final boolean manual, final ProviderMgr providerMgr) {
 		final long startTime = System.nanoTime();
 
-		final Collection<Column> columns = columnsToFetch(conf, columnId, manual);
+		final Collection<Column> columns = columnsToFetch(conf, columnIds, manual);
 		fetchColumns(conf, providerMgr, columns);
 		if (!manual) Notifications.update(getBaseContext(), getDb(), columns);
 
@@ -97,10 +98,12 @@ public class UpdateService extends DbBindingService {
 		return columns;
 	}
 
-	private Collection<Column> columnsToFetch (final Config conf, final int columnId, final boolean manual) {
+	private Collection<Column> columnsToFetch (final Config conf, final int[] columnIds, final boolean manual) {
 		final Collection<Column> columns = new ArrayList<Column>();
-		if (columnId > Integer.MIN_VALUE) {
-			columns.add(conf.getColumnById(columnId));
+		if (columnIds != null && columnIds.length > 0) {
+			for (int columnId : columnIds) {
+				columns.add(conf.getColumnById(columnId));
+			}
 		}
 		else {
 			columns.addAll(removeNotFetchable(conf.getColumns()));

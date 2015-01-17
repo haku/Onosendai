@@ -39,8 +39,8 @@ public class HosakaSyncService extends DbBindingService {
 
 	protected static final LogWrapper LOG = new LogWrapper("HSS");
 
-	public static void startServiceIfConfigured (final Context context, final Config conf, final int columnId) {
-		if (columnId > Integer.MIN_VALUE) return; // Not on manual single column.
+	public static void startServiceIfConfigured (final Context context, final Config conf, final int[] columnIds) {
+		if (columnIds != null && columnIds.length > 0) return; // Not on manual with specific columns.
 		if (conf.firstAccountOfType(AccountProvider.HOSAKA) == null) return; // Must have account configured.
 		startService(context);
 	}
