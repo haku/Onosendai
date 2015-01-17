@@ -1006,7 +1006,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	private final OnClickListener refreshClickListener = new OnClickListener() {
 		@Override
 		public void onClick (final View v) {
-			getMainActivity().scheduleRefresh(getColumn());
+			getMainActivity().scheduleRefresh(getColumnId());
 		}
 	};
 

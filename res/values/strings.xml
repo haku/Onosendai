@@ -68,6 +68,7 @@
 	<string name="menu_post">Post</string>
 	<string name="menu_outbox">Outbox</string>
 	<string name="menu_refresh_column">Refresh Column</string>
+	<string name="menu_refresh_visible_columns">Refresh Visible Columns</string>
 	<string name="menu_refresh_all">Refresh All</string>
 	<string name="menu_preferences">Preferences</string>
 	<string name="menu_local_search">Local Search</string>

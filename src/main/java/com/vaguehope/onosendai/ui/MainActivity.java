@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.ui;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -303,6 +305,28 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		super.onBackPressed();
 	}
 
+	public int getVisiblePageCount() {
+		return this.pageSelectionListener.getVisiblePageCount();
+	}
+
+	public List<Column> getVisibleColumns () {
+		final List<Column> ret = new ArrayList<Column>();
+		for (int i = 0; i < this.activePages.size(); i++) {
+			final TweetListFragment page = this.activePages.valueAt(i);
+			if (this.pageSelectionListener.isVisible(page.getColumnPosition())) ret.add(page.getColumn());
+		}
+		return ret;
+	}
+
+	public int[] getVisibleColumnIds () {
+		final List<Column> cols = getVisibleColumns();
+		final int[] ret = new int[cols.size()];
+		for (int i = 0; i < cols.size(); i++) {
+			ret[i] = cols.get(i).getId();
+		}
+		return ret;
+	}
+
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private final OnClickListener menuClickListener = new OnClickListener() {
@@ -310,6 +334,9 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		public void onClick (final View v) {
 			final PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
 			popupMenu.getMenuInflater().inflate(R.menu.listmenu, popupMenu.getMenu());
+			if (getVisiblePageCount() > 1) {
+				popupMenu.getMenu().findItem(R.id.mnuRefreshColumnNow).setTitle(R.string.menu_refresh_visible_columns);
+			}
 			popupMenu.setOnMenuItemClickListener(MainActivity.this.menuItemClickListener);
 			popupMenu.show();
 		}
@@ -331,11 +358,10 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 				showOutbox();
 				return true;
 			case R.id.mnuRefreshColumnNow:
-//				scheduleRefresh(column); // TODO FIXME long-hold column title or something?
-				DialogHelper.alert(this, "Not implemented.");
+				scheduleRefresh(getVisibleColumnIds());
 				return true;
 			case R.id.mnuRefreshAllNow:
-				scheduleRefresh(null);
+				scheduleRefresh();
 				return true;
 			case R.id.mnuPreferences:
 				startActivity(new Intent(this, OsPreferenceActivity.class));
@@ -360,7 +386,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		startActivity(new Intent(this, OutboxActivity.class));
 	}
 
-	protected void scheduleRefresh (final Column column) {
+	protected void scheduleRefresh (final int... columnIds) {
 		if (!NetHelper.connectionPresent(this)) {
 			DialogHelper.alert(this, "No internet connection available.");
 			return;
@@ -368,10 +394,11 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 		final Intent intent = new Intent(this, UpdateService.class);
 		intent.putExtra(UpdateService.ARG_IS_MANUAL, true);
-		if (column != null) intent.putExtra(UpdateService.ARG_COLUMN_ID, column.getId());
+		if (columnIds != null && columnIds.length > 0) intent.putExtra(UpdateService.ARG_COLUMN_IDS, columnIds);
 		startService(intent);
 
-		final String msg = column == null ? "Refresh all columns requested." : "Refresh column requested.";
+		final int count = columnIds == null ? 0 : columnIds.length;
+		final String msg = String.format("Refresh %s requested.", count > 0 ? count : "all");
 		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 	}
 
@@ -386,7 +413,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	protected void setTempColumnTitle(final int position, final String title) {
+	protected void setTempColumnTitle (final int position, final String title) {
 		this.columnTitleStrip.setTempColumnTitle(position, title);
 	}
 
@@ -456,6 +483,10 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		@Override
 		public void onPageSelected (final int position) {
 			this.selectedPagePosition = position;
+		}
+
+		public int getVisiblePageCount () {
+			return this.visiblePages;
 		}
 
 		public boolean isVisible (final int position) {
