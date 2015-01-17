@@ -5,6 +5,8 @@
 package android.support.v4.view;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
 import android.database.DataSetObserver;
@@ -30,7 +32,8 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 	private boolean mUpdatingText;
 	private boolean mUpdatingPositions;
 
-	TextView mCurrText;
+	private final List<TextView> txtLabels = new ArrayList<TextView>();
+	private float relativePageWidth = 1.f;
 
 	public ColumnTitleStrip (final Context context) {
 		this(context, null);
@@ -38,8 +41,6 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 
 	public ColumnTitleStrip (final Context context, final AttributeSet attrs) {
 		super(context, attrs);
-
-		addView(this.mCurrText = new TextView(context));
 	}
 
 	@Override
@@ -50,12 +51,10 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		if (!(parent instanceof ViewPager)) throw new IllegalStateException("PagerTitleStrip must be a direct child of a ViewPager.");
 
 		final ViewPager pager = (ViewPager) parent;
-		final PagerAdapter adapter = pager.getAdapter();
-
 		pager.setInternalPageChangeListener(this.mPageListener);
 		pager.setOnAdapterChangeListener(this.mPageListener);
 		this.mPager = pager;
-		updateAdapter(this.mWatchingAdapter != null ? this.mWatchingAdapter.get() : null, adapter);
+		updateAdapter(this.mWatchingAdapter != null ? this.mWatchingAdapter.get() : null, pager.getAdapter());
 	}
 
 	@Override
@@ -69,23 +68,13 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		}
 	}
 
-	void updateText (final int currentItem, final PagerAdapter adapter) {
-		final int itemCount = adapter != null ? adapter.getCount() : 0;
+	/**
+	 * TODO may be able to factor out this not poorly-named method.
+	 */
+	void updateText (final int currentItem) {
 		this.mUpdatingText = true;
-
-		this.mCurrText.setText(adapter != null && currentItem < itemCount ? adapter.getPageTitle(currentItem) : null);
-
-		// Measure everything
-		final int width = getWidth() - getPaddingLeft() - getPaddingRight();
-		final int childHeight = getHeight() - getPaddingTop() - getPaddingBottom();
-		final int childWidthSpec = MeasureSpec.makeMeasureSpec((int) (width * 0.8f), MeasureSpec.AT_MOST);
-		final int childHeightSpec = MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.AT_MOST);
-		this.mCurrText.measure(childWidthSpec, childHeightSpec);
-
 		this.mLastKnownCurrentPage = currentItem;
-
 		if (!this.mUpdatingPositions) updateTextPositions(currentItem, this.mLastKnownPositionOffset, false);
-
 		this.mUpdatingText = false;
 	}
 
@@ -102,46 +91,73 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		if (newAdapter != null) {
 			newAdapter.registerDataSetObserver(this.mPageListener);
 			this.mWatchingAdapter = new WeakReference<PagerAdapter>(newAdapter);
+			createWidgets(newAdapter);
 		}
 		if (this.mPager != null) {
 			this.mLastKnownCurrentPage = -1;
 			this.mLastKnownPositionOffset = -1;
-			updateText(this.mPager.getCurrentItem(), newAdapter);
+			updateText(this.mPager.getCurrentItem());
 			requestLayout();
+		}
+	}
+
+	private void createWidgets (final PagerAdapter adapter) {
+		this.relativePageWidth = adapter.getPageWidth(Integer.MIN_VALUE); // TODO for now assume all columns same width.
+
+		if (this.txtLabels.size() < adapter.getCount()) {
+			while (this.txtLabels.size() < adapter.getCount()) {
+				final TextView tv = new TextView(getContext());
+				this.txtLabels.add(tv);
+				addView(tv);
+			}
+		}
+		else if (this.txtLabels.size() > adapter.getCount()) {
+			while (this.txtLabels.size() > adapter.getCount()) {
+				removeView(this.txtLabels.remove(this.txtLabels.size() - 1));
+			}
+		}
+
+		final int width = getWidth() - getPaddingLeft() - getPaddingRight(); // TODO FIXME take into account getPageWidth().
+		final int childHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+		final int childWidthSpec = MeasureSpec.makeMeasureSpec((int) (width * 0.8f), MeasureSpec.AT_MOST);
+		final int childHeightSpec = MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.AT_MOST);
+
+		for (int i = 0; i < this.txtLabels.size(); i++) {
+			final TextView tv = this.txtLabels.get(i);
+			tv.setText(adapter.getPageTitle(i));
+			tv.measure(childWidthSpec, childHeightSpec);
 		}
 	}
 
 	void updateTextPositions (final int position, final float positionOffset, final boolean force) {
 		if (position != this.mLastKnownCurrentPage) {
-			updateText(position, this.mPager.getAdapter());
+			updateText(position);
 		}
 		else if (!force && positionOffset == this.mLastKnownPositionOffset) {
 			return;
 		}
-
 		this.mUpdatingPositions = true;
-
-		final int currWidth = this.mCurrText.getMeasuredWidth();
-		final int halfCurrWidth = currWidth / 2;
 
 		final int stripWidth = getWidth();
 		final int stripHeight = getHeight();
 		final int paddingLeft = getPaddingLeft();
 		final int paddingRight = getPaddingRight();
 		final int paddingBottom = getPaddingBottom();
-		final int textPaddedLeft = paddingLeft + halfCurrWidth;
-		final int textPaddedRight = paddingRight + halfCurrWidth;
-		final int contentWidth = stripWidth - textPaddedLeft - textPaddedRight;
+		final int stripInnerWidth = stripWidth - paddingLeft - paddingRight;
 
-		float currOffset = positionOffset + 0.5f;
-		if (currOffset > 1.f) currOffset -= 1.f;
+		final int columnWidth = (int) (stripInnerWidth * this.relativePageWidth); // FIXME rounding error may be introduced.
+		final int halfColumnWidth = columnWidth / 2;
+		final int firstColumnLeft = 0 - (columnWidth * position);
 
-		final int currCenter = stripWidth - textPaddedRight - (int) (contentWidth * currOffset);
-		final int currLeft = currCenter - currWidth / 2;
-		final int currRight = currLeft + currWidth;
+		for (int i = 0; i < this.txtLabels.size(); i++) {
+			final TextView tv = this.txtLabels.get(i);
 
-		final int bottomGravTop = stripHeight - paddingBottom - this.mCurrText.getMeasuredHeight();
-		this.mCurrText.layout(currLeft, bottomGravTop, currRight, bottomGravTop + this.mCurrText.getMeasuredHeight());
+			final int tWidth = tv.getMeasuredWidth();
+			final int tLeft = firstColumnLeft + (columnWidth * i) + halfColumnWidth - (tWidth / 2) - (int) (positionOffset * columnWidth);
+			final int bottomGravTop = stripHeight - paddingBottom - tv.getMeasuredHeight();
+
+			tv.layout(tLeft, bottomGravTop, tLeft + tWidth, bottomGravTop + tv.getMeasuredHeight());
+		}
 
 		this.mLastKnownPositionOffset = positionOffset;
 		this.mUpdatingPositions = false;
@@ -162,14 +178,18 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		final int childWidthSpec = MeasureSpec.makeMeasureSpec((int) (widthSize * 0.8f), MeasureSpec.AT_MOST);
 		final int childHeightSpec = MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.AT_MOST);
 
-		this.mCurrText.measure(childWidthSpec, childHeightSpec);
+		// Cascade measuring.
+		int maxTextHeight = 1;
+		for (final TextView tv : this.txtLabels) {
+			tv.measure(childWidthSpec, childHeightSpec);
+			maxTextHeight = Math.max(maxTextHeight, tv.getMeasuredHeight());
+		}
 
 		if (heightMode == MeasureSpec.EXACTLY) {
 			setMeasuredDimension(widthSize, heightSize);
 		}
 		else {
-			final int textHeight = this.mCurrText.getMeasuredHeight();
-			setMeasuredDimension(widthSize, Math.max(getMinHeight(), textHeight + padding));
+			setMeasuredDimension(widthSize, Math.max(getMinHeight(), maxTextHeight + padding));
 		}
 	}
 
@@ -194,8 +214,7 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		private int mScrollState;
 
 		@Override
-		public void onPageScrolled (int position, final float positionOffset, final int positionOffsetPixels) {
-			if (positionOffset > 0.5f) position++; // Consider ourselves to be on the next page when we're 50% of the way there.
+		public void onPageScrolled (final int position, final float positionOffset, final int positionOffsetPixels) {
 			updateTextPositions(position, positionOffset, false);
 		}
 
@@ -203,7 +222,7 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		public void onPageSelected (final int position) {
 			if (this.mScrollState == ViewPager.SCROLL_STATE_IDLE) {
 				// Only update the text here if we're not dragging or settling.
-				updateText(ColumnTitleStrip.this.mPager.getCurrentItem(), ColumnTitleStrip.this.mPager.getAdapter());
+				updateText(ColumnTitleStrip.this.mPager.getCurrentItem());
 
 				final float offset = ColumnTitleStrip.this.mLastKnownPositionOffset >= 0 ? ColumnTitleStrip.this.mLastKnownPositionOffset : 0;
 				updateTextPositions(ColumnTitleStrip.this.mPager.getCurrentItem(), offset, true);
@@ -222,7 +241,7 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 
 		@Override
 		public void onChanged () {
-			updateText(ColumnTitleStrip.this.mPager.getCurrentItem(), ColumnTitleStrip.this.mPager.getAdapter());
+			updateText(ColumnTitleStrip.this.mPager.getCurrentItem());
 
 			final float offset = ColumnTitleStrip.this.mLastKnownPositionOffset >= 0 ? ColumnTitleStrip.this.mLastKnownPositionOffset : 0;
 			updateTextPositions(ColumnTitleStrip.this.mPager.getCurrentItem(), offset, true);
