@@ -77,6 +77,15 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		this.columnClickListener = listener;
 	}
 
+	/**
+	 * Null title to clear.
+	 */
+	public void setTempColumnTitle(final int position, final String title) {
+		final TextView tv = this.labels.get(position);
+		if (tv == null) return;
+		tv.setText(title != null ? title : String.valueOf(tv.getTag()));
+	}
+
 	@Override
 	protected void onDetachedFromWindow () {
 		super.onDetachedFromWindow();
@@ -143,7 +152,9 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 
 		for (int i = 0; i < this.labels.size(); i++) {
 			final TextView tv = this.labels.get(i);
-			tv.setText(adapter.getPageTitle(i));
+			final CharSequence title = adapter.getPageTitle(i);
+			tv.setText(title);
+			tv.setTag(title);
 			tv.measure(childWidthSpec, childHeightSpec);
 		}
 	}

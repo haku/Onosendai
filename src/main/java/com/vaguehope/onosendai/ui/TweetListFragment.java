@@ -33,7 +33,6 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.PopupMenu;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,19 +74,14 @@ import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.storage.DbInterface.ScrollChangeType;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
 import com.vaguehope.onosendai.storage.DbProvider;
-import com.vaguehope.onosendai.ui.LocalSearchDialog.OnTweetListener;
-import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
 import com.vaguehope.onosendai.update.FetchColumn;
 import com.vaguehope.onosendai.update.KvKeys;
-import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.FileHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
-import com.vaguehope.onosendai.util.NetHelper;
 import com.vaguehope.onosendai.util.Result;
-import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.Titleable;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
@@ -118,8 +112,6 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	private MainActivity mainActivity;
 	private SidebarLayout sidebar;
-	private ProgressBar prgUpdating;
-	private Button btnColumnTitle;
 	private ListView tweetList;
 	private TextView tweetListStatus;
 	private Button tweetListEmptyRefresh;
@@ -168,22 +160,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		rootView.requestFocus();
 		rootView.setOnKeyListener(new SidebarLayout.BackButtonListener(this.sidebar));
 
-		((Button) rootView.findViewById(R.id.tweetListGoto)).setOnClickListener(new GotoMenu(this.mainActivity));
-
-		this.btnColumnTitle = (Button) rootView.findViewById(R.id.tweetListTitle);
-		this.btnColumnTitle.setTag(getArguments().getString(ARG_COLUMN_TITLE));
-		this.btnColumnTitle.setOnClickListener(this.columnTitleClickListener);
 		updateScrollLabelToIdle();
-
-		this.prgUpdating = (ProgressBar) rootView.findViewById(R.id.tweetListPrg);
-
-		final Button btnMenu = (Button) rootView.findViewById(R.id.tweetListMenu);
-		if (this.isLaterColumn) {
-			((ViewGroup) btnMenu.getParent()).removeView(btnMenu);
-		}
-		else {
-			btnMenu.setOnClickListener(this.menuClickListener);
-		}
 
 		this.tweetListEmptyRefresh = (Button) rootView.findViewById(R.id.tweetListEmptyRefresh);
 		this.tweetListEmptyRefresh.setOnClickListener(this.refreshClickListener);
@@ -441,72 +418,6 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	protected void scheduleRefresh (final boolean all) {
-		if (!NetHelper.connectionPresent(getActivity())) {
-			DialogHelper.alert(getActivity(), "No internet connection available.");
-			return;
-		}
-
-		final Intent intent = new Intent(getActivity(), UpdateService.class);
-		intent.putExtra(UpdateService.ARG_IS_MANUAL, true);
-		if (!all) intent.putExtra(UpdateService.ARG_COLUMN_ID, this.columnId);
-		getActivity().startService(intent);
-
-		final String msg = all ? "Refresh all columns requested." : "Refresh column requested.";
-		Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
-	}
-
-//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	private final OnClickListener columnTitleClickListener = new OnClickListener() {
-		@Override
-		public void onClick (final View v) {
-			scrollTop();
-		}
-	};
-
-	private final OnClickListener menuClickListener = new OnClickListener() {
-		@Override
-		public void onClick (final View v) {
-			final PopupMenu popupMenu = new PopupMenu(getActivity(), v);
-			popupMenu.getMenuInflater().inflate(R.menu.listmenu, popupMenu.getMenu());
-			popupMenu.setOnMenuItemClickListener(TweetListFragment.this.menuItemClickListener);
-			popupMenu.show();
-		}
-	};
-
-	protected final PopupMenu.OnMenuItemClickListener menuItemClickListener = new PopupMenu.OnMenuItemClickListener() {
-		@Override
-		public boolean onMenuItemClick (final MenuItem item) {
-			return menuItemClick(item);
-		}
-	};
-
-	protected boolean menuItemClick (final MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.mnuPost:
-				showPost();
-				return true;
-			case R.id.mnuOutbox:
-				showOutbox();
-				return true;
-			case R.id.mnuRefreshColumnNow:
-				scheduleRefresh(false);
-				return true;
-			case R.id.mnuRefreshAllNow:
-				scheduleRefresh(true);
-				return true;
-			case R.id.mnuPreferences:
-				startActivity(new Intent(getActivity(), OsPreferenceActivity.class));
-				return true;
-			case R.id.mnuLocalSearch:
-				showLocalSearch();
-				return true;
-			default:
-				return false;
-		}
-	}
-
 	private final OnItemClickListener tweetItemClickedListener = new OnItemClickListener() {
 		@Override
 		public void onItemClick (final AdapterView<?> parent, final View view, final int position, final long id) {
@@ -591,7 +502,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 					askRt(payload.getOwnerTweet());
 					break;
 				case SharePayload.BTN_SHARE_QUOTE:
-					showPost(payload.getOwnerTweet());
+					getMainActivity().showPost(getColumnAccount(), payload.getOwnerTweet());
 					break;
 				case SharePayload.BTN_SHARE_FAV:
 					askFav(payload.getOwnerTweet());
@@ -630,32 +541,6 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	protected void setReadLaterButton (final Tweet tweet, final boolean laterColumn) {
 		this.btnDetailsLater.setText(laterColumn ? R.string.btn_tweet_read : R.string.btn_tweet_later);
 		this.btnDetailsLater.setOnClickListener(new DetailsLaterClickListener(this, tweet, laterColumn));
-	}
-
-	private void showPost () {
-		showPost(null);
-	}
-
-	private void showPost (final Tweet tweetToQuote) {
-		final Intent intent = new Intent(getActivity(), PostActivity.class);
-		final Account columnAccount = getColumnAccount();
-		if (columnAccount != null) intent.putExtra(PostActivity.ARG_ACCOUNT_ID, columnAccount.getId());
-		if (tweetToQuote != null) intent.putExtra(PostActivity.ARG_BODY,
-				String.format("RT @%s %s", StringHelper.firstLine(tweetToQuote.getUsername()), tweetToQuote.getBody()));
-		startActivity(intent);
-	}
-
-	private void showOutbox () {
-		startActivity(new Intent(getActivity(), OutboxActivity.class));
-	}
-
-	private void showLocalSearch () {
-		LocalSearchDialog.show(getActivity(), getConf(), this, getMainActivity(), new OnTweetListener() {
-			@Override
-			public void onTweet (final int colId, final Tweet tweet) {
-				getMainActivity().gotoTweet(colId, tweet);
-			}
-		});
 	}
 
 	private ServiceRef tweetAndAccoutToServiceRef (final Account account, final Tweet tweet) {
@@ -1031,11 +916,11 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				refreshUiOnUiThread();
 				break;
 			case MSG_UPDATE_RUNNING:
-				progressIndicator(true);
+				getMainActivity().progressIndicator(true);
 				this.tweetListEmptyRefresh.setEnabled(false);
 				break;
 			case MSG_UPDATE_OVER:
-				progressIndicator(false);
+				getMainActivity().progressIndicator(false);
 				this.tweetListEmptyRefresh.setEnabled(true);
 				redrawLastUpdateError();
 				break;
@@ -1053,16 +938,6 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				break;
 			default:
 		}
-	}
-
-	private int progressIndicatorCounter = 0;
-
-	/**
-	 * Only call on UI thread.
-	 */
-	protected void progressIndicator (final boolean inProgress) {
-		this.progressIndicatorCounter += (inProgress ? 1 : -1);
-		this.prgUpdating.setVisibility(this.progressIndicatorCounter > 0 ? View.VISIBLE : View.GONE);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1087,7 +962,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 		@Override
 		protected void onPreExecute () {
-			this.host.progressIndicator(true);
+			this.host.getMainActivity().progressIndicator(true);
 			this.host.tweetListEmptyRefresh.setEnabled(false);
 		}
 
@@ -1122,7 +997,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 			else {
 				this.host.getLog().w("Failed to refresh column.", result.getE());
 			}
-			this.host.progressIndicator(false);
+			this.host.getMainActivity().progressIndicator(false);
 			this.host.tweetListEmptyRefresh.setEnabled(true);
 		}
 
@@ -1131,7 +1006,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	private final OnClickListener refreshClickListener = new OnClickListener() {
 		@Override
 		public void onClick (final View v) {
-			scheduleRefresh(false);
+			getMainActivity().scheduleRefresh(getColumn());
 		}
 	};
 
@@ -1154,7 +1029,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 		final long time = this.adapter.getItemTime(position);
 		if (time > 0L) {
-			this.btnColumnTitle.setText(DateHelper.friendlyAbsoluteDate(getActivity(), now, TimeUnit.SECONDS.toMillis(time)));
+			getMainActivity().setTempColumnTitle(this.columnPosition, DateHelper.friendlyAbsoluteDate(getActivity(), now, TimeUnit.SECONDS.toMillis(time)));
 		}
 	}
 
@@ -1165,7 +1040,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	}
 
 	private void updateScrollLabelToIdle () {
-		this.btnColumnTitle.setText(String.valueOf(this.btnColumnTitle.getTag()));
+		getMainActivity().setTempColumnTitle(this.columnPosition, null);
 		this.lastScrollFirstVisiblePosition = -1;
 	}
 

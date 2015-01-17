@@ -23,11 +23,13 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InternalColumnType;
@@ -71,6 +73,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	private ExecutorService localEs;
 	private ExecutorService netEs;
 
+	private ColumnTitleStrip columnTitleStrip;
+	private ProgressBar prgMainBusy;
 	private SidebarAwareViewPager viewPager;
 	private VisiblePageSelectionListener pageSelectionListener;
 	private final SparseArray<TweetListFragment> activePages = new SparseArray<TweetListFragment>();
@@ -125,9 +129,11 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 		((Button) findViewById(R.id.tweetListGoto)).setOnClickListener(new GotoMenu(this));
 
-		final ColumnTitleStrip columnTitleStrip = (ColumnTitleStrip) findViewById(R.id.columnTitleStrip);
-		columnTitleStrip.setViewPager(this.viewPager);
-		columnTitleStrip.setColumnClickListener(new TitleClickListener(this.conf, this.activePages));
+		this.columnTitleStrip = (ColumnTitleStrip) findViewById(R.id.columnTitleStrip);
+		this.columnTitleStrip.setViewPager(this.viewPager);
+		this.columnTitleStrip.setColumnClickListener(new TitleClickListener(this.conf, this.activePages));
+
+		this.prgMainBusy = (ProgressBar) findViewById(R.id.mainBusyPrg);
 
 		final Button btnMenu = (Button) findViewById(R.id.tweetListMenu);
 		btnMenu.setOnClickListener(this.menuClickListener);
@@ -319,7 +325,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	protected boolean menuItemClick (final MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.mnuPost:
-				showPost(null);
+				showPost(null, null);
 				return true;
 			case R.id.mnuOutbox:
 				showOutbox();
@@ -342,11 +348,9 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		}
 	}
 
-	private void showPost (final Tweet tweetToQuote) {
+	protected void showPost (final Account account, final Tweet tweetToQuote) {
 		final Intent intent = new Intent(this, PostActivity.class);
-		// TODO FIXME
-//		final Account columnAccount = getColumnAccount();
-//		if (columnAccount != null) intent.putExtra(PostActivity.ARG_ACCOUNT_ID, columnAccount.getId());
+		if (account != null) intent.putExtra(PostActivity.ARG_ACCOUNT_ID, account.getId());
 		if (tweetToQuote != null) intent.putExtra(PostActivity.ARG_BODY,
 				String.format("RT @%s %s", StringHelper.firstLine(tweetToQuote.getUsername()), tweetToQuote.getBody()));
 		startActivity(intent);
@@ -378,6 +382,22 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 				MainActivity.this.gotoTweet(colId, tweet);
 			}
 		});
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	protected void setTempColumnTitle(final int position, final String title) {
+		this.columnTitleStrip.setTempColumnTitle(position, title);
+	}
+
+	private int progressIndicatorCounter = 0;
+
+	/**
+	 * Only call on UI thread.
+	 */
+	protected void progressIndicator (final boolean inProgress) {
+		this.progressIndicatorCounter += (inProgress ? 1 : -1);
+		this.prgMainBusy.setVisibility(this.progressIndicatorCounter > 0 ? View.VISIBLE : View.GONE);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
