@@ -58,60 +58,6 @@
 		android:clickable="true"
 		android:orientation="vertical">
 
-		<LinearLayout
-			android:id="@+id/tweetListTitleBar"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:layout_alignParentTop="true"
-			android:orientation="horizontal"
-			style="?android:attr/buttonBarStyle">
-
-			<Button
-				android:id="@+id/tweetListGoto"
-				android:text="@string/btn_goto"
-				android:layout_width="wrap_content"
-				android:layout_height="40dip"
-				android:textSize="16sp"
-				android:layout_weight="0"
-				style="?android:attr/buttonBarButtonStyle"
-				android:textColor="@android:color/darker_gray" />
-
-			<Button
-				android:id="@+id/tweetListTitle"
-				android:text="@string/btn_jump_top"
-				android:layout_width="0dip"
-				android:layout_height="40dip"
-				android:textSize="16sp"
-				android:layout_weight="1"
-				style="?android:attr/buttonBarButtonStyle" />
-
-			<ProgressBar
-				android:id="@+id/tweetListPrg"
-				android:layout_width="wrap_content"
-				android:layout_height="40dip"
-				android:layout_weight="0"
-				android:minHeight="40dip"
-				android:minWidth="40dip"
-				android:paddingTop="5dip"
-				android:paddingBottom="5dip"
-				android:paddingLeft="0dip"
-				android:paddingRight="0dip"
-				android:indeterminate="true"
-				android:indeterminateOnly="true"
-				android:visibility="gone" />
-
-			<Button
-				android:id="@+id/tweetListMenu"
-				android:text="@string/btn_menu"
-				android:layout_width="wrap_content"
-				android:layout_height="40dip"
-				android:textSize="16sp"
-				android:layout_weight="0"
-				style="?android:attr/buttonBarButtonStyle"
-				android:textColor="@android:color/darker_gray" />
-
-		</LinearLayout>
-
 		<Button
 			android:id="@+id/tweetListEmptyRefresh"
 			android:layout_width="wrap_content"
@@ -123,7 +69,7 @@
 			android:id="@+id/tweetListList"
 			android:layout_width="fill_parent"
 			android:layout_height="0dip"
-			android:layout_below="@id/tweetListTitleBar"
+			android:layout_alignParentTop="true"
 			android:layout_alignParentBottom="true"
 			android:scrollbars="none" />
 
