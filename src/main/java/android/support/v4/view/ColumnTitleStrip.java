@@ -9,18 +9,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.TextView;
 
+import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* Decor is package-private :( */{
 
+	private static final int[] ATTRS = new int[] {
+			android.R.attr.textSize
+	};
+
 	private static final LogWrapper LOG = new LogWrapper("CTS");
+
+	private final int textSizePx;
 
 	private final PageListener mPageListener = new PageListener();
 	private ViewPager mPager;
@@ -32,7 +42,7 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 	private boolean mUpdatingText;
 	private boolean mUpdatingPositions;
 
-	private final List<TextView> txtLabels = new ArrayList<TextView>();
+	private final List<TextView> labels = new ArrayList<TextView>();
 	private float relativePageWidth = 1.f;
 
 	public ColumnTitleStrip (final Context context) {
@@ -41,6 +51,10 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 
 	public ColumnTitleStrip (final Context context, final AttributeSet attrs) {
 		super(context, attrs);
+
+		final TypedArray a = context.obtainStyledAttributes(attrs, ATTRS);
+		this.textSizePx = a.getDimensionPixelSize(1, 0);
+		a.recycle();
 	}
 
 	@Override
@@ -104,16 +118,19 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 	private void createWidgets (final PagerAdapter adapter) {
 		this.relativePageWidth = adapter.getPageWidth(Integer.MIN_VALUE); // TODO for now assume all columns same width.
 
-		if (this.txtLabels.size() < adapter.getCount()) {
-			while (this.txtLabels.size() < adapter.getCount()) {
-				final TextView tv = new TextView(getContext());
-				this.txtLabels.add(tv);
+		if (this.labels.size() < adapter.getCount()) {
+			LayoutInflater inflater = null;
+			while (this.labels.size() < adapter.getCount()) {
+				if (inflater == null) inflater = LayoutInflater.from(getContext());
+				final TextView tv = (TextView) inflater.inflate(R.layout.titlestripbutton, this, false);
+				if (this.textSizePx != 0) tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.textSizePx);
+				this.labels.add(tv);
 				addView(tv);
 			}
 		}
-		else if (this.txtLabels.size() > adapter.getCount()) {
-			while (this.txtLabels.size() > adapter.getCount()) {
-				removeView(this.txtLabels.remove(this.txtLabels.size() - 1));
+		else if (this.labels.size() > adapter.getCount()) {
+			while (this.labels.size() > adapter.getCount()) {
+				removeView(this.labels.remove(this.labels.size() - 1));
 			}
 		}
 
@@ -122,8 +139,8 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		final int childWidthSpec = MeasureSpec.makeMeasureSpec((int) (width * 0.8f), MeasureSpec.AT_MOST);
 		final int childHeightSpec = MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.AT_MOST);
 
-		for (int i = 0; i < this.txtLabels.size(); i++) {
-			final TextView tv = this.txtLabels.get(i);
+		for (int i = 0; i < this.labels.size(); i++) {
+			final TextView tv = this.labels.get(i);
 			tv.setText(adapter.getPageTitle(i));
 			tv.measure(childWidthSpec, childHeightSpec);
 		}
@@ -138,25 +155,14 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		}
 		this.mUpdatingPositions = true;
 
-		final int stripWidth = getWidth();
-		final int stripHeight = getHeight();
-		final int paddingLeft = getPaddingLeft();
-		final int paddingRight = getPaddingRight();
-		final int paddingBottom = getPaddingBottom();
-		final int stripInnerWidth = stripWidth - paddingLeft - paddingRight;
-
-		final int columnWidth = (int) (stripInnerWidth * this.relativePageWidth); // FIXME rounding error may be introduced.
-		final int halfColumnWidth = columnWidth / 2;
+		final int columnWidth = (int) ((getWidth() - getPaddingLeft() - getPaddingRight()) * this.relativePageWidth); // FIXME rounding error may be introduced.
 		final int firstColumnLeft = 0 - (columnWidth * position);
 
-		for (int i = 0; i < this.txtLabels.size(); i++) {
-			final TextView tv = this.txtLabels.get(i);
-
-			final int tWidth = tv.getMeasuredWidth();
-			final int tLeft = firstColumnLeft + (columnWidth * i) + halfColumnWidth - (tWidth / 2) - (int) (positionOffset * columnWidth);
-			final int bottomGravTop = stripHeight - paddingBottom - tv.getMeasuredHeight();
-
-			tv.layout(tLeft, bottomGravTop, tLeft + tWidth, bottomGravTop + tv.getMeasuredHeight());
+		for (int i = 0; i < this.labels.size(); i++) {
+			final TextView tv = this.labels.get(i);
+			final int tLeft = firstColumnLeft + (columnWidth * i) - (int) (positionOffset * columnWidth);
+			final int bottomGravTop = getHeight() - getPaddingBottom() - tv.getMeasuredHeight();
+			tv.layout(tLeft, bottomGravTop, tLeft + columnWidth, bottomGravTop + tv.getMeasuredHeight());
 		}
 
 		this.mLastKnownPositionOffset = positionOffset;
@@ -172,15 +178,17 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 
 		if (widthMode != MeasureSpec.EXACTLY) throw new IllegalStateException("Must measure with an exact width.");
 
-		final int padding = getPaddingTop() + getPaddingBottom();
-		final int childHeight = heightSize - padding;
+		final int columnWidth = (int) ((widthSize - getPaddingLeft() - getPaddingRight()) * this.relativePageWidth); // FIXME rounding error may be introduced.
 
-		final int childWidthSpec = MeasureSpec.makeMeasureSpec((int) (widthSize * 0.8f), MeasureSpec.AT_MOST);
+		final int vPadding = getPaddingTop() + getPaddingBottom();
+		final int childHeight = heightSize - vPadding;
+
+		final int childWidthSpec = MeasureSpec.makeMeasureSpec(columnWidth, MeasureSpec.EXACTLY);
 		final int childHeightSpec = MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.AT_MOST);
 
 		// Cascade measuring.
 		int maxTextHeight = 1;
-		for (final TextView tv : this.txtLabels) {
+		for (final TextView tv : this.labels) {
 			tv.measure(childWidthSpec, childHeightSpec);
 			maxTextHeight = Math.max(maxTextHeight, tv.getMeasuredHeight());
 		}
@@ -189,7 +197,7 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 			setMeasuredDimension(widthSize, heightSize);
 		}
 		else {
-			setMeasuredDimension(widthSize, Math.max(getMinHeight(), maxTextHeight + padding));
+			setMeasuredDimension(widthSize, Math.max(getMinHeight(), maxTextHeight + vPadding));
 		}
 	}
 
@@ -211,7 +219,6 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 	}
 
 	private class PageListener extends DataSetObserver implements ViewPager.OnPageChangeListener, ViewPager.OnAdapterChangeListener {
-		private int mScrollState;
 
 		@Override
 		public void onPageScrolled (final int position, final float positionOffset, final int positionOffsetPixels) {
@@ -219,20 +226,10 @@ public class ColumnTitleStrip extends ViewGroup implements ViewPager.Decor /* De
 		}
 
 		@Override
-		public void onPageSelected (final int position) {
-			if (this.mScrollState == ViewPager.SCROLL_STATE_IDLE) {
-				// Only update the text here if we're not dragging or settling.
-				updateText(ColumnTitleStrip.this.mPager.getCurrentItem());
-
-				final float offset = ColumnTitleStrip.this.mLastKnownPositionOffset >= 0 ? ColumnTitleStrip.this.mLastKnownPositionOffset : 0;
-				updateTextPositions(ColumnTitleStrip.this.mPager.getCurrentItem(), offset, true);
-			}
-		}
+		public void onPageSelected (final int position) {/* Unused. */}
 
 		@Override
-		public void onPageScrollStateChanged (final int state) {
-			this.mScrollState = state;
-		}
+		public void onPageScrollStateChanged (final int state) {/* Unused */}
 
 		@Override
 		public void onAdapterChanged (final PagerAdapter oldAdapter, final PagerAdapter newAdapter) {
