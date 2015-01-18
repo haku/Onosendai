@@ -255,7 +255,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		return this.conf.getColumnById(this.columnId);
 	}
 
-	private Account getColumnAccount () {
+	protected Account getColumnAccount () {
 		return this.conf.getAccount(getColumn().getAccountId());
 	}
 

@@ -313,20 +313,20 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		return this.pageSelectionListener.getVisiblePageCount();
 	}
 
-	public List<Column> getVisibleColumns () {
-		final List<Column> ret = new ArrayList<Column>();
+	protected List<TweetListFragment> getVisiblePages () {
+		final List<TweetListFragment> ret = new ArrayList<TweetListFragment>();
 		for (int i = 0; i < this.activePages.size(); i++) {
 			final TweetListFragment page = this.activePages.valueAt(i);
-			if (this.pageSelectionListener.isVisible(page.getColumnPosition())) ret.add(page.getColumn());
+			if (this.pageSelectionListener.isVisible(page.getColumnPosition())) ret.add(page);
 		}
 		return ret;
 	}
 
 	public int[] getVisibleColumnIds () {
-		final List<Column> cols = getVisibleColumns();
-		final int[] ret = new int[cols.size()];
-		for (int i = 0; i < cols.size(); i++) {
-			ret[i] = cols.get(i).getId();
+		final List<TweetListFragment> pages = getVisiblePages();
+		final int[] ret = new int[pages.size()];
+		for (int i = 0; i < pages.size(); i++) {
+			ret[i] = pages.get(i).getColumnId();
 		}
 		return ret;
 	}
@@ -349,7 +349,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 				new GotoMenu(this).onClick(this.columnTitleStrip); // TODO FIXME position it correctly under icon.
 				return true;
 			case R.id.mnuPost:
-				showPost(null, null);
+				showPost();
 				return true;
 			case R.id.mnuOutbox:
 				showOutbox();
@@ -369,6 +369,12 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 			default:
 				return super.onOptionsItemSelected(item);
 		}
+	}
+
+	protected void showPost () {
+		final List<TweetListFragment> pages = getVisiblePages();
+		final Account account = pages.size() == 1 ? pages.iterator().next().getColumnAccount() : null;
+		showPost(account, null);
 	}
 
 	protected void showPost (final Account account, final Tweet tweetToQuote) {
