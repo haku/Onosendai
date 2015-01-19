@@ -54,9 +54,24 @@ public class ShadowBitmapRegionDecoder {
 	}
 
 	@Implementation
+	public int getWidth() {
+		return 72; // FIXME do not hard code.
+	}
+
+	@Implementation
+	public int getHeight() {
+		return 72; // FIXME do not hard code.
+	}
+
+	@Implementation
 	public Bitmap decodeRegion(final Rect rect, final BitmapFactory.Options options) {
 		// TODO mock out metadata based on parameters?
 		return mock(Bitmap.class);
+	}
+
+	@Implementation
+	public void recycle() {
+		// TODO assert this was called?
 	}
 
 	/**
