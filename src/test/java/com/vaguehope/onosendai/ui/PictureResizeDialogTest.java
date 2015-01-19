@@ -8,6 +8,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.spy;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,8 +30,6 @@ import android.widget.TextView;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.util.IoHelper;
-
-import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicInteger;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = { ShadowParcel.class, ShadowBitmapRegionDecoder.class })
