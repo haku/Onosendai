@@ -5,6 +5,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Rule;
@@ -20,8 +21,6 @@ import android.net.Uri;
 import android.webkit.MimeTypeMap;
 
 import com.vaguehope.onosendai.util.IoHelper;
-
-import edu.emory.mathcs.backport.java.util.Collections;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = { MyShadowBitmapFactory.class})
