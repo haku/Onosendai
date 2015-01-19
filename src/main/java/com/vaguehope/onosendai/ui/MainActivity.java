@@ -7,13 +7,11 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -63,7 +61,6 @@ import com.vaguehope.onosendai.util.exec.ExecUtils;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.widget.SidebarAwareViewPager;
 
-@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH) // FIXME either remove this or bump min SDK version.
 public class MainActivity extends FragmentActivity implements ImageLoader, DbProvider, OnSharedPreferenceChangeListener {
 
 	public static final String ARG_FOCUS_COLUMN_ID = "focus_column_id";
@@ -138,7 +135,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		ab.setDisplayShowTitleEnabled(false);
 		ab.setDisplayShowCustomEnabled(true);
 
-		this.columnTitleStrip = new ColumnTitleStrip(this); // TODO ab.getThemedContext() in v14?
+		this.columnTitleStrip = new ColumnTitleStrip(ab.getThemedContext());
 		this.columnTitleStrip.setViewPager(this.viewPager);
 		this.columnTitleStrip.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 		this.columnTitleStrip.setColumnClickListener(new TitleClickListener(this.conf, this.activePages));

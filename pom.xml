@@ -18,7 +18,7 @@
 
 		<java.version>1.6</java.version>
 		<android.version>4.1.1.4</android.version>
-		<android.platform>11</android.platform>
+		<android.platform>14</android.platform>
 		<android-compatibility.version>19.0.1</android-compatibility.version>
 
 		<twitter4j.version>4.0.2</twitter4j.version>
