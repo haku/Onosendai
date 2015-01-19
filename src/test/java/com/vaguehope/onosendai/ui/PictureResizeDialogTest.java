@@ -20,6 +20,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowAlertDialog;
+import org.robolectric.shadows.ShadowBitmapFactory;
 import org.robolectric.shadows.ShadowLog;
 
 import android.app.Activity;
@@ -42,6 +43,7 @@ public class PictureResizeDialogTest {
 	private Activity activity;
 	private Uri attachment;
 
+	private PictureResizeDialog dlg;
 	private AlertDialog alert;
 	private ShadowAlertDialog shadowAlert;
 
@@ -57,16 +59,16 @@ public class PictureResizeDialogTest {
 		IoHelper.copy(new File("./res/drawable-hdpi/ic_hosaka_meji.png"), picFile); // Just something to test with.
 		this.attachment = Uri.fromFile(picFile);
 
-		final PictureResizeDialog dlg = new PictureResizeDialog(this.activity, this.attachment);
+		this.dlg = new PictureResizeDialog(this.activity, this.attachment);
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(this.activity);
-		dlgBuilder.setTitle(dlg.getUiTitle());
-		dlgBuilder.setView(dlg.getRootView());
+		dlgBuilder.setTitle(this.dlg.getUiTitle());
+		dlgBuilder.setView(this.dlg.getRootView());
 		dlgBuilder.setPositiveButton(android.R.string.ok, new android.content.DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
 				PictureResizeDialogTest.this.okClick.incrementAndGet();
 				dialog.dismiss();
-				dlg.recycle();
+				PictureResizeDialogTest.this.dlg.recycle();
 			}
 		});
 		dlgBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -74,7 +76,7 @@ public class PictureResizeDialogTest {
 			public void onClick (final DialogInterface dialog, final int whichButton) {
 				PictureResizeDialogTest.this.cancelClick.incrementAndGet();
 				dialog.cancel();
-				dlg.recycle();
+				PictureResizeDialogTest.this.dlg.recycle();
 			}
 		});
 		this.alert = dlgBuilder.create();
@@ -101,10 +103,15 @@ public class PictureResizeDialogTest {
 	@Test
 	public void itGeneratesLivePreview () throws Exception {
 		this.alert.show();
+		this.dlg.updateSummary();
 
 		final TextView txtSummary = (TextView) this.shadowAlert.getView().findViewById(R.id.txtSummary);
 
-		final String expectedStatus = "100 x 100 (3.4 KB) --> 50 x 50 (69 B)";
+		ShadowBitmapFactory.provideWidthAndHeightHints(this.attachment, 72, 72);
+		// Note above does not actually have any effect,
+		// since dimensions are read via BitmapFactory.decodeFileDescriptor().
+		// 100x100 is ShadowBitmapFactory's default.
+		final String expectedStatus = "100 x 100 (3.4 KB) --> 36 x 36 (69 B)";
 		int n = 0;
 		while (true) {
 			if (expectedStatus.equals(txtSummary.getText().toString())) break;
