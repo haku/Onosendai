@@ -83,4 +83,11 @@ public class OsPreferenceActivity extends PreferenceActivity {
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@Override
+	protected boolean isValidFragment (final String fragmentName) {
+		if (fragmentName == null) return false;
+		return fragmentName.startsWith(this.getClass().getPackage().getName());
+	}
+
 }

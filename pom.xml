@@ -17,8 +17,9 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<java.version>1.6</java.version>
-		<android.version>4.1.1.4</android.version>
-		<android.platform>14</android.platform>
+
+		<android.version>5.0.1_r2</android.version>
+		<android.platform>19</android.platform> <!-- android:targetSdkVersion, same as project.properties -->
 		<android-compatibility.version>21.0.3</android-compatibility.version>
 
 		<twitter4j.version>4.0.2</twitter4j.version>
@@ -31,19 +32,48 @@
 
 	<dependencies>
 
+		<!-- Test dependencies that need to be in front of android:android below because to annoyingly has explosive stubs inside. -->
+
+		<dependency> <!-- android:android below includes stub of junit package, so need impl to run tests against. -->
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency> <!-- android:android below includes stub of org.json package, so need impl to run tests against. -->
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20140107</version> <!-- Note: 20140107 is class version 46.0, 20141113 is 52.0 (too high). -->
+			<scope>test</scope>
+		</dependency>
+
 		<!-- Android -->
 
-		<dependency>
-			<groupId>com.google.android</groupId>
+		<dependency> <!-- via maven-android-sdk-deployer. -->
+			<groupId>android</groupId>
 			<artifactId>android</artifactId>
 			<version>${android.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
-		<dependency> <!-- via maven-android-sdk-deployer -->
+		<dependency> <!-- via maven-android-sdk-deployer. -->
 			<groupId>android.support</groupId>
 			<artifactId>compatibility-v4</artifactId>
 			<version>${android-compatibility.version}</version>
+		</dependency>
+
+		<!--
+		Android compile dependencies that where in com.google.android:android:4.1.1.4
+		but are not (stubbed) in android:android:5.0.1_r2.
+		See: https://repo1.maven.org/maven2/com/google/android/android/4.1.1.4/android-4.1.1.4.pom
+		-->
+
+		<dependency> <!-- org.apache.commons.logging -->
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.1</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Twitter -->
@@ -83,15 +113,7 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
-			<scope>test</scope>
-		</dependency>
-		
-		<!-- Make sure this is below the android dependencies -->
-		<dependency>
+		<dependency> <!-- Make sure this is below the android dependencies. -->
 			<groupId>org.robolectric</groupId>
 			<artifactId>robolectric</artifactId>
 			<version>2.4</version>
@@ -207,6 +229,7 @@
 
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.17</version>
 				<configuration>
 					<forkMode>pertest</forkMode>
 				</configuration>
