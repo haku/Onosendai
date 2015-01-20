@@ -9,18 +9,46 @@ import twitter4j.TwitterException;
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.util.StringHelper;
 
 class ListFeed implements FeedGetter {
 
+	private final String ownerScreenName;
 	private final String slug;
 
-	public ListFeed (final String slug) {
-		this.slug = slug;
+	/**
+	 * "mylist" or "user/theirlist"
+	 */
+	public ListFeed (final String ownerScreenNameAndSlug) {
+		if (StringHelper.isEmpty(ownerScreenNameAndSlug)) throw new IllegalArgumentException("ownerScreenNameAndSlug must not be empty.");
+		final int x = ownerScreenNameAndSlug.indexOf('/');
+		if (x > 0) {
+			this.ownerScreenName = ownerScreenNameAndSlug.substring(0, x);
+			this.slug = ownerScreenNameAndSlug.substring(x + 1);
+		}
+		else if (x < 0) {
+			this.ownerScreenName = null;
+			this.slug = ownerScreenNameAndSlug;
+		}
+		else {
+			throw new IllegalArgumentException("ownerScreenNameAndSlug can not start with /: " + ownerScreenNameAndSlug);
+		}
+	}
+
+	public String getOwnerScreenName () {
+		return this.ownerScreenName;
+	}
+
+	public String getSlug () {
+		return this.slug;
 	}
 
 	@Override
 	public ResponseList<Status> getTweets (final Twitter t, final Paging paging) throws TwitterException {
-		return t.getUserListStatuses(t.getId(), this.slug, paging);
+		if (StringHelper.isEmpty(this.ownerScreenName)) {
+			return t.getUserListStatuses(t.getId(), this.slug, paging);
+		}
+		return t.getUserListStatuses(this.ownerScreenName, this.slug, paging);
 	}
 
 	@Override

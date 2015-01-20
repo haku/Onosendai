@@ -18,13 +18,15 @@ public class TwitterListsFetcher extends AsyncTask<Void, Void, Result<List<Strin
 
 	private final Context context;
 	private final Account account;
+	private final String ownerScreenName;
 	private final Listener<List<String>> onLists;
 
 	private ProgressDialog dialog;
 
-	public TwitterListsFetcher (final Context context, final Account account, final Listener<List<String>> onLists) {
+	public TwitterListsFetcher (final Context context, final Account account, final String ownerScreenName, final Listener<List<String>> onLists) {
 		this.context = context;
 		this.account = account;
+		this.ownerScreenName = ownerScreenName;
 		this.onLists = onLists;
 	}
 
@@ -37,7 +39,7 @@ public class TwitterListsFetcher extends AsyncTask<Void, Void, Result<List<Strin
 	protected Result<List<String>> doInBackground (final Void... params) {
 		final TwitterProvider twitter = new TwitterProvider();
 		try {
-			return new Result<List<String>>(twitter.getListSlugs(this.account));
+			return new Result<List<String>>(twitter.getListSlugs(this.account, this.ownerScreenName));
 		}
 		catch (final Exception e) { // NOSONAR report all errors to user.
 			return new Result<List<String>>(e);
