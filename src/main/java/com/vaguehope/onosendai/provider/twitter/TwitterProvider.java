@@ -22,6 +22,7 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.IoHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class TwitterProvider {
 
@@ -90,8 +91,18 @@ public class TwitterProvider {
 	}
 
 	public List<String> getListSlugs(final Account account) throws TwitterException {
+		return getListSlugs(account, null);
+	}
+
+	public List<String> getListSlugs(final Account account, final String ownerScreenName) throws TwitterException {
 		final Twitter t = getTwitter(account);
-		final ResponseList<UserList> lists = t.getUserLists(t.getId());
+		final ResponseList<UserList> lists;
+		if (StringHelper.isEmpty(ownerScreenName)) {
+			lists = t.getUserLists(t.getId());
+		}
+		else {
+			lists = t.getUserLists(ownerScreenName);
+		}
 		final List<String> slugs = new ArrayList<String>();
 		for (final UserList list : lists) {
 			slugs.add(list.getSlug());

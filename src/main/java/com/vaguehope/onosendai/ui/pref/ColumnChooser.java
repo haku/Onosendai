@@ -24,6 +24,7 @@ import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.DialogHelper.Question;
+import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.Titleable;
 
 class ColumnChooser {
@@ -127,7 +128,10 @@ class ColumnChooser {
 	protected void promptAddTwitterColumn (final Account account, final TwitterColumnType type) {
 		switch (type) {
 			case LIST:
-				promptAddTwitterListColumn(account);
+				promptAddTwitterListColumn(account, null);
+				break;
+			case ANOTHERS_LIST:
+				promptAddTwitterAnothersListColumn(account);
 				break;
 			case SEARCH:
 				promptAddTwitterSearchColumn(account);
@@ -137,20 +141,36 @@ class ColumnChooser {
 		}
 	}
 
-	protected void promptAddTwitterListColumn (final Account account) {
-		new TwitterListsFetcher(this.context, account, new Listener<List<String>>() {
+	protected void promptAddTwitterAnothersListColumn (final Account account) {
+		// TODO auto complete screen names?
+		DialogHelper.askString(this.context, "Their screen name (without @):", new Listener<String>() {
+			@Override
+			public void onAnswer (final String answer) {
+				if (StringHelper.isEmpty(answer)) {
+					DialogHelper.alert(ColumnChooser.this.context, "Screen name was empty.");
+				}
+				else {
+					promptAddTwitterListColumn(account, answer);
+				}
+			}
+		});
+	}
+
+	protected void promptAddTwitterListColumn (final Account account, final String ownerScreenName) {
+		new TwitterListsFetcher(this.context, account, ownerScreenName, new Listener<List<String>>() {
 			@Override
 			public void onAnswer (final List<String> lists) {
-				promptAddTwitterListColumn(account, lists);
+				promptAddTwitterListColumn(account, ownerScreenName, lists);
 			}
 		}).execute();
 	}
 
-	protected void promptAddTwitterListColumn (final Account account, final List<String> listSlugs) {
+	protected void promptAddTwitterListColumn (final Account account, final String ownerScreenName, final List<String> listSlugs) {
 		DialogHelper.askStringItem(this.context, "Twitter Lists", listSlugs, new Listener<String>() {
 			@Override
 			public void onAnswer (final String answer) {
-				onColumn(account, TwitterColumnType.LIST.getResource() + answer);
+				final String owner = StringHelper.isEmpty(ownerScreenName) ? "" : ownerScreenName + "/";
+				onColumn(account, TwitterColumnType.LIST.getResource() + owner + answer);
 			}
 		});
 	}

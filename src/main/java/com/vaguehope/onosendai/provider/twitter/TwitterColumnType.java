@@ -6,7 +6,8 @@ public enum TwitterColumnType implements Titleable {
 
 	TIMELINE("Home Timeline"),
 	MENTIONS("Mentions"),
-	LIST("List..."),
+	LIST("My List..."),
+	ANOTHERS_LIST("Another's List..."),
 	SEARCH("Search...");
 
 	private final String title;
@@ -27,6 +28,7 @@ public enum TwitterColumnType implements Titleable {
 			case MENTIONS:
 				return MainFeeds.MENTIONS.name();
 			case LIST:
+			case ANOTHERS_LIST:
 				return TwitterFeeds.PREFIX_LISTS;
 			case SEARCH:
 				return TwitterFeeds.PREFIX_SEARCH;
