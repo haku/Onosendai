@@ -63,7 +63,7 @@ public class HosakaColumn {
 		final String itemId = json.getString("item_id");
 		final long itemTime = json.getLong("item_time");
 		final long unreadTime = json.getLong("unread_time");
-		return new HosakaColumn(itemId, itemTime, unreadTime, ScrollDirection.UNKNOWN);
+		return new HosakaColumn(itemId, itemTime, unreadTime, null);
 	}
 
 	public static String columnHash (final Account account, final Column column) {

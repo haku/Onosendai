@@ -873,6 +873,8 @@ public class DbAdapter implements DbInterface {
 				values.put(TBL_SC_TOP, state.getTop());
 				values.put(TBL_SC_TIME, state.getItemTime());
 				values.put(TBL_SC_UNREAD, state.getUnreadTime());
+				// FIXME not specifying a value wipes it out as whole row replaces.
+				// TODO should replace with `update() or if no rows affected insert()`.
 				if (state.getScrollDirection() != ScrollDirection.UNKNOWN) values.put(TBL_SC_DIRECTION, state.getScrollDirection().getValue());
 				this.mDb.insertWithOnConflict(TBL_SC, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 				this.mDb.setTransactionSuccessful();

@@ -328,6 +328,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	protected void restoreSavedScrollFromDb () {
 		if (this.scrollState != null) return;
 		this.scrollState = getDb().getScroll(this.columnId);
+		if (this.scrollState != null && this.scrollState.getScrollDirection() != ScrollDirection.UNKNOWN) {
+			this.lastScrollDirection = this.scrollState.getScrollDirection();
+		}
 	}
 
 	protected void restoreScrollFromDbIfNewer (final ScrollChangeType type) {
@@ -436,7 +439,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 		@Override
 		public void onScroll (final AbsListView view, final int firstVisibleItem, final int visibleItemCount, final int totalItemCount) {
-			if (this.scrolling || firstVisibleItem != this.lastFirstVisibleItem) {
+			if (this.scrolling && firstVisibleItem != this.lastFirstVisibleItem) {
 				ScrollDirection direction = ScrollDirection.UNKNOWN;
 				if (this.lastFirstVisibleItem >= 0) {
 					if (firstVisibleItem < this.lastFirstVisibleItem) {
@@ -1017,7 +1020,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	private ScrollDirection lastScrollDirection = ScrollDirection.UNKNOWN;
 
 	protected void onTweetListScroll (final ScrollDirection direction) {
-		if (direction != ScrollDirection.UNKNOWN) this.lastScrollDirection = direction;
+		if (direction != ScrollDirection.UNKNOWN && direction != this.lastScrollDirection) this.lastScrollDirection = direction;
 
 		final int position = this.tweetList.getFirstVisiblePosition();
 		if (position < 0 || position == this.lastScrollFirstVisiblePosition) return;
