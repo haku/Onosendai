@@ -4,6 +4,9 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -211,6 +214,20 @@ public class OutboxActivity extends Activity {
 				DialogHelper.alert(oa, ot.getLastError());
 			}
 		},
+		COPY_BODY("Copy Body") {
+			@Override
+			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
+				((ClipboardManager) oa.getSystemService(Context.CLIPBOARD_SERVICE))
+						.setPrimaryClip(ClipData.newPlainText("Tweet", ot.getBody()));
+			}
+		},
+		COPY_ERROR("Copy Error") {
+			@Override
+			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
+				((ClipboardManager) oa.getSystemService(Context.CLIPBOARD_SERVICE))
+						.setPrimaryClip(ClipData.newPlainText("Error Message", ot.getLastError()));
+			}
+		},
 		DELETE("Delete") {
 			@Override
 			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
@@ -232,7 +249,7 @@ public class OutboxActivity extends Activity {
 		public abstract void onClick (OutboxActivity oa, OutboxTweet ot);
 	}
 
-	protected void itemClicked(final OutboxTweet ot) {
+	protected void itemClicked (final OutboxTweet ot) {
 		DialogHelper.askItem(this, "Outbox Item", OutboxItemAction.values(), new Listener<OutboxItemAction>() {
 			@Override
 			public void onAnswer (final OutboxItemAction answer) {
