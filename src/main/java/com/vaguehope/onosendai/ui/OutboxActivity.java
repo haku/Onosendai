@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.ui;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
@@ -214,6 +215,22 @@ public class OutboxActivity extends Activity {
 				DialogHelper.alert(oa, ot.getLastError());
 			}
 		},
+		EDIT_AS_NEW("Edit As New") {
+			@Override
+			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
+				oa.startActivity(new Intent(oa, PostActivity.class)
+						.putExtra(PostActivity.ARG_ACCOUNT_ID, ot.getAccountId())
+						.putStringArrayListExtra(PostActivity.ARG_SVCS, new ArrayList<String>(ot.getSvcMetasList()))
+						.putExtra(PostActivity.ARG_IN_REPLY_TO_SID, ot.getInReplyToSid())
+						// TODO currently these are not saved in the outbox.
+						// Not specifying these means the preview will not be displayed.
+						// Everything else should work as expected.  Hopefully.
+						// - ARG_IN_REPLY_TO_UID
+						// - ARG_ALT_REPLY_TO_SID
+						.putExtra(PostActivity.ARG_BODY, ot.getBody())
+						.putExtra(PostActivity.ARG_ATTACHMENT, ot.getAttachment()));
+			}
+		},
 		COPY_BODY("Copy Body") {
 			@Override
 			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
@@ -231,7 +248,12 @@ public class OutboxActivity extends Activity {
 		DELETE("Delete") {
 			@Override
 			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
-				oa.getDb().deleteFromOutbox(ot);
+				DialogHelper.askYesNo(oa, "Delete outbox item?", "Delete", "Keep", new Runnable() {
+					@Override
+					public void run () {
+						oa.getDb().deleteFromOutbox(ot);
+					}
+				});
 			}
 		};
 
