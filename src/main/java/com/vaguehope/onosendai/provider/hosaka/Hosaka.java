@@ -15,15 +15,16 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.AbstractHttpMessage;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import android.net.http.AndroidHttpClient;
 import android.util.Base64;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.util.HttpClientFactory;
+import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 /**
@@ -67,6 +68,7 @@ public class Hosaka {
 
 	public Map<String, HosakaColumn> sendColumns (final Map<String, HosakaColumn> columns) throws IOException, JSONException {
 		final HttpPost post = new HttpPost(BASE_URL + API_COLUMNS);
+		AndroidHttpClient.modifyRequestToAcceptGzipResponse(post);
 		addAuth(post);
 
 		final JSONObject columnsJson = new JSONObject();
@@ -116,7 +118,8 @@ public class Hosaka {
 		public Map<String, HosakaColumn> handleResponse (final HttpResponse response) throws IOException {
 			checkReponseCode(response.getStatusLine());
 			try {
-				final JSONObject o = (JSONObject) new JSONTokener(EntityUtils.toString(response.getEntity(), "UTF-8")).nextValue();
+				final String str = IoHelper.toString(AndroidHttpClient.getUngzippedContent(response.getEntity()));
+				final JSONObject o = (JSONObject) new JSONTokener(str).nextValue();
 				final Map<String, HosakaColumn> ret = new HashMap<String, HosakaColumn>();
 				final Iterator<String> keys = o.keys();
 				while (keys.hasNext()) {
