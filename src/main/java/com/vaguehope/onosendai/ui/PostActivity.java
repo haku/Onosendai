@@ -53,8 +53,6 @@ import com.vaguehope.onosendai.model.OutboxTweet;
 import com.vaguehope.onosendai.model.OutboxTweet.OutboxAction;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.EnabledServiceRefs;
-import com.vaguehope.onosendai.provider.PostTask;
-import com.vaguehope.onosendai.provider.PostTask.PostRequest;
 import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.AttachmentStorage;
@@ -87,6 +85,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	public static final String ARG_BODY = "body"; // If present mentions will not be prepended to body.
 	public static final String ARG_SVCS = "svcs";
 	public static final String ARG_ATTACHMENT = "post_attachment_uri";
+	public static final String ARG_OUTBOX_UID = "outbox_uid";
 	private static final String ARG_TMP_ATTACHMENT = "post_tmp_attachment_uri";
 
 	protected static final LogWrapper LOG = new LogWrapper("PA");
@@ -98,6 +97,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	private String inReplyToSid;
 	private String altReplyToSid;
 	private String[] alsoMentions;
+	private Long outboxUid;
 
 	private DbClient bndDb;
 	private HybridBitmapCache imageCache;
@@ -140,9 +140,12 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
 			this.altReplyToSid = this.intentExtras.getString(ARG_ALT_REPLY_TO_SID);
 			this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
+
+			final long outboxUidOrDefault = this.intentExtras.getLong(ARG_OUTBOX_UID, -1);
+			if (outboxUidOrDefault >= 0) this.outboxUid = outboxUidOrDefault;
 		}
-		LOG.i("inReplyToUid=%d inReplyToSid=%s altReplyToSid=%s alsoMentions=%s",
-				this.inReplyToUid, this.inReplyToSid, this.altReplyToSid, Arrays.toString(this.alsoMentions));
+		LOG.i("inReplyToUid=%d inReplyToSid=%s altReplyToSid=%s alsoMentions=%s outboxUid=%s",
+				this.inReplyToUid, this.inReplyToSid, this.altReplyToSid, Arrays.toString(this.alsoMentions), this.outboxUid);
 
 		setupAccounts(savedInstanceState, accounts, conf);
 		setupAttachemnt(savedInstanceState);
@@ -294,12 +297,14 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			}
 		});
 
-		((Button) findViewById(R.id.btnPost)).setOnClickListener(new View.OnClickListener() {
+		final Button btnPost = (Button) findViewById(R.id.btnPost);
+		btnPost.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick (final View v) {
 				askPost();
 			}
 		});
+		if (this.outboxUid != null) btnPost.setText("Update Post");
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -410,7 +415,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		}
 		dlgBld.setMessage(msg);
 
-		dlgBld.setPositiveButton("Post", new DialogInterface.OnClickListener() {
+		dlgBld.setPositiveButton(this.outboxUid == null ? "Post" : "Update Post", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
 				submitPostToOutput(account, svcs);
@@ -432,34 +437,19 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		return this.inReplyToSid;
 	}
 
-	/**
-	 * @deprecated
-	 */
-	@Deprecated
-	protected void submitPost (final Account account, final Set<ServiceRef> svcs) {
-		final String body = this.txtBody.getText().toString();
-		final Intent recoveryIntent = new Intent(getBaseContext(), PostActivity.class)
-				.putExtra(ARG_ACCOUNT_ID, account.getId())
-				.putExtra(ARG_IN_REPLY_TO_UID, this.inReplyToUid)
-				.putExtra(ARG_IN_REPLY_TO_SID, this.inReplyToSid)
-				.putExtra(ARG_ALT_REPLY_TO_SID, this.altReplyToSid)
-				.putExtra(ARG_ATTACHMENT, this.attachment)
-				.putExtra(ARG_BODY, body);
-
-		final ArrayList<String> svcsLst = new ArrayList<String>();
-		for (final ServiceRef svc : svcs) {
-			svcsLst.add(svc.toServiceMeta());
-		}
-		recoveryIntent.putStringArrayListExtra(ARG_SVCS, svcsLst);
-
-		new PostTask(getApplicationContext(), new PostRequest(account, svcs, body, getReplyToSidToSubmit(), this.attachment, recoveryIntent)).execute();
-		finish();
-	}
-
 	protected void submitPostToOutput (final Account account, final Set<ServiceRef> svcs) {
-		getDb().addPostToOutput(new OutboxTweet(OutboxAction.POST, account, svcs, this.txtBody.getText().toString(), getReplyToSidToSubmit(), this.attachment));
+		final OutboxTweet ot = new OutboxTweet(OutboxAction.POST, account, svcs, this.txtBody.getText().toString(), getReplyToSidToSubmit(), this.attachment);
+		final String msg;
+		if (this.outboxUid == null) {
+			getDb().addPostToOutput(ot);
+			msg = "Posted via Outbox";
+		}
+		else {
+			getDb().updateOutboxEntry(ot.withUid(this.outboxUid).resetToPending());
+			msg = "Updated Outbox item";
+		}
 		startService(new Intent(this, SendOutboxService.class));
-		Toast.makeText(this, "Posted via Outbox", Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 		finish();
 	}
 
