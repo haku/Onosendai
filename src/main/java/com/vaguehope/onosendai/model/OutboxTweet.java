@@ -66,7 +66,8 @@ public class OutboxTweet {
 	public enum OutboxTweetStatus {
 		UNKNOWN(0, "Unknown"),
 		PENDING(1, "Pending"),
-		PERMANENTLY_FAILED(2, "Failed");
+		PERMANENTLY_FAILED(2, "Failed"),
+		PAUSED(3, "Paused");
 
 		private final int code;
 		private final String name;
@@ -94,6 +95,8 @@ public class OutboxTweet {
 					return PENDING;
 				case 2:
 					return PERMANENTLY_FAILED;
+				case 3:
+					return PAUSED;
 				default:
 					return UNKNOWN;
 			}
@@ -137,6 +140,15 @@ public class OutboxTweet {
 	private OutboxTweet (final OutboxTweet ot, final OutboxTweetStatus status, final Integer attemptCount, final String lastError) {
 		this(ot.getUid(), ot.getAction(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), ot.getAttachment(),
 				status, attemptCount, lastError);
+	}
+
+	/**
+	 * Set uid after edit.
+	 */
+	private OutboxTweet (final OutboxTweet ot, final Long uid) {
+		this(uid, ot.getAction(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), ot.getAttachment(),
+				ot.getStatus(), ot.getAttemptCount(), ot.getLastError());
+		if (ot.getUid() != null) throw new IllegalArgumentException(String.format("Can not set uid=%s as already have uid=%s.", uid, ot.getUid()));
 	}
 
 	private OutboxTweet (final Long uid, final OutboxAction action, final String accountId, final List<String> svcMetas, final String body, final String inReplyToSid, final Uri attachment,
@@ -221,6 +233,14 @@ public class OutboxTweet {
 
 	public OutboxTweet resetToPending () {
 		return new OutboxTweet(this, OutboxTweetStatus.PENDING, getAttemptCount(), getLastError());
+	}
+
+	public OutboxTweet setPaused () {
+		return new OutboxTweet(this, OutboxTweetStatus.PAUSED, getAttemptCount(), getLastError());
+	}
+
+	public OutboxTweet withUid (final long newUid) {
+		return new OutboxTweet(this, newUid);
 	}
 
 	@Override
