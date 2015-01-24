@@ -50,6 +50,7 @@ import com.vaguehope.onosendai.storage.DbProvider;
 import com.vaguehope.onosendai.ui.LocalSearchDialog.OnTweetListener;
 import com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment;
 import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
+import com.vaguehope.onosendai.ui.pref.UiPrefFragment;
 import com.vaguehope.onosendai.update.AlarmReceiver;
 import com.vaguehope.onosendai.update.UpdateService;
 import com.vaguehope.onosendai.util.DialogHelper;
@@ -116,7 +117,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		this.localEs = ExecUtils.newBoundedCachedThreadPool(C.LOCAL_MAX_THREADS, new LogWrapper("LES"), this.executorStatus);
 		this.netEs = ExecUtils.newBoundedCachedThreadPool(C.NET_MAX_THREADS, new LogWrapper("NES"), this.executorStatus);
 
-		final float columnWidth = Float.parseFloat(getResources().getString(R.string.column_width));
+		final float columnWidth = UiPrefFragment.readColumnWidth(this, this.prefs);
 
 		// If this becomes too memory intensive, switch to android.support.v4.app.FragmentStatePagerAdapter.
 		final SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), this.conf, columnWidth);

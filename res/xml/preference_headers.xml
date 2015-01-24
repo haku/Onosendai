@@ -17,6 +17,11 @@
 		android:summary="Prefetch images, etc." />
 
 	<header
+		android:fragment="com.vaguehope.onosendai.ui.pref.UiPrefFragment"
+		android:title="User Interface"
+		android:summary="Override number of visible columns." />
+
+	<header
 		android:fragment="com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment"
 		android:title="Advanced"
 		android:summary="For when things go wrong" />
