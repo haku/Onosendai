@@ -94,14 +94,13 @@ public class ProfileDialog {
 	public void showRelationship (final Relationship rel, final User targetUser) {
 		final UserActionTask.UserAction action;
 		if (rel.isSourceFollowingTarget()) {
-			this.btnFollowUnfollow.setText("Unfollow");
 			action = UserActionTask.UserAction.UNFOLLOW;
 		}
 		else {
-			this.btnFollowUnfollow.setText("Follow");
 			action = UserActionTask.UserAction.FOLLOW;
 		}
-		this.btnFollowUnfollow.setOnClickListener(new TaskClickListener(new UserActionTask(getContext(), this.account, action, targetUser)));
+		this.btnFollowUnfollow.setText(action.getVerbInfinitive());
+		this.btnFollowUnfollow.setOnClickListener(new TaskClickListener(action.getVerbInfinitive(), new UserActionTask(getContext(), this.account, action, targetUser)));
 		this.btnFollowUnfollow.setEnabled(true);
 	}
 
@@ -191,15 +190,22 @@ public class ProfileDialog {
 
 	private static class TaskClickListener implements OnClickListener {
 
+		private final String yesLbl;
 		private final AsyncTask<?, ?, ?> task;
 
-		public TaskClickListener (final AsyncTask<?, ?, ?> task) {
+		public TaskClickListener (final String yesLbl, final AsyncTask<?, ?, ?> task) {
+			this.yesLbl = yesLbl;
 			this.task = task;
 		}
 
 		@Override
 		public void onClick (final View v) {
-			this.task.execute();
+			DialogHelper.askYesNo(v.getContext(), "Are you sure?", this.yesLbl, "Cancel", new Runnable() {
+				@Override
+				public void run () {
+					TaskClickListener.this.task.execute();
+				}
+			});
 		}
 
 	}
@@ -207,16 +213,23 @@ public class ProfileDialog {
 	private static class UserActionTask extends AsyncTask<Void, Void, Exception> {
 
 		public enum UserAction {
-			FOLLOW("Following"),
-			UNFOLLOW("Unfollowing");
-			private final String actionDesc;
+			FOLLOW("Follow", "Following"),
+			UNFOLLOW("Unfollow", "Unfollowing");
 
-			private UserAction (final String actionDesc) {
-				this.actionDesc = actionDesc;
+			private final String verbInfinitive;
+			private final String verbPresentParticiple;
+
+			private UserAction (final String verbInfinitive, final String verbPresentParticiple) {
+				this.verbInfinitive = verbInfinitive;
+				this.verbPresentParticiple = verbPresentParticiple;
 			}
 
-			public String getActionDesc () {
-				return this.actionDesc;
+			public String getVerbInfinitive () {
+				return this.verbInfinitive;
+			}
+
+			public String getVerbPresentParticiple () {
+				return this.verbPresentParticiple;
 			}
 		}
 
@@ -236,7 +249,7 @@ public class ProfileDialog {
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.context, this.action.getActionDesc(), "Please wait...", true);
+			this.dialog = ProgressDialog.show(this.context, this.action.getVerbPresentParticiple(), "Please wait...", true);
 		}
 
 		@Override
