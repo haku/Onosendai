@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.update;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.PowerManager;
@@ -32,6 +33,11 @@ public class AlarmReceiver extends BroadcastReceiver {
 		LOG.i("AlarmReceiver invoked: action=%s bl=%s.", action, bl);
 		switch (action) {
 			case ACTION_UPDATE:
+				if (!ContentResolver.getMasterSyncAutomatically()) {
+					LOG.i("Master sync disabled, update aborted.");
+					break;
+				}
+
 				final boolean doUpdate = (bl > C.MIN_BAT_UPDATE);
 				final boolean doSend = (bl > C.MIN_BAT_SEND);
 				if (doUpdate || doSend) {
