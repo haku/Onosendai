@@ -52,6 +52,10 @@ public final class ScrollIndicator {
 		return this.barMover.getUnreadTime();
 	}
 
+	public int getUnreadPosition () {
+		return this.barMover.getUnreadPosition();
+	}
+
 	public static ScrollIndicator attach (final Context context, final ViewGroup rootView, final ListView list, final OnScrollListener onScrollListener) {
 		final AbsoluteShape bar = new AbsoluteShape(context, list);
 		bar.layoutForce(0, 0, 0, 0);
@@ -109,6 +113,10 @@ public final class ScrollIndicator {
 			invalidate();
 		}
 
+		public int getUnreadPosition () {
+			return this.unreadPosition;
+		}
+
 		@Override
 		public void layout (final int l, final int t, final int r, final int b) {
 			/* block calls so no layout manager can not mess with us. */
@@ -163,6 +171,10 @@ public final class ScrollIndicator {
 
 		public long getUnreadTime () {
 			return this.unreadTime;
+		}
+
+		public int getUnreadPosition () {
+			return this.bar.getUnreadPosition();
 		}
 
 		private void updateBar () {

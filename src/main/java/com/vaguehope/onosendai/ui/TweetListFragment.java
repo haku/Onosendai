@@ -343,8 +343,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		}
 	}
 
-	protected void scrollTop () {
-		this.tweetList.setSelectionAfterHeaderView();
+	protected void scrollJumpUp () {
+		final int unreadPosition = this.scrollIndicator.getUnreadPosition();
+		this.tweetList.setSelectionFromTop(unreadPosition, 0);
 		this.lastScrollDirection = ScrollDirection.UP;
 	}
 

@@ -512,7 +512,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 			if (col == null) return;
 			final TweetListFragment page = this.activePages.get(col.getId());
 			if (page == null) return;
-			page.scrollTop();
+			page.scrollJumpUp();
 		}
 
 	}
