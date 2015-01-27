@@ -42,6 +42,7 @@ class ColumnDialog {
 
 	private static final List<Duration> REFRESH_DURAITONS = CollectionHelper.listOf(
 			new Duration(0, "Never"),
+			new Duration(5, "5 minutes (15 min in background)"),
 			new Duration(15, "15 minutes"),
 			new Duration(30, "30 minutes"),
 			new Duration(45, "45 minutes"),

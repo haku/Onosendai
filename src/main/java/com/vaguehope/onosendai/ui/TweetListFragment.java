@@ -859,25 +859,28 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	};
 
-	private static final int MSG_REFRESH = 1;
-	private static final int MSG_UPDATE_RUNNING = 2;
-	private static final int MSG_UPDATE_OVER = 3;
-	private static final int MSG_STILL_SCROLLING_CHECK = 4;
-	private static final int MSG_UNREAD_CHANGED = 5;
-	private static final int MSG_UNREAD_AND_SCROLL_CHANGED = 6;
-	private static final int MSG_SAVE_SCROLL = 7;
+	private enum Msgs {
+		REFRESH,
+		UPDATE_RUNNING,
+		UPDATE_OVER,
+		STILL_SCROLLING_CHECK,
+		UNREAD_CHANGED,
+		UNREAD_AND_SCROLL_CHANGED,
+		SAVE_SCROLL;
+		public static final Msgs values[] = values(); // Optimisation to avoid new array every time.
+	}
 
 	protected void refreshUi () {
-		this.refreshUiHandler.sendEmptyMessage(MSG_REFRESH);
+		this.refreshUiHandler.sendEmptyMessage(Msgs.REFRESH.ordinal());
 	}
 
 	protected void statusChanged (final ColumnState state) {
 		switch (state) {
 			case UPDATE_RUNNING:
-				this.refreshUiHandler.sendEmptyMessage(MSG_UPDATE_RUNNING);
+				this.refreshUiHandler.sendEmptyMessage(Msgs.UPDATE_RUNNING.ordinal());
 				break;
 			case UPDATE_OVER:
-				this.refreshUiHandler.sendEmptyMessage(MSG_UPDATE_OVER);
+				this.refreshUiHandler.sendEmptyMessage(Msgs.UPDATE_OVER.ordinal());
 				break;
 			default:
 		}
@@ -886,17 +889,17 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	protected void refreshUnread (final ScrollChangeType type) {
 		switch (type) {
 			case UNREAD:
-				this.refreshUiHandler.sendEmptyMessage(MSG_UNREAD_CHANGED);
+				this.refreshUiHandler.sendEmptyMessage(Msgs.UNREAD_CHANGED.ordinal());
 				break;
 			case UNREAD_AND_SCROLL:
-				this.refreshUiHandler.sendEmptyMessage(MSG_UNREAD_AND_SCROLL_CHANGED);
+				this.refreshUiHandler.sendEmptyMessage(Msgs.UNREAD_AND_SCROLL_CHANGED.ordinal());
 				break;
 			default:
 		}
 	}
 
 	protected void requestSaveCurrentScrollToDb () {
-		this.refreshUiHandler.sendEmptyMessage(MSG_SAVE_SCROLL);
+		this.refreshUiHandler.sendEmptyMessage(Msgs.SAVE_SCROLL.ordinal());
 	}
 
 	private static class RefreshUiHandler extends Handler {
@@ -915,29 +918,29 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	}
 
 	protected void msgOnUiThread (final Message msg) {
-		switch (msg.what) {
-			case MSG_REFRESH:
+		switch (Msgs.values[msg.what]) {
+			case REFRESH:
 				refreshUiOnUiThread();
 				break;
-			case MSG_UPDATE_RUNNING:
+			case UPDATE_RUNNING:
 				getMainActivity().progressIndicator(true);
 				this.tweetListEmptyRefresh.setEnabled(false);
 				break;
-			case MSG_UPDATE_OVER:
+			case UPDATE_OVER:
 				getMainActivity().progressIndicator(false);
 				this.tweetListEmptyRefresh.setEnabled(true);
 				redrawLastUpdateError();
 				break;
-			case MSG_STILL_SCROLLING_CHECK:
+			case STILL_SCROLLING_CHECK:
 				checkIfTweetListStillScrolling();
 				break;
-			case MSG_UNREAD_CHANGED:
+			case UNREAD_CHANGED:
 				restoreScrollFromDbIfNewer(ScrollChangeType.UNREAD);
 				break;
-			case MSG_UNREAD_AND_SCROLL_CHANGED:
+			case UNREAD_AND_SCROLL_CHANGED:
 				restoreScrollFromDbIfNewer(ScrollChangeType.UNREAD_AND_SCROLL);
 				break;
-			case MSG_SAVE_SCROLL:
+			case SAVE_SCROLL:
 				saveCurrentScrollToDb();
 				break;
 			default:
@@ -1010,7 +1013,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	private final OnClickListener refreshClickListener = new OnClickListener() {
 		@Override
 		public void onClick (final View v) {
-			getMainActivity().scheduleRefresh(getColumnId());
+			getMainActivity().scheduleRefreshInteractive(getColumnId());
 		}
 	};
 
@@ -1029,7 +1032,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 		final long now = System.currentTimeMillis();
 		this.lastScrollTime = now;
-		this.refreshUiHandler.sendEmptyMessageDelayed(MSG_STILL_SCROLLING_CHECK, C.SCROLL_TIME_LABEL_TIMEOUT_MILLIS);
+		this.refreshUiHandler.sendEmptyMessageDelayed(Msgs.STILL_SCROLLING_CHECK.ordinal(), C.SCROLL_TIME_LABEL_TIMEOUT_MILLIS);
 
 		final long time = this.adapter.getItemTime(position);
 		if (time > 0L) {
