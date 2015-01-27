@@ -62,4 +62,9 @@ public final class C {
 	public static final long IMAGE_DISC_CACHE_EXPIRY_MILLIS = TimeUnit.DAYS.toMillis(10);
 	public static final long TMP_SCALED_IMG_EXPIRY_MILLIS = TimeUnit.DAYS.toMillis(7);
 
+	// Frequent refresh when UI open.
+	public static final int FETCH_VISIBLE_THRESHOLD_MIN = 15;
+	public static final int FETCH_VISIBLE_INITIAL_SECONDS = 30;
+	public static final int FETCH_VISIBLE_INTERVAL_MIN = 1;
+
 }

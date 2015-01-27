@@ -1,6 +1,8 @@
 package com.vaguehope.onosendai.ui;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -13,6 +15,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -75,6 +79,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	private ExecutorStatus executorStatus;
 	private ExecutorService localEs;
 	private ExecutorService netEs;
+	private MessageHandler msgHandler;
 
 	private ColumnTitleStrip columnTitleStrip;
 	private SidebarAwareViewPager viewPager;
@@ -116,6 +121,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 		this.localEs = ExecUtils.newBoundedCachedThreadPool(C.LOCAL_MAX_THREADS, new LogWrapper("LES"), this.executorStatus);
 		this.netEs = ExecUtils.newBoundedCachedThreadPool(C.NET_MAX_THREADS, new LogWrapper("NES"), this.executorStatus);
+		this.msgHandler = new MessageHandler(this);
 
 		final float columnWidth = UiPrefFragment.readColumnWidth(this, this.prefs);
 
@@ -165,11 +171,15 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 					startActivity(getIntent());
 				}
 			});
+			return;
 		}
+
+		startBgFetchVisibleColumnsIfConfigured();
 	}
 
 	@Override
 	protected void onDestroy () {
+		stopBgFetchVisibleColumns();
 		if (this.prefs != null) this.prefs.getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
 		if (this.providerMgr != null) this.providerMgr.shutdown();
 		if (this.imageCache != null) this.imageCache.clean();
@@ -311,20 +321,19 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		return this.pageSelectionListener.getVisiblePageCount();
 	}
 
-	protected List<TweetListFragment> getVisiblePages () {
-		final List<TweetListFragment> ret = new ArrayList<TweetListFragment>();
-		for (int i = 0; i < this.activePages.size(); i++) {
-			final TweetListFragment page = this.activePages.valueAt(i);
-			if (this.pageSelectionListener.isVisible(page.getColumnPosition())) ret.add(page);
+	public List<Column> getVisibleColumns () {
+		final List<Column> ret = new ArrayList<Column>();
+		for (int i = 0; i < this.pageSelectionListener.getVisiblePageCount(); i++) {
+			if (this.pageSelectionListener.isVisible(i)) ret.add(this.conf.getColumnByPosition(i));
 		}
 		return ret;
 	}
 
 	public int[] getVisibleColumnIds () {
-		final List<TweetListFragment> pages = getVisiblePages();
+		final List<Column> pages = getVisibleColumns();
 		final int[] ret = new int[pages.size()];
 		for (int i = 0; i < pages.size(); i++) {
-			ret[i] = pages.get(i).getColumnId();
+			ret[i] = pages.get(i).getId();
 		}
 		return ret;
 	}
@@ -353,10 +362,10 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 				showOutbox();
 				return true;
 			case R.id.mnuRefreshColumnNow:
-				scheduleRefresh(getVisibleColumnIds());
+				scheduleRefreshInteractive(getVisibleColumnIds());
 				return true;
 			case R.id.mnuRefreshAllNow:
-				scheduleRefresh();
+				scheduleRefreshInteractive();
 				return true;
 			case R.id.mnuPreferences:
 				startActivity(new Intent(this, OsPreferenceActivity.class));
@@ -370,9 +379,9 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	}
 
 	protected void showPost () {
-		final List<TweetListFragment> pages = getVisiblePages();
-		final Account account = pages.size() == 1 ? pages.iterator().next().getColumnAccount() : null;
-		showPost(account, null);
+		final List<Column> visCol = getVisibleColumns();
+		final String accountId = visCol.size() == 1 ? visCol.iterator().next().getAccountId() : null;
+		showPost(this.conf.getAccount(accountId), null);
 	}
 
 	protected void showPost (final Account account, final Tweet tweetToQuote) {
@@ -387,20 +396,33 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		startActivity(new Intent(this, OutboxActivity.class));
 	}
 
-	protected void scheduleRefresh (final int... columnIds) {
+	protected void scheduleRefreshInteractive (final int... columnIds) {
 		if (!NetHelper.connectionPresent(this)) {
 			DialogHelper.alert(this, "No internet connection available.");
 			return;
 		}
+		scheduleRefresh(true, columnIds);
+	}
 
+	protected void scheduleRefreshBackground (final int... columnIds) {
+		if (!NetHelper.connectionPresent(this)) {
+			Toast.makeText(this, "No internet connection available.", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		scheduleRefresh(false, columnIds);
+	}
+
+	private void scheduleRefresh (final boolean manual, final int... columnIds) {
 		final Intent intent = new Intent(this, UpdateService.class);
-		intent.putExtra(UpdateService.ARG_IS_MANUAL, true);
+		if (manual) intent.putExtra(UpdateService.ARG_IS_MANUAL, true);
 		if (columnIds != null && columnIds.length > 0) intent.putExtra(UpdateService.ARG_COLUMN_IDS, columnIds);
 		startService(intent);
 
-		final int count = columnIds == null ? 0 : columnIds.length;
-		final String msg = String.format("Refresh %s requested.", count > 0 ? count : "all");
-		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+		if (manual) {
+			final int count = columnIds == null ? 0 : columnIds.length;
+			final String msg = String.format("Refresh %s requested.", count > 0 ? count : "all");
+			Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	private void showLocalSearch () {
@@ -426,6 +448,72 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	protected void progressIndicator (final boolean inProgress) {
 		this.progressIndicatorCounter += (inProgress ? 1 : -1);
 		setProgressBarIndeterminateVisibility(this.progressIndicatorCounter > 0);
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private enum Msgs {
+		BG_FETCH_VISIBLE_COLUMNS;
+		public static final Msgs values[] = values(); // Optimisation to avoid new array every time.
+	}
+
+	private static class MessageHandler extends Handler {
+
+		private final WeakReference<MainActivity> parentRef;
+
+		public MessageHandler (final MainActivity parent) {
+			this.parentRef = new WeakReference<MainActivity>(parent);
+		}
+
+		@Override
+		public void handleMessage (final Message msg) {
+			final MainActivity parent = this.parentRef.get();
+			if (parent != null) parent.msgOnUiThread(msg);
+		}
+	}
+
+	protected void msgOnUiThread (final Message msg) {
+		switch (Msgs.values[msg.what]) {
+			case BG_FETCH_VISIBLE_COLUMNS:
+				bgFetchVisibleColumns();
+				break;
+			default:
+		}
+	}
+
+	private boolean frequentlyFetchVisibleColumns = false;
+
+	private void startBgFetchVisibleColumnsIfConfigured () {
+		if (this.frequentlyFetchVisibleColumns) return;
+		this.frequentlyFetchVisibleColumns = isAnyFrequentFetchColumnsConfigured();
+		if (this.frequentlyFetchVisibleColumns) {
+			this.msgHandler.sendEmptyMessageDelayed(Msgs.BG_FETCH_VISIBLE_COLUMNS.ordinal(), TimeUnit.SECONDS.toMillis(C.FETCH_VISIBLE_INITIAL_SECONDS));
+			LOG.i("Frequently fetch visible colunns enabled.");
+		}
+	}
+
+	private void stopBgFetchVisibleColumns () {
+		this.frequentlyFetchVisibleColumns = false;
+	}
+
+	private void bgFetchVisibleColumns () {
+		if (!this.frequentlyFetchVisibleColumns) return;
+		final int[] visibleColumnIds = getVisibleColumnIds();
+		if (visibleColumnIds.length > 0) {
+			scheduleRefreshBackground(visibleColumnIds);
+			LOG.i("Requested fetch of visible colunns: %s.", Arrays.toString(visibleColumnIds));
+		}
+		else {
+			LOG.i("No visible colunns to refresh refresh of: %s.", Arrays.toString(visibleColumnIds));
+		}
+		this.msgHandler.sendEmptyMessageDelayed(Msgs.BG_FETCH_VISIBLE_COLUMNS.ordinal(), TimeUnit.MINUTES.toMillis(C.FETCH_VISIBLE_INTERVAL_MIN));
+	}
+
+	private boolean isAnyFrequentFetchColumnsConfigured () {
+		for (final Column col : this.conf.getColumns()) {
+			if (col.getRefreshIntervalMins() < C.FETCH_VISIBLE_THRESHOLD_MIN) return true;
+		}
+		return false;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
