@@ -9,6 +9,8 @@ import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceFragment;
 
+import com.vaguehope.onosendai.config.AccountProvider;
+import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.model.PrefetchImages;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
@@ -103,8 +105,13 @@ public class FetchingPrefFragment extends PreferenceFragment {
 		@Override
 		protected Exception doInBackgroundWithDb (final DbInterface db, final Void... params) {
 			try {
-				final String status = db.getValue(KvKeys.KEY_HOSAKA_STATUS);
-				publishProgress(StringHelper.isEmpty(status) ? "Never run." : status);
+				if (new Prefs(getContext()).asConfig().firstAccountOfType(AccountProvider.HOSAKA) == null) {
+					publishProgress("Add a Hosaka account to the accounts page to enable sync.");
+				}
+				else {
+					final String status = db.getValue(KvKeys.KEY_HOSAKA_STATUS);
+					publishProgress(StringHelper.isEmpty(status) ? "Never run." : status);
+				}
 				return null;
 			}
 			catch (final Exception e) { // NOSONAR show user all errors.
