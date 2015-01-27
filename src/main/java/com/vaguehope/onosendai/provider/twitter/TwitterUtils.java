@@ -187,10 +187,15 @@ public final class TwitterUtils {
 		if (mes == null || mes.length < 1) mes = s.getMediaEntities();
 		if (mes == null) return;
 		for (final MediaEntity me : mes) {
-			final String clickUrl = me.getExpandedURL() != null ? me.getExpandedURL() : me.getURL();
-			String imgUrl = me.getMediaURLHttps();
-			if (hdMedia) imgUrl += ":large";
-			metas.add(new Meta(MetaType.MEDIA, imgUrl, clickUrl));
+			if (me.getType() == null || "photo".equalsIgnoreCase(me.getType())) {
+				final String clickUrl = me.getExpandedURL() != null ? me.getExpandedURL() : me.getURL();
+				String imgUrl = me.getMediaURLHttps();
+				if (hdMedia) imgUrl += ":large";
+				metas.add(new Meta(MetaType.MEDIA, imgUrl, clickUrl));
+			}
+			else {
+				LOG.w("Unknown MediaEntity type: %s", me.getType());
+			}
 		}
 	}
 
