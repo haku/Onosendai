@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.ui;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +17,7 @@ import org.json.JSONException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
@@ -56,6 +58,7 @@ import com.vaguehope.onosendai.provider.EnabledServiceRefs;
 import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.AttachmentStorage;
+import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbProvider;
@@ -438,19 +441,9 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	}
 
 	protected void submitPostToOutput (final Account account, final Set<ServiceRef> svcs) {
-		final OutboxTweet ot = new OutboxTweet(OutboxAction.POST, account, svcs, this.txtBody.getText().toString(), getReplyToSidToSubmit(), this.attachment);
-		final String msg;
-		if (this.outboxUid == null) {
-			getDb().addPostToOutput(ot);
-			msg = "Posted via Outbox";
-		}
-		else {
-			getDb().updateOutboxEntry(ot.withUid(this.outboxUid).resetToPending());
-			msg = "Updated Outbox item";
-		}
-		startService(new Intent(this, SendOutboxService.class));
-		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-		finish();
+		new SubmitToOutboxTask(this,
+				new OutboxTweet(OutboxAction.POST, account, svcs, this.txtBody.getText().toString(), getReplyToSidToSubmit(), this.attachment),
+				this.outboxUid).execute();
 	}
 
 	private final OnItemSelectedListener accountOnItemSelectedListener = new OnItemSelectedListener() {
@@ -663,6 +656,93 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 						showShrinkPictureDlg();
 					}
 				});
+	}
+
+	private static class SubmitToOutboxTask extends DbBindingAsyncTask<Void, String, Exception> {
+
+		private final Activity activity;
+		private final OutboxTweet ot;
+		private final Long outboxUid;
+		private ProgressDialog dialog;
+
+		public SubmitToOutboxTask (final Activity activity, final OutboxTweet ot, final Long outboxUid) {
+			super(null, activity);
+			this.activity = activity;
+			this.ot = ot;
+			this.outboxUid = outboxUid;
+		}
+
+		@Override
+		protected LogWrapper getLog () {
+			return LOG;
+		}
+
+		@Override
+		protected void onPreExecute () {
+			this.dialog = ProgressDialog.show(getContext(), "Adding to Outbox", "...", true);
+		}
+
+		@Override
+		protected void onProgressUpdate (final String... msgs) {
+			if (msgs == null || msgs.length < 1) return;
+			this.dialog.setMessage(msgs[0]);
+		}
+
+		@Override
+		protected Exception doInBackgroundWithDb (final DbInterface db, final Void... params) {
+			try {
+				final OutboxTweet otToAdd;
+				if (this.ot.getAttachment() != null && ImageMetadata.isRemoteResource(this.ot.getAttachment())) {
+					publishProgress("Caching attachment...");
+					final ImageMetadata im = new ImageMetadata(getContext(), this.ot.getAttachment());
+					final File internal = AttachmentStorage.getTempFile(getContext(), im.getName()); // TODO FIXME name could be null, bad chars.
+					final InputStream is = im.open();
+					try {
+						IoHelper.copy(is, internal);
+					}
+					finally {
+						IoHelper.closeQuietly(is);
+					}
+					otToAdd = this.ot.withAttachment(Uri.fromFile(internal));
+				}
+				else {
+					otToAdd = this.ot;
+				}
+				publishProgress("Writing to Outbox...");
+				if (this.outboxUid == null) {
+					db.addPostToOutput(otToAdd);
+				}
+				else {
+					db.updateOutboxEntry(otToAdd.withUid(this.outboxUid).resetToPending());
+				}
+				return null;
+			}
+			catch (final IOException e) {
+				return e;
+			}
+		}
+
+		@Override
+		protected void onPostExecute (final Exception result) {
+			this.dialog.dismiss();
+			if (result == null) {
+				final String msg;
+				if (this.outboxUid == null) {
+					msg = "Posted via Outbox";
+				}
+				else {
+					msg = "Updated Outbox item";
+				}
+				getContext().startService(new Intent(getContext(), SendOutboxService.class));
+				Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+				this.activity.finish();
+			}
+			else {
+				LOG.e("Failed to add to outbox.", result);
+				DialogHelper.alert(getContext(), result);
+			}
+		}
+
 	}
 
 }

@@ -212,4 +212,9 @@ public class ImageMetadata implements Titleable {
 		return SCHEME_CONTENT.equals(uri.getScheme()) || SCHEME_FILE.equals(uri.getScheme());
 	}
 
+	public static boolean isRemoteResource (final Uri uri) {
+		if (uri == null) return false;
+		return SCHEME_CONTENT.equals(uri.getScheme());
+	}
+
 }

@@ -151,6 +151,14 @@ public class OutboxTweet {
 		if (ot.getUid() != null) throw new IllegalArgumentException(String.format("Can not set uid=%s as already have uid=%s.", uid, ot.getUid()));
 	}
 
+	/**
+	 * Set attachment after moving internal.
+	 */
+	private OutboxTweet (final OutboxTweet ot, final Uri attachment) {
+		this(ot.getUid(), ot.getAction(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), attachment,
+				ot.getStatus(), ot.getAttemptCount(), ot.getLastError());
+	}
+
 	private OutboxTweet (final Long uid, final OutboxAction action, final String accountId, final List<String> svcMetas, final String body, final String inReplyToSid, final Uri attachment,
 			final OutboxTweetStatus status, final Integer attemptCount, final String lastError) {
 		this.uid = uid;
@@ -243,6 +251,10 @@ public class OutboxTweet {
 		return new OutboxTweet(this, newUid);
 	}
 
+	public OutboxTweet withAttachment (final Uri attachment) {
+		return new OutboxTweet(this, attachment);
+	}
+
 	@Override
 	public String toString () {
 		return new StringBuilder()
@@ -283,7 +295,7 @@ public class OutboxTweet {
 
 	private static Set<ServiceRef> svcsListToParsed (final List<String> svcList) {
 		final Set<ServiceRef> ret = new HashSet<ServiceRef>();
-		for (String meta : svcList) {
+		for (final String meta : svcList) {
 			ret.add(ServiceRef.parseServiceMeta(meta));
 		}
 		return ret;
