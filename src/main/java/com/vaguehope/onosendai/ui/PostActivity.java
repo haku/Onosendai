@@ -695,7 +695,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				if (this.ot.getAttachment() != null && ImageMetadata.isRemoteResource(this.ot.getAttachment())) {
 					publishProgress("Caching attachment...");
 					final ImageMetadata im = new ImageMetadata(getContext(), this.ot.getAttachment());
-					final File internal = AttachmentStorage.getTempFile(getContext(), im.getName()); // TODO FIXME name could be null, bad chars.
+					final File internal = AttachmentStorage.getTempFile(getContext(), im.getName());
 					final InputStream is = im.open();
 					try {
 						IoHelper.copy(is, internal);

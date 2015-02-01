@@ -7,6 +7,7 @@ import android.content.Context;
 import android.os.Environment;
 
 import com.vaguehope.onosendai.C;
+import com.vaguehope.onosendai.util.FileHelper;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -20,8 +21,11 @@ public final class AttachmentStorage {
 		throw new AssertionError();
 	}
 
-	public static File getTempFile (final Context context, final String name) {
-		return new File(getBaseDir(context), name);
+	/**
+	 * This file will not already exist.
+	 */
+	public static File getTempFile (final Context context, final String nameHint) {
+		return FileHelper.newFileInDir(getBaseDir(context), nameHint);
 	}
 
 	public static File getExternalTempFile (final String ext) {

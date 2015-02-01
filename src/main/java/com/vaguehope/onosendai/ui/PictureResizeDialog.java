@@ -100,9 +100,6 @@ public class PictureResizeDialog implements Titleable {
 		return (Scale) this.spnQuality.getSelectedItem();
 	}
 
-	/*
-	 * TODO FIXME do this in a BG thread with waiting dlg.
-	 */
 	public Uri resizeToTempFile () throws IOException {
 		final Bitmap scaled = this.srcMetadata.getBitmap(getScale().getPercentage());
 		final File tgt = AttachmentStorage.getTempFile(this.context, "shrunk_" + this.srcMetadata.getName());
