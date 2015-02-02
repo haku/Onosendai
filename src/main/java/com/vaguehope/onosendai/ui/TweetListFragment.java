@@ -326,8 +326,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	}
 
 	protected void restoreSavedScrollFromDb () {
-		if (this.scrollState != null) return;
-		this.scrollState = getDb().getScroll(this.columnId);
+		final ScrollState fromDb = getDb().getScroll(this.columnId);
+		if (fromDb != null) this.scrollState = fromDb;
+
 		if (this.scrollState != null && this.scrollState.getScrollDirection() != ScrollDirection.UNKNOWN) {
 			this.lastScrollDirection = this.scrollState.getScrollDirection();
 		}
