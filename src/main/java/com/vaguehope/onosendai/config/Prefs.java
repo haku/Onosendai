@@ -26,6 +26,8 @@ public class Prefs {
 	private static final String KEY_ACCOUNT_PREFIX = "account_";
 	private static final String KEY_COLUMN_IDS = "column_ids";
 	private static final String KEY_COLUMN_PREFIX = "column_";
+	private static final String KEY_FILTER_IDS = "filter_ids";
+	private static final String KEY_FILTER_PREFIX = "filter_";
 
 	private static final LogWrapper LOG = new LogWrapper("PRF");
 
@@ -249,6 +251,49 @@ public class Prefs {
 		e.remove(id);
 		e.commit();
 	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	public String getNextFilterId () {
+		return nextId(readFilterIds(), KEY_FILTER_PREFIX);
+	}
+
+	public List<String> readFilterIds () {
+		return readIds(KEY_FILTER_IDS);
+	}
+
+	public String readFilter (final String id) {
+		if (StringHelper.isEmpty(id)) return null;
+		return this.sharedPreferences.getString(id, null);
+	}
+
+	public void writeFilter (final String id, final String filter) {
+		if (id == null || id.isEmpty()) throw new IllegalArgumentException("Filter ID missing.");
+
+		final String idsS = appendId(readFilterIds(), id);
+
+		final Editor e = this.sharedPreferences.edit();
+		e.putString(id, filter);
+		e.putString(KEY_FILTER_IDS, idsS);
+		e.commit();
+
+		LOG.i("Wrote new filter %s: %s.", id, filter);
+	}
+
+	public void deleteFilter (final String id) {
+		if (id == null || id.isEmpty()) throw new IllegalArgumentException("Filter ID missing.");
+
+		final List<String> ids = new ArrayList<String>(readFilterIds());
+		if (!ids.remove(id)) throw new IllegalStateException("Tried to delete filter '" + id + "' that does not exist in '" + ids + "'.");
+		final String idsS = ArrayHelper.join(ids, ID_SEP);
+
+		final Editor e = this.sharedPreferences.edit();
+		e.putString(KEY_FILTER_IDS, idsS);
+		e.remove(id);
+		e.commit();
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static String nextId (final List<String> existingIds, final String prefix) {
 		int x = 1;
