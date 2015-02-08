@@ -8,6 +8,7 @@ import twitter4j.TwitterException;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.model.Filters;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ProviderMgr;
@@ -32,8 +33,10 @@ public class FetchColumn implements Callable<Void> {
 	private final Account account;
 	private final Column column;
 	private final ProviderMgr providerMgr;
+	private final Filters filters;
 
-	public FetchColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr) {
+	public FetchColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
+		this.filters = filters;
 		if (db == null) throw new IllegalArgumentException("db can not be null.");
 		if (account == null) throw new IllegalArgumentException("account can not be null.");
 		if (column == null) throw new IllegalArgumentException("column can not be null.");
@@ -46,27 +49,27 @@ public class FetchColumn implements Callable<Void> {
 
 	@Override
 	public Void call () {
-		fetchColumn(this.db, this.account, this.column, this.providerMgr);
+		fetchColumn(this.db, this.account, this.column, this.providerMgr, this.filters);
 		return null;
 	}
 
-	public static void fetchColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr) {
+	public static void fetchColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
 		db.notifyTwListenersColumnState(column.getId(), ColumnState.UPDATE_RUNNING);
 		try {
-			fetchColumnInner(db, account, column, providerMgr);
+			fetchColumnInner(db, account, column, providerMgr, filters);
 		}
 		finally {
 			db.notifyTwListenersColumnState(column.getId(), ColumnState.UPDATE_OVER);
 		}
 	}
 
-	private static void fetchColumnInner (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr) {
+	private static void fetchColumnInner (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
 		switch (account.getProvider()) {
 			case TWITTER:
-				fetchTwitterColumn(db, account, column, providerMgr);
+				fetchTwitterColumn(db, account, column, providerMgr, filters);
 				break;
 			case SUCCESSWHALE:
-				fetchSuccessWhaleColumn(db, account, column, providerMgr);
+				fetchSuccessWhaleColumn(db, account, column, providerMgr, filters);
 				break;
 			case INSTAPAPER:
 				pushInstapaperColumn(db, account, column, providerMgr);
@@ -76,7 +79,7 @@ public class FetchColumn implements Callable<Void> {
 		}
 	}
 
-	private static void fetchTwitterColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr) {
+	private static void fetchTwitterColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
 		final long startTime = System.nanoTime();
 		try {
 			final TwitterProvider twitterProvider = providerMgr.getTwitterProvider();
@@ -88,11 +91,11 @@ public class FetchColumn implements Callable<Void> {
 			if (existingTweets.size() > 0) sinceId = Long.parseLong(existingTweets.get(existingTweets.size() - 1).getSid());
 
 			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia());
-			if (tweets.count() > 0) db.storeTweets(column, tweets.getTweets());
+			final int filteredCount = filterAndStore(db, column, filters, tweets);
 
 			storeSuccess(db, column);
 			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-			LOG.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
+			LOG.i("Fetched %d items for '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), durationMillis, filteredCount);
 		}
 		catch (final TwitterException e) {
 			LOG.w("Failed to fetch from Twitter: %s", ExcpetionHelper.causeTrace(e));
@@ -100,7 +103,7 @@ public class FetchColumn implements Callable<Void> {
 		}
 	}
 
-	private static void fetchSuccessWhaleColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr) {
+	private static void fetchSuccessWhaleColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
 		final long startTime = System.nanoTime();
 		try {
 			final SuccessWhaleProvider successWhaleProvider = providerMgr.getSuccessWhaleProvider();
@@ -112,16 +115,26 @@ public class FetchColumn implements Callable<Void> {
 			if (existingTweets.size() > 0) sinceId = existingTweets.get(existingTweets.size() - 1).getSid();
 
 			final TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId);
-			if (tweets.count() > 0) db.storeTweets(column, tweets.getTweets());
+			final int filteredCount = filterAndStore(db, column, filters, tweets);
 
 			storeSuccess(db, column);
 			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-			LOG.i("Fetched %d items for '%s' in %d millis.", tweets.count(), column.getTitle(), durationMillis);
+			LOG.i("Fetched %d items for '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), durationMillis, filteredCount);
 		}
 		catch (final SuccessWhaleException e) {
 			LOG.w("Failed to fetch from SuccessWhale: %s", ExcpetionHelper.causeTrace(e));
 			storeError(db, column, e.friendlyMessage());
 		}
+	}
+
+	private static int filterAndStore (final DbInterface db, final Column column, final Filters filters, final TweetList tweets) {
+		int filteredCount = 0;
+		if (tweets.count() > 0) {
+			final List<Tweet> filteredTweets = filters.matchAndSet(tweets.getTweets());
+			filteredCount = Filters.countFiltered(filteredTweets);
+			db.storeTweets(column, filteredTweets);
+		}
+		return filteredCount;
 	}
 
 	private static void pushInstapaperColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr) {

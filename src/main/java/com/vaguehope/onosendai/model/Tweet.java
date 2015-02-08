@@ -23,12 +23,13 @@ public class Tweet {
 	private final String avatarUrl;
 	private final String inlineMediaUrl;
 	private final List<Meta> metas;
+	private final boolean filtered;
 
 	public Tweet (final String sid, final String username, final String fullname, final String userSubtitle, final String fullSubtitle, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final List<Meta> metas) {
-		this(-1L, sid, username, fullname, userSubtitle, fullSubtitle, body, unitTimeSeconds, avatarUrl, inlineMediaUrl, metas);
+		this(-1L, sid, username, fullname, userSubtitle, fullSubtitle, body, unitTimeSeconds, avatarUrl, inlineMediaUrl, metas, false);
 	}
 
-	public Tweet (final long uid, final String sid, final String username, final String fullname, final String userSubtitle, final String fullSubtitle, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final List<Meta> metas) {
+	public Tweet (final long uid, final String sid, final String username, final String fullname, final String userSubtitle, final String fullSubtitle, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final List<Meta> metas, final boolean filtered) {
 		this.uid = uid;
 		this.sid = sid;
 		this.username = username;
@@ -40,6 +41,7 @@ public class Tweet {
 		this.avatarUrl = avatarUrl;
 		this.inlineMediaUrl = inlineMediaUrl;
 		this.metas = metas;
+		this.filtered = filtered;
 	}
 
 	/**
@@ -113,11 +115,20 @@ public class Tweet {
 		return null;
 	}
 
+	public boolean isFiltered () {
+		return this.filtered;
+	}
+
 	public Tweet cloneWithCurrentTimestamp () {
 		final long utime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
 		final List<Meta> newMetas = new ArrayList<Meta>(this.metas);
 		if (getFirstMetaOfType(MetaType.POST_TIME) == null) newMetas.add(new Meta(MetaType.POST_TIME, String.valueOf(this.time)));
-		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.userSubtitle, this.fullSubtitle, this.body, utime, this.avatarUrl, this.inlineMediaUrl, newMetas);
+		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.userSubtitle, this.fullSubtitle, this.body, utime, this.avatarUrl, this.inlineMediaUrl, newMetas, this.filtered);
+	}
+
+	public Tweet withFiltered (final boolean newFiltered) {
+		if (newFiltered == this.filtered) return this;
+		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.userSubtitle, this.fullSubtitle, this.body, this.time, this.avatarUrl, this.inlineMediaUrl, this.metas, newFiltered);
 	}
 
 	public String toHumanLine () {
