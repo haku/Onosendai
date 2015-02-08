@@ -22,6 +22,7 @@ import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterUtils;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
+import com.vaguehope.onosendai.storage.DbInterface.Selection;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -87,7 +88,7 @@ public class FetchColumn implements Callable<Void> {
 			final TwitterFeed feed = TwitterFeeds.parse(column.getResource());
 
 			long sinceId = -1;
-			final List<Tweet> existingTweets = db.getTweets(column.getId(), 1);
+			final List<Tweet> existingTweets = db.getTweets(column.getId(), 1, Selection.ALL);
 			if (existingTweets.size() > 0) sinceId = Long.parseLong(existingTweets.get(existingTweets.size() - 1).getSid());
 
 			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia());
@@ -111,7 +112,7 @@ public class FetchColumn implements Callable<Void> {
 			final SuccessWhaleFeed feed = new SuccessWhaleFeed(column);
 
 			String sinceId = null;
-			final List<Tweet> existingTweets = db.getTweets(column.getId(), 1);
+			final List<Tweet> existingTweets = db.getTweets(column.getId(), 1, Selection.ALL);
 			if (existingTweets.size() > 0) sinceId = existingTweets.get(existingTweets.size() - 1).getSid();
 
 			final TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId);

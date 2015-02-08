@@ -89,28 +89,28 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public List<Tweet> getTweets (final int columnId, final int numberOf) {
-		return this.dbAdaptor.getTweets(columnId, numberOf);
+	public List<Tweet> getTweets (final int columnId, final int numberOf, final Selection selection) {
+		return this.dbAdaptor.getTweets(columnId, numberOf, selection);
 	}
 
 	@Override
-	public List<Tweet> getTweets (final int columnId, final int numberOf, final Set<Integer> excludeColumnIds) {
-		return this.dbAdaptor.getTweets(columnId, numberOf, excludeColumnIds);
+	public List<Tweet> getTweets (final int columnId, final int numberOf, final Selection selection, final Set<Integer> excludeColumnIds) {
+		return this.dbAdaptor.getTweets(columnId, numberOf, selection, excludeColumnIds);
 	}
 
 	@Override
-	public Cursor getTweetsCursor (final int columnId) {
-		return this.dbAdaptor.getTweetsCursor(columnId);
+	public Cursor getTweetsCursor (final int columnId, final Selection selection) {
+		return this.dbAdaptor.getTweetsCursor(columnId, selection);
 	}
 
 	@Override
-	public Cursor getTweetsCursor (final int columnId, final boolean withInlineMediaOnly) {
-		return this.dbAdaptor.getTweetsCursor(columnId, withInlineMediaOnly);
+	public Cursor getTweetsCursor (final int columnId, final Selection selection, final boolean withInlineMediaOnly) {
+		return this.dbAdaptor.getTweetsCursor(columnId, selection, withInlineMediaOnly);
 	}
 
 	@Override
-	public Cursor getTweetsCursor (final int columnId, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly) {
-		return this.dbAdaptor.getTweetsCursor(columnId, excludeColumnIds, withInlineMediaOnly);
+	public Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly) {
+		return this.dbAdaptor.getTweetsCursor(columnId, selection, excludeColumnIds, withInlineMediaOnly);
 	}
 
 	@Override

@@ -23,6 +23,7 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbInterface.Selection;
 import com.vaguehope.onosendai.update.CleanupService;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.IoHelper;
@@ -253,7 +254,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		@Override
 		protected Exception doInBackgroundWithDb (final DbInterface db, final Void... params) {
 			final Column col = this.conf.findInternalColumn(InternalColumnType.LATER);
-			final List<Tweet> ts = db.getTweets(col.getId(), 500); // FIXME extract to constant.
+			final List<Tweet> ts = db.getTweets(col.getId(), 500, Selection.ALL); // FIXME extract to constant.
 			try {
 				final PrintWriter w = new PrintWriter(this.file, "UTF-8");
 				try {

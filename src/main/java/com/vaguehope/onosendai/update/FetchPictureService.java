@@ -29,6 +29,7 @@ import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.model.PrefetchImages;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.storage.DbBindingService;
+import com.vaguehope.onosendai.storage.DbInterface.Selection;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
 import com.vaguehope.onosendai.ui.pref.FetchingPrefFragment;
 import com.vaguehope.onosendai.util.BatteryHelper;
@@ -157,7 +158,7 @@ public class FetchPictureService extends DbBindingService {
 	 */
 	private List<String> findPicturesToFetch (final Column col) {
 		final ScrollState scroll = getDb().getScroll(col.getId());
-		final Cursor cursor = getDb().getTweetsCursor(col.getId(), col.getExcludeColumnIds(), true); // XXX for now only get first image, later include extra images?
+		final Cursor cursor = getDb().getTweetsCursor(col.getId(), Selection.FILTERED, col.getExcludeColumnIds(), true); // XXX for now only get first image, later include extra images?
 		try {
 			final TweetCursorReader reader = new TweetCursorReader();
 			if (cursor != null && cursor.moveToFirst()) {
