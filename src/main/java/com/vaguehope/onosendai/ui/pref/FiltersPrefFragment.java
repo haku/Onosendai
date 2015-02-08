@@ -17,6 +17,7 @@ import com.vaguehope.onosendai.util.StringHelper;
 
 public class FiltersPrefFragment extends PreferenceFragment {
 
+	private static final String INSTRUCTIONS = "Only matched against tweet body.  Start with / for regex.";
 	private Prefs prefs;
 
 	@Override
@@ -53,7 +54,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptNewFilter () {
-		DialogHelper.askString(getActivity(), "Start with / for regex.", null, false, false, new Listener<String>() {
+		DialogHelper.askString(getActivity(), INSTRUCTIONS, null, false, false, new Listener<String>() {
 			@Override
 			public void onAnswer (final String newFilter) {
 				final String id = getPrefs().getNextFilterId();
@@ -84,7 +85,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 			super(context);
 			setKey(filterId);
 			setTitle(initialValue);
-			setDialogMessage("Start with / for regex.  Save empty string to delete.");
+			setDialogMessage(INSTRUCTIONS + "\nSave empty string to delete.");
 
 			final EditText editText = getEditText();
 			editText.setSingleLine();
