@@ -72,6 +72,7 @@ import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.storage.DbInterface.ScrollChangeType;
+import com.vaguehope.onosendai.storage.DbInterface.Selection;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
 import com.vaguehope.onosendai.storage.DbProvider;
 import com.vaguehope.onosendai.update.FetchColumn;
@@ -981,6 +982,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				if (db != null) {
 					final Cursor cursor = db.getTweetsCursor(
 							this.host.getColumnId(),
+							Selection.FILTERED,
 							this.host.getColumn().getExcludeColumnIds(),
 							this.host.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS);
 					return new Result<Cursor>(cursor);

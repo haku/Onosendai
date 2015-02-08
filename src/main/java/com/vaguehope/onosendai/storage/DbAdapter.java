@@ -281,7 +281,7 @@ public class DbAdapter implements DbInterface {
 				values.put(TBL_TW_BODY, tweet.getBody());
 				values.put(TBL_TW_AVATAR, tweet.getAvatarUrl());
 				values.put(TBL_TW_INLINEMEDIA, tweet.getInlineMediaUrl());
-				values.put(TBL_TW_FILTERED, tweet.isFiltered());
+				if (tweet.isFiltered()) values.put(TBL_TW_FILTERED, 1); // Store filtered as null or 1.  Makes backwards compatibility nicer.
 				final long uid = this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 
 				final List<Meta> metas = tweet.getMetas();
@@ -352,14 +352,16 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public List<Tweet> getTweets (final int columnId, final int numberOf) {
-		return getTweets(TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) }, TBL_TW_TIME + " desc", numberOf, false);
+	public List<Tweet> getTweets (final int columnId, final int numberOf, final Selection selection) {
+		String where = TBL_TW_COLID + "=?";
+		if (selection == Selection.FILTERED) where += " AND " + TBL_TW_FILTERED + " IS NULL";
+		return getTweets(where, new String[] { String.valueOf(columnId) }, TBL_TW_TIME + " desc", numberOf, false);
 	}
 
 	@Override
-	public List<Tweet> getTweets (final int columnId, final int numberOf, final Set<Integer> excludeColumnIds) {
-		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweets(columnId, numberOf);
-		final Cursor c = getTweetsCursor(columnId, excludeColumnIds, false, numberOf);
+	public List<Tweet> getTweets (final int columnId, final int numberOf, final Selection selection, final Set<Integer> excludeColumnIds) {
+		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweets(columnId, numberOf, selection);
+		final Cursor c = getTweetsCursor(columnId, selection, excludeColumnIds, false, numberOf);
 		try {
 			return readTweets(c, false);
 		}
@@ -369,25 +371,32 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public Cursor getTweetsCursor (final int columnId) {
-		return getTweetsCursor(TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) }, TBL_TW_TIME + " desc", -1);
+	public Cursor getTweetsCursor (final int columnId, final Selection selection) {
+		String where = TBL_TW_COLID + "=?";
+		if (selection == Selection.FILTERED) where += " AND " + TBL_TW_FILTERED + " IS NULL";
+		return getTweetsCursor(where, new String[] { String.valueOf(columnId) }, TBL_TW_TIME + " desc", -1);
 	}
 
 	@Override
-	public Cursor getTweetsCursor (final int columnId, final boolean withInlineMediaOnly) {
-		if (!withInlineMediaOnly) return getTweetsCursor(columnId);
-		return getTweetsCursor(TBL_TW_COLID + "=? AND " + TBL_TW_INLINEMEDIA + " NOT NULL", new String[] { String.valueOf(columnId) }, TBL_TW_TIME + " desc", -1);
+	public Cursor getTweetsCursor (final int columnId, final Selection selection, final boolean withInlineMediaOnly) {
+		if (!withInlineMediaOnly) return getTweetsCursor(columnId, selection);
+		String where = TBL_TW_COLID + "=? AND " + TBL_TW_INLINEMEDIA + " NOT NULL";
+		if (selection == Selection.FILTERED) where += " AND " + TBL_TW_FILTERED + " IS NULL";
+		return getTweetsCursor(where, new String[] { String.valueOf(columnId) }, TBL_TW_TIME + " desc", -1);
 	}
 
 	@Override
-	public Cursor getTweetsCursor (final int columnId, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly) {
-		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweetsCursor(columnId, withInlineMediaOnly);
-		return getTweetsCursor(columnId, excludeColumnIds, withInlineMediaOnly, -1);
+	public Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly) {
+		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweetsCursor(columnId, selection, withInlineMediaOnly);
+		return getTweetsCursor(columnId, selection, excludeColumnIds, withInlineMediaOnly, -1);
 	}
 
-	private Cursor getTweetsCursor (final int columnId, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final int numberOf) {
+	private Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final int numberOf) {
 		final StringBuilder where = new StringBuilder()
 				.append(TBL_TW_COLID).append("=?");
+
+		if (selection == Selection.FILTERED) where
+				.append(" AND ").append(TBL_TW_FILTERED).append(" IS NULL");
 
 		if (withInlineMediaOnly) where
 				.append(" AND ").append(TBL_TW_INLINEMEDIA).append(" NOT NULL");
@@ -472,7 +481,7 @@ public class DbAdapter implements DbInterface {
 				final long time = c.getLong(colTime);
 				final String avatar = c.getString(colAvatar);
 				final String inlineMedia = c.getString(colInlineMedia);
-				final boolean filtered = c.getInt(colFiltered) > 0;
+				final boolean filtered = !c.isNull(colFiltered);
 				List<Meta> metas = null;
 				if (addColumMeta) {
 					metas = Collections.singletonList(new Meta(MetaType.COLUMN_ID, String.valueOf(c.getInt(colColId))));
@@ -618,7 +627,7 @@ public class DbAdapter implements DbInterface {
 				final long time = c.getLong(colTime);
 				final String avatar = c.getString(colAvatar);
 				final String inlineMedia = c.getString(colInlineMedia);
-				final boolean filtered = c.getInt(colFiltered) > 0;
+				final boolean filtered = !c.isNull(colFiltered);
 
 				List<Meta> metas = null;
 				try {
@@ -1271,7 +1280,7 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public double getTweetsPerHour (final int columnId) {
-		final Cursor c = getTweetsCursor(columnId);
+		final Cursor c = getTweetsCursor(columnId, Selection.ALL); // TODO Should rate include filters?  hmm...
 		try {
 			if (c != null && c.moveToFirst()) {
 				final int colTime = c.getColumnIndex(TBL_TW_TIME);

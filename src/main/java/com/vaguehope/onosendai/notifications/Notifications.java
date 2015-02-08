@@ -23,6 +23,7 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.NotificationStyle;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbInterface.Selection;
 import com.vaguehope.onosendai.ui.MainActivity;
 import com.vaguehope.onosendai.util.StringHelper;
 
@@ -73,7 +74,7 @@ public final class Notifications {
 					.putExtra(MainActivity.ARG_FOCUS_COLUMN_ID, col.getId());
 			final PendingIntent showMainActPi = PendingIntent.getActivity(context, col.getId(), showMainActI, PendingIntent.FLAG_CANCEL_CURRENT);
 
-			final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5), col.getExcludeColumnIds());
+			final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5), Selection.FILTERED, col.getExcludeColumnIds());
 			final Style style = makePreview(tweets, count);
 			final PendingIntent markAsReadPi = MarkAsReadReceiver.makePi(context, col, tweets);
 
