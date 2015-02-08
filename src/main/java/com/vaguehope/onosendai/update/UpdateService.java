@@ -23,6 +23,7 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
+import com.vaguehope.onosendai.model.Filters;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbBindingService;
@@ -70,12 +71,13 @@ public class UpdateService extends DbBindingService {
 			LOG.w("Can not update: %s", e.toString());
 			return;
 		}
+		final UpdateRequest req = new UpdateRequest(columnIds, manual, new Filters(prefs.readFilters()));
 
 		if (!waitForDbReady()) return;
 		final Collection<Column> columnsFetched;
 		final ProviderMgr providerMgr = new ProviderMgr(getDb());
 		try {
-			columnsFetched = fetchColumns(conf, columnIds, manual, providerMgr);
+			columnsFetched = fetchColumns(conf, req, providerMgr);
 		}
 		finally {
 			providerMgr.shutdown();
@@ -85,12 +87,12 @@ public class UpdateService extends DbBindingService {
 		FetchPictureService.startServiceIfConfigured(this, prefs, columnsFetched, manual);
 	}
 
-	private Collection<Column> fetchColumns (final Config conf, final int[] columnIds, final boolean manual, final ProviderMgr providerMgr) {
+	private Collection<Column> fetchColumns (final Config conf, final UpdateRequest req, final ProviderMgr providerMgr) {
 		final long startTime = System.nanoTime();
 
-		final Collection<Column> columns = columnsToFetch(conf, columnIds, manual);
-		fetchColumns(conf, providerMgr, columns);
-		if (!manual) Notifications.update(getBaseContext(), getDb(), columns);
+		final Collection<Column> columns = columnsToFetch(conf, req);
+		fetchColumns(conf, providerMgr, columns, req);
+		if (!req.manual) Notifications.update(getBaseContext(), getDb(), columns);
 
 		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 		LOG.i("Fetched %d columns in %d millis.", columns.size(), durationMillis);
@@ -98,10 +100,10 @@ public class UpdateService extends DbBindingService {
 		return columns;
 	}
 
-	private Collection<Column> columnsToFetch (final Config conf, final int[] columnIds, final boolean manual) {
+	private Collection<Column> columnsToFetch (final Config conf, final UpdateRequest req) {
 		final Collection<Column> columns = new ArrayList<Column>();
-		if (columnIds != null && columnIds.length > 0) {
-			for (int columnId : columnIds) {
+		if (req.columnIds != null && req.columnIds.length > 0) {
+			for (int columnId : req.columnIds) {
 				columns.add(conf.getColumnById(columnId));
 			}
 		}
@@ -109,7 +111,7 @@ public class UpdateService extends DbBindingService {
 			columns.addAll(removeNotFetchable(conf.getColumns()));
 		}
 
-		if (!manual) removeNotDue(columns);
+		if (!req.manual) removeNotDue(columns);
 		// For now treating the configured interval as an 'attempt rate' not 'success rate' so write update time now.
 		final long now = System.currentTimeMillis();
 		for (final Column column : columns) {
@@ -142,25 +144,25 @@ public class UpdateService extends DbBindingService {
 		}
 	}
 
-	private void fetchColumns (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns) {
+	private void fetchColumns (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns, final UpdateRequest req) {
 		LOG.i("Updating columns: %s.", Column.titles(columns));
 		if (columns.size() >= C.UPDATER_MIN_COLUMS_TO_USE_THREADPOOL) {
-			fetchColumnsMultiThread(conf, providerMgr, columns);
+			fetchColumnsMultiThread(conf, providerMgr, columns, req);
 		}
 		else {
-			fetchColumnsSingleThread(conf, providerMgr, columns);
+			fetchColumnsSingleThread(conf, providerMgr, columns, req);
 		}
 	}
 
-	private void fetchColumnsSingleThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns) {
+	private void fetchColumnsSingleThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns, final UpdateRequest req) {
 		for (final Column column : columns) {
 			final Account account = resolveColumnsAccount(conf, column);
 			if (account == null) continue;
-			FetchColumn.fetchColumn(getDb(), account, column, providerMgr);
+			FetchColumn.fetchColumn(getDb(), account, column, providerMgr, req.filters);
 		}
 	}
 
-	private void fetchColumnsMultiThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns) {
+	private void fetchColumnsMultiThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns, final UpdateRequest req) {
 		final int poolSize = Math.min(columns.size(), C.UPDATER_MAX_THREADS);
 		LOG.i("Using thread pool size %d for %d columns.", poolSize, columns.size());
 		final ExecutorService ex = Executors.newFixedThreadPool(poolSize);
@@ -169,7 +171,7 @@ public class UpdateService extends DbBindingService {
 			for (final Column column : columns) {
 				final Account account = resolveColumnsAccount(conf, column);
 				if (account == null) continue;
-				jobs.put(column, ex.submit(new FetchColumn(getDb(), account, column, providerMgr)));
+				jobs.put(column, ex.submit(new FetchColumn(getDb(), account, column, providerMgr, req.filters)));
 			}
 			for (final Entry<Column, Future<Void>> job : jobs.entrySet()) {
 				try {
@@ -192,6 +194,20 @@ public class UpdateService extends DbBindingService {
 		final Account account = conf.getAccount(column.getAccountId());
 		if (account == null) LOG.e("Unknown acountId: '%s'.", column.getAccountId());
 		return account;
+	}
+
+	private static class UpdateRequest {
+
+		public final int[] columnIds;
+		public final boolean manual;
+		public final Filters filters;
+
+		public UpdateRequest (final int[] columnIds, final boolean manual, final Filters filters) {
+			this.columnIds = columnIds;
+			this.manual = manual;
+			this.filters = filters;
+		}
+
 	}
 
 }

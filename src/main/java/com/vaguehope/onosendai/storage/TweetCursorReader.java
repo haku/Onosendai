@@ -13,6 +13,7 @@ public class TweetCursorReader {
 	private int colBody = -1;
 	private int colAvatar = -1;
 	private int colInlineMedia = -1;
+	private int colFiltered = -1;
 
 	public String readSid (final Cursor c) {
 		if (c == null) return null;
@@ -90,6 +91,12 @@ public class TweetCursorReader {
 		if (c == null) return null;
 		if (this.colInlineMedia < 0) this.colInlineMedia = c.getColumnIndexOrThrow(DbAdapter.TBL_TW_INLINEMEDIA);
 		return c.getString(this.colInlineMedia);
+	}
+
+	public boolean readFiltered (final Cursor c) {
+		if (c == null) return false;
+		if (this.colFiltered < 0) this.colFiltered = c.getColumnIndexOrThrow(DbAdapter.TBL_TW_FILTERED);
+		return c.getInt(this.colFiltered) > 0;
 	}
 
 }

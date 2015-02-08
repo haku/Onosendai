@@ -262,6 +262,14 @@ public class Prefs {
 		return readIds(KEY_FILTER_IDS);
 	}
 
+	public Collection<String> readFilters () {
+		final Collection<String> ret = new ArrayList<String>();
+		for (final String id : readFilterIds()) {
+			ret.add(readFilter(id));
+		}
+		return ret;
+	}
+
 	public String readFilter (final String id) {
 		if (StringHelper.isEmpty(id)) return null;
 		return this.sharedPreferences.getString(id, null);

@@ -36,7 +36,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 19;
+	private static final int DB_VERSION = 20;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -126,6 +126,10 @@ public class DbAdapter implements DbInterface {
 					this.log.w("Adding column %s...", TBL_SC_DIRECTION);
 					db.execSQL("ALTER TABLE " + TBL_SC + " ADD COLUMN " + TBL_SC_DIRECTION + " integer;");
 				}
+				if (oldVersion < 20) { // NOSONAR not a magic number.
+					this.log.w("Adding column %s...", TBL_TW_FILTERED);
+					db.execSQL("ALTER TABLE " + TBL_TW + " ADD COLUMN " + TBL_TW_FILTERED + " boolean;");
+				}
 			}
 		}
 
@@ -197,6 +201,7 @@ public class DbAdapter implements DbInterface {
 	protected static final String TBL_TW_BODY = "body";
 	protected static final String TBL_TW_AVATAR = "avatar";
 	protected static final String TBL_TW_INLINEMEDIA = "imedia";
+	protected static final String TBL_TW_FILTERED = "filtered";
 
 	private static final String TBL_TW_CREATE = "create table " + TBL_TW + " ("
 			+ TBL_TW_ID + " integer primary key autoincrement,"
@@ -210,6 +215,7 @@ public class DbAdapter implements DbInterface {
 			+ TBL_TW_BODY + " text,"
 			+ TBL_TW_AVATAR + " text,"
 			+ TBL_TW_INLINEMEDIA + " text,"
+			+ TBL_TW_FILTERED + " boolean,"
 			+ "UNIQUE(" + TBL_TW_COLID + ", " + TBL_TW_SID + ") ON CONFLICT REPLACE"
 			+ ");";
 
@@ -275,6 +281,7 @@ public class DbAdapter implements DbInterface {
 				values.put(TBL_TW_BODY, tweet.getBody());
 				values.put(TBL_TW_AVATAR, tweet.getAvatarUrl());
 				values.put(TBL_TW_INLINEMEDIA, tweet.getInlineMediaUrl());
+				values.put(TBL_TW_FILTERED, tweet.isFiltered());
 				final long uid = this.mDb.insertWithOnConflict(TBL_TW, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 
 				final List<Meta> metas = tweet.getMetas();
@@ -431,7 +438,7 @@ public class DbAdapter implements DbInterface {
 	private Cursor getTweetsCursor (final String where, final String[] whereArgs, final String orderBy, final int numberOf) {
 		if (!checkDbOpen()) return null;
 		return this.mDb.query(true, TBL_TW,
-				new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_COLID },
+				new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_COLID, TBL_TW_FILTERED },
 				where, whereArgs,
 				null, null,
 				orderBy,
@@ -451,6 +458,7 @@ public class DbAdapter implements DbInterface {
 			final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
 			final int colInlineMedia = c.getColumnIndex(TBL_TW_INLINEMEDIA);
 			final int colColId = c.getColumnIndex(TBL_TW_COLID);
+			final int colFiltered = c.getColumnIndex(TBL_TW_FILTERED);
 
 			final List<Tweet> ret = new ArrayList<Tweet>();
 			do {
@@ -464,11 +472,12 @@ public class DbAdapter implements DbInterface {
 				final long time = c.getLong(colTime);
 				final String avatar = c.getString(colAvatar);
 				final String inlineMedia = c.getString(colInlineMedia);
+				final boolean filtered = c.getInt(colFiltered) > 0;
 				List<Meta> metas = null;
 				if (addColumMeta) {
 					metas = Collections.singletonList(new Meta(MetaType.COLUMN_ID, String.valueOf(c.getInt(colColId))));
 				}
-				ret.add(new Tweet(uid, sid, username, fullname, userSubtitle, fullSubtitle, body, time, avatar, inlineMedia, metas));
+				ret.add(new Tweet(uid, sid, username, fullname, userSubtitle, fullSubtitle, body, time, avatar, inlineMedia, metas, filtered));
 			}
 			while (c.moveToNext());
 			return ret;
@@ -485,7 +494,7 @@ public class DbAdapter implements DbInterface {
 			qb.setTables(TBL_TW + " INNER JOIN " + TBL_TM + " ON " + TBL_TW + "." + TBL_TW_ID + " = " + TBL_TM_TWID);
 			qb.setDistinct(true);
 			c = qb.query(this.mDb,
-					new String[] { TBL_TW + "." + TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA },
+					new String[] { TBL_TW + "." + TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_FILTERED },
 					TBL_TW + "." + TBL_TW_ID + "=" + TBL_TM_TWID + " AND " + TBL_TM_TYPE + "=" + metaType.getId() + " AND " + TBL_TM_DATA + "=?",
 					new String[] { data },
 					TBL_TW_SID, null, TBL_TW_TIME + " desc", String.valueOf(numberOf));
@@ -582,7 +591,7 @@ public class DbAdapter implements DbInterface {
 		Cursor d = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA },
+					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_FILTERED },
 					selection, selectionArgs,
 					null, null, null, null);
 
@@ -597,6 +606,7 @@ public class DbAdapter implements DbInterface {
 				final int colTime = c.getColumnIndex(TBL_TW_TIME);
 				final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
 				final int colInlineMedia = c.getColumnIndex(TBL_TW_INLINEMEDIA);
+				final int colFiltered = c.getColumnIndex(TBL_TW_FILTERED);
 
 				final long uid = c.getLong(colId);
 				final String sid = c.getString(colSid);
@@ -608,6 +618,7 @@ public class DbAdapter implements DbInterface {
 				final long time = c.getLong(colTime);
 				final String avatar = c.getString(colAvatar);
 				final String inlineMedia = c.getString(colInlineMedia);
+				final boolean filtered = c.getInt(colFiltered) > 0;
 
 				List<Meta> metas = null;
 				try {
@@ -636,7 +647,7 @@ public class DbAdapter implements DbInterface {
 					IoHelper.closeQuietly(d);
 				}
 
-				ret = new Tweet(uid, sid, username, fullname, userSubtitle, fullSubtitle, body, time, avatar, inlineMedia, metas);
+				ret = new Tweet(uid, sid, username, fullname, userSubtitle, fullSubtitle, body, time, avatar, inlineMedia, metas, filtered);
 			}
 		}
 		finally {
