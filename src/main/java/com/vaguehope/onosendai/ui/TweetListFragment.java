@@ -100,6 +100,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	static final String ARG_COLUMN_TITLE = "column_title";
 	static final String ARG_COLUMN_IS_LATER = "column_is_later";
 	static final String ARG_COLUMN_SHOW_INLINEMEDIA = "column_show_inlinemedia";
+	static final String ARG_SHOW_FILTERED = "show_filtered";
 
 	private final LogWrapper log = new LogWrapper();
 
@@ -107,6 +108,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	private int columnPosition = -1;
 	private boolean isLaterColumn;
 	private InlineMediaStyle inlineMediaStyle;
+	private boolean showFiltered;
 	private Config conf;
 	private ImageLoader imageLoader;
 	private RefreshUiHandler refreshUiHandler;
@@ -138,6 +140,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		this.columnPosition = getArguments().getInt(ARG_COLUMN_POSITION);
 		this.isLaterColumn = getArguments().getBoolean(ARG_COLUMN_IS_LATER, false);
 		this.inlineMediaStyle = InlineMediaStyle.parseJson(getArguments().getString(ARG_COLUMN_SHOW_INLINEMEDIA));
+		this.showFiltered = getArguments().getBoolean(ARG_SHOW_FILTERED, false);
 		this.log.setPrefix("C" + this.columnId);
 		this.log.d("onCreateView()");
 
@@ -982,7 +985,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				if (db != null) {
 					final Cursor cursor = db.getTweetsCursor(
 							this.host.getColumnId(),
-							Selection.FILTERED,
+							this.host.showFiltered ? Selection.ALL : Selection.FILTERED,
 							this.host.getColumn().getExcludeColumnIds(),
 							this.host.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS);
 					return new Result<Cursor>(cursor);

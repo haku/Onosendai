@@ -53,6 +53,7 @@ import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbProvider;
 import com.vaguehope.onosendai.ui.LocalSearchDialog.OnTweetListener;
 import com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment;
+import com.vaguehope.onosendai.ui.pref.FiltersPrefFragment;
 import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
 import com.vaguehope.onosendai.ui.pref.UiPrefFragment;
 import com.vaguehope.onosendai.update.AlarmReceiver;
@@ -126,7 +127,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		final float columnWidth = UiPrefFragment.readColumnWidth(this, this.prefs);
 
 		// If this becomes too memory intensive, switch to android.support.v4.app.FragmentStatePagerAdapter.
-		final SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), this.conf, columnWidth);
+		final SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), this, columnWidth);
 		this.viewPager = (SidebarAwareViewPager) findViewById(R.id.pager);
 		this.pageSelectionListener = new VisiblePageSelectionListener(columnWidth);
 		final MultiplexingOnPageChangeListener onPageChangeListener = new MultiplexingOnPageChangeListener(
@@ -237,6 +238,10 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	Prefs getPrefs () {
+		return this.prefs;
+	}
 
 	Config getConf () {
 		return this.conf;
@@ -520,18 +525,18 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 	private static class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-		private final Config conf;
+		private final MainActivity host;
 		private final float pageWidth;
 
-		public SectionsPagerAdapter (final FragmentManager fm, final Config conf, final float pageWidth) {
+		public SectionsPagerAdapter (final FragmentManager fm, final MainActivity host, final float pageWidth) {
 			super(fm);
-			this.conf = conf;
+			this.host = host;
 			this.pageWidth = pageWidth;
 		}
 
 		@Override
 		public Fragment getItem (final int position) {
-			final Column col = this.conf.getColumnByPosition(position);
+			final Column col = this.host.getConf().getColumnByPosition(position);
 			final Fragment fragment = new TweetListFragment();
 			final Bundle args = new Bundle();
 			args.putInt(TweetListFragment.ARG_COLUMN_POSITION, position);
@@ -539,18 +544,19 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 			args.putString(TweetListFragment.ARG_COLUMN_TITLE, col.getTitle());
 			args.putBoolean(TweetListFragment.ARG_COLUMN_IS_LATER, InternalColumnType.LATER.matchesColumn(col));
 			args.putString(TweetListFragment.ARG_COLUMN_SHOW_INLINEMEDIA, col.getInlineMediaStyle() != null ? col.getInlineMediaStyle().serialise() : null);
+			args.putBoolean(TweetListFragment.ARG_SHOW_FILTERED, this.host.getPrefs().getSharedPreferences().getBoolean(FiltersPrefFragment.KEY_SHOW_FILTERED, false));
 			fragment.setArguments(args);
 			return fragment;
 		}
 
 		@Override
 		public int getCount () {
-			return this.conf.getColumns().size();
+			return this.host.getConf().getColumns().size();
 		}
 
 		@Override
 		public CharSequence getPageTitle (final int position) {
-			return this.conf.getColumnByPosition(position).getTitle();
+			return this.host.getConf().getColumnByPosition(position).getTitle();
 		}
 
 		@Override
