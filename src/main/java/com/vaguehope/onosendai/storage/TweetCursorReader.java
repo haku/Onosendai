@@ -96,7 +96,7 @@ public class TweetCursorReader {
 	public boolean readFiltered (final Cursor c) {
 		if (c == null) return false;
 		if (this.colFiltered < 0) this.colFiltered = c.getColumnIndexOrThrow(DbAdapter.TBL_TW_FILTERED);
-		return c.getInt(this.colFiltered) > 0;
+		return !c.isNull(this.colFiltered);
 	}
 
 }

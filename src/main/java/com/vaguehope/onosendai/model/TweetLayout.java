@@ -25,7 +25,12 @@ public enum TweetLayout {
 
 		@Override
 		public void applyTweetTo (final Tweet item, final TweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
-			rowView.getTweet().setText(item.getBody());
+			if (item.isFiltered()) {
+				rowView.getTweet().setText(R.string.lbl_filtered_tweet);
+			}
+			else {
+				rowView.getTweet().setText(item.getBody());
+			}
 
 			final String usernameWithSubtitle = item.getUsernameWithSubtitle();
 			rowView.getName().setText(usernameWithSubtitle != null ? usernameWithSubtitle : item.getFullnameWithSubtitle());
@@ -49,13 +54,16 @@ public enum TweetLayout {
 			else {
 				name = cursorReader.readFullnameWithSubtitle(c);
 			}
-
-			final String body = cursorReader.readBody(c);
-			final String avatarUrl = cursorReader.readAvatar(c);
-
-			rowView.getTweet().setText(body);
 			rowView.getName().setText(name);
 
+			if (cursorReader.readFiltered(c)) {
+				rowView.getTweet().setText(R.string.lbl_filtered_tweet);
+			}
+			else {
+				rowView.getTweet().setText(cursorReader.readBody(c));
+			}
+
+			final String avatarUrl = cursorReader.readAvatar(c);
 			if (avatarUrl != null) {
 				imageLoader.loadImage(new ImageLoadRequest(avatarUrl, rowView.getAvatar()));
 			}
