@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:orientation="vertical"
+	xmlns:tools="http://schemas.android.com/tools">
+
+	<TextView
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:padding="10sp"
+		style="@android:style/TextAppearance.Medium"
+		android:text="Only matched against tweet body.  Start with / for regex." />
+
+	<EditText
+		android:id="@+id/txtFilter"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:singleLine="true" />
+
+	<CheckBox
+		android:id="@+id/chkDelete"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:text="Delete" />
+
+</LinearLayout>
