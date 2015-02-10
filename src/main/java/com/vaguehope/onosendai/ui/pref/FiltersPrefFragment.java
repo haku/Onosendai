@@ -1,26 +1,22 @@
 package com.vaguehope.onosendai.ui.pref;
 
-import android.content.Context;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
-import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceFragment;
-import android.text.InputType;
-import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
 
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
-import com.vaguehope.onosendai.util.StringHelper;
 
 public class FiltersPrefFragment extends PreferenceFragment {
 
 	public static final String KEY_SHOW_FILTERED = "pref_show_filtered";
 
-	private static final String INSTRUCTIONS = "Only matched against tweet body.  Start with / for regex.";
 	private Prefs prefs;
 
 	@Override
@@ -53,24 +49,53 @@ public class FiltersPrefFragment extends PreferenceFragment {
 
 		for (final String filterId : getPrefs().readFilterIds()) {
 			final String filter = getPrefs().readFilter(filterId);
-			if (StringHelper.isEmpty(filter)) { // FIXME Such hack.  Much lazy.
-				getPrefs().deleteFilter(filterId);
-			}
-			else {
-				getPreferenceScreen().addPreference(new FilterPreference(getActivity(), filterId, filter));
-			}
+			getPreferenceScreen().addPreference(new FilterDialogPref(getActivity(), filterId, filter, this));
 		}
 	}
 
 	protected void promptNewFilter () {
-		DialogHelper.askString(getActivity(), INSTRUCTIONS, null, false, false, new Listener<String>() {
+		final String id = getPrefs().getNextFilterId();
+		final FilterDialog dlg = new FilterDialog(getActivity());
+
+		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(getActivity());
+		dlgBuilder.setTitle("New Filter (" + id + ")");
+		dlgBuilder.setView(dlg.getRootView());
+		dlgBuilder.setPositiveButton(android.R.string.ok, new OnClickListener() {
 			@Override
-			public void onAnswer (final String newFilter) {
-				final String id = getPrefs().getNextFilterId();
-				getPrefs().writeFilter(id, newFilter);
+			public void onClick (final DialogInterface dialog, final int which) {
+				dialog.dismiss();
+				try {
+					final String newFilter = dlg.getValue();
+					getPrefs().writeFilter(id, newFilter);
+				}
+				catch (final Exception e) {
+					DialogHelper.alert(getActivity(), "Failed to write new filter: ", e);
+				}
 				refreshFiltersList();
 			}
 		});
+		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER);
+		final AlertDialog alertDialog = dlgBuilder.create();
+		dlg.setOnValidateListener(new Listener<Boolean>() {
+			@Override
+			public void onAnswer (final Boolean valid) {
+				alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(valid);
+			}
+		});
+		alertDialog.show();
+		dlg.validate();
+	}
+
+	protected void askDeleteFilter (final String filterId, final String filter) {
+		DialogHelper.askYesNo(getActivity(),
+				String.format("Delete the filter %s?", filter),
+				new Runnable() {
+					@Override
+					public void run () {
+						getPrefs().deleteFilter(filterId);
+						refreshFiltersList();
+					}
+				});
 	}
 
 	private static class AddFilterClickListener implements OnPreferenceClickListener {
@@ -86,28 +111,6 @@ public class FiltersPrefFragment extends PreferenceFragment {
 			this.host.promptNewFilter();
 			return true;
 		}
-	}
-
-	private static class FilterPreference extends EditTextPreference {
-
-		public FilterPreference (final Context context, final String filterId, final String initialValue) {
-			super(context);
-			setKey(filterId);
-			setTitle(initialValue);
-			setDialogMessage(INSTRUCTIONS + "\nSave empty string to delete.");
-
-			final EditText editText = getEditText();
-			editText.setSingleLine();
-			editText.setInputType(editText.getInputType() | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-			editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
-		}
-
-		@Override
-		public void setText (final String text) {
-			super.setText(text);
-			setTitle(text);
-		}
-
 	}
 
 }

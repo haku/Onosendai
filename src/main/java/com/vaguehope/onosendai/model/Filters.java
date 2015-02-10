@@ -69,7 +69,7 @@ public class Filters {
 		return ret;
 	}
 
-	protected static Pattern compileRegexFilter (final String input) {
+	public static Pattern compileRegexFilter (final String input) {
 		final String rawPattern = input.startsWith("/") ? input.substring(1) : input;
 		return Pattern.compile(rawPattern);
 	}
