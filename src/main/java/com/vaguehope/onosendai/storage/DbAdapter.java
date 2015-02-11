@@ -18,6 +18,7 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.support.v4.util.Pair;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Column;
@@ -190,7 +191,7 @@ public class DbAdapter implements DbInterface {
 //	Tweets.
 
 	private static final String TBL_TW = "tw";
-	private static final String TBL_TW_ID = "_id";
+	protected static final String TBL_TW_ID = "_id";
 	private static final String TBL_TW_COLID = "colid";
 	protected static final String TBL_TW_SID = "sid";
 	protected static final String TBL_TW_TIME = "time";
@@ -349,6 +350,30 @@ public class DbAdapter implements DbInterface {
 			this.mDb.endTransaction();
 		}
 		notifyTwListenersColumnChanged(column.getId());
+	}
+
+	@Override
+	public void updateTweetFiltered (final List<Pair<Long, Boolean>> uidToFiltered) {
+		this.mDb.beginTransaction();
+		try {
+			final ContentValues values = new ContentValues();
+			for (final Pair<Long, Boolean> utf : uidToFiltered) {
+				values.clear();
+				if (utf.second) {
+					values.put(TBL_TW_FILTERED, 1);
+				}
+				else {
+					values.putNull(TBL_TW_FILTERED);
+				}
+				final int affected = this.mDb.update(TBL_TW, values, TBL_TW_ID + "=?", new String[] { String.valueOf(utf.first) });
+				if (affected > 1) throw new IllegalStateException("Updating tweet " + utf.first + " filtered affected " + affected + " rows, expected 1.");
+				if (affected < 1) this.log.w("Updating tweet %s filtered to %s affected %s rows, expected 1.", utf.first, utf.second, affected);
+			}
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
 	}
 
 	@Override

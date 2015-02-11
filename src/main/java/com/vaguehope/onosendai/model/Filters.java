@@ -25,6 +25,10 @@ public class Filters {
 		this.predicates = parseFilters(filters);
 	}
 
+	public int size() {
+		return this.predicates.size();
+	}
+
 	public boolean matches (final String s) {
 		if (StringHelper.isEmpty(s)) return false;
 		final String lowerCase = s.toLowerCase(Locale.ENGLISH);
