@@ -4,6 +4,7 @@ import android.database.Cursor;
 
 public class TweetCursorReader {
 
+	private int colUid = -1;
 	private int colSid = -1;
 	private int colTime = -1;
 	private int colUsername = -1;
@@ -14,6 +15,12 @@ public class TweetCursorReader {
 	private int colAvatar = -1;
 	private int colInlineMedia = -1;
 	private int colFiltered = -1;
+
+	public long readUid (final Cursor c) {
+		if (c == null) return -1;
+		if (this.colUid < 0) this.colUid = c.getColumnIndexOrThrow(DbAdapter.TBL_TW_ID);
+		return c.getLong(this.colUid);
+	}
 
 	public String readSid (final Cursor c) {
 		if (c == null) return null;

@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.util.Pair;
 
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.Meta;
@@ -86,6 +87,11 @@ public class DbService extends Service implements DbInterface {
 	@Override
 	public void deleteTweets (final Column column) {
 		this.dbAdaptor.deleteTweets(column);
+	}
+
+	@Override
+	public void updateTweetFiltered (final List<Pair<Long, Boolean>> uidToFiltered) {
+		this.dbAdaptor.updateTweetFiltered(uidToFiltered);
 	}
 
 	@Override

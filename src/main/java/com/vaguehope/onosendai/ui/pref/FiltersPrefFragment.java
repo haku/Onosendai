@@ -1,21 +1,38 @@
 package com.vaguehope.onosendai.ui.pref;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceFragment;
+import android.support.v4.util.Pair;
 
+import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
+import com.vaguehope.onosendai.model.Filters;
+import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
+import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbInterface.Selection;
+import com.vaguehope.onosendai.storage.TweetCursorReader;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
+import com.vaguehope.onosendai.util.IoHelper;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class FiltersPrefFragment extends PreferenceFragment {
 
 	public static final String KEY_SHOW_FILTERED = "pref_show_filtered";
+	protected static final LogWrapper LOG = new LogWrapper("FP");
 
 	private Prefs prefs;
 
@@ -40,6 +57,12 @@ public class FiltersPrefFragment extends PreferenceFragment {
 		showFiltered.setTitle("Show filtered");
 		showFiltered.setSummary("For testing filters.");
 		getPreferenceScreen().addPreference(showFiltered);
+
+		final Preference reapplyFilters = new Preference(getActivity());
+		reapplyFilters.setTitle("Reapply Filters");
+		reapplyFilters.setSummary("Apply filter rules to already downloaded tweets");
+		reapplyFilters.setOnPreferenceClickListener(this.reapplyFiltersListener);
+		getPreferenceScreen().addPreference(reapplyFilters);
 
 		final Preference addFilter = new Preference(getActivity());
 		addFilter.setTitle("Add Filter");
@@ -111,6 +134,96 @@ public class FiltersPrefFragment extends PreferenceFragment {
 			this.host.promptNewFilter();
 			return true;
 		}
+	}
+
+	private final OnPreferenceClickListener reapplyFiltersListener = new OnPreferenceClickListener() {
+		@Override
+		public boolean onPreferenceClick (final Preference preference) {
+			new ReapplyFiltersTask(getActivity(), FiltersPrefFragment.this.prefs).execute();
+			return true;
+		}
+	};
+
+	private static class ReapplyFiltersTask extends DbBindingAsyncTask<Void, String, Exception> {
+
+		private final Prefs prefs;
+		private ProgressDialog dialog;
+
+		public ReapplyFiltersTask (final Context context, final Prefs prefs) {
+			super(context);
+			this.prefs = prefs;
+		}
+
+		@Override
+		protected LogWrapper getLog () {
+			return LOG;
+		}
+
+		@Override
+		protected void onPreExecute () {
+			this.dialog = ProgressDialog.show(getContext(), "Reapplying Filters", "...", true);
+		}
+
+		@Override
+		protected void onProgressUpdate (final String... msgs) {
+			if (msgs == null || msgs.length < 1) return;
+			this.dialog.setMessage(msgs[0]);
+		}
+
+		@Override
+		protected Exception doInBackgroundWithDb (final DbInterface db, final Void... params) {
+			try {
+				publishProgress("Parsing filters...");
+				final Filters filters = new Filters(this.prefs.readFilters());
+
+				publishProgress("Reading tweets...");
+				final TweetCursorReader reader = new TweetCursorReader();
+				long processed = 0L;
+				long totalChanges = 0L;
+				final long startTime = System.currentTimeMillis();
+				for (final Column column : this.prefs.asConfig().getColumns()) {
+					if (InternalColumnType.fromColumn(column) != null) continue;
+					final List<Pair<Long, Boolean>> changes = new ArrayList<Pair<Long, Boolean>>();
+					final Cursor c = db.getTweetsCursor(column.getId(), Selection.ALL);
+					try {
+						if (c != null && c.moveToFirst()) {
+							do {
+								final boolean newFiltered = filters.matches(reader.readBody(c));
+								if (reader.readFiltered(c) != newFiltered) {
+									changes.add(new Pair<Long, Boolean>(reader.readUid(c), newFiltered));
+								}
+								processed += 1;
+								if (processed % 100 == 0) publishProgress("Read " + processed + ", found " + changes.size() + " changes ...");
+							}
+							while (c.moveToNext());
+						}
+					}
+					finally {
+						IoHelper.closeQuietly(c);
+					}
+					publishProgress("Saving " + changes.size() + " changes in " + column.getTitle() + "...");
+					db.updateTweetFiltered(changes);
+					LOG.i("Saved %s filter changes in %s.", changes.size(), column.getTitle());
+					totalChanges += changes.size();
+				}
+				LOG.i("Checked %s filters against %s tweets and wrote %s changes in %sms.",
+						filters.size(), processed, totalChanges, System.currentTimeMillis() - startTime);
+				return null;
+			}
+			catch (final Exception e) {
+				return e;
+			}
+		}
+
+		@Override
+		protected void onPostExecute (final Exception result) {
+			this.dialog.dismiss();
+			if (result != null) {
+				LOG.e("Error while reapplying filters.", result);
+				DialogHelper.alert(getContext(), result);
+			}
+		}
+
 	}
 
 }

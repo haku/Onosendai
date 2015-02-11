@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import android.database.Cursor;
+import android.support.v4.util.Pair;
 
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.model.Meta;
@@ -21,6 +22,7 @@ public interface DbInterface extends KvStore {
 	void appendToTweet(Tweet tweet, Meta meta);
 	void deleteTweet(Column column, Tweet tweet);
 	void deleteTweets(Column column);
+	void updateTweetFiltered(List<Pair<Long, Boolean>> uidToFiltered);
 
 	public enum Selection {
 		ALL,
