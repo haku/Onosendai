@@ -98,6 +98,10 @@ public class Config {
 		return null;
 	}
 
+	public int getColumnCount () {
+		return this.feeds.size();
+	}
+
 	public List<Column> getColumns () {
 		return this.feeds;
 	}

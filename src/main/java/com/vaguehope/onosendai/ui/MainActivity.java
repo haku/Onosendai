@@ -322,13 +322,9 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		super.onBackPressed();
 	}
 
-	public int getVisiblePageCount () {
-		return this.pageSelectionListener.getVisiblePageCount();
-	}
-
 	public List<Column> getVisibleColumns () {
 		final List<Column> ret = new ArrayList<Column>();
-		for (int i = 0; i < this.pageSelectionListener.getVisiblePageCount(); i++) {
+		for (int i = 0; i < this.conf.getColumnCount(); i++) {
 			if (this.pageSelectionListener.isVisible(i)) ret.add(this.conf.getColumnByPosition(i));
 		}
 		return ret;
@@ -348,7 +344,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	@Override
 	public boolean onCreateOptionsMenu (final Menu menu) {
 		getMenuInflater().inflate(R.menu.listmenu, menu);
-		if (getVisiblePageCount() > 1) {
+		if (this.pageSelectionListener.getVisiblePageCount() > 1) {
 			menu.findItem(R.id.mnuRefreshColumnNow).setTitle(R.string.menu_refresh_visible_columns);
 		}
 		return true;
