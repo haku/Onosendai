@@ -74,11 +74,11 @@ public class SharePayload extends Payload {
 		if (this.networkType != null) {
 			switch (this.networkType) {
 				case TWITTER:
-					btnRt.setText(R.string.btn_share_rt);
+					btnRt.setText(R.string.tweetlist_details_rt);
 					btnRt.setVisibility(View.VISIBLE);
 					break;
 				case FACEBOOK:
-					btnRt.setText(R.string.btn_share_like);
+					btnRt.setText(R.string.tweetlist_details_like);
 					btnRt.setVisibility(View.VISIBLE);
 					btnFav.setVisibility(View.GONE);
 					break;

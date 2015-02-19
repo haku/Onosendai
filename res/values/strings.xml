@@ -57,29 +57,77 @@
 		${conf_path}
 	</string>
 
-	<string name="outbox_title">Onosendai Outbox</string>
+	<string name="main_menu_post">Post</string>
+	<string name="main_menu_outbox">Outbox</string>
+	<string name="main_menu_refresh_column">Refresh Column</string>
+	<string name="main_menu_refresh_visible_columns">Refresh Visible Columns</string>
+	<string name="main_menu_refresh_all">Refresh All</string>
+	<string name="main_menu_preferences">Preferences</string>
+	<string name="main_menu_local_search">Local Search</string>
+	<string name="main_no_internet_connection_available">No internet connection available.</string>
+	<string name="main_refresh_columns_requested">Refresh %s requested.</string>
+	<string name="main_refresh_all_columns_requested">Refresh all requested.</string>
+
+	<string name="tweet_filtered">[ filtered ]</string>
+	<string name="tweetlist_refresh">Refresh</string>
+	<string name="tweetlist_details_close">Close</string>
+	<string name="tweetlist_details_later">Later</string>
+	<string name="tweetlist_details_read">Read</string>
+	<string name="tweetlist_details_rt">RT</string>
+	<string name="tweetlist_details_like">Like</string>
+	<string name="tweetlist_details_quote">Quote</string>
+	<string name="payload_edit_btn_delete">Delete</string>
+	<string name="payload_media_btn_retry">Retry</string>
+	<string name="sharetweet_text">Text</string>
+	<string name="sharetweet_picture">Picture</string>
+
 	<string name="preferences_title">Onosendai Preferences</string>
 	<string name="column_stats_title">Column stats</string>
 
-	<string name="menu_post">Post</string>
-	<string name="menu_outbox">Outbox</string>
-	<string name="menu_refresh_column">Refresh Column</string>
-	<string name="menu_refresh_visible_columns">Refresh Visible Columns</string>
-	<string name="menu_refresh_all">Refresh All</string>
-	<string name="menu_preferences">Preferences</string>
-	<string name="menu_local_search">Local Search</string>
+	<string name="accountdlg_field_title_label">Title</string>
+	<string name="accountdlg_field_title_hint">e.g. My Account</string>
+	<string name="accountdlg_field_username_label">Username</string>
+	<string name="accountdlg_field_password_label">Password</string>
+	<string name="accountdlg_btn_test_login">Test Login</string>
+	<string name="accountdlg_btn_reauthenticate">Reauthenticate</string>
+	<string name="accountdlg_btn_delete">Delete</string>
 
-	<string name="lbl_filtered_tweet">[ filtered ]</string>
+	<string name="columndlg_field_title_label">Title</string>
+	<string name="columndlg_field_title_hint">e.g. My Column</string>
+	<string name="columndlg_field_position_label">Position</string>
+	<string name="columndlg_field_resource_label">Resource</string>
+	<string name="columndlg_field_exclude_label">Exclude</string>
+	<string name="columndlg_field_refresh_label">Refresh</string>
+	<string name="columndlg_field_media_label">Media</string>
+	<string name="columndlg_field_hd_label">HD</string>
+	<string name="columndlg_field_notify_label">Notify</string>
+	<string name="columndlg_btn_delete">Delete</string>
+	<string name="columndlg_field_notification_label">Notification</string>
+	<string name="notifstydlg_field_lights">Lights</string>
+	<string name="notifstydlg_field_vibrate">Vibrate</string>
+	<string name="notifstydlg_field_sound">Sound</string>
 
-	<string name="btn_tweet_close">Close</string>
-	<string name="btn_tweet_later">Later</string>
-	<string name="btn_tweet_read">Read</string>
+	<string name="filterdlg_instructions">Only matched against tweet body.  Start with / for regex.</string>
+	<string name="filterdlg_btn_delete">Delete</string>
 
-	<string name="btn_share_rt">RT</string>
-	<string name="btn_share_like">Like</string>
-	<string name="btn_share_quote">Quote</string>
+	<string name="searchdlg_btn_search">Search</string>
+	<string name="searchdlg_no_results">No results.</string>
 
-	<string name="btn_post_cancel">Cancel</string>
-	<string name="btn_post_post">Post</string>
+	<string name="post_btn_cancel">Cancel</string>
+	<string name="post_btn_post">Post</string>
+	<string name="post_menu">menu</string>
+	<string name="post_menu_attach">Attach</string>
+	<string name="post_menu_attachment">Attachment...</string>
+	<string name="post_menu_change">Change</string>
+	<string name="post_menu_shrink">Shrink</string>
+	<string name="post_menu_remove">Remove</string>
+	<string name="post_menu_text_filters">Text Filters</string>
+	<string name="picresizedlg_field_scale_label">Scale</string>
+	<string name="picresizedlg_field_quality_label">Quality</string>
+
+	<string name="outbox_title">Onosendai Outbox</string>
+	<string name="outbox_btn_reset_failures">Reset Failures</string>
+	<string name="outbox_btn_send_pending">Send Pending</string>
+	<string name="outbox_lbl_is_empty">Outbox is empty.</string>
 
 </resources>

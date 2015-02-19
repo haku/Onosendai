@@ -17,14 +17,14 @@
 
 			<TextView
 				android:paddingRight="10dp"
-				android:text="Title" />
+				android:text="@string/columndlg_field_title_label" />
 
 			<EditText
 				android:id="@+id/txtTitle"
 				android:layout_weight="1"
 				android:singleLine="true"
 				android:selectAllOnFocus="true"
-				android:hint="e.g. My Column" />
+				android:hint="@string/columndlg_field_title_hint" />
 
 		</TableRow>
 
@@ -34,7 +34,7 @@
 
 			<TextView
 				android:paddingRight="10dp"
-				android:text="Position" />
+				android:text="@string/columndlg_field_position_label" />
 
 			<Spinner
 				android:id="@+id/spnPosition"
@@ -48,7 +48,7 @@
 
 			<TextView
 				android:paddingRight="10dp"
-				android:text="Resource" />
+				android:text="@string/columndlg_field_resource_label" />
 
 			<Button
 				android:id="@+id/btnResource"
@@ -64,7 +64,7 @@
 
 			<TextView
 				android:paddingRight="10dp"
-				android:text="Exclude" />
+				android:text="@string/columndlg_field_exclude_label" />
 
 			<Button
 				android:id="@+id/btnExclude"
@@ -78,7 +78,7 @@
 
 			<TextView
 				android:paddingRight="10dp"
-				android:text="Refresh" />
+				android:text="@string/columndlg_field_refresh_label" />
 
 			<Spinner
 				android:id="@+id/spnRefresh"
@@ -94,7 +94,7 @@
 
 			<TextView
 				android:paddingRight="10dp"
-				android:text="Media" />
+				android:text="@string/columndlg_field_media_label" />
 
 			<Spinner
 				android:id="@+id/spnInlineMedia"
@@ -105,7 +105,7 @@
 				android:id="@+id/chkHdMedia"
 				android:layout_width="0px"
 				android:layout_weight="1"
-				android:text="HD" />
+				android:text="@string/columndlg_field_hd_label" />
 
 		</TableRow>
 
@@ -118,13 +118,13 @@
 				android:id="@+id/chkNotify"
 				android:layout_width="0px"
 				android:layout_weight="1"
-				android:text="Notify" />
+				android:text="@string/columndlg_field_notify_label" />
 
 			<CheckBox
 				android:id="@+id/chkDelete"
 				android:layout_width="0px"
 				android:layout_weight="1"
-				android:text="Delete" />
+				android:text="@string/columndlg_btn_delete" />
 
 		</TableRow>
 
@@ -136,7 +136,7 @@
 
 			<TextView
 				android:paddingRight="10dp"
-				android:text="Notification" />
+				android:text="@string/columndlg_field_notification_label" />
 
 			<Button
 				android:id="@+id/btnNotification"

@@ -8,7 +8,7 @@
 
 	<Button
 		android:id="@+id/btnShareRt"
-		android:text="@string/btn_share_rt"
+		android:text="@string/tweetlist_details_rt"
 		android:layout_width="0dip"
 		android:layout_height="wrap_content"
 		android:layout_weight="2"
@@ -16,7 +16,7 @@
 
 	<Button
 		android:id="@+id/btnShareQuote"
-		android:text="@string/btn_share_quote"
+		android:text="@string/tweetlist_details_quote"
 		android:layout_width="0dip"
 		android:layout_height="wrap_content"
 		android:layout_weight="2"

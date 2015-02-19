@@ -26,7 +26,7 @@ public enum TweetLayout {
 		@Override
 		public void applyTweetTo (final Tweet item, final TweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
 			if (item.isFiltered()) {
-				rowView.getTweet().setText(R.string.lbl_filtered_tweet);
+				rowView.getTweet().setText(R.string.tweet_filtered);
 			}
 			else {
 				rowView.getTweet().setText(item.getBody());
@@ -57,7 +57,7 @@ public enum TweetLayout {
 			rowView.getName().setText(name);
 
 			if (cursorReader.readFiltered(c)) {
-				rowView.getTweet().setText(R.string.lbl_filtered_tweet);
+				rowView.getTweet().setText(R.string.tweet_filtered);
 			}
 			else {
 				rowView.getTweet().setText(cursorReader.readBody(c));

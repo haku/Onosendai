@@ -548,7 +548,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	}
 
 	protected void setReadLaterButton (final Tweet tweet, final boolean laterColumn) {
-		this.btnDetailsLater.setText(laterColumn ? R.string.btn_tweet_read : R.string.btn_tweet_later);
+		this.btnDetailsLater.setText(laterColumn ? R.string.tweetlist_details_read : R.string.tweetlist_details_later);
 		this.btnDetailsLater.setOnClickListener(new DetailsLaterClickListener(this, tweet, laterColumn));
 	}
 

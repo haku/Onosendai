@@ -17,13 +17,13 @@
 
 			<TextView
 				android:paddingRight="10dp"
-				android:text="Title" />
+				android:text="@string/accountdlg_field_title_label" />
 
 			<EditText
 				android:id="@+id/txtTitle"
 				android:layout_weight="1"
 				android:singleLine="true"
-				android:hint="e.g. My Account" />
+				android:hint="@string/accountdlg_field_title_hint" />
 
 		</TableRow>
 
@@ -35,7 +35,7 @@
 			<TextView
 				android:id="@+id/txtUsernameLabel"
 				android:paddingRight="10dp"
-				android:text="Username" />
+				android:text="@string/accountdlg_field_username_label" />
 
 			<EditText
 				android:id="@+id/txtUsername"
@@ -52,7 +52,7 @@
 			<TextView
 				android:id="@+id/txtPasswordLabel"
 				android:paddingRight="10dp"
-				android:text="Password" />
+				android:text="@string/accountdlg_field_password_label" />
 
 			<EditText
 				android:id="@+id/txtPassword"
@@ -70,7 +70,7 @@
 				android:id="@+id/btnTestLogin"
 				android:layout_width="fill_parent"
 				android:layout_weight="1"
-				android:text="Test Login" />
+				android:text="@string/accountdlg_btn_test_login" />
 
 		</TableRow>
 
@@ -83,7 +83,7 @@
 				android:id="@+id/chkReauthenticate"
 				android:layout_width="fill_parent"
 				android:layout_weight="1"
-				android:text="Reauthenticate" />
+				android:text="@string/accountdlg_btn_reauthenticate" />
 
 		</TableRow>
 
@@ -96,7 +96,7 @@
 				android:id="@+id/chkDelete"
 				android:layout_width="fill_parent"
 				android:layout_weight="1"
-				android:text="Delete" />
+				android:text="@string/accountdlg_btn_delete" />
 
 		</TableRow>
 

@@ -3,11 +3,11 @@
 
 		<item
 			android:id="@+id/mnuText"
-			android:title="Text" />
+			android:title="@string/sharetweet_text" />
 
 		<item
 			android:id="@+id/mnuPicture"
-			android:title="Picture" />
+			android:title="@string/sharetweet_picture" />
 
 	</group>
 </menu>

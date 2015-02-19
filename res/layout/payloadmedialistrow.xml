@@ -19,7 +19,7 @@
 
 	<Button
 		android:id="@+id/btnRetry"
-		android:text="Retry"
+		android:text="@string/payload_media_btn_retry"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		style="?android:attr/buttonBarButtonStyle" />

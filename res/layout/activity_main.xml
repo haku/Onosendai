@@ -22,8 +22,7 @@
 		android:paddingLeft="10dip"
 		android:paddingRight="10dip"
 		android:background="@drawable/warning_border"
-		android:visibility="gone"
-		android:text="[status]" />
+		android:visibility="gone" />
 
 
 </LinearLayout>

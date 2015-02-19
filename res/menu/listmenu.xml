@@ -3,27 +3,27 @@
 
 		<item
 			android:id="@+id/mnuPost"
-			android:title="@string/menu_post" />
+			android:title="@string/main_menu_post" />
 
 		<item
 			android:id="@+id/mnuRefreshColumnNow"
-			android:title="@string/menu_refresh_column" />
+			android:title="@string/main_menu_refresh_column" />
 
 		<item
 			android:id="@+id/mnuRefreshAllNow"
-			android:title="@string/menu_refresh_all" />
+			android:title="@string/main_menu_refresh_all" />
 
 		<item
 			android:id="@+id/mnuOutbox"
-			android:title="@string/menu_outbox" />
+			android:title="@string/main_menu_outbox" />
 
 		<item
 			android:id="@+id/mnuLocalSearch"
-			android:title="@string/menu_local_search" />
+			android:title="@string/main_menu_local_search" />
 
 		<item
 			android:id="@+id/mnuPreferences"
-			android:title="@string/menu_preferences" />
+			android:title="@string/main_menu_preferences" />
 
 	</group>
 </menu>

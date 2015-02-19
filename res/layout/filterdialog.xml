@@ -11,7 +11,7 @@
 		android:layout_height="wrap_content"
 		android:padding="10sp"
 		style="@android:style/TextAppearance.Medium"
-		android:text="Only matched against tweet body.  Start with / for regex." />
+		android:text="@string/filterdlg_instructions" />
 
 	<EditText
 		android:id="@+id/txtFilter"
@@ -23,6 +23,6 @@
 		android:id="@+id/chkDelete"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:text="Delete" />
+		android:text="@string/filterdlg_btn_delete" />
 
 </LinearLayout>

@@ -24,7 +24,7 @@
 			android:id="@+id/btnSearch"
 			android:layout_width="wrap_content"
 			android:layout_height="50dip"
-			android:text="Search"
+			android:text="@string/searchdlg_btn_search"
 			style="?android:attr/buttonBarButtonStyle" />
 
 	</LinearLayout>
@@ -37,7 +37,7 @@
 		android:layout_below="@id/searchActions"
 		android:layout_marginTop="10dip"
 		android:layout_marginBottom="10dip"
-		android:text="No results." />
+		android:text="@string/searchdlg_no_results" />
 
 	<ListView
 		android:id="@+id/tweetList"

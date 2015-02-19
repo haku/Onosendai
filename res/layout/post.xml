@@ -32,7 +32,7 @@
 				style="?android:attr/buttonBarButtonStyle"
 				android:paddingLeft="10dip"
 				android:paddingRight="10dip"
-				android:text="menu" />
+				android:text="@string/post_menu" />
 
 		</LinearLayout>
 
@@ -90,7 +90,7 @@
 				android:layout_height="50dip"
 				android:layout_weight="1"
 				style="?android:attr/buttonBarButtonStyle"
-				android:text="@string/btn_post_cancel" />
+				android:text="@string/post_btn_cancel" />
 
 			<TextView
 				android:id="@+id/txtCharRemaining"
@@ -105,7 +105,7 @@
 				android:layout_height="50dip"
 				android:layout_weight="1"
 				style="?android:attr/buttonBarButtonStyle"
-				android:text="@string/btn_post_post" />
+				android:text="@string/post_btn_post" />
 
 		</LinearLayout>
 
