@@ -41,7 +41,8 @@
 		<activity
 			android:name=".ui.MainActivity"
 			android:label="@string/app_name"
-			android:launchMode="singleTop">
+			android:launchMode="singleTop"
+			android:configChanges="locale|layoutDirection">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
@@ -51,7 +52,8 @@
 		<activity
 			android:name=".ui.PostActivity"
 			android:label="@string/app_name"
-			android:theme="@android:style/Theme.Holo.NoActionBar">
+			android:theme="@android:style/Theme.Holo.NoActionBar"
+			android:configChanges="locale|layoutDirection">
 			<intent-filter>
 				<action android:name="android.intent.action.SEND" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -66,28 +68,28 @@
 
 		<activity
 			android:name=".ui.OutboxActivity"
-			android:label="@string/outbox_title">
-		</activity>
+			android:label="@string/outbox_title"
+			android:configChanges="locale|layoutDirection" />
 
 		<activity
 			android:name=".ui.SetupActivity"
-			android:label="@string/setup_title">
-		</activity>
+			android:label="@string/setup_title"
+			android:configChanges="locale|layoutDirection" />
 
 		<activity
 			android:name=".ui.pref.OsPreferenceActivity"
-			android:label="@string/preferences_title">
-		</activity>
+			android:label="@string/preferences_title"
+			android:configChanges="locale|layoutDirection" />
 
 		<activity
 			android:name=".ui.pref.TwitterLoginActivity"
-			android:label="@string/preferences_title">
-		</activity>
+			android:label="@string/preferences_title"
+			android:configChanges="locale|layoutDirection" />
 
 		<activity
 			android:name=".ui.pref.ColumnStatsActivity"
-			android:label="@string/column_stats_title">
-		</activity>
+			android:label="@string/column_stats_title"
+			android:configChanges="locale|layoutDirection" />
 
 		<receiver android:name=".update.BootReceiver">
 			<intent-filter>
