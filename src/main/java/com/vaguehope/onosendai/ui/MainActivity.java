@@ -165,13 +165,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		resumeDb();
 
 		if (this.prefsChanged) {
-			DialogHelper.alertAndRun(this, "Activity will be reloaded with new preferences.", new Runnable() {
-				@Override
-				public void run () {
-					finish();
-					startActivity(getIntent());
-				}
-			});
+			finish();
+			startActivity(getIntent());
 			return;
 		}
 
