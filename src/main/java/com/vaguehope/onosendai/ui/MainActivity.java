@@ -340,7 +340,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	public boolean onCreateOptionsMenu (final Menu menu) {
 		getMenuInflater().inflate(R.menu.listmenu, menu);
 		if (this.pageSelectionListener.getVisiblePageCount() > 1) {
-			menu.findItem(R.id.mnuRefreshColumnNow).setTitle(R.string.menu_refresh_visible_columns);
+			menu.findItem(R.id.mnuRefreshColumnNow).setTitle(R.string.main_menu_refresh_visible_columns);
 		}
 		return true;
 	}
@@ -394,7 +394,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 	protected void scheduleRefreshInteractive (final int... columnIds) {
 		if (!NetHelper.connectionPresent(this)) {
-			DialogHelper.alert(this, "No internet connection available.");
+			DialogHelper.alert(this, getString(R.string.main_no_internet_connection_available));
 			return;
 		}
 		scheduleRefresh(true, columnIds);
@@ -402,7 +402,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 	protected void scheduleRefreshBackground (final int... columnIds) {
 		if (!NetHelper.connectionPresent(this)) {
-			Toast.makeText(this, "No internet connection available.", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, R.string.main_no_internet_connection_available, Toast.LENGTH_SHORT).show();
 			return;
 		}
 		scheduleRefresh(false, columnIds);
@@ -416,7 +416,9 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 		if (manual) {
 			final int count = columnIds == null ? 0 : columnIds.length;
-			final String msg = String.format("Refresh %s requested.", count > 0 ? count : "all");
+			final String msg = count > 0
+					? String.format(getString(R.string.main_refresh_columns_requested), count)
+					: getString(R.string.main_refresh_all_columns_requested);
 			Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 		}
 	}

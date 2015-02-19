@@ -23,7 +23,7 @@
 
 			<Button
 				android:id="@+id/tweetDetailClose"
-				android:text="@string/btn_tweet_close"
+				android:text="@string/tweetlist_details_close"
 				android:layout_width="fill_parent"
 				android:layout_height="50dip"
 				android:layout_weight="1"
@@ -63,7 +63,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_centerInParent="true"
-			android:text="Refresh" />
+			android:text="@string/tweetlist_refresh" />
 
 		<ListView
 			android:id="@+id/tweetListList"

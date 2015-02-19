@@ -23,21 +23,21 @@
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:gravity="center"
-			android:text="Lights" />
+			android:text="@string/notifstydlg_field_lights" />
 
 		<CheckBox
 			android:id="@+id/chkVibrate"
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:gravity="center"
-			android:text="Vibrate" />
+			android:text="@string/notifstydlg_field_vibrate" />
 
 		<CheckBox
 			android:id="@+id/chkSound"
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:gravity="center"
-			android:text="Sound" />
+			android:text="@string/notifstydlg_field_sound" />
 
 	</LinearLayout>
 

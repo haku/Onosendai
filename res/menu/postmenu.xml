@@ -3,25 +3,25 @@
 
 		<item
 			android:id="@+id/mnuAttach"
-			android:title="Attach" />
+			android:title="@string/post_menu_attach" />
 
 		<item
 			android:id="@+id/mnuAttachmentGroup"
-			android:title="Attachment...">
+			android:title="@string/post_menu_attachment">
 
 			<menu>
 
 				<item
 					android:id="@+id/mnuAttachmentChange"
-					android:title="Change" />
+					android:title="@string/post_menu_change" />
 
 				<item
 					android:id="@+id/mnuAttachmentShrink"
-					android:title="Shrink" />
+					android:title="@string/post_menu_shrink" />
 
 				<item
 					android:id="@+id/mnuAttachmentRemove"
-					android:title="Remove" />
+					android:title="@string/post_menu_remove" />
 
 			</menu>
 
@@ -29,7 +29,7 @@
 
 		<item
 			android:id="@+id/mnuTextFilter"
-			android:title="Text Filters" />
+			android:title="@string/post_menu_text_filters" />
 
 	</group>
 </menu>

@@ -32,7 +32,7 @@
 
 			<TextView
 				android:paddingRight="10dp"
-				android:text="Scale" />
+				android:text="@string/picresizedlg_field_scale_label" />
 
 			<Spinner
 				android:id="@+id/spnScale"
@@ -46,7 +46,7 @@
 
 			<TextView
 				android:paddingRight="10dp"
-				android:text="Quality" />
+				android:text="@string/picresizedlg_field_quality_label" />
 
 			<Spinner
 				android:id="@+id/spnQuality"

@@ -3,7 +3,7 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	package="com.vaguehope.onosendai"
 	android:versionCode="1"
-	android:versionName="1">
+	android:versionName="1" xmlns:tools="http://schemas.android.com/tools">
 
 	<uses-sdk
 		android:minSdkVersion="14"
@@ -36,7 +36,7 @@
 			android:theme="@android:style/Theme.Dialog"
 			android:launchMode="singleInstance"
 			android:excludeFromRecents="true"
-			android:finishOnTaskLaunch="true" />
+			android:finishOnTaskLaunch="true" tools:ignore="MissingRegistered"/>
 
 		<activity
 			android:name=".ui.MainActivity"

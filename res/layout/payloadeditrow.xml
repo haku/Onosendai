@@ -8,7 +8,7 @@
 
 	<Button
 		android:id="@+id/btnDelete"
-		android:text="Delete"
+		android:text="@string/payload_edit_btn_delete"
 		android:layout_width="0dip"
 		android:layout_height="wrap_content"
 		android:layout_weight="1"
