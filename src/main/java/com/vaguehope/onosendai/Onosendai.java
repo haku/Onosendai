@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import org.acra.ACRA;
 import org.acra.ReportField;
@@ -8,9 +9,13 @@ import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
 
 import android.app.Application;
+import android.content.res.Configuration;
 import android.util.Log;
 
+import com.vaguehope.onosendai.ui.pref.UiPrefFragment;
 import com.vaguehope.onosendai.util.IoHelper;
+import com.vaguehope.onosendai.util.LocaleHelper;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 @ReportsCrashes(formKey = "" /* not used */,
 		mailTo = "reports@onosendai.mobi",
@@ -38,12 +43,15 @@ import com.vaguehope.onosendai.util.IoHelper;
 		})
 public class Onosendai extends Application {
 
+	private static final LogWrapper LOG = new LogWrapper("APP");
+
 	@Override
 	public void onCreate () {
 		super.onCreate();
 		ACRA.init(this);
 		addBuildNumberToCrashReport();
-		Log.i(C.TAG, "RT.maxMemory=" + Runtime.getRuntime().maxMemory());
+		LOG.i("RT.maxMemory=%s", Runtime.getRuntime().maxMemory());
+		loadAndSetLocale(null);
 	}
 
 	private void addBuildNumberToCrashReport () {
@@ -54,6 +62,19 @@ public class Onosendai extends Application {
 		catch (final IOException e) {
 			Log.w(C.TAG, "Failed to read BUILD_NUMBER: " + e.toString());
 		}
+	}
+
+	@Override
+	public void onConfigurationChanged (final Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		LOG.d("config: %s", newConfig);
+		loadAndSetLocale(newConfig);
+	}
+
+	private void loadAndSetLocale (final Configuration roCfg) {
+		final Locale locale = UiPrefFragment.readLocale(this);
+		LOG.i("local=%s", locale);
+		LocaleHelper.setLocale(this, roCfg, locale);
 	}
 
 }
