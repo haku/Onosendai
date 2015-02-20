@@ -494,7 +494,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		if (payload.getType() == PayloadType.MENTION) {
 			final Account account = MetaUtils.accountFromMeta(payload.getOwnerTweet(), this.conf);
 			if (account == null) {
-				DialogHelper.alert(getActivity(), "Can not find this tweet's account metadata.");
+				DialogHelper.alert(getActivity(), getMainActivity().getString(R.string.tweetlist_can_not_find_this_tweet_s_account_metadata));
 			}
 			else {
 				ProfileDialog.show(getActivity(), getNetEs(), this.imageLoader, account, ((MentionPayload) payload).getScreenName());
@@ -571,7 +571,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	}
 
 	private static String summariseAccountAndSubAccount (final Account account, final ServiceRef svcRef) {
-		if (svcRef != null) return String.format("%s via %s", svcRef.getUiTitle(), account.getUiTitle());
+		if (svcRef != null) return String.format("%s\n%s", svcRef.getUiTitle(), account.getUiTitle());
 		return account.getUiTitle();
 	}
 
@@ -580,18 +580,30 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	private void askRt (final Tweet tweet) {
 		final Account account = MetaUtils.accountFromMeta(tweet, this.conf);
 		if (account == null) {
-			DialogHelper.alert(getActivity(), "Can not find this tweet's account metadata.");
+			DialogHelper.alert(getActivity(), getMainActivity().getString(R.string.tweetlist_can_not_find_this_tweet_s_account_metadata));
 			return;
 		}
 
-		String action = "RT";
 		final ServiceRef svcRef = tweetAndAccoutToServiceRef(account, tweet);
-		if (svcRef != null && svcRef.getType() == NetworkType.FACEBOOK) action = "Like";
+		final boolean isLike = svcRef != null && svcRef.getType() == NetworkType.FACEBOOK;
+
+		final String question;
+		final String button;
+		if (isLike) {
+			question = getMainActivity().getString(R.string.tweetlist_confirm_like_question);
+			button = getMainActivity().getString(R.string.tweetlist_confirm_like_btn);
+		}
+		else {
+			question = getMainActivity().getString(R.string.tweetlist_confirm_rt_question);
+			button = getMainActivity().getString(R.string.tweetlist_confirm_rt_button);
+		}
+
 		final String as = summariseAccountAndSubAccount(account, svcRef);
+		String msg = String.format("%s\n%s", question, as);
 
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
-		dlgBld.setMessage(String.format("%s as %s?", action, as));
-		dlgBld.setPositiveButton("RT", new DialogInterface.OnClickListener() {
+		dlgBld.setMessage(msg);
+		dlgBld.setPositiveButton(button, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
 				doRt(account, tweet);
@@ -604,22 +616,26 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	protected void doRt (final Account account, final Tweet tweet) {
 		getDb().addPostToOutput(OutboxActionFactory.newRt(account, tweet));
 		getActivity().startService(new Intent(getActivity(), SendOutboxService.class));
-		Toast.makeText(getActivity(), "Requested via Outbox", Toast.LENGTH_SHORT).show();
+		Toast.makeText(getActivity(), R.string.tweetlist_requested_via_outbox, Toast.LENGTH_SHORT).show();
 	}
 
 	private void askFav (final Tweet tweet) {
 		final Account account = MetaUtils.accountFromMeta(tweet, this.conf);
 		if (account == null) {
-			DialogHelper.alert(getActivity(), "Can not find this tweet's account metadata.");
+			DialogHelper.alert(getActivity(), getMainActivity().getString(R.string.tweetlist_can_not_find_this_tweet_s_account_metadata));
 			return;
 		}
 
+		final String question = getMainActivity().getString(R.string.tweetlist_confirm_favourite_question);
+		final String button = getMainActivity().getString(R.string.tweetlist_confirm_favourite_button);
+
 		final ServiceRef svcRef = tweetAndAccoutToServiceRef(account, tweet);
 		final String as = summariseAccountAndSubAccount(account, svcRef);
+		String msg = String.format("%s\n%s", question, as);
 
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
-		dlgBld.setMessage(String.format("Favourite as %s?", as));
-		dlgBld.setPositiveButton("Favourite", new DialogInterface.OnClickListener() {
+		dlgBld.setMessage(msg);
+		dlgBld.setPositiveButton(button, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
 				doFav(account, tweet);
@@ -632,7 +648,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	protected void doFav (final Account account, final Tweet tweet) {
 		getDb().addPostToOutput(OutboxActionFactory.newFav(account, tweet));
 		getActivity().startService(new Intent(getActivity(), SendOutboxService.class));
-		Toast.makeText(getActivity(), "Requested via Outbox", Toast.LENGTH_SHORT).show();
+		Toast.makeText(getActivity(), R.string.tweetlist_requested_via_outbox, Toast.LENGTH_SHORT).show();
 	}
 
 	private List<File> cachedPictureFilesFor (final Tweet tweet) {
@@ -690,7 +706,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		i.putExtra(Intent.EXTRA_SUBJECT, tweet.toHumanLine());
 		i.putExtra(Intent.EXTRA_TEXT, tweet.toHumanParagraph());
 		i.setType("text/plain");
-		startActivity(Intent.createChooser(i, "Send text to..."));
+		startActivity(Intent.createChooser(i, getMainActivity().getString(R.string.tweetlist_send_text_to)));
 	}
 
 	private void doShareIntentPicture (final Tweet tweet) {
@@ -708,20 +724,22 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		i.putExtra(Intent.EXTRA_TEXT, tweet.toHumanParagraph());
 		i.setType("image/*");
 		i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-		startActivity(Intent.createChooser(i, "Send picutre to..."));
+		startActivity(Intent.createChooser(i, getMainActivity().getString(R.string.tweetlist_send_picutre_to)));
 	}
 
 	private void askDeleteTweet (final Tweet tweet) {
 		final Account account = MetaUtils.accountFromMeta(tweet, this.conf);
 		if (account == null) {
-			DialogHelper.alert(getActivity(), "Can not find this tweet's account metadata.");
+			DialogHelper.alert(getActivity(), getMainActivity().getString(R.string.tweetlist_can_not_find_this_tweet_s_account_metadata));
 			return;
 		}
 
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
-		dlgBld.setMessage(String.format("Permanently delete update as %s?", summariseAccountAndSubAccount(account, tweet)));
+		dlgBld.setMessage(String.format("%s\n%s",
+				getMainActivity().getString(R.string.tweetlist_permanently_delete_update),
+				summariseAccountAndSubAccount(account, tweet)));
 
-		dlgBld.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+		dlgBld.setPositiveButton(R.string.tweetlist_btn_delete, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
 				doDelete(account, tweet);
@@ -735,7 +753,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	protected void doDelete (final Account account, final Tweet tweet) {
 		getDb().addPostToOutput(OutboxActionFactory.newDelete(account, tweet));
 		getActivity().startService(new Intent(getActivity(), SendOutboxService.class));
-		Toast.makeText(getActivity(), "Deleted via Outbox", Toast.LENGTH_SHORT).show();
+		Toast.makeText(getActivity(), R.string.tweetlist_deleted_via_outbox, Toast.LENGTH_SHORT).show();
 	}
 
 	private static class DetailsLaterClickListener implements OnClickListener {
@@ -810,10 +828,10 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				if (this.parent.lstTweetPayloadAdaptor.isForTweet(this.tweet)) this.parent.setReadLaterButton(this.tweet, this.laterState != LaterState.READ);
 				switch (this.laterState) {
 					case UNREAD:
-						Toast.makeText(this.parent.getMainActivity(), "Saved for later.", Toast.LENGTH_SHORT).show();
+						Toast.makeText(this.parent.getMainActivity(), R.string.tweetlist_saved_for_later, Toast.LENGTH_SHORT).show();
 						break;
 					case READ:
-						Toast.makeText(this.parent.getMainActivity(), "Removed.", Toast.LENGTH_SHORT).show();
+						Toast.makeText(this.parent.getMainActivity(), R.string.tweetlist_removed_from_later, Toast.LENGTH_SHORT).show();
 						break;
 					default:
 						DialogHelper.alert(this.parent.getMainActivity(), "Unknown read later state: " + this.laterState);
@@ -1090,23 +1108,23 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	protected void copyLastUpdateError () {
 		final ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-		clipboard.setPrimaryClip(ClipData.newPlainText("Error Message", this.tweetListStatus.getText().toString()));
+		clipboard.setPrimaryClip(ClipData.newPlainText("Error Message", this.tweetListStatus.getText().toString())); //ES
 	}
 
 	private enum ErrorMessageAction implements Titleable {
-		VIEW("View") {
+		VIEW("View") { //ES
 			@Override
 			public void onClick (final TweetListFragment tlf) {
 				tlf.popupLastUpdateError();
 			}
 		},
-		COPY("Copy") {
+		COPY("Copy") { //ES
 			@Override
 			public void onClick (final TweetListFragment tlf) {
 				tlf.copyLastUpdateError();
 			}
 		},
-		DISMISS("Dismiss") {
+		DISMISS("Dismiss") { //ES
 			@Override
 			public void onClick (final TweetListFragment tlf) {
 				tlf.dismissLastUpdateError();
@@ -1130,7 +1148,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	private final OnClickListener tweetListStatusClickListener = new OnClickListener() {
 		@Override
 		public void onClick (final View v) {
-			DialogHelper.askItem(getActivity(), "Message", ErrorMessageAction.values(), new Listener<ErrorMessageAction>() {
+			DialogHelper.askItem(getActivity(), "Message", ErrorMessageAction.values(), new Listener<ErrorMessageAction>() { //ES
 				@Override
 				public void onAnswer (final ErrorMessageAction answer) {
 					answer.onClick(TweetListFragment.this);
