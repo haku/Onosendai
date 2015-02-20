@@ -54,19 +54,19 @@ public class InstapaperProvider {
 		final String tweetUrl;
 		if (networkType == NetworkType.FACEBOOK) {
 			title = String.format("%s %s",
-					linkTitle != null ? linkTitle + " via" : "Post by",
+					linkTitle != null ? linkTitle + " via" : "Post by", //ES
 					StringHelper.firstLine(tweet.getFullname()));
 			tweetUrl = facebookUrlOf(tweet);
 		}
 		else if (tweet.getSid() != null) {
 			title = String.format("%s %s (@%s)",
-					linkTitle != null ? linkTitle + " via" : "Tweet by",
+					linkTitle != null ? linkTitle + " via" : "Tweet by", //ES
 							StringHelper.firstLine(tweet.getFullname()),
 							StringHelper.firstLine(tweet.getUsername()));
 			tweetUrl = twitterUrlOf(tweet);
 		}
 		else {
-			title = linkUrl != null ? linkTitle : "Text saved by you"; // Leave title null so Instapaper fills it in.
+			title = linkUrl != null ? linkTitle : "Text saved by you"; // Leave title null so Instapaper fills it in. //ES
 			tweetUrl = null;
 		}
 

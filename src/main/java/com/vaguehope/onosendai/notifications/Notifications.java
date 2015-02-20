@@ -82,13 +82,13 @@ public final class Notifications {
 					.setOnlyAlertOnce(true)
 					.setSmallIcon(notificationIcon())
 					.setContentTitle(col.getTitle())
-					.setContentText(String.format("%d new updates.", count))
+					.setContentText(String.format("%d new updates.", count)) //ES
 					.setNumber(count)
 					.setContentIntent(showMainActPi)
 					.setAutoCancel(true)
 					.setWhen(System.currentTimeMillis())
 					.setStyle(style);
-			if (markAsReadPi != null) nb.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Mark as read", markAsReadPi);
+			if (markAsReadPi != null) nb.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Mark as read", markAsReadPi); //ES
 			applyStyle(nb, col.getNotificationStyle());
 			nm.notify(nId, nb.build());
 		}

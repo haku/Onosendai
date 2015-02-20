@@ -41,17 +41,17 @@ import com.vaguehope.onosendai.util.EqualHelper;
 class ColumnDialog {
 
 	private static final List<Duration> REFRESH_DURAITONS = CollectionHelper.listOf(
-			new Duration(0, "Never"),
-			new Duration(5, "5 minutes (15 min in background)"),
-			new Duration(15, "15 minutes"),
-			new Duration(30, "30 minutes"),
-			new Duration(45, "45 minutes"),
-			new Duration(60, "1 hour"),
-			new Duration(60 * 2, "2 hours"),
-			new Duration(60 * 3, "3 hours"),
-			new Duration(60 * 6, "6 hours"),
-			new Duration(60 * 12, "12 hours"),
-			new Duration(60 * 24, "24 hours")
+			new Duration(0, "Never"), //ES
+			new Duration(5, "5 minutes (15 min in background)"), //ES
+			new Duration(15, "15 minutes"), //ES
+			new Duration(30, "30 minutes"), //ES
+			new Duration(45, "45 minutes"), //ES
+			new Duration(60, "1 hour"), //ES
+			new Duration(60 * 2, "2 hours"), //ES
+			new Duration(60 * 3, "3 hours"), //ES
+			new Duration(60 * 6, "6 hours"), //ES
+			new Duration(60 * 12, "12 hours"), //ES
+			new Duration(60 * 24, "24 hours") //ES
 			);
 
 	private final Context context;
@@ -269,7 +269,7 @@ class ColumnDialog {
 	}
 
 	protected void btnResourceLongClick () {
-		DialogHelper.askString(this.context, "Resource:", this.resource, true, false, new Listener<String>() {
+		DialogHelper.askString(this.context, "Resource:", this.resource, true, false, new Listener<String>() { //ES
 			@Override
 			public void onAnswer (final String newResource) {
 				if (newResource != null) setResource(newResource);
@@ -285,7 +285,7 @@ class ColumnDialog {
 		}
 
 		final Set<Integer> exes = this.excludes;
-		DialogHelper.askItems(this.context, "Exclude items also in:", columns, new Question<Column>() {
+		DialogHelper.askItems(this.context, "Exclude items also in:", columns, new Question<Column>() { //ES
 			@Override
 			public boolean ask (final Column arg) {
 				return exes.contains(Integer.valueOf(arg.getId()));
@@ -310,7 +310,7 @@ class ColumnDialog {
 				dialog.dismiss();
 			}
 		});
-		dlgBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+		dlgBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() { //ES
 			@Override
 			public void onClick (final DialogInterface dialog, final int whichButton) {
 				dialog.cancel();

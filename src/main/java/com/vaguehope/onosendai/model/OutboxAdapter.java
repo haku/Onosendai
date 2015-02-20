@@ -115,7 +115,7 @@ public class OutboxAdapter extends BaseAdapter {
 
 		private static String summariseStatus (final OutboxTweet item) {
 			final StringBuilder s = new StringBuilder(String.valueOf(item.getStatus()))
-					.append(", ").append(item.getAttemptCount()).append(" failures.");
+					.append(", ").append(item.getAttemptCount()).append(" failures."); //ES
 			if (item.getLastError() != null) s.append("\n").append(StringHelper.maxLength(item.getLastError(), MAX_ERROR_MSG_CHARS));
 			return s.toString();
 		}

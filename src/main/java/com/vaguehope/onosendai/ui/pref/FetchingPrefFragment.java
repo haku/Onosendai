@@ -38,8 +38,8 @@ public class FetchingPrefFragment extends PreferenceFragment {
 	private void addPrefetchMedia () {
 		final ListPreference pref = new ListPreference(getActivity());
 		pref.setKey(KEY_PREFETCH_MEDIA);
-		pref.setTitle("Prefetch media");
-		pref.setSummary("Fetch new pictures during background updates.");
+		pref.setTitle("Prefetch media"); //ES
+		pref.setSummary("Fetch new pictures during background updates."); //ES
 		pref.setEntries(PrefetchImages.prefEntries());
 		pref.setEntryValues(PrefetchImages.prefEntryValues());
 		pref.setDefaultValue(PrefetchImages.NO.getValue());
@@ -48,15 +48,15 @@ public class FetchingPrefFragment extends PreferenceFragment {
 
 	private void addColumnStats () {
 		final Preference pref = new Preference(getActivity());
-		pref.setTitle("Column stats");
+		pref.setTitle("Column stats"); //ES
 		pref.setOnPreferenceClickListener(this.columnStatsClickListener);
 		getPreferenceScreen().addPreference(pref);
 	}
 
 	private void addHosakaStatus () {
 		final Preference pref = new Preference(getActivity());
-		pref.setTitle("Hosaka sync status");
-		pref.setSummary("Loading...");
+		pref.setTitle("Hosaka sync status"); //ES
+		pref.setSummary("Loading..."); //ES
 		getPreferenceScreen().addPreference(pref);
 		new GetHosakaStatus(getActivity(), pref).execute();
 	}
@@ -64,8 +64,8 @@ public class FetchingPrefFragment extends PreferenceFragment {
 	private void addSyncScroll () {
 		final CheckBoxPreference pref = new CheckBoxPreference(getActivity());
 		pref.setKey(KEY_SYNC_SCROLL);
-		pref.setTitle("Sync column scroll position");
-		pref.setSummary("But only if last scroll was upward.");
+		pref.setTitle("Sync column scroll position"); //ES
+		pref.setSummary("But only if last scroll was upward."); //ES
 		getPreferenceScreen().addPreference(pref);
 	}
 
@@ -106,11 +106,11 @@ public class FetchingPrefFragment extends PreferenceFragment {
 		protected Exception doInBackgroundWithDb (final DbInterface db, final Void... params) {
 			try {
 				if (new Prefs(getContext()).asConfig().firstAccountOfType(AccountProvider.HOSAKA) == null) {
-					publishProgress("Add a Hosaka account to the accounts page to enable sync.");
+					publishProgress("Add a Hosaka account to the accounts page to enable sync."); //ES
 				}
 				else {
 					final String status = db.getValue(KvKeys.KEY_HOSAKA_STATUS);
-					publishProgress(StringHelper.isEmpty(status) ? "Never run." : status);
+					publishProgress(StringHelper.isEmpty(status) ? "Never run." : status); //ES
 				}
 				return null;
 			}

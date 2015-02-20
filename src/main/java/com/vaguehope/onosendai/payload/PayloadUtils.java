@@ -97,7 +97,7 @@ public final class PayloadUtils {
 			case EDIT_SID:
 				return new EditPayload(tweet, meta);
 			case DELETED:
-				return new PlaceholderPayload(tweet, String.format("Deleted at %s.",
+				return new PlaceholderPayload(tweet, String.format("Deleted at %s.", //ES
 						DateFormat.getDateTimeInstance().format(new Date(TimeUnit.SECONDS.toMillis(meta.toLong(0L))))));
 			case INREPLYTO:
 			case SERVICE:

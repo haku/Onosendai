@@ -89,7 +89,7 @@ public class PictureResizeDialog implements Titleable {
 
 	@Override
 	public String getUiTitle () {
-		return "Shrink " + this.srcMetadata.getName();
+		return "Shrink " + this.srcMetadata.getName(); //ES
 	}
 
 	public Scale getScale () {
@@ -228,7 +228,7 @@ public class PictureResizeDialog implements Titleable {
 						dec.recycle();
 					}
 				}
-				this.summary.append("Failed to compress image.");
+				this.summary.append("Failed to compress image."); //ES
 				return null;
 			}
 			// XXX Many cases of OutOfMemoryError have been reported, particularly on low end hardware.
@@ -267,7 +267,7 @@ public class PictureResizeDialog implements Titleable {
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.prd.getContext(), "Shrink image", "Resizing image...", true);
+			this.dialog = ProgressDialog.show(this.prd.getContext(), "Shrink image", "Resizing image...", true); //ES
 		}
 
 		@Override

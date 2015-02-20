@@ -27,7 +27,7 @@ public class OsPreferenceActivity extends PreferenceActivity {
 		if (hasHeaders()) {
 			final LayoutInflater inflater = LayoutInflater.from(this);
 			final Button btn = (Button) inflater.inflate(R.layout.buttonbarbutton, null, false);
-			btn.setText("Report a problem");
+			btn.setText("Report a problem"); //ES
 			btn.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick (final View v) {

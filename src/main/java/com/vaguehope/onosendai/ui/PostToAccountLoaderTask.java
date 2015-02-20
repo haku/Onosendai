@@ -105,7 +105,7 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 		}
 		else {
 			LOG.e("Failed to update SW post to accounts.", result.getE());
-			DialogHelper.alertIfPossible(this.llSubAccounts.getContext(), "Failed to update sub accounts.", result.getE());
+			DialogHelper.alertIfPossible(this.llSubAccounts.getContext(), "Failed to update sub accounts.", result.getE()); //ES
 		}
 	}
 

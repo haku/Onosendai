@@ -54,7 +54,7 @@ class NotificationStyleDialog implements Titleable {
 
 	@Override
 	public String getUiTitle () {
-		return "Notification Style";
+		return "Notification Style"; //ES
 	}
 
 	public View getRootView () {

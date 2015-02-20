@@ -165,7 +165,7 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 	}
 
 	private void fetchLinkTitle (final Meta meta) {
-		publishProgress(Prg.INIT, meta, "Fetching title...");
+		publishProgress(Prg.INIT, meta, "Fetching title..."); //ES
 		try {
 			// TODO some form of caching of titles?
 			final FinalUrlHandler<Spanned> handler = new FinalUrlHandler<Spanned>(HtmlTitleParser.INSTANCE);
@@ -174,7 +174,7 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 				publishProgress(Prg.URL_AND_TITLE, meta, handler.getUrl(), title);
 			}
 			else {
-				publishProgress(Prg.MSG, meta, "Title not found.");
+				publishProgress(Prg.MSG, meta, "Title not found."); //ES
 			}
 		}
 		catch (final Exception e) {
@@ -192,7 +192,7 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 	}
 
 	private void fetchFromTwitter (final DbInterface db, final Meta meta, final String linkedTweetSid) {
-		publishProgress(Prg.INIT, meta, String.format("Fetching %s...", linkedTweetSid));
+		publishProgress(Prg.INIT, meta, String.format("Fetching %s...", linkedTweetSid)); //ES
 
 		final Tweet fromCache = db.getTweetDetails(linkedTweetSid);
 		if (fromCache != null) {

@@ -81,8 +81,8 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private final MessageFormat likesMsgFmt = new MessageFormat("{0} {0,choice,0#likes|1#like|1<likes}");
-	private final MessageFormat commentsMsgFmt = new MessageFormat("{0} {0,choice,0#comments|1#comment|1<comments}");
+	private final MessageFormat likesMsgFmt = new MessageFormat("{0} {0,choice,0#likes|1#like|1<likes}"); //ES
+	private final MessageFormat commentsMsgFmt = new MessageFormat("{0} {0,choice,0#comments|1#comment|1<comments}"); //ES
 
 	private final Stack<String> stack = new Stack<String>();
 	private StringBuilder currentText;

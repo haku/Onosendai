@@ -32,7 +32,7 @@ public class ColumnDialogPreference extends DialogPreference {
 		setTitle(column.getUiTitle());
 		setSummary(account != null ? account.getUiTitle() : null);
 
-		setDialogTitle("Edit Column (" + getKey() + ")");
+		setDialogTitle("Edit Column (" + getKey() + ")"); //ES
 		setPositiveButtonText(android.R.string.ok);
 		setNegativeButtonText(android.R.string.cancel);
 	}

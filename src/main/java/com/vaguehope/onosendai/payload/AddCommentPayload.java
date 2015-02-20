@@ -21,7 +21,7 @@ public class AddCommentPayload extends Payload {
 
 	@Override
 	public String getTitle () {
-		return "Add Comment";
+		return "Add Comment"; //ES
 	}
 
 	@Override

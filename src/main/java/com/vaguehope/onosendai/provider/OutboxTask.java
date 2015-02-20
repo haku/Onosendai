@@ -54,7 +54,7 @@ public class OutboxTask extends DbBindingAsyncTask<Void, Void, SendResult<OtRequ
 		this.notificationMgr = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
 		final Notification n = new NotificationCompat.Builder(this.context)
 				.setSmallIcon(Notifications.notificationIcon())
-				.setContentTitle(String.format("%s via %s...", this.req.getAction().getUiVerb(), this.req.getAccount().getUiTitle()))
+				.setContentTitle(String.format("%s via %s...", this.req.getAction().getUiVerb(), this.req.getAccount().getUiTitle())) //ES
 				.setOngoing(true)
 				.setUsesChronometer(true)
 				.build();
@@ -175,7 +175,7 @@ public class OutboxTask extends DbBindingAsyncTask<Void, Void, SendResult<OtRequ
 				this.notificationMgr.cancel(this.notificationId);
 				break;
 			default:
-				LOG.w("%s failed: %s", this.req.getAction().getUiTitle(), res.getE());
+				LOG.w("%s failed: %s", this.req.getAction().getUiTitle(), res.getE()); //ES
 				final Notification n = new NotificationCompat.Builder(this.context)
 						.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
 						.setContentTitle(String.format("Failed to %s via %s.", this.req.getAction().getUiTitle(), this.req.getAccount().getUiTitle()))

@@ -35,14 +35,14 @@ public class NotificationStyle implements Titleable {
 	public String getUiTitle () {
 		if (this.title == null) {
 			final List<String> l = new ArrayList<String>();
-			if (isLights()) l.add("lights");
-			if (isVibrate()) l.add("vibrate");
-			if (isSound()) l.add("sound");
+			if (isLights()) l.add("lights"); //ES
+			if (isVibrate()) l.add("vibrate"); //ES
+			if (isSound()) l.add("sound"); //ES
 			if (l.size() > 0) {
 				this.title = ArrayHelper.join(l, ", ");
 			}
 			else {
-				this.title = "plain";
+				this.title = "plain"; //ES
 			}
 		}
 		return this.title;

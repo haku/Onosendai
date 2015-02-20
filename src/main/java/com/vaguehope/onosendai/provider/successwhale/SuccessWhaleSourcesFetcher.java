@@ -29,7 +29,7 @@ public class SuccessWhaleSourcesFetcher extends AsyncTask<Void, Void, Result<Suc
 
 	@Override
 	protected void onPreExecute () {
-		this.dialog = ProgressDialog.show(this.context, "SuccessWhale", "Fetching sources...", true);
+		this.dialog = ProgressDialog.show(this.context, "SuccessWhale", "Fetching sources...", true); //ES
 	}
 
 	@Override

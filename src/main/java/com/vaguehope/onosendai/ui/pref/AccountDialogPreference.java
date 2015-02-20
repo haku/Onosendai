@@ -38,7 +38,7 @@ public class AccountDialogPreference extends DialogPreference {
 				setEnabled(false);
 		}
 
-		setDialogTitle("Edit Account (" + getKey() + ")");
+		setDialogTitle("Edit Account (" + getKey() + ")"); //ES
 		setPositiveButtonText(android.R.string.ok);
 		setNegativeButtonText(android.R.string.cancel);
 	}

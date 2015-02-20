@@ -26,7 +26,7 @@ public class FilterDialogPref extends DialogPreference {
 		setKey(filterId);
 		setTitle(filter);
 
-		setDialogTitle("Edit Filter (" + getKey() + ")");
+		setDialogTitle("Edit Filter (" + getKey() + ")"); //ES
 		setPositiveButtonText(android.R.string.ok);
 		setNegativeButtonText(android.R.string.cancel);
 	}

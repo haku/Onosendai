@@ -3,19 +3,19 @@ package com.vaguehope.onosendai.util;
 import java.util.Locale;
 
 public enum TextFilter {
-	UPSIDE_DOWN("Upside Down") {
+	UPSIDE_DOWN("Upside Down") { //ES
 		@Override
 		public String apply (final String in) {
 			return upsideDown(in);
 		}
 	},
-	HEAVY_METAL_UMLAUTS("Heavy Metal Umlauts") {
+	HEAVY_METAL_UMLAUTS("Heavy Metal Umlauts") { //ES
 		@Override
 		public String apply (final String in) {
 			return heavyMetalUmlauts(in);
 		}
 	},
-	TH_TO_THORN("Th to Thorn") {
+	TH_TO_THORN("Th to Thorn") { //ES
 		@Override
 		public String apply (final String in) {
 			return thToThorn(in);

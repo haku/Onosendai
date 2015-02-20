@@ -54,19 +54,19 @@ public class FiltersPrefFragment extends PreferenceFragment {
 
 		final CheckBoxPreference showFiltered = new CheckBoxPreference(getActivity());
 		showFiltered.setKey(KEY_SHOW_FILTERED);
-		showFiltered.setTitle("Show filtered");
-		showFiltered.setSummary("For testing filters.");
+		showFiltered.setTitle("Show filtered"); //ES
+		showFiltered.setSummary("For testing filters."); //ES
 		getPreferenceScreen().addPreference(showFiltered);
 
 		final Preference reapplyFilters = new Preference(getActivity());
-		reapplyFilters.setTitle("Reapply Filters");
-		reapplyFilters.setSummary("Apply filter rules to already downloaded tweets");
+		reapplyFilters.setTitle("Reapply Filters"); //ES
+		reapplyFilters.setSummary("Apply filter rules to already downloaded tweets"); //ES
 		reapplyFilters.setOnPreferenceClickListener(this.reapplyFiltersListener);
 		getPreferenceScreen().addPreference(reapplyFilters);
 
 		final Preference addFilter = new Preference(getActivity());
-		addFilter.setTitle("Add Filter");
-		addFilter.setSummary("Plain string or regex");
+		addFilter.setTitle("Add Filter"); //ES
+		addFilter.setSummary("Plain string or regex"); //ES
 		addFilter.setOnPreferenceClickListener(new AddFilterClickListener(this));
 		getPreferenceScreen().addPreference(addFilter);
 
@@ -81,7 +81,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 		final FilterDialog dlg = new FilterDialog(getActivity());
 
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(getActivity());
-		dlgBuilder.setTitle("New Filter (" + id + ")");
+		dlgBuilder.setTitle("New Filter (" + id + ")"); //ES
 		dlgBuilder.setView(dlg.getRootView());
 		dlgBuilder.setPositiveButton(android.R.string.ok, new OnClickListener() {
 			@Override
@@ -111,7 +111,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 
 	protected void askDeleteFilter (final String filterId, final String filter) {
 		DialogHelper.askYesNo(getActivity(),
-				String.format("Delete the filter %s?", filter),
+				String.format("Delete the filter %s?", filter), //ES
 				new Runnable() {
 					@Override
 					public void run () {
@@ -161,7 +161,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(getContext(), "Reapplying Filters", "...", true);
+			this.dialog = ProgressDialog.show(getContext(), "Reapplying Filters", "...", true); //ES
 		}
 
 		@Override
@@ -173,10 +173,10 @@ public class FiltersPrefFragment extends PreferenceFragment {
 		@Override
 		protected Exception doInBackgroundWithDb (final DbInterface db, final Void... params) {
 			try {
-				publishProgress("Parsing filters...");
+				publishProgress("Parsing filters..."); //ES
 				final Filters filters = new Filters(this.prefs.readFilters());
 
-				publishProgress("Reading tweets...");
+				publishProgress("Reading tweets..."); //ES
 				final TweetCursorReader reader = new TweetCursorReader();
 				long processed = 0L;
 				long totalChanges = 0L;
@@ -193,7 +193,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 									changes.add(new Pair<Long, Boolean>(reader.readUid(c), newFiltered));
 								}
 								processed += 1;
-								if (processed % 100 == 0) publishProgress("Read " + processed + ", found " + changes.size() + " changes ...");
+								if (processed % 100 == 0) publishProgress("Read " + processed + ", found " + changes.size() + " changes ..."); //ES
 							}
 							while (c.moveToNext());
 						}
@@ -201,7 +201,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 					finally {
 						IoHelper.closeQuietly(c);
 					}
-					publishProgress("Saving " + changes.size() + " changes in " + column.getTitle() + "...");
+					publishProgress("Saving " + changes.size() + " changes in " + column.getTitle() + "..."); //ES
 					db.updateTweetFiltered(changes);
 					LOG.i("Saved %s filter changes in %s.", changes.size(), column.getTitle());
 					totalChanges += changes.size();

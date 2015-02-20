@@ -31,7 +31,7 @@ public final class DialogHelper {
 	}
 
 	public static void alert (final Context context, final Throwable t) {
-		alert(context, "Error:", t);
+		alert(context, "Error:", t); //ES
 	}
 
 	public static void alert (final Context context, final String msg, final Throwable t) {
@@ -80,7 +80,7 @@ public final class DialogHelper {
 	}
 
 	public static void askYesNo (final Context context, final String msg, final Runnable onYes) {
-		askYesNo(context, msg, "Yes", "No", onYes);
+		askYesNo(context, msg, "Yes", "No", onYes); //ES
 	}
 
 	public static void askYesNo (final Context context, final String msg, final String yesLbl, final String noLbl, final Runnable onYes) {

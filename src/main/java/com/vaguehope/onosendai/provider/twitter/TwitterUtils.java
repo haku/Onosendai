@@ -113,12 +113,12 @@ public final class TwitterUtils {
 		addHashtags(s, metas);
 		addMentions(s, metas, status.getUser().getId(), ownId);
 
-		String userSubtitle = viaUser != null ? String.format("via %s", viaUser.getScreenName()) : null;
-		final String fullSubtitle = viaUser != null ? String.format("via %s", viaUser.getName()) : null;
+		String userSubtitle = viaUser != null ? String.format("via %s", viaUser.getScreenName()) : null; //ES
+		final String fullSubtitle = viaUser != null ? String.format("via %s", viaUser.getName()) : null; //ES
 
 		final int mediaCount = MetaUtils.countMetaOfType(metas, MetaType.MEDIA);
 		if (mediaCount > 1) {
-			final String mediaCountMsg = String.format("%s pictures", mediaCount);
+			final String mediaCountMsg = String.format("%s pictures", mediaCount); //ES
 			if (userSubtitle != null) {
 				userSubtitle += ", " + mediaCountMsg;
 			}
@@ -247,34 +247,34 @@ public final class TwitterUtils {
 	public static String friendlyExceptionMessage (final TwitterException e) {
 		switch (e.getErrorCode()) {
 			case TWITTER_ERROR_CODE_ACCOUNT_SUSPENDED:
-				return "Your account is suspended and is not permitted to access this feature. :(";
+				return "Your account is suspended and is not permitted to access this feature. :("; //ES
 			case TWITTER_ERROR_CODE_RATE_LIMIT_EXCEEDED:
-				return "Rate limit exceeded.  Please try again in a while.";
+				return "Rate limit exceeded.  Please try again in a while."; //ES
 			case TWITTER_ERROR_CODE_INVALID_EXPIRED_TOKEN:
-				return "Invalid or expired token.  Please try reauthenticating.";
+				return "Invalid or expired token.  Please try reauthenticating."; //ES
 			case TWITTER_ERROR_CODE_OVER_CAPCACITY:
-				return "OMG Twitter is over capacity!";
+				return "OMG Twitter is over capacity!"; //ES
 			case TWITTER_ERROR_CODE_TWITTER_IS_DOWN:
-				return "OMG Twitter is down!";
+				return "OMG Twitter is down!"; //ES
 			case TWITTER_ERROR_CODE_NOT_AUTH_TO_VIEW_STATUS:
-				return "You are not authorized to see this status.";
+				return "You are not authorized to see this status."; //ES
 			case TWITTER_ERROR_CODE_DAILY_STATUS_LIMIT_EXCEEDED:
-				return "You are over daily status update limit.";
+				return "You are over daily status update limit."; //ES
 			default:
 		}
 		final Throwable cause = e.getCause();
 		if (cause != null) {
 			if (cause instanceof UnknownHostException) {
-				return "Network error: " + cause.getMessage();
+				return "Network error: " + cause.getMessage(); //ES
 			}
 			else if (cause instanceof IOException && StringHelper.safeContainsIgnoreCase(cause.getMessage(), "connection timed out")) {
-				return "Network error: Connection timed out.";
+				return "Network error: Connection timed out."; //ES
 			}
 			else if (cause instanceof IOException) {
-				return "Network error: " + cause;
+				return "Network error: " + cause; //ES
 			}
 			else if (cause instanceof twitter4j.JSONException) {
-				return "Network error: Invalid or incomplete data received.";
+				return "Network error: Invalid or incomplete data received."; //ES
 			}
 		}
 		return ExcpetionHelper.causeTrace(e);
