@@ -209,13 +209,13 @@ public class OutboxActivity extends Activity {
 	};
 
 	private enum OutboxItemAction implements Titleable {
-		VIEW_ERROR("View Error") {
+		VIEW_ERROR("View Error") { //ES
 			@Override
 			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
 				DialogHelper.alert(oa, ot.getLastError());
 			}
 		},
-		EDIT_AS_NEW("Edit") {
+		EDIT_AS_NEW("Edit") { //ES
 			@Override
 			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
 				oa.getDb().updateOutboxEntry(ot.setPaused());
@@ -233,24 +233,24 @@ public class OutboxActivity extends Activity {
 						.putExtra(PostActivity.ARG_OUTBOX_UID, ot.getUid().longValue()));
 			}
 		},
-		COPY_BODY("Copy Body") {
+		COPY_BODY("Copy Body") { //ES
 			@Override
 			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
 				((ClipboardManager) oa.getSystemService(Context.CLIPBOARD_SERVICE))
-						.setPrimaryClip(ClipData.newPlainText("Tweet", ot.getBody()));
+						.setPrimaryClip(ClipData.newPlainText("Tweet", ot.getBody())); //ES
 			}
 		},
-		COPY_ERROR("Copy Error") {
+		COPY_ERROR("Copy Error") { //ES
 			@Override
 			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
 				((ClipboardManager) oa.getSystemService(Context.CLIPBOARD_SERVICE))
-						.setPrimaryClip(ClipData.newPlainText("Error Message", ot.getLastError()));
+						.setPrimaryClip(ClipData.newPlainText("Error Message", ot.getLastError())); //ES
 			}
 		},
-		DELETE("Delete") {
+		DELETE("Delete") { //ES
 			@Override
 			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
-				DialogHelper.askYesNo(oa, "Delete outbox item?", "Delete", "Keep", new Runnable() {
+				DialogHelper.askYesNo(oa, "Delete outbox item?", "Delete", "Keep", new Runnable() { //ES
 					@Override
 					public void run () {
 						oa.getDb().deleteFromOutbox(ot);
@@ -274,7 +274,7 @@ public class OutboxActivity extends Activity {
 	}
 
 	protected void itemClicked (final OutboxTweet ot) {
-		DialogHelper.askItem(this, "Outbox Item", OutboxItemAction.values(), new Listener<OutboxItemAction>() {
+		DialogHelper.askItem(this, "Outbox Item", OutboxItemAction.values(), new Listener<OutboxItemAction>() { //ES
 			@Override
 			public void onAnswer (final OutboxItemAction answer) {
 				answer.onClick(OutboxActivity.this, ot);

@@ -61,7 +61,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostR
 		this.notificationMgr = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 		this.notificationBuilder = new NotificationCompat.Builder(getContext())
 				.setSmallIcon(Notifications.notificationIcon())
-				.setContentTitle(String.format("Posting to %s...", this.req.getAccount().getUiTitle()))
+				.setContentTitle(String.format("Posting to %s...", this.req.getAccount().getUiTitle())) //ES
 				.setOngoing(true)
 				.setUsesChronometer(true);
 		updateNotificaiton();
@@ -175,11 +175,11 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostR
 				String title;
 				if (this.req.getRecoveryIntent() != null) {
 					intent = this.req.getRecoveryIntent();
-					title = String.format("Tap to retry post to %s.", this.req.getAccount().getUiTitle());
+					title = String.format("Tap to retry post to %s.", this.req.getAccount().getUiTitle()); //ES
 				}
 				else {
 					intent = new Intent(getContext(), OutboxActivity.class);
-					title = String.format("Post to %s will be retried in background.", this.req.getAccount().getUiTitle());
+					title = String.format("Post to %s will be retried in background.", this.req.getAccount().getUiTitle()); //ES
 					// TODO only one notification for all outbox issues!
 				}
 				final PendingIntent contentIntent = PendingIntent.getActivity(getContext(), this.notificationId,

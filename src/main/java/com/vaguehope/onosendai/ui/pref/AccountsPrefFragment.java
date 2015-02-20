@@ -47,8 +47,8 @@ public class AccountsPrefFragment extends PreferenceFragment {
 		getPreferenceScreen().removeAll();
 
 		final Preference pref = new Preference(getActivity());
-		pref.setTitle("Add Account");
-		pref.setSummary("Add a new Twitter, SuccessWhale, Instapaper or Buffer account");
+		pref.setTitle("Add Account"); //ES
+		pref.setSummary("Add a new Twitter, SuccessWhale, Instapaper or Buffer account"); //ES
 		pref.setOnPreferenceClickListener(new AddAcountClickListener(this));
 		getPreferenceScreen().addPreference(pref);
 
@@ -65,7 +65,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptNewAccountType () {
-		DialogHelper.askItem(getActivity(), "Account Type",
+		DialogHelper.askItem(getActivity(), "Account Type", //ES
 				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.SUCCESSWHALE, AccountProvider.INSTAPAPER, AccountProvider.BUFFER, AccountProvider.HOSAKA },
 				new Listener<AccountProvider>() {
 					@Override
@@ -116,7 +116,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 			@Override
 			public void onAccount (final Account account, final String screenName) throws JSONException {
 				AccountsPrefFragment.this.prefs.writeNewAccount(account);
-				DialogHelper.alert(getActivity(), "Twitter account added:\n" + screenName);
+				DialogHelper.alert(getActivity(), "Twitter account added:\n" + screenName); //ES
 				refreshAccountsList();
 			}
 		});
@@ -136,7 +136,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 		final AccountDialog dlg = new AccountDialog(getActivity(), id, provider);
 
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(getActivity());
-		dlgBuilder.setTitle("New Account (" + id + ")");
+		dlgBuilder.setTitle("New Account (" + id + ")"); //ES
 		dlgBuilder.setView(dlg.getRootView());
 		dlgBuilder.setPositiveButton(android.R.string.ok, new OnClickListener() {
 			@Override
@@ -153,7 +153,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 				refreshAccountsList();
 			}
 		});
-		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER);
+		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER); //ES
 		dlgBuilder.create().show();
 	}
 
@@ -183,7 +183,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 			@Override
 			public void onAccount (final Account newAccount, final String screenName) throws JSONException {
 				AccountsPrefFragment.this.prefs.updateExistingAccount(newAccount);
-				DialogHelper.alert(getActivity(), "Twitter account updated:\n" + screenName);
+				DialogHelper.alert(getActivity(), "Twitter account updated:\n" + screenName); //ES
 				refreshAccountsList();
 			}
 		});
@@ -192,7 +192,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 	protected void askDeleteAccount (final Account account) {
 		// FIXME do not allow this if columns are using this account.
 		DialogHelper.askYesNo(getActivity(),
-				String.format("Delete the account %s?", account.getUiTitle()),
+				String.format("Delete the account %s?", account.getUiTitle()), //ES
 				new Runnable() {
 					@Override
 					public void run () {

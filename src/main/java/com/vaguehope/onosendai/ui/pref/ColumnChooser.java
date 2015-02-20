@@ -68,7 +68,7 @@ class ColumnChooser {
 		INSTANCE;
 		@Override
 		public String getUiTitle () {
-			return "(internal)";
+			return "(internal)"; //ES
 		}
 	}
 
@@ -106,7 +106,7 @@ class ColumnChooser {
 	}
 
 	protected void promptAddInternalColumn () {
-		DialogHelper.askItem(this.context, "Internal", InternalColumnType.values(), new Listener<InternalColumnType>() {
+		DialogHelper.askItem(this.context, "Internal", InternalColumnType.values(), new Listener<InternalColumnType>() { //ES
 			@Override
 			public void onAnswer (final InternalColumnType type) {
 				onColumn(null, type.name(), type.getUiTitle());
@@ -117,7 +117,7 @@ class ColumnChooser {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	protected void promptAddTwitterColumn (final Account account) {
-		DialogHelper.askItem(this.context, "Twitter Columns", TwitterColumnType.values(), new Listener<TwitterColumnType>() {
+		DialogHelper.askItem(this.context, "Twitter Columns", TwitterColumnType.values(), new Listener<TwitterColumnType>() { //ES
 			@Override
 			public void onAnswer (final TwitterColumnType type) {
 				promptAddTwitterColumn(account, type);
@@ -143,11 +143,11 @@ class ColumnChooser {
 
 	protected void promptAddTwitterAnothersListColumn (final Account account) {
 		// TODO auto complete screen names?
-		DialogHelper.askString(this.context, "Their screen name (without @):", new Listener<String>() {
+		DialogHelper.askString(this.context, "Their screen name (without @):", new Listener<String>() { //ES
 			@Override
 			public void onAnswer (final String answer) {
 				if (StringHelper.isEmpty(answer)) {
-					DialogHelper.alert(ColumnChooser.this.context, "Screen name was empty.");
+					DialogHelper.alert(ColumnChooser.this.context, "Screen name was empty."); //ES
 				}
 				else {
 					promptAddTwitterListColumn(account, answer);
@@ -166,7 +166,7 @@ class ColumnChooser {
 	}
 
 	protected void promptAddTwitterListColumn (final Account account, final String ownerScreenName, final List<String> listSlugs) {
-		DialogHelper.askStringItem(this.context, "Twitter Lists", listSlugs, new Listener<String>() {
+		DialogHelper.askStringItem(this.context, "Twitter Lists", listSlugs, new Listener<String>() { //ES
 			@Override
 			public void onAnswer (final String answer) {
 				final String owner = StringHelper.isEmpty(ownerScreenName) ? "" : ownerScreenName + "/";
@@ -176,7 +176,7 @@ class ColumnChooser {
 	}
 
 	protected void promptAddTwitterSearchColumn (final Account account) {
-		DialogHelper.askString(this.context, "Search term:", new Listener<String>() {
+		DialogHelper.askString(this.context, "Search term:", new Listener<String>() { //ES
 			@Override
 			public void onAnswer (final String answer) {
 				onColumn(account, TwitterColumnType.SEARCH.getResource() + answer);
@@ -192,9 +192,9 @@ class ColumnChooser {
 			return;
 		}
 
-		final String existing = "Existing Column";
-		final String custom = "Custom Source Mix";
-		DialogHelper.askStringItem(this.context, "SuccessWhale Column", CollectionHelper.listOf(existing, custom), new Listener<String>() {
+		final String existing = "Existing Column"; //ES
+		final String custom = "Custom Source Mix"; //ES
+		DialogHelper.askStringItem(this.context, "SuccessWhale Column", CollectionHelper.listOf(existing, custom), new Listener<String>() { //ES
 			@Override
 			public void onAnswer (final String answer) {
 				if (existing.equals(answer)) {
@@ -218,7 +218,7 @@ class ColumnChooser {
 
 	protected void promptAddSuccessWhaleColumn (final Account account, final SuccessWhaleColumns columns) {
 		// TODO allow multi selection.
-		DialogHelper.askItem(this.context, "SuccessWhale Columns", columns.getColumns(), new Listener<Column>() {
+		DialogHelper.askItem(this.context, "SuccessWhale Columns", columns.getColumns(), new Listener<Column>() { //ES
 			@Override
 			public void onAnswer (final Column column) {
 				onColumn(account, column.getResource(), column.getTitle());
@@ -237,7 +237,7 @@ class ColumnChooser {
 
 	protected void promptAddSuccessWhaleColumn (final Account account, final SuccessWhaleSources sources, final String previousResource) {
 		final Set<SuccessWhaleSource> previous = SuccessWhaleSources.fromResource(previousResource);
-		DialogHelper.askItems(this.context, "SuccessWhale Sources", sources.getSources(),
+		DialogHelper.askItems(this.context, "SuccessWhale Sources", sources.getSources(), //ES
 				new Question<SuccessWhaleSource>() {
 					@Override
 					public boolean ask (final SuccessWhaleSource source) {

@@ -9,9 +9,9 @@ public enum InlineMediaStyle implements Titleable {
 	/**
 	 * Synonym for null.
 	 */
-	NONE("none", "-"),
-	INLINE("inline", "Inline"),
-	SEAMLESS("seamless", "Seamless");
+	NONE("none", "-"), //ES
+	INLINE("inline", "Inline"), //ES
+	SEAMLESS("seamless", "Seamless"); //ES
 
 	private final String uiTitle;
 	private final String serial;

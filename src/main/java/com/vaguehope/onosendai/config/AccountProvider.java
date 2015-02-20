@@ -5,11 +5,11 @@ import java.util.Locale;
 import com.vaguehope.onosendai.util.Titleable;
 
 public enum AccountProvider implements Titleable {
-	TWITTER("Twitter"),
-	SUCCESSWHALE("SuccessWhale"),
-	INSTAPAPER("Instapaper"),
-	BUFFER("Buffer"),
-	HOSAKA("Hosaka");
+	TWITTER("Twitter"), //ES
+	SUCCESSWHALE("SuccessWhale"), //ES
+	INSTAPAPER("Instapaper"), //ES
+	BUFFER("Buffer"), //ES
+	HOSAKA("Hosaka"); //ES
 
 	private final String humanName;
 

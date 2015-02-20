@@ -307,7 +307,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				askPost();
 			}
 		});
-		if (this.outboxUid != null) btnPost.setText("Update Post");
+		if (this.outboxUid != null) btnPost.setText("Update Post"); //ES
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -328,7 +328,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	protected void askAccountAndShrinkPicture () {
 		final List<Account> items = readAccountsOrAlert();
 		if (items == null) return;
-		DialogHelper.askItem(this, "Post to Account", items, new Listener<Account>() {
+		DialogHelper.askItem(this, "Post to Account", items, new Listener<Account>() { //ES
 			@Override
 			public void onAnswer (final Account account) {
 				setSelectedAccount(account);
@@ -342,7 +342,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			return new ArrayList<Account>(this.prefs.readAccounts());
 		}
 		catch (final JSONException e) {
-			DialogHelper.alert(this, "Failed to read accounts.", e);
+			DialogHelper.alert(this, "Failed to read accounts.", e); //ES
 			return null;
 		}
 	}
@@ -411,21 +411,21 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		switch (account.getProvider()) {
 			case SUCCESSWHALE:
 			case BUFFER:
-				msg = String.format("Post to these %s accounts?%n%s", account.getUiTitle(), ServiceRef.humanList(svcs, "\n"));
+				msg = String.format("Post to these %s accounts?%n%s", account.getUiTitle(), ServiceRef.humanList(svcs, "\n")); //ES
 				break;
 			default:
-				msg = String.format("Post to %s?", account.getUiTitle());
+				msg = String.format("Post to %s?", account.getUiTitle()); //ES
 		}
 		dlgBld.setMessage(msg);
 
-		dlgBld.setPositiveButton(this.outboxUid == null ? "Post" : "Update Post", new DialogInterface.OnClickListener() {
+		dlgBld.setPositiveButton(this.outboxUid == null ? "Post" : "Update Post", new DialogInterface.OnClickListener() { //ES
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
 				submitPostToOutput(account, svcs);
 			}
 		});
 
-		dlgBld.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+		dlgBld.setNegativeButton("Cancel", new DialogInterface.OnClickListener() { //ES
 			@Override
 			public void onClick (final DialogInterface dialog, final int whichButton) {
 				dialog.cancel();
@@ -475,7 +475,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	private ImageMetadata redrawAttachment () {
 		final ImageMetadata metadata = new ImageMetadata(this, this.attachment);
 		final TextView txtAttached = (TextView) findViewById(R.id.txtAttached);
-		txtAttached.setText(String.format("Attachment: %s", metadata.getUiTitle()));
+		txtAttached.setText(String.format("Attachment: %s", metadata.getUiTitle())); //ES
 		txtAttached.setVisibility(metadata.exists() ? View.VISIBLE : View.GONE);
 		return metadata;
 	}
@@ -547,7 +547,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				new Intent(Intent.ACTION_GET_CONTENT)
 						.setType("image/*")
 						.addCategory(Intent.CATEGORY_OPENABLE),
-				"Select Picture")
+				"Select Picture") //ES
 				.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {
 						new Intent(MediaStore.ACTION_IMAGE_CAPTURE)
 								.putExtra(MediaStore.EXTRA_OUTPUT, this.tmpAttachment) })
@@ -567,7 +567,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 					dialog.dismiss();
 				}
 			});
-			dlgBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			dlgBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() { //ES
 				@Override
 				public void onClick (final DialogInterface dialog, final int whichButton) {
 					dialog.cancel();
@@ -625,7 +625,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				uri = Uri.fromFile(AttachmentStorage.moveToInternalStorage(this, new File(this.tmpAttachment.getPath())));
 			}
 			else {
-				DialogHelper.alert(this, "Media is missing from response intent.");
+				DialogHelper.alert(this, "Media is missing from response intent."); //ES
 				return;
 			}
 			if (ImageMetadata.isUnderstoodResource(uri)) {
@@ -634,7 +634,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				checkAndAskShrinkPicture(metadata);
 			}
 			else {
-				DialogHelper.alert(this, "Unknown resource:\n" + uri);
+				DialogHelper.alert(this, "Unknown resource:\n" + uri); //ES
 			}
 		}
 		catch (final IOException e) {
@@ -649,8 +649,8 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	private void checkAndAskShrinkPicture (final ImageMetadata metadata) {
 		if (metadata.getSize() < PROMPT_RESIZE_MIN_SIZE) return;
 		DialogHelper.askYesNo(this,
-				"Picture is " + IoHelper.readableFileSize(metadata.getSize())
-				, "Shrink...", "Full Size", new Runnable() {
+				"Picture is " + IoHelper.readableFileSize(metadata.getSize()) //ES
+				, "Shrink...", "Full Size", new Runnable() { //ES
 					@Override
 					public void run () {
 						showShrinkPictureDlg();
@@ -679,7 +679,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(getContext(), "Adding to Outbox", "...", true);
+			this.dialog = ProgressDialog.show(getContext(), "Adding to Outbox", "...", true); //ES
 		}
 
 		@Override
@@ -693,7 +693,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			try {
 				final OutboxTweet otToAdd;
 				if (this.ot.getAttachment() != null && ImageMetadata.isRemoteResource(this.ot.getAttachment())) {
-					publishProgress("Caching attachment...");
+					publishProgress("Caching attachment..."); //ES
 					final ImageMetadata im = new ImageMetadata(getContext(), this.ot.getAttachment());
 					final File internal = AttachmentStorage.getTempFile(getContext(), im.getName());
 					final InputStream is = im.open();
@@ -708,7 +708,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				else {
 					otToAdd = this.ot;
 				}
-				publishProgress("Writing to Outbox...");
+				publishProgress("Writing to Outbox..."); //ES
 				if (this.outboxUid == null) {
 					db.addPostToOutput(otToAdd);
 				}
@@ -728,10 +728,10 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			if (result == null) {
 				final String msg;
 				if (this.outboxUid == null) {
-					msg = "Posted via Outbox";
+					msg = "Posted via Outbox"; //ES
 				}
 				else {
-					msg = "Updated Outbox item";
+					msg = "Updated Outbox item"; //ES
 				}
 				getContext().startService(new Intent(getContext(), SendOutboxService.class));
 				Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();

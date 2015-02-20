@@ -153,11 +153,11 @@ public class HosakaSyncService extends DbBindingService {
 	private static void storeResult (final DbInterface db, final int pushedCount, final int pulledCount, final Exception e) {
 		final String status;
 		if (e != null) {
-			status = String.format("Failed: %s", ExcpetionHelper.causeTrace(e));
+			status = String.format("Failed: %s", ExcpetionHelper.causeTrace(e)); //ES
 			LOG.w(status);
 		}
 		else {
-			status = String.format("Success: pushed %s and pulled %s columns.", pushedCount, pulledCount);
+			status = String.format("Success: pushed %s and pulled %s columns.", pushedCount, pulledCount); //ES
 		}
 		db.storeValue(KvKeys.KEY_HOSAKA_STATUS,
 				String.format("%s %s",

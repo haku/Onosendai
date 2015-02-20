@@ -73,10 +73,10 @@ public class ColumnStatsActivity extends Activity {
 		@Override
 		protected Exception doInBackgroundWithDb (final DbInterface db, final Void... params) {
 			try {
-				publishProgress(String.format("%,d tweets ever", db.getTotalTweetsEverSeen()));
+				publishProgress(String.format("%,d tweets ever", db.getTotalTweetsEverSeen())); //ES
 				for (final Column col : this.conf.getColumns()) {
 					final double tph = db.getTweetsPerHour(col.getId());
-					publishProgress(String.format("%s : %s /hour", col.getTitle(), tph >= 0 ? roundSigFig(tph, 3) : '?'));
+					publishProgress(String.format("%s : %s /hour", col.getTitle(), tph >= 0 ? roundSigFig(tph, 3) : '?')); //ES
 				}
 				return null;
 			}

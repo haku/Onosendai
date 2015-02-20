@@ -18,10 +18,10 @@ import com.vaguehope.onosendai.util.Titleable;
 public class OutboxTweet {
 
 	public enum OutboxAction implements Titleable {
-		POST(0, "Post", "Posting"),
-		RT(1, "RT", "RTing"),
-		DELETE(2, "Delete", "Deleting"),
-		FAV(3, "Favourite", "Favouriting");
+		POST(0, "Post", "Posting"), //ES
+		RT(1, "RT", "RTing"), //ES
+		DELETE(2, "Delete", "Deleting"), //ES
+		FAV(3, "Favourite", "Favouriting"); //ES
 
 		private final int code;
 		private final String title;
@@ -64,10 +64,10 @@ public class OutboxTweet {
 	}
 
 	public enum OutboxTweetStatus {
-		UNKNOWN(0, "Unknown"),
-		PENDING(1, "Pending"),
-		PERMANENTLY_FAILED(2, "Failed"),
-		PAUSED(3, "Paused");
+		UNKNOWN(0, "Unknown"), //ES
+		PENDING(1, "Pending"), //ES
+		PERMANENTLY_FAILED(2, "Failed"), //ES
+		PAUSED(3, "Paused"); //ES
 
 		private final int code;
 		private final String name;

@@ -114,7 +114,7 @@ public class LocalSearchDialog {
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.dlg.context, "Tweets", "Searching...", true);
+			this.dialog = ProgressDialog.show(this.dlg.context, "Tweets", "Searching...", true); //ES
 		}
 
 		@Override

@@ -61,16 +61,16 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 	private void addThreadInspector () {
 		final CheckBoxPreference pref = new CheckBoxPreference(getActivity());
 		pref.setKey(KEY_THREAD_INSPECTOR);
-		pref.setTitle("Thread Inspector");
-		pref.setSummary("For debugging issues with worker threads.");
+		pref.setTitle("Thread Inspector"); //ES
+		pref.setSummary("For debugging issues with worker threads."); //ES
 		getPreferenceScreen().addPreference(pref);
 	}
 
 	private void addImportConfPref () {
 		final Preference pref = new Preference(getActivity());
-		pref.setTitle("Import deck.conf");
+		pref.setTitle("Import deck.conf"); //ES
 		if (Config.isConfigFilePresent()) {
-			pref.setSummary("Replace existing configuration");
+			pref.setSummary("Replace existing configuration"); //ES
 			pref.setOnPreferenceClickListener(this.importClickListener);
 		}
 		else {
@@ -82,24 +82,24 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 
 	private void addDumpLogPref () {
 		final Preference pref = new Preference(getActivity());
-		pref.setTitle("Dump log");
-		pref.setSummary("Write app log to /sdcard/onosendai-<time>.log");
+		pref.setTitle("Dump log"); //ES
+		pref.setSummary("Write app log to /sdcard/onosendai-<time>.log"); //ES
 		pref.setOnPreferenceClickListener(this.dumpLogsClickListener);
 		getPreferenceScreen().addPreference(pref);
 	}
 
 	private void addDumpReadLaterPref () {
 		final Preference pref = new Preference(getActivity());
-		pref.setTitle("Dump read later");
-		pref.setSummary("Write read later column to /sdcard/reading-<time>.txt");
+		pref.setTitle("Dump read later"); //ES
+		pref.setSummary("Write read later column to /sdcard/reading-<time>.txt"); //ES
 		pref.setOnPreferenceClickListener(this.dumpReadLaterListener);
 		getPreferenceScreen().addPreference(pref);
 	}
 
 	private void addHousekeepPref () {
 		final Preference pref = new Preference(getActivity());
-		pref.setTitle("Housekeep");
-		pref.setSummary("Housekeep things now.  Underwhelming.");
+		pref.setTitle("Housekeep"); //ES
+		pref.setSummary("Housekeep things now.  Underwhelming."); //ES
 		pref.setOnPreferenceClickListener(this.housekeepListener);
 		getPreferenceScreen().addPreference(pref);
 	}
@@ -138,7 +138,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 
 	protected void askImport () {
 		DialogHelper.askYesNo(getActivity(),
-				"Are you sure you want to overwrite all configuration?",
+				"Are you sure you want to overwrite all configuration?", //ES
 				new Runnable() {
 					@Override
 					public void run () {
@@ -200,7 +200,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.context, "Log", "Saving...", true);
+			this.dialog = ProgressDialog.show(this.context, "Log", "Saving...", true); //ES
 		}
 
 		@Override
@@ -218,7 +218,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		protected void onPostExecute (final Exception result) {
 			this.dialog.dismiss();
 			if (result == null) {
-				DialogHelper.alert(this.context, "Log written to:\n" + this.file.getAbsolutePath());
+				DialogHelper.alert(this.context, "Log written to:\n" + this.file.getAbsolutePath()); //ES
 			}
 			else {
 				LOG.e("Failed to dump read later.", result);
@@ -248,7 +248,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(getContext(), "Read Later", "Saving...", true);
+			this.dialog = ProgressDialog.show(getContext(), "Read Later", "Saving...", true); //ES
 		}
 
 		@Override
@@ -283,7 +283,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		protected void onPostExecute (final Exception result) {
 			this.dialog.dismiss();
 			if (result == null) {
-				DialogHelper.alert(getContext(), "Read later column written to:\n" + this.file.getAbsolutePath());
+				DialogHelper.alert(getContext(), "Read later column written to:\n" + this.file.getAbsolutePath()); //ES
 			}
 			else {
 				LOG.e("Failed to dump read later.", result);
@@ -308,7 +308,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(getContext(), "Housekeep", "Please wait...", true);
+			this.dialog = ProgressDialog.show(getContext(), "Housekeep", "Please wait...", true); //ES
 		}
 
 		@Override
@@ -327,7 +327,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		protected void onPostExecute (final Exception result) {
 			this.dialog.dismiss();
 			if (result == null) {
-				DialogHelper.alert(getContext(), "Housekeep complete.");
+				DialogHelper.alert(getContext(), "Housekeep complete."); //ES
 			}
 			else {
 				LOG.e("Failed to housekeep.", result);

@@ -194,7 +194,7 @@ class AccountDialog {
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.context, this.account.getProvider().getUiTitle(), "Testing login...", true);
+			this.dialog = ProgressDialog.show(this.context, this.account.getProvider().getUiTitle(), "Testing login...", true); //ES
 		}
 
 		@Override
@@ -204,18 +204,18 @@ class AccountDialog {
 				switch (this.account.getProvider()) {
 					case SUCCESSWHALE:
 						provMgr.getSuccessWhaleProvider().testAccountLogin(this.account);
-						return "Success.";
+						return "Success."; //ES
 					case INSTAPAPER:
 						provMgr.getInstapaperProvider().testAccountLogin(this.account);
-						return "Success.";
+						return "Success."; //ES
 					case BUFFER:
 						provMgr.getBufferAppProvider().testAccountLogin(this.account);
-						return "Success.";
+						return "Success."; //ES
 					case HOSAKA:
 						provMgr.getHosakaProvider().testAccountLogin(this.account);
-						return "Success.";
+						return "Success."; //ES
 					default:
-						return "Do not know how to test account type: " + this.account.getProvider().getUiTitle();
+						return "Do not know how to test account type: " + this.account.getProvider().getUiTitle(); //ES
 				}
 			}
 			catch (final Exception e) { // NOSONAR want to report all errors.

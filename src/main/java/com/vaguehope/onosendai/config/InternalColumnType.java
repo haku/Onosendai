@@ -6,7 +6,7 @@ import com.vaguehope.onosendai.util.Titleable;
 
 public enum InternalColumnType implements Titleable {
 
-	LATER("Reading List");
+	LATER("Reading List"); //ES
 
 	private final String title;
 

@@ -32,7 +32,7 @@ public class TwitterListsFetcher extends AsyncTask<Void, Void, Result<List<Strin
 
 	@Override
 	protected void onPreExecute () {
-		this.dialog = ProgressDialog.show(this.context, "Twitter", "Fetching lists...", true);
+		this.dialog = ProgressDialog.show(this.context, "Twitter", "Fetching lists...", true); //ES
 	}
 
 	@Override

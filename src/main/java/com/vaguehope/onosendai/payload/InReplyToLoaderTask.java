@@ -55,7 +55,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 		this.hdMedia = hdMedia;
 		this.payloadListAdapter = payloadListAdapter;
 		this.es = es;
-		this.placeholderPayload = new PlaceholderPayload(null, "Fetching conversation...", true);
+		this.placeholderPayload = new PlaceholderPayload(null, "Fetching conversation...", true); //ES
 		this.firstRun = firstRun;
 	}
 
@@ -160,11 +160,11 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 			try {
 				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
 				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
-				return new ReplyLoaderResult("No visible comments.", startingTweet);
+				return new ReplyLoaderResult("No visible comments.", startingTweet); //ES
 			}
 			catch (final SuccessWhaleException e) {
 				LOG.w("Failed to retrieve thread %s: %s", startingTweet.getSid(), e.toString());
-				return new ReplyLoaderResult("Error fetching comments: " + e.getMessage(), startingTweet);
+				return new ReplyLoaderResult("Error fetching comments: " + e.getMessage(), startingTweet); //ES
 			}
 		}
 		return null;

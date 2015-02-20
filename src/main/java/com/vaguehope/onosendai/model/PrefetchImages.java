@@ -3,9 +3,9 @@ package com.vaguehope.onosendai.model;
 import com.vaguehope.onosendai.util.Titleable;
 
 public enum PrefetchImages implements Titleable {
-	NO("no", "No"),
-	WIFI_ONLY("wifi_only", "WiFi Only"),
-	ALWAYS("always", "Always");
+	NO("no", "No"), //ES
+	WIFI_ONLY("wifi_only", "WiFi Only"), //ES
+	ALWAYS("always", "Always"); //ES
 
 	private final String value;
 	private final String title;

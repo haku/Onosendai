@@ -4,11 +4,11 @@ import com.vaguehope.onosendai.util.Titleable;
 
 public enum TwitterColumnType implements Titleable {
 
-	TIMELINE("Home Timeline"),
-	MENTIONS("Mentions"),
-	LIST("My List..."),
-	ANOTHERS_LIST("Another's List..."),
-	SEARCH("Search...");
+	TIMELINE("Home Timeline"), //ES
+	MENTIONS("Mentions"), //ES
+	LIST("My List..."), //ES
+	ANOTHERS_LIST("Another's List..."), //ES
+	SEARCH("Search..."); //ES
 
 	private final String title;
 

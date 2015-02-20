@@ -115,7 +115,7 @@ public class TwitterOauthWizard {
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.host.getContext(), "Onosendai", "Starting Oauth...", true);
+			this.dialog = ProgressDialog.show(this.host.getContext(), "Onosendai", "Starting Oauth...", true); //ES
 		}
 
 		@Override
@@ -155,7 +155,7 @@ public class TwitterOauthWizard {
 				new TwitterOauthPostTask(this, oauthVerifier, completeCallback).execute();
 			}
 			else if (resultCode == Activity.RESULT_CANCELED) {
-				DialogHelper.alert(getContext(), "Twitter auth canceled.");
+				DialogHelper.alert(getContext(), "Twitter auth canceled."); //ES
 			}
 		}
 	}
@@ -175,7 +175,7 @@ public class TwitterOauthWizard {
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.host.getContext(), "Onosendai", "Completing Oauth...", true);
+			this.dialog = ProgressDialog.show(this.host.getContext(), "Onosendai", "Completing Oauth...", true); //ES
 		}
 
 		@Override

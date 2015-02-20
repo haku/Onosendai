@@ -34,7 +34,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 
 	@Override
 	protected void onPreExecute () {
-		this.req.setLoadingProgressIfRequired("fetch pending");
+		this.req.setLoadingProgressIfRequired("fetch pending"); //ES
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 				this.req.setFetchingProgressIfRequired(progress, total);
 				this.cache.getReqMgr().setFetchingProgressIfRequired(this.req, progress, total);
 				if (total < 1) {
-					final String prgMsg = "fetched " + IoHelper.readableFileSize(progress);
+					final String prgMsg = "fetched " + IoHelper.readableFileSize(progress); //ES
 					this.req.setLoadingProgressIfRequired(prgMsg);
 					this.cache.getReqMgr().setLoadingProgressIfRequired(this.req, prgMsg);
 				}
@@ -65,7 +65,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 	 */
 	@Override
 	public void onContentLengthToLoad (final long contentLength) {
-		publishProgress(0, "loading " + IoHelper.readableFileSize(contentLength));
+		publishProgress(0, "loading " + IoHelper.readableFileSize(contentLength)); //ES
 	}
 
 	/**
@@ -74,10 +74,10 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 	@Override
 	public void onContentLengthToFetch (final long contentLength) {
 		if (contentLength > 0) {
-			publishProgress(0, "fetching " + IoHelper.readableFileSize(contentLength));
+			publishProgress(0, "fetching " + IoHelper.readableFileSize(contentLength)); //ES
 		}
 		else {
-			publishProgress(0, "fetching ?B");
+			publishProgress(0, "fetching ?B"); //ES
 		}
 	}
 
@@ -108,7 +108,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 							if (failure2 != null) return new ImageFetchResult(this.req, failure2);
 
 							LOG.d("Fetching image: '%s'...", url);
-							publishProgress(0, "fetching");
+							publishProgress(0, "fetching"); //ES
 							bmp = HttpHelper.get(url, this.cache.fromHttp(url, this.req.getReqWidth(), this));
 						}
 					}

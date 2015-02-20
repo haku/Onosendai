@@ -29,7 +29,7 @@ public class SuccessWhaleColumnsFetcher extends AsyncTask<Void, Void, Result<Suc
 
 	@Override
 	protected void onPreExecute () {
-		this.dialog = ProgressDialog.show(this.context, "SuccessWhale", "Fetching columns...", true);
+		this.dialog = ProgressDialog.show(this.context, "SuccessWhale", "Fetching columns...", true); //ES
 	}
 
 	@Override

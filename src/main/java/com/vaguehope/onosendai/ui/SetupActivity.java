@@ -158,7 +158,7 @@ public class SetupActivity extends Activity {
 			@Override
 			public void onAccount (final Account account, final String screenName) throws JSONException {
 				SetupActivity.this.prefs.writeNewAccount(account);
-				DialogHelper.alert(SetupActivity.this, "Twitter account added:\n" + screenName);
+				DialogHelper.alert(SetupActivity.this, "Twitter account added:\n" + screenName); //ES
 				onTwitterAccountAdded(account);
 			}
 		});
@@ -172,7 +172,7 @@ public class SetupActivity extends Activity {
 
 	protected void onTwitterAccountAdded (final Account account) {
 		DialogHelper.alertAndRun(this,
-				"To get you started default Twitter columns will be created.  These can be customised later.",
+				"To get you started default Twitter columns will be created.  These can be customised later.", //ES
 				new Runnable() {
 					@Override
 					public void run () {
@@ -203,7 +203,7 @@ public class SetupActivity extends Activity {
 	private void doWriteExampleConf () {
 		try {
 			final File f = Config.writeExampleConfig();
-			DialogHelper.alertAndClose(this, "Example configuration file written to: " + f.getAbsolutePath());
+			DialogHelper.alertAndClose(this, "Example configuration file written to: " + f.getAbsolutePath()); //ES
 		}
 		catch (final Exception e) { // NOSONAR show user all errors.
 			LOG.e("Failed to write example confuration.", e);

@@ -43,8 +43,8 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		getPreferenceScreen().removeAll();
 
 		final Preference pref = new Preference(getActivity());
-		pref.setTitle("Add Column");
-		pref.setSummary("Add a new column of updates");
+		pref.setTitle("Add Column"); //ES
+		pref.setSummary("Add a new column of updates"); //ES
 		pref.setOnPreferenceClickListener(new AddAcountClickListener(this));
 		getPreferenceScreen().addPreference(pref);
 
@@ -78,7 +78,7 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		if (title != null) dlg.setTitle(title);
 
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(getActivity());
-		dlgBuilder.setTitle("New Column (" + id + ")");
+		dlgBuilder.setTitle("New Column (" + id + ")"); //ES
 		dlgBuilder.setView(dlg.getRootView());
 		dlgBuilder.setPositiveButton(android.R.string.ok, new OnClickListener() {
 			@Override
@@ -95,7 +95,7 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 				refreshColumnsList();
 			}
 		});
-		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER);
+		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER); //ES
 		dlgBuilder.create().show();
 	}
 
@@ -105,7 +105,7 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 
 	protected void askDeleteColumn (final Column column) {
 		DialogHelper.askYesNo(getActivity(),
-				String.format("Delete the column %s and all its data?", column.getUiTitle()),
+				String.format("Delete the column %s and all its data?", column.getUiTitle()), //ES
 				new Runnable() {
 					@Override
 					public void run () {

@@ -35,7 +35,7 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, String, ImageFetchR
 
 	@Override
 	protected void onPreExecute () {
-		this.req.setLoadingProgressIfRequired("load pending");
+		this.req.setLoadingProgressIfRequired("load pending"); //ES
 	}
 
 	@Override
@@ -50,7 +50,7 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, String, ImageFetchR
 	 */
 	@Override
 	public void onContentLengthToLoad (final long contentLength) {
-		publishProgress("loading " + IoHelper.readableFileSize(contentLength));
+		publishProgress("loading " + IoHelper.readableFileSize(contentLength)); //ES
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, String, ImageFetchR
 		this.cache.getReqMgr().registerRequest(this.req);
 
 		try {
-			publishProgress("loading");
+			publishProgress("loading"); //ES
 			final String url = this.req.getUrl();
 
 			Bitmap bmp = this.cache.get(url, this.req.getReqWidth(), this);
@@ -89,7 +89,7 @@ public class ImageLoaderTask extends TrackingAsyncTask<Void, String, ImageFetchR
 	protected void onPostExecute (final ImageFetchResult result) {
 		if (result == null) {
 			if (this.req.shouldFinishLoading()) {
-				publishProgress("fetch requested");
+				publishProgress("fetch requested"); //ES
 				new ImageFetcherTask(getEventListener(), this.cache, this.req).executeOnExecutor(this.netEs);
 			}
 			return;

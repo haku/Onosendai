@@ -33,14 +33,14 @@ public class UiPrefFragment extends PreferenceFragment {
 		super.onCreate(savedInstanceState);
 		setPreferenceScreen(getPreferenceManager().createPreferenceScreen(getActivity()));
 		addLocalePref();
-		addColumnsCount(KEY_COLUMNS_PORTRAIT, "Visible columns, portrait");
-		addColumnsCount(KEY_COLUMNS_LANDSCAPE, "Visible columns, landscape");
+		addColumnsCount(KEY_COLUMNS_PORTRAIT, "Visible columns, portrait"); //ES
+		addColumnsCount(KEY_COLUMNS_LANDSCAPE, "Visible columns, landscape"); //ES
 	}
 
 	private void addLocalePref () {
 		final ListPreference pref = new ComboPreference(getActivity());
 		pref.setKey(KEY_LOCALE);
-		pref.setTitle("Locale");
+		pref.setTitle("Locale"); //ES
 		pref.setEntries(SupportedLocales.prefEntries());
 		pref.setEntryValues(SupportedLocales.prefEntryValues());
 		pref.setDefaultValue(SupportedLocales.DEFAULT.getValue());
