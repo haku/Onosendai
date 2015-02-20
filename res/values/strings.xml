@@ -128,7 +128,7 @@
 	<string name="notifstydlg_field_vibrate">Vibrate</string>
 	<string name="notifstydlg_field_sound">Sound</string>
 
-	<string name="filterdlg_instructions">Only matched against tweet body.  Start with / for regex.</string>
+	<string name="filterdlg_instructions">Only matched against tweet body.  Start with / for regex.  Case insensitive.</string>
 	<string name="filterdlg_btn_delete">Delete</string>
 
 	<string name="searchdlg_btn_search">Search</string>

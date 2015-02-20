@@ -23,4 +23,12 @@ public class FiltersTest {
 		assertFalse(f.matches("@foo . @thing."));
 	}
 
+	@Test
+	public void itFiltersRegexCaseInsensitive () throws Exception {
+		final Filters f = new Filters("/(fifty|50) tones of colour");
+		assertTrue(f.matches("foo fifty tones of colour bar."));
+		assertTrue(f.matches("foo fifty Tones of Colour bar."));
+		assertTrue(f.matches("foo 50 Tones of Colour bar."));
+	}
+
 }
