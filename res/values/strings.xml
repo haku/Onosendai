@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+	<!-- 
+	https://developer.android.com/intl/fr/guide/topics/resources/string-resource.html
+	-->
+
 	<string name="app_name">Onosendai</string>
 	<string name="update_service_label">Onosendai update service</string>
 	<string name="fetch_picture_service_label">Onosendai fetch picture service</string>
@@ -80,6 +84,23 @@
 	<string name="payload_media_btn_retry">Retry</string>
 	<string name="sharetweet_text">Text</string>
 	<string name="sharetweet_picture">Picture</string>
+
+	<string name="tweetlist_saved_for_later">Saved for later.</string>
+	<string name="tweetlist_removed_from_later">Removed.</string>
+	<string name="tweetlist_send_text_to">Send text to...</string>
+	<string name="tweetlist_send_picutre_to">Send picutre to...</string>
+	<string name="tweetlist_requested_via_outbox">Requested via Outbox</string>
+	<string name="tweetlist_btn_delete">Delete</string>
+	<string name="tweetlist_permanently_delete_update">Permanently delete update?</string>
+	<string name="tweetlist_deleted_via_outbox">Deleted via Outbox</string>
+	<string name="tweetlist_can_not_find_this_tweet_s_account_metadata">Can not find this tweet\'s account metadata.</string>
+
+	<string name="tweetlist_confirm_like_question">Like?</string>
+	<string name="tweetlist_confirm_like_btn">Like</string>
+	<string name="tweetlist_confirm_rt_question">Retweet?</string>
+	<string name="tweetlist_confirm_rt_button">RT</string>
+	<string name="tweetlist_confirm_favourite_question">Favourite?</string>
+	<string name="tweetlist_confirm_favourite_button">Favourite</string>
 
 	<string name="preferences_title">Onosendai Preferences</string>
 	<string name="column_stats_title">Column stats</string>
