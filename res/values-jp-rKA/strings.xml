@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<string name="app_name">オノセンダイ</string>
+
+	<string name="main_menu_post">ポスト</string>
+	<string name="main_menu_outbox">オウトボクス</string>
+	<string name="main_menu_refresh_column">リフレシュ コルム</string>
+	<string name="main_menu_refresh_visible_columns">リフレシュ ヴィスボブ コルムス</string>
+	<string name="main_menu_refresh_all">リフレシュ アルー</string>
+	<string name="main_menu_preferences">プレフレンス</string>
+	<string name="main_menu_local_search">ロクル サーチ</string>
+
+	<string name="tweet_filtered">[ フィルタ ]</string>
+	<string name="tweetlist_refresh">リフレシュ</string>
+	<string name="tweetlist_details_close">クローズ</string>
+	<string name="tweetlist_details_later">ライテル</string>
+	<string name="tweetlist_details_read">レアヅ</string>
+	<string name="tweetlist_details_rt">リツイート</string>
+	<string name="tweetlist_details_like">ライク</string>
+	<string name="tweetlist_details_quote">コヲート</string>
+	<string name="payload_edit_btn_delete">デリート</string>
+	<string name="payload_media_btn_retry">リトライ</string>
+	<string name="sharetweet_text">テキスト</string>
+	<string name="sharetweet_picture">ピクチャー</string>
+
+	<string name="post_btn_cancel">キャンセル</string>
+	<string name="post_btn_post">ポスト</string>
+
+</resources>
