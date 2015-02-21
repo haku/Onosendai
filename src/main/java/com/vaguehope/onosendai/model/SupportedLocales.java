@@ -4,7 +4,8 @@ import com.vaguehope.onosendai.util.Titleable;
 
 public enum SupportedLocales implements Titleable {
 	DEFAULT("", "Default"),
-	EN_CUTE("en_CU", "Cute English");
+	EN_CUTE("en_CU", "Cute English"),
+	EN_KATAKANA("jp_KA", "カタカナ");
 
 	private final String value;
 	private final String title;
