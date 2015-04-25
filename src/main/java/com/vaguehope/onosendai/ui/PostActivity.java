@@ -307,7 +307,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				askPost();
 			}
 		});
-		if (this.outboxUid != null) btnPost.setText("Update Post"); //ES
+		if (this.outboxUid != null) btnPost.setText(R.string.post_btn_update_post);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -328,7 +328,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	protected void askAccountAndShrinkPicture () {
 		final List<Account> items = readAccountsOrAlert();
 		if (items == null) return;
-		DialogHelper.askItem(this, "Post to Account", items, new Listener<Account>() { //ES
+		DialogHelper.askItem(this, getString(R.string.post_account_dlg_title), items, new Listener<Account>() {
 			@Override
 			public void onAnswer (final Account account) {
 				setSelectedAccount(account);
@@ -411,21 +411,22 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		switch (account.getProvider()) {
 			case SUCCESSWHALE:
 			case BUFFER:
-				msg = String.format("Post to these %s accounts?%n%s", account.getUiTitle(), ServiceRef.humanList(svcs, "\n")); //ES
+				msg = getString(R.string.post_confirm_post_subaccounts, account.getUiTitle(), ServiceRef.humanList(svcs, "\n"));
 				break;
 			default:
-				msg = String.format("Post to %s?", account.getUiTitle()); //ES
+				msg = getString(R.string.post_confirm_post, account.getUiTitle());
 		}
 		dlgBld.setMessage(msg);
 
-		dlgBld.setPositiveButton(this.outboxUid == null ? "Post" : "Update Post", new DialogInterface.OnClickListener() { //ES
+		dlgBld.setPositiveButton(this.outboxUid == null ? R.string.post_confirm_post_btn_post : R.string.post_confirm_post_btn_update_post,
+				new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
 				submitPostToOutput(account, svcs);
 			}
 		});
 
-		dlgBld.setNegativeButton("Cancel", new DialogInterface.OnClickListener() { //ES
+		dlgBld.setNegativeButton(R.string.post_confirm_post_btn_cancel, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int whichButton) {
 				dialog.cancel();
@@ -475,7 +476,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	private ImageMetadata redrawAttachment () {
 		final ImageMetadata metadata = new ImageMetadata(this, this.attachment);
 		final TextView txtAttached = (TextView) findViewById(R.id.txtAttached);
-		txtAttached.setText(String.format("Attachment: %s", metadata.getUiTitle())); //ES
+		txtAttached.setText(getString(R.string.post_attachment_current, metadata.getUiTitle()));
 		txtAttached.setVisibility(metadata.exists() ? View.VISIBLE : View.GONE);
 		return metadata;
 	}
@@ -547,7 +548,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				new Intent(Intent.ACTION_GET_CONTENT)
 						.setType("image/*")
 						.addCategory(Intent.CATEGORY_OPENABLE),
-				"Select Picture") //ES
+				getString(R.string.post_attachment_ask_select))
 				.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {
 						new Intent(MediaStore.ACTION_IMAGE_CAPTURE)
 								.putExtra(MediaStore.EXTRA_OUTPUT, this.tmpAttachment) })
@@ -649,8 +650,10 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	private void checkAndAskShrinkPicture (final ImageMetadata metadata) {
 		if (metadata.getSize() < PROMPT_RESIZE_MIN_SIZE) return;
 		DialogHelper.askYesNo(this,
-				"Picture is " + IoHelper.readableFileSize(metadata.getSize()) //ES
-				, "Shrink...", "Full Size", new Runnable() { //ES
+				getString(R.string.post_attachment_ask_shrink, IoHelper.readableFileSize(metadata.getSize())),
+				getString(R.string.post_attachment_ask_shrink_btn_skrink),
+				getString(R.string.post_attachment_ask_shrink_btn_full_size),
+				new Runnable() {
 					@Override
 					public void run () {
 						showShrinkPictureDlg();
