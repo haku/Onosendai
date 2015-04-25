@@ -13,6 +13,7 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbInterface.Selection;
 
 public class GotoMenu implements OnClickListener {
 
@@ -32,7 +33,8 @@ public class GotoMenu implements OnClickListener {
 		for (final Column col : columns) {
 			final MenuItem menuItem = mnu.getMenu().add(Menu.NONE, MNU_GOTO_BASE_ID + i, Menu.NONE, col.getTitle());
 			final ScrollState scroll = this.mainActivity.getColumnScroll(col.getId());
-			new UnreadCountLoaderTask(this.mainActivity.getDb(), col, menuItem, scroll).executeOnExecutor(this.mainActivity.getLocalEs());
+			new UnreadCountLoaderTask(this.mainActivity.getDb(), col, this.mainActivity.isShowFiltered(), menuItem, scroll)
+					.executeOnExecutor(this.mainActivity.getLocalEs());
 			i++;
 		}
 		mnu.setOnMenuItemClickListener(new GotoItemClientListener(columns, this.mainActivity));
@@ -65,12 +67,14 @@ public class GotoMenu implements OnClickListener {
 
 		private final DbInterface db;
 		private final Column column;
+		private final boolean showFiltered;
 		private final MenuItem menuItem;
 		private final ScrollState scroll;
 
-		public UnreadCountLoaderTask (final DbInterface db, final Column column, final MenuItem menuItem, final ScrollState scroll) {
+		public UnreadCountLoaderTask (final DbInterface db, final Column column, final boolean showFiltered, final MenuItem menuItem, final ScrollState scroll) {
 			this.db = db;
 			this.column = column;
+			this.showFiltered = showFiltered;
 			this.menuItem = menuItem;
 			this.scroll = scroll;
 		}
@@ -83,6 +87,7 @@ public class GotoMenu implements OnClickListener {
 		@Override
 		protected Integer doInBackground (final Void... params) {
 			return this.db.getScrollUpCount(this.column.getId(),
+					this.showFiltered && this.column.getInlineMediaStyle() != InlineMediaStyle.SEAMLESS ? Selection.ALL : Selection.FILTERED,
 					this.column.getExcludeColumnIds(),
 					this.column.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS,
 					this.scroll);

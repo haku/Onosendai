@@ -756,22 +756,17 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public int getUnreadCount (final Column column) {
-		return getUpCount(UpCountType.UNREAD, column);
+		return getUpCount(UpCountType.UNREAD, column, Selection.FILTERED);
 	}
 
 	@Override
 	public int getUnreadCount (final int columnId, final Set<Integer> excludeColumnIds, final ScrollState scroll) {
-		return getUpCount(UpCountType.UNREAD, columnId, excludeColumnIds, false, scroll);
+		return getUpCount(UpCountType.UNREAD, columnId, Selection.FILTERED, excludeColumnIds, false, scroll);
 	}
 
 	@Override
-	public int getScrollUpCount (final Column column) {
-		return getUpCount(UpCountType.SCROLL, column);
-	}
-
-	@Override
-	public int getScrollUpCount (final int columnId, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final ScrollState scroll) {
-		return getUpCount(UpCountType.SCROLL, columnId, excludeColumnIds, withInlineMediaOnly, scroll);
+	public int getScrollUpCount (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final ScrollState scroll) {
+		return getUpCount(UpCountType.SCROLL, columnId, selection, excludeColumnIds, withInlineMediaOnly, scroll);
 	}
 
 	private static enum UpCountType {
@@ -790,15 +785,18 @@ public class DbAdapter implements DbInterface {
 		public abstract long getTime (ScrollState ss);
 	}
 
-	public int getUpCount (final UpCountType type, final Column column) {
-		return getUpCount(type, column.getId(), column.getExcludeColumnIds(), false, null);
+	public int getUpCount (final UpCountType type, final Column column, final Selection selection) {
+		return getUpCount(type, column.getId(), selection, column.getExcludeColumnIds(), false, null);
 	}
 
-	public int getUpCount (final UpCountType type, final int columnId, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final ScrollState scroll) {
+	public int getUpCount (final UpCountType type, final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final ScrollState scroll) {
 		if (!checkDbOpen()) return -1;
 
 		final StringBuilder where = new StringBuilder()
 				.append(TBL_TW_COLID).append("=?");
+
+		if (selection == Selection.FILTERED) where
+				.append(" AND ").append(TBL_TW_FILTERED).append(" IS NULL");
 
 		if (withInlineMediaOnly) where
 				.append(" AND ").append(TBL_TW_INLINEMEDIA).append(" NOT NULL");
