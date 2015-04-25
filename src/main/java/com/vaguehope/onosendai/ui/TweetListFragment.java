@@ -1003,7 +1003,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				if (db != null) {
 					final Cursor cursor = db.getTweetsCursor(
 							this.host.getColumnId(),
-							this.host.showFiltered ? Selection.ALL : Selection.FILTERED,
+							this.host.showFiltered && this.host.getInlineMediaStyle() != InlineMediaStyle.SEAMLESS ? Selection.ALL : Selection.FILTERED,
 							this.host.getColumn().getExcludeColumnIds(),
 							this.host.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS);
 					return new Result<Cursor>(cursor);

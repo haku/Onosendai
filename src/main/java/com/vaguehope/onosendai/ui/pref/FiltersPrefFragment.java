@@ -55,7 +55,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 		final CheckBoxPreference showFiltered = new CheckBoxPreference(getActivity());
 		showFiltered.setKey(KEY_SHOW_FILTERED);
 		showFiltered.setTitle("Show filtered"); //ES
-		showFiltered.setSummary("For testing filters."); //ES
+		showFiltered.setSummary("For testing filters.  Does not work on seamless columns."); //ES
 		getPreferenceScreen().addPreference(showFiltered);
 
 		final Preference reapplyFilters = new Preference(getActivity());
