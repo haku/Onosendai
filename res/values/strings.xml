@@ -136,6 +136,7 @@
 
 	<string name="post_btn_cancel">Cancel</string>
 	<string name="post_btn_post">Post</string>
+	<string name="post_btn_update_post">Update Post</string>
 	<string name="post_menu">menu</string>
 	<string name="post_menu_attach">Attach</string>
 	<string name="post_menu_attachment">Attachment...</string>
@@ -143,12 +144,27 @@
 	<string name="post_menu_shrink">Shrink</string>
 	<string name="post_menu_remove">Remove</string>
 	<string name="post_menu_text_filters">Text Filters</string>
+	<string name="post_account_dlg_title">Post to Account</string>
+	<string name="post_attachment_current">Attachment: %s</string>
+	<string name="post_attachment_ask_select">Select Picture</string>
+	<string name="post_attachment_ask_shrink">Picture is %s</string>
+	<string name="post_attachment_ask_shrink_btn_skrink">Shrink...</string>
+	<string name="post_attachment_ask_shrink_btn_full_size">Full Size</string>
 	<string name="picresizedlg_field_scale_label">Scale</string>
 	<string name="picresizedlg_field_quality_label">Quality</string>
+	<string name="post_confirm_post">Post to %s?</string>
+	<string name="post_confirm_post_subaccounts">Post to these %1$s accounts?\n%2$s</string>
+	<string name="post_confirm_post_btn_post">Post</string>
+	<string name="post_confirm_post_btn_update_post">Update Post</string>
+	<string name="post_confirm_post_btn_cancel">Cancel</string>
 
 	<string name="outbox_title">Onosendai Outbox</string>
 	<string name="outbox_btn_reset_failures">Reset Failures</string>
 	<string name="outbox_btn_send_pending">Send Pending</string>
 	<string name="outbox_lbl_is_empty">Outbox is empty.</string>
+
+	<string name="dialog_general_error">Error:</string>
+	<string name="dialog_general_btn_yes">Yes</string>
+	<string name="dialog_general_btn_no">No</string>
 
 </resources>
