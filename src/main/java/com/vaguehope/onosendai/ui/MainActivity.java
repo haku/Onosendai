@@ -238,6 +238,10 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		return this.prefs;
 	}
 
+	boolean isShowFiltered () {
+		return this.prefs.getSharedPreferences().getBoolean(FiltersPrefFragment.KEY_SHOW_FILTERED, false);
+	}
+
 	Config getConf () {
 		return this.conf;
 	}
@@ -537,7 +541,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 			args.putString(TweetListFragment.ARG_COLUMN_TITLE, col.getTitle());
 			args.putBoolean(TweetListFragment.ARG_COLUMN_IS_LATER, InternalColumnType.LATER.matchesColumn(col));
 			args.putString(TweetListFragment.ARG_COLUMN_SHOW_INLINEMEDIA, col.getInlineMediaStyle() != null ? col.getInlineMediaStyle().serialise() : null);
-			args.putBoolean(TweetListFragment.ARG_SHOW_FILTERED, this.host.getPrefs().getSharedPreferences().getBoolean(FiltersPrefFragment.KEY_SHOW_FILTERED, false));
+			args.putBoolean(TweetListFragment.ARG_SHOW_FILTERED, this.host.isShowFiltered());
 			fragment.setArguments(args);
 			return fragment;
 		}
