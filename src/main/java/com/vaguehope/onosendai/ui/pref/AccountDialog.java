@@ -154,7 +154,7 @@ class AccountDialog {
 	}
 
 	public Account getValue () {
-		final String title = this.txtTitle.getText().toString();
+		final String title = this.txtTitle.getText().toString().trim();
 		switch (this.accountProvider) {
 			case TWITTER:
 				if (this.initialValue == null) throw new IllegalStateException("Can not use account dialog to create a Twitter account.");
@@ -165,13 +165,13 @@ class AccountDialog {
 			case SUCCESSWHALE:
 			case INSTAPAPER:
 			case HOSAKA:
-				final String username = this.txtUsername.getText().toString();
+				final String username = this.txtUsername.getText().toString().trim();
 				final String password = this.txtPassword.getText().toString();
 				return new Account(this.id, title,
 						this.accountProvider,
 						null, null, username, password);
 			case BUFFER:
-				final String accessToken = this.txtUsername.getText().toString();
+				final String accessToken = this.txtUsername.getText().toString().trim();
 				return new Account(this.id, title,
 						this.accountProvider,
 						null, null, accessToken, null);
