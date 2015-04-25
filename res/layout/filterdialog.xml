@@ -16,8 +16,7 @@
 	<EditText
 		android:id="@+id/txtFilter"
 		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:singleLine="true" />
+		android:layout_height="wrap_content" />
 
 	<CheckBox
 		android:id="@+id/chkDelete"
