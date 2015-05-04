@@ -4,6 +4,10 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import android.view.ActionMode;
+import android.view.ActionMode.Callback;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,6 +18,7 @@ import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.util.DialogHelper;
 
 public class PrincipalPayload extends Payload {
 
@@ -35,8 +40,38 @@ public class PrincipalPayload extends Payload {
 
 	@Override
 	public PayloadRowView makeRowView (final View view) {
+		final TextView txtBody = (TextView) view.findViewById(R.id.tweetDetailBody);
+		txtBody.setCustomSelectionActionModeCallback(new Callback() {
+			private static final int ID_ADD_FILTER = 100;
+			@Override
+			public boolean onCreateActionMode (final ActionMode mode, final Menu menu) {
+				final MenuItem mnuAddFilter = menu.add(Menu.NONE, ID_ADD_FILTER, Menu.NONE, "Add Filter");
+				mnuAddFilter.setIcon(R.drawable.exclamation_red);
+				return true;
+			}
+
+			@Override
+			public boolean onPrepareActionMode (final ActionMode mode, final Menu menu) {
+				return false;
+			}
+
+			@Override
+			public boolean onActionItemClicked (final ActionMode mode, final MenuItem item) {
+				switch (item.getItemId()) {
+					case ID_ADD_FILTER:
+						final CharSequence selStr = txtBody.getText().subSequence(txtBody.getSelectionStart(), txtBody.getSelectionEnd());
+						DialogHelper.alert(view.getContext(), "TODO add filter:\n" + selStr);
+						return true;
+					default:
+						return false;
+				}
+			}
+
+			@Override
+			public void onDestroyActionMode (final ActionMode mode) {}
+		});
 		return new PayloadRowView(
-				(TextView) view.findViewById(R.id.tweetDetailBody),
+				txtBody,
 				(ImageView) view.findViewById(R.id.tweetDetailAvatar),
 				(TextView) view.findViewById(R.id.tweetDetailName),
 				(TextView) view.findViewById(R.id.tweetDetailDate));
