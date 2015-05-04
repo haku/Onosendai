@@ -40,12 +40,11 @@ public class FiltersPrefFragment extends PreferenceFragment {
 	public void onCreate (final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setPreferenceScreen(getPreferenceManager().createPreferenceScreen(getActivity()));
-		this.prefs = new Prefs(getPreferenceManager());
 		refreshFiltersList();
 	}
 
 	protected Prefs getPrefs () {
-		if (this.prefs == null) throw new IllegalStateException("Prefs has not been initialised.");
+		if (this.prefs == null) this.prefs = new Prefs(getPreferenceManager());
 		return this.prefs;
 	}
 
@@ -77,10 +76,19 @@ public class FiltersPrefFragment extends PreferenceFragment {
 	}
 
 	protected void promptNewFilter () {
-		final String id = getPrefs().getNextFilterId();
-		final FilterDialog dlg = new FilterDialog(getActivity());
+		promptNewFilter(getActivity(), getPrefs(), new Listener<String>() {
+			@Override
+			public void onAnswer (final String answer) {
+				refreshFiltersList();
+			}
+		}, null);
+	}
 
-		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(getActivity());
+	protected static void promptNewFilter (final Context context, final Prefs prefs, final Listener<String> onAdded, final String prefilFilter) {
+		final String id = prefs.getNextFilterId();
+		final FilterDialog dlg = new FilterDialog(context, prefilFilter, false);
+
+		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(context);
 		dlgBuilder.setTitle("New Filter (" + id + ")"); //ES
 		dlgBuilder.setView(dlg.getRootView());
 		dlgBuilder.setPositiveButton(android.R.string.ok, new OnClickListener() {
@@ -89,12 +97,12 @@ public class FiltersPrefFragment extends PreferenceFragment {
 				dialog.dismiss();
 				try {
 					final String newFilter = dlg.getValue();
-					getPrefs().writeFilter(id, newFilter);
+					prefs.writeFilter(id, newFilter);
+					onAdded.onAnswer(newFilter);
 				}
 				catch (final Exception e) {
-					DialogHelper.alert(getActivity(), "Failed to write new filter: ", e);
+					DialogHelper.alert(context, "Failed to write new filter: ", e);
 				}
-				refreshFiltersList();
 			}
 		});
 		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER);

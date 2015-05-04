@@ -33,7 +33,7 @@ public class FilterDialogPref extends DialogPreference {
 
 	@Override
 	protected View onCreateDialogView () {
-		this.dialog = new FilterDialog(getContext(), this.filter);
+		this.dialog = new FilterDialog(getContext(), this.filter, true);
 		this.dialog.setOnValidateListener(new Listener<Boolean>() {
 			@Override
 			public void onAnswer (final Boolean valid) {

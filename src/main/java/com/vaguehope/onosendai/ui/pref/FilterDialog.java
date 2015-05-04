@@ -22,10 +22,10 @@ public class FilterDialog {
 	private Listener<Boolean> onValidateListener;
 
 	public FilterDialog (final Context context) {
-		this(context, null);
+		this(context, null, false);
 	}
 
-	public FilterDialog (final Context context, final String initialValue) {
+	public FilterDialog (final Context context, final String initialValue, final boolean deleteable) {
 		final LayoutInflater inflater = LayoutInflater.from(context);
 		this.llParent = inflater.inflate(R.layout.filterdialog, null);
 
@@ -45,11 +45,9 @@ public class FilterDialog {
 			}
 		});
 
-		if (initialValue != null) {
-			this.txtFilter.setText(initialValue);
-		}
+		if (initialValue != null) this.txtFilter.setText(initialValue);
 		this.chkDelete.setChecked(false);
-		this.chkDelete.setVisibility(initialValue != null ? View.VISIBLE : View.GONE);
+		this.chkDelete.setVisibility(deleteable ? View.VISIBLE : View.GONE);
 	}
 
 	public View getRootView () {
