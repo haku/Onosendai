@@ -128,7 +128,15 @@
 	<string name="notifstydlg_field_vibrate">Vibrate</string>
 	<string name="notifstydlg_field_sound">Sound</string>
 
-	<string name="filterdlg_instructions">Only matched against tweet body.  Start with / for regex.  Case insensitive.</string>
+	<string name="filterdlg_instructions">
+		By default only matched against body.  Case insensitive.  Start with / for regex.  Regex flags:
+		\n
+		/b match body (default)
+		\n
+		/u match username
+		\n
+		/r match retweeted by
+		</string>
 	<string name="filterdlg_btn_delete">Delete</string>
 
 	<string name="searchdlg_btn_search">Search</string>
