@@ -74,8 +74,10 @@ public class Filters {
 	}
 
 	public static Pattern compileRegexFilter (final String input) {
-		final String rawPattern = input.startsWith("/") ? input.substring(1) : input;
-		return Pattern.compile(rawPattern, Pattern.CASE_INSENSITIVE);
+		String raw = input;
+		raw = raw.startsWith("/") ? raw.substring(1) : raw;
+		raw = raw.endsWith("/") ? raw.substring(0, raw.length() - 1) : raw;
+		return Pattern.compile(raw, Pattern.CASE_INSENSITIVE);
 	}
 
 	private interface Predicate {

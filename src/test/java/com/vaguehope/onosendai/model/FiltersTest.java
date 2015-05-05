@@ -24,6 +24,14 @@ public class FiltersTest {
 	}
 
 	@Test
+	public void itFiltersRegexWithTrailingSlash () throws Exception {
+		final Filters f = new Filters("/^\\.\\s*@/");
+		assertTrue(f.matches(". @foo thing."));
+		assertTrue(f.matches(".@foo thing."));
+		assertFalse(f.matches("@foo . @thing."));
+	}
+
+	@Test
 	public void itFiltersRegexCaseInsensitive () throws Exception {
 		final Filters f = new Filters("/(fifty|50) tones of colour");
 		assertTrue(f.matches("foo fifty tones of colour bar."));
