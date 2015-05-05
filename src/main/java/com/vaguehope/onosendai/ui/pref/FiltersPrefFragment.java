@@ -114,7 +114,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 			}
 		});
 		alertDialog.show();
-		dlg.validate();
+		dlg.validateAndNotify();
 	}
 
 	protected void askDeleteFilter (final String filterId, final String filter) {
@@ -196,7 +196,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 					try {
 						if (c != null && c.moveToFirst()) {
 							do {
-								final boolean newFiltered = filters.matches(reader.readBody(c));
+								final boolean newFiltered = filters.matches(reader.readBody(c), reader.readUsername(c), reader.readUserSubtitle(c));
 								if (reader.readFiltered(c) != newFiltered) {
 									changes.add(new Pair<Long, Boolean>(reader.readUid(c), newFiltered));
 								}

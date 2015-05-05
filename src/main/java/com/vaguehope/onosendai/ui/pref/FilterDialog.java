@@ -41,7 +41,7 @@ public class FilterDialog {
 
 			@Override
 			public void afterTextChanged (final Editable s) {
-				validateFilter(s);
+				validateAndNotify(s);
 			}
 		});
 
@@ -66,18 +66,18 @@ public class FilterDialog {
 		this.onValidateListener = listener;
 	}
 
-	public void validate () {
-		validateFilter(this.txtFilter.getText());
+	public void validateAndNotify () {
+		validateAndNotify(this.txtFilter.getText());
 	}
 
-	protected void validateFilter (final Editable s) {
+	protected void validateAndNotify (final Editable s) {
 		if (this.onValidateListener == null) return;
-		this.onValidateListener.onAnswer(s.length() > 0 && checkRegex(s));
+		this.onValidateListener.onAnswer(s.length() > 0 && validateFilter(s));
 	}
 
-	private static boolean checkRegex (final Editable s) {
+	private static boolean validateFilter (final Editable s) {
 		try {
-			Filters.compileRegexFilter(s.toString());
+			Filters.validateFilter(s.toString());
 			return true;
 		}
 		catch (final PatternSyntaxException e) {
