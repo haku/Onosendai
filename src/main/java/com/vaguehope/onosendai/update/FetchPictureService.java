@@ -165,8 +165,14 @@ public class FetchPictureService extends DbBindingService {
 				final List<String> mediaUrls = new ArrayList<String>();
 				do {
 					if (scroll != null && reader.readTime(cursor) < scroll.getUnreadTime()) break; // Stop gathering URLs at unread point.
-					final String mediaUrl = reader.readInlineMedia(cursor);
-					if (mediaUrl != null) mediaUrls.add(mediaUrl);
+
+					final String avatarUrl = reader.readAvatar(cursor);
+					if (avatarUrl != null) mediaUrls.add(avatarUrl);
+
+					final String inlineMediaUrl = reader.readInlineMedia(cursor);
+					if (inlineMediaUrl != null) mediaUrls.add(inlineMediaUrl);
+
+					// TODO include additional images.
 				}
 				while (cursor.moveToNext());
 				Collections.reverse(mediaUrls); // Fetch oldest pictures first.
