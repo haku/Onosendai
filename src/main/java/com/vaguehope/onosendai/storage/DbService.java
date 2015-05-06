@@ -160,6 +160,16 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public List<Meta> getTweetMetas (final long tweetUid) {
+		return this.dbAdaptor.getTweetMetas(tweetUid);
+	}
+
+	@Override
+	public List<Meta> getTweetMetasOfType (final long tweetUid, final MetaType metaType) {
+		return this.dbAdaptor.getTweetMetasOfType(tweetUid, metaType);
+	}
+
+	@Override
 	public List<String> getUsernames (final int numberOf) {
 		return this.dbAdaptor.getUsernames(numberOf);
 	}

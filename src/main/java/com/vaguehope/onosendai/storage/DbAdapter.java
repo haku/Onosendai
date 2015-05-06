@@ -653,34 +653,7 @@ public class DbAdapter implements DbInterface {
 				final String avatar = c.getString(colAvatar);
 				final String inlineMedia = c.getString(colInlineMedia);
 				final boolean filtered = !c.isNull(colFiltered);
-
-				List<Meta> metas = null;
-				try {
-					d = this.mDb.query(true, TBL_TM,
-							new String[] { TBL_TM_TYPE, TBL_TM_DATA, TBL_TM_TITLE },
-							TBL_TM_TWID + "=?",
-							new String[] { String.valueOf(uid) },
-							null, null, null, null);
-
-					if (d != null && d.moveToFirst()) {
-						final int colType = d.getColumnIndex(TBL_TM_TYPE);
-						final int colData = d.getColumnIndex(TBL_TM_DATA);
-						final int colTitle = d.getColumnIndex(TBL_TM_TITLE);
-
-						metas = new ArrayList<Meta>();
-						do {
-							final int typeId = d.getInt(colType);
-							final String data = d.getString(colData);
-							final String title = d.getString(colTitle);
-							metas.add(new Meta(MetaType.parseId(typeId), data, title));
-						}
-						while (d.moveToNext());
-					}
-				}
-				finally {
-					IoHelper.closeQuietly(d);
-				}
-
+				final List<Meta> metas = getTweetMetas(uid);
 				ret = new Tweet(uid, sid, username, fullname, userSubtitle, fullSubtitle, body, time, avatar, inlineMedia, metas, filtered);
 			}
 		}
@@ -688,6 +661,42 @@ public class DbAdapter implements DbInterface {
 			IoHelper.closeQuietly(c);
 		}
 		return ret;
+	}
+
+	@Override
+	public List<Meta> getTweetMetas (final long tweetUid) {
+		return getTweetMetasOfType(tweetUid, null);
+	}
+
+	@Override
+	public List<Meta> getTweetMetasOfType (final long tweetUid, final MetaType metaType) {
+		List<Meta> ret = null;
+		Cursor c = null;
+		try {
+			c = this.mDb.query(true, TBL_TM,
+					new String[] { TBL_TM_TYPE, TBL_TM_DATA, TBL_TM_TITLE },
+					TBL_TM_TWID + "=?",
+					new String[] { String.valueOf(tweetUid) },
+					null, null, null, null);
+			if (c != null && c.moveToFirst()) {
+				final int colType = c.getColumnIndex(TBL_TM_TYPE);
+				final int colData = c.getColumnIndex(TBL_TM_DATA);
+				final int colTitle = c.getColumnIndex(TBL_TM_TITLE);
+				do {
+					final int typeId = c.getInt(colType);
+					if (metaType != null && typeId != metaType.getId()) continue;
+					final String data = c.getString(colData);
+					final String title = c.getString(colTitle);
+					if (ret == null) ret = new ArrayList<Meta>();
+					ret.add(new Meta(MetaType.parseId(typeId), data, title));
+				}
+				while (c.moveToNext());
+			}
+			return ret;
+		}
+		finally {
+			IoHelper.closeQuietly(c);
+		}
 	}
 
 	@Override

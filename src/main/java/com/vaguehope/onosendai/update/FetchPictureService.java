@@ -26,6 +26,8 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.images.HybridBitmapCache;
+import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.PrefetchImages;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.storage.DbBindingService;
@@ -169,10 +171,12 @@ public class FetchPictureService extends DbBindingService {
 					final String avatarUrl = reader.readAvatar(cursor);
 					if (avatarUrl != null) mediaUrls.add(avatarUrl);
 
-					final String inlineMediaUrl = reader.readInlineMedia(cursor);
-					if (inlineMediaUrl != null) mediaUrls.add(inlineMediaUrl);
-
-					// TODO include additional images.
+					final List<Meta> mediaMetas = getDb().getTweetMetasOfType(reader.readUid(cursor), MetaType.MEDIA);
+					if (mediaMetas != null) {
+						for (final Meta m : mediaMetas) {
+							if (m.getData() != null) mediaUrls.add(m.getData());
+						}
+					}
 				}
 				while (cursor.moveToNext());
 				Collections.reverse(mediaUrls); // Fetch oldest pictures first.

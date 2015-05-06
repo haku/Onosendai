@@ -46,6 +46,9 @@ public interface DbInterface extends KvStore {
 	Tweet getTweetDetails(String tweetSid);
 	Tweet getTweetDetails(long tweetUid);
 
+	List<Meta> getTweetMetas(long tweetUid);
+	List<Meta> getTweetMetasOfType(long tweetUid, MetaType metaType);
+
 	List<String> getUsernames(int numberOf);
 	List<String> getUsernames(String prefix, int numberOf);
 	List<String> getHashtags(String prefix, int numberOf);
