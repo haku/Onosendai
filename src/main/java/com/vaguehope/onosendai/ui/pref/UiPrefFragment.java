@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
@@ -27,6 +28,7 @@ public class UiPrefFragment extends PreferenceFragment {
 	private static final String KEY_LOCALE = "pref_locale";
 	private static final String KEY_COLUMNS_PORTRAIT = "pref_columns_portrait";
 	private static final String KEY_COLUMNS_LANDSCAPE = "pref_columns_landscape";
+	private static final String KEY_COLUMNS_RTL = "pref_columns_rtl";
 
 	@Override
 	public void onCreate (final Bundle savedInstanceState) {
@@ -35,6 +37,7 @@ public class UiPrefFragment extends PreferenceFragment {
 		addLocalePref();
 		addColumnsCount(KEY_COLUMNS_PORTRAIT, "Visible columns, portrait"); //ES
 		addColumnsCount(KEY_COLUMNS_LANDSCAPE, "Visible columns, landscape"); //ES
+		addColumnsRtl();
 	}
 
 	private void addLocalePref () {
@@ -55,6 +58,13 @@ public class UiPrefFragment extends PreferenceFragment {
 		pref.setEntries(COUNTS);
 		pref.setEntryValues(COUNTS);
 		pref.setDefaultValue(DEFAULT_COUNT);
+		getPreferenceScreen().addPreference(pref);
+	}
+
+	private void addColumnsRtl () {
+		final CheckBoxPreference pref = new CheckBoxPreference(getActivity());
+		pref.setKey(KEY_COLUMNS_RTL);
+		pref.setTitle("Columns RTL"); //ES
 		getPreferenceScreen().addPreference(pref);
 	}
 
@@ -101,4 +111,9 @@ public class UiPrefFragment extends PreferenceFragment {
 		}
 		return Float.parseFloat(activity.getResources().getString(R.string.column_width));
 	}
+
+	public static boolean readColumnsRtl (final Prefs prefs) {
+		return prefs.getSharedPreferences().getBoolean(KEY_COLUMNS_RTL, false);
+	}
+
 }
