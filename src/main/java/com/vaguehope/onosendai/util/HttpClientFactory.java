@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
+import javax.net.ssl.TrustManagerFactory;
+
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ClientConnectionManager;
@@ -82,7 +84,11 @@ public class HttpClientFactory {
 
 	private static void addHttpsSchemaForTrustStore (final ClientConnectionManager connMan, final String tsPath, final char[] password) throws IOException, GeneralSecurityException {
 		final KeyStore truststore = loadKeyStore(tsPath, password);
-		final SSLSocketFactory sf = new SSLSocketFactory(truststore);
+
+		final TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		tmfactory.init(truststore);
+		final SocketFactory sf = new TlsSniSocketFactory(tmfactory.getTrustManagers());
+
 		final Scheme scheme = new Scheme("https", sf, 443); // NOSONAR 443 is not a magic number.  Its HTTPS specification.
 		connMan.getSchemeRegistry().register(scheme);
 	}
