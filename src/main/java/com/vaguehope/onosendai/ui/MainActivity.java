@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import android.app.ActionBar;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -81,6 +80,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	private ExecutorService localEs;
 	private ExecutorService netEs;
 	private MessageHandler msgHandler;
+	private boolean columnsRtl;
 
 	private ColumnTitleStrip columnTitleStrip;
 	private SidebarAwareViewPager viewPager;
@@ -125,6 +125,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		this.msgHandler = new MessageHandler(this);
 
 		final float columnWidth = UiPrefFragment.readColumnWidth(this, this.prefs);
+		this.columnsRtl = UiPrefFragment.readColumnsRtl(this.prefs);
 
 		// If this becomes too memory intensive, switch to android.support.v4.app.FragmentStatePagerAdapter.
 		final SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), this, columnWidth);
@@ -132,10 +133,17 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		this.pageSelectionListener = new VisiblePageSelectionListener(columnWidth);
 		final MultiplexingOnPageChangeListener onPageChangeListener = new MultiplexingOnPageChangeListener(
 				this.pageSelectionListener,
-				new NotificationClearingPageSelectionListener(this, this.conf));
+				new NotificationClearingPageSelectionListener(this));
 		this.viewPager.setOnPageChangeListener(onPageChangeListener);
 		this.viewPager.setAdapter(sectionsPagerAdapter);
-		if (!showPageFromIntent(getIntent())) onPageChangeListener.onPageSelected(this.viewPager.getCurrentItem());
+		if (!showPageFromIntent(getIntent())) {
+			if (this.columnsRtl) {
+				gotoPage(0);
+			}
+			else {
+				onPageChangeListener.onPageSelected(this.viewPager.getCurrentItem());
+			}
+		}
 
 		final ActionBar ab = getActionBar();
 		ab.setDisplayShowHomeEnabled(true);
@@ -146,7 +154,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		this.columnTitleStrip = new ColumnTitleStrip(ab.getThemedContext());
 		this.columnTitleStrip.setViewPager(this.viewPager);
 		this.columnTitleStrip.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-		this.columnTitleStrip.setColumnClickListener(new TitleClickListener(this.conf, this.activePages));
+		this.columnTitleStrip.setColumnClickListener(new TitleClickListener(this));
 		ab.setCustomView(this.columnTitleStrip);
 
 		AlarmReceiver.configureAlarms(this); // FIXME be more smart about this?
@@ -276,7 +284,15 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		ImageLoaderUtils.loadImage(this.imageCache, req, this.localEs, this.netEs, this.executorStatus);
 	}
 
-	public boolean gotoPage (final int position) {
+	public int convertPagePosition (final int argPosition) {
+		if (!this.columnsRtl) return argPosition;
+		final int count = this.viewPager.getAdapter().getCount();
+		if (count < 1) return argPosition;
+		return count - 1 - argPosition;
+	}
+
+	public boolean gotoPage (final int argPosition) {
+		final int position = convertPagePosition(argPosition);
 		if (this.viewPager.getCurrentItem() != position) {
 			this.viewPager.setCurrentItem(position, false);
 			return true;
@@ -286,7 +302,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 	public void gotoTweet (final int colId, final Tweet tweet) {
 		gotoPage(getConf().getColumnPositionById(colId));
-		final TweetListFragment page = this.activePages.get(colId);
+		final TweetListFragment page = getActivePageById(colId);
 		if (page != null) page.scrollToTweet(tweet);
 	}
 
@@ -298,6 +314,10 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		return false;
 	}
 
+	protected TweetListFragment getActivePageById (final int colId) {
+		return this.activePages.get(colId);
+	}
+
 	protected void onFragmentResumed (final int columnId, final TweetListFragment page) {
 		this.activePages.put(columnId, page);
 	}
@@ -307,7 +327,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	}
 
 	protected ScrollState getColumnScroll (final int columnId) {
-		final TweetListFragment page = this.activePages.get(columnId);
+		final TweetListFragment page = getActivePageById(columnId);
 		if (page == null) return null;
 		return page.getCurrentScroll();
 	}
@@ -316,7 +336,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	public void onBackPressed () {
 		for (int i = 0; i < this.activePages.size(); i++) {
 			final TweetListFragment page = this.activePages.valueAt(i);
-			if (this.pageSelectionListener.isVisible(page.getColumnPosition()) && page.getSidebar().closeSidebar()) return;
+			if (this.pageSelectionListener.isVisible(convertPagePosition(page.getColumnPosition())) && page.getSidebar().closeSidebar()) return;
 		}
 		super.onBackPressed();
 	}
@@ -324,7 +344,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	public List<Column> getVisibleColumns () {
 		final List<Column> ret = new ArrayList<Column>();
 		for (int i = 0; i < this.conf.getColumnCount(); i++) {
-			if (this.pageSelectionListener.isVisible(i)) ret.add(this.conf.getColumnByPosition(i));
+			if (this.pageSelectionListener.isVisible(convertPagePosition(i))) ret.add(this.conf.getColumnByPosition(i));
 		}
 		return ret;
 	}
@@ -438,7 +458,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	protected void setTempColumnTitle (final int position, final String title) {
+	protected void setTempColumnTitle (final int argPosition, final String title) {
+		final int position = convertPagePosition(argPosition);
 		this.columnTitleStrip.setTempColumnTitle(position, title);
 	}
 
@@ -532,7 +553,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		}
 
 		@Override
-		public Fragment getItem (final int position) {
+		public Fragment getItem (final int argPosition) {
+			final int position = this.host.convertPagePosition(argPosition);
 			final Column col = this.host.getConf().getColumnByPosition(position);
 			final Fragment fragment = new TweetListFragment();
 			final Bundle args = new Bundle();
@@ -552,7 +574,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		}
 
 		@Override
-		public CharSequence getPageTitle (final int position) {
+		public CharSequence getPageTitle (final int argPosition) {
+			final int position = this.host.convertPagePosition(argPosition);
 			return this.host.getConf().getColumnByPosition(position).getTitle();
 		}
 
@@ -589,19 +612,18 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 	private static class TitleClickListener implements ColumnClickListener {
 
-		private final Config conf;
-		private final SparseArray<TweetListFragment> activePages;
+		private final MainActivity host;
 
-		public TitleClickListener (final Config conf, final SparseArray<TweetListFragment> activePages) {
-			this.conf = conf;
-			this.activePages = activePages;
+		public TitleClickListener (final MainActivity host) {
+			this.host = host;
 		}
 
 		@Override
-		public void onColumnTitleClick (final int position) {
-			final Column col = this.conf.getColumnByPosition(position);
+		public void onColumnTitleClick (final int argPosition) {
+			int position = this.host.convertPagePosition(argPosition);
+			final Column col = this.host.getConf().getColumnByPosition(position);
 			if (col == null) return;
-			final TweetListFragment page = this.activePages.get(col.getId());
+			final TweetListFragment page = this.host.getActivePageById(col.getId());
 			if (page == null) return;
 			page.scrollJumpUp();
 		}
@@ -610,18 +632,17 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 	private static class NotificationClearingPageSelectionListener extends SimpleOnPageChangeListener {
 
-		private final Context context;
-		private final Config conf;
+		private final MainActivity host;
 
-		public NotificationClearingPageSelectionListener (final Context context, final Config conf) {
-			this.context = context;
-			this.conf = conf;
+		public NotificationClearingPageSelectionListener (final MainActivity host) {
+			this.host = host;
 		}
 
 		@Override
-		public void onPageSelected (final int position) {
-			final Column col = this.conf.getColumnByPosition(position);
-			Notifications.clearColumn(this.context, col);
+		public void onPageSelected (final int argPosition) {
+			int position = this.host.convertPagePosition(argPosition);
+			final Column col = this.host.getConf().getColumnByPosition(position);
+			Notifications.clearColumn(this.host, col);
 		}
 
 	}
