@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.util;
 
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
@@ -21,6 +22,17 @@ public final class DateHelper {
 		}
 		s.append(android.text.format.DateFormat.getTimeFormat(context).format(tweetDate));
 		return s.toString();
+	}
+
+	public static String formatDurationSeconds (final long seconds) {
+		if (seconds >= 3600) {
+			return String.format(Locale.ENGLISH, "%d:%02d:%02d", seconds / 3600, (seconds % 3600) / 60, (seconds % 60));
+		}
+		return String.format(Locale.ENGLISH, "%d:%02d", (seconds % 3600) / 60, (seconds % 60));
+	}
+
+	public static String formatDurationMillis (final long millis) {
+		return formatDurationSeconds(TimeUnit.MILLISECONDS.toSeconds(millis));
 	}
 
 }

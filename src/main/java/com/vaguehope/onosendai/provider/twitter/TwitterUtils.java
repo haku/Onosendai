@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import twitter4j.ExtendedMediaEntity;
+import twitter4j.ExtendedMediaEntity.Variant;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
 import twitter4j.Paging;
@@ -27,8 +29,11 @@ import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.util.ArrayHelper;
+import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.ImageHostHelper;
+import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.StringHelper;
 
@@ -89,7 +94,7 @@ public final class TwitterUtils {
 			viaUser = status.getUser();
 			metas.add(new Meta(MetaType.POST_TIME, String.valueOf(TimeUnit.MILLISECONDS.toSeconds(status.getRetweetedStatus().getCreatedAt().getTime()))));
 			if (status.getUser().getId() != ownId) {
-				metas.add(new Meta(MetaType.MENTION, status.getUser().getScreenName(),  status.getUser().getName()));
+				metas.add(new Meta(MetaType.MENTION, status.getUser().getScreenName(), status.getUser().getName()));
 			}
 		}
 		else {
@@ -108,30 +113,24 @@ public final class TwitterUtils {
 			metas.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getRetweetedStatus().getId())));
 		}
 
-		addMedia(s, metas, hdMedia);
+		final List<String> userSubtitle = new ArrayList<String>();
+
+		addMedia(s, metas, hdMedia, userSubtitle);
 		checkUrlsForMedia(s, metas, hdMedia);
 		addHashtags(s, metas);
 		addMentions(s, metas, status.getUser().getId(), ownId);
 
-		String userSubtitle = viaUser != null ? String.format("via %s", viaUser.getScreenName()) : null; //ES
+		if (viaUser != null) userSubtitle.add(String.format("via %s", viaUser.getScreenName())); //ES
 		final String fullSubtitle = viaUser != null ? String.format("via %s", viaUser.getName()) : null; //ES
 
 		final int mediaCount = MetaUtils.countMetaOfType(metas, MetaType.MEDIA);
-		if (mediaCount > 1) {
-			final String mediaCountMsg = String.format("%s pictures", mediaCount); //ES
-			if (userSubtitle != null) {
-				userSubtitle += ", " + mediaCountMsg;
-			}
-			else {
-				userSubtitle = mediaCountMsg;
-			}
-		}
+		if (mediaCount > 1) userSubtitle.add(String.format("%s pictures", mediaCount)); //ES
 
 		// https://dev.twitter.com/docs/user-profile-images-and-banners
 
 		return new Tweet(String.valueOf(s.getId()),
 				s.getUser().getScreenName(), s.getUser().getName(),
-				userSubtitle,
+				ArrayHelper.join(userSubtitle, ", "),
 				fullSubtitle,
 				text,
 				TimeUnit.MILLISECONDS.toSeconds(status.getCreatedAt().getTime()),
@@ -182,21 +181,37 @@ public final class TwitterUtils {
 		return expandedText;
 	}
 
-	private static void addMedia (final Status s, final List<Meta> metas, final boolean hdMedia) {
+	private static void addMedia (final Status s, final List<Meta> metas, final boolean hdMedia, final List<String> userSubtitle) {
 		MediaEntity[] mes = s.getExtendedMediaEntities();
 		if (mes == null || mes.length < 1) mes = s.getMediaEntities();
 		if (mes == null) return;
+		boolean hasGif = false;
+		boolean hasVideo = false;
 		for (final MediaEntity me : mes) {
-			if (me.getType() == null || "photo".equalsIgnoreCase(me.getType())) {
-				final String clickUrl = me.getExpandedURL() != null ? me.getExpandedURL() : me.getURL();
-				String imgUrl = me.getMediaURLHttps();
-				if (hdMedia) imgUrl += ":large";
-				metas.add(new Meta(MetaType.MEDIA, imgUrl, clickUrl));
-			}
-			else {
-				LOG.w("Unknown MediaEntity type: %s", me.getType());
+			final String clickUrl = me.getExpandedURL() != null ? me.getExpandedURL() : me.getURL();
+			String imgUrl = me.getMediaURLHttps();
+			if (hdMedia) imgUrl += ":large";
+			metas.add(new Meta(MetaType.MEDIA, imgUrl, clickUrl));
+
+			if (me instanceof ExtendedMediaEntity) {
+				final ExtendedMediaEntity eme = (ExtendedMediaEntity) me;
+				final Variant[] variants = eme.getVideoVariants();
+				if (variants != null) {
+					for (final Variant variant : variants) {
+						if ("animated_gif".equals(me.getType())) hasGif = true;
+						else if ("video".equals(me.getType())) hasVideo = true;
+
+						final StringBuilder title = new StringBuilder();
+						title.append(variant.getContentType());
+						if (eme.getVideoDurationMillis() > 0) title.append(" ").append(DateHelper.formatDurationMillis(eme.getVideoDurationMillis()));
+						if (variant.getBitrate() > 0) title.append(" ").append(IoHelper.readableFileSize(variant.getBitrate())).append("/s");
+						metas.add(new Meta(MetaType.URL, variant.getUrl(), title.toString()));
+					}
+				}
 			}
 		}
+		if (hasGif) userSubtitle.add("gif"); //ES
+		if (hasVideo) userSubtitle.add("video"); //ES
 	}
 
 	private static void checkUrlsForMedia (final Status s, final List<Meta> metas, final boolean hdMedia) {
