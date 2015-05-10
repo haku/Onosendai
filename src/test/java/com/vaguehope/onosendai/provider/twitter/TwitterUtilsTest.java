@@ -20,6 +20,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+import twitter4j.ExtendedMediaEntity;
+import twitter4j.ExtendedMediaEntity.Variant;
 import twitter4j.HttpResponse;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
@@ -54,15 +56,76 @@ public class TwitterUtilsTest {
 	@Test
 	public void itExpandsTwitterTwoMedias () throws Exception {
 		final Status s = mockTweet("media.");
-		final MediaEntity me1 = mockMediaEntry("https://twitter.com/some*user/status/1235430985/photo/1", "https://pbs.twimg.com/media/BjwsdkfjsAAI-4x.jpg");
-		final MediaEntity me2 = mockMediaEntry("https://twitter.com/some*user/status/1235430986/photo/1", "https://pbs.twimg.com/media/BjwsdkfjsAAJ-4y.jpg");
-		when(s.getExtendedMediaEntities()).thenReturn(new MediaEntity[] { me1, me2 });
+		final ExtendedMediaEntity me1 = mockExtendedMediaEntry("https://twitter.com/some*user/status/1235430985/photo/1", "https://pbs.twimg.com/media/BjwsdkfjsAAI-4x.jpg");
+		final ExtendedMediaEntity me2 = mockExtendedMediaEntry("https://twitter.com/some*user/status/1235430986/photo/1", "https://pbs.twimg.com/media/BjwsdkfjsAAJ-4y.jpg");
+		when(s.getExtendedMediaEntities()).thenReturn(new ExtendedMediaEntity[] { me1, me2 });
 
 		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false);
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, "https://pbs.twimg.com/media/BjwsdkfjsAAI-4x.jpg", "https://twitter.com/some*user/status/1235430985/photo/1")));
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, "https://pbs.twimg.com/media/BjwsdkfjsAAJ-4y.jpg", "https://twitter.com/some*user/status/1235430986/photo/1")));
 		assertNoMetaOfType(t, MetaType.URL);
 		assertEquals("2 pictures", t.getUserSubtitle());
+	}
+
+	@Test
+	public void itExpandsTwitterGif () throws Exception {
+		final Status s = mockTweet("media.");
+		final ExtendedMediaEntity me1 = mockExtendedMediaEntry("https://twitter.com/some*user/status/1235430985/photo/1", "https://pbs.twimg.com/tweet_video_thumb/CEphgfeWAAEBurm.png");
+		final Variant v1 = mock(Variant.class);
+		when(s.getExtendedMediaEntities()).thenReturn(new ExtendedMediaEntity[] { me1 });
+		when(me1.getType()).thenReturn("animated_gif");
+		when(me1.getVideoDurationMillis()).thenReturn(0L);
+		when(me1.getVideoVariants()).thenReturn(new Variant[] { v1 });
+		when(v1.getContentType()).thenReturn("video/mp4");
+		when(v1.getUrl()).thenReturn("https://pbs.twimg.com/tweet_video/CEphgfeWAAEBurm.mp4");
+
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false);
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, "https://pbs.twimg.com/tweet_video_thumb/CEphgfeWAAEBurm.png", "https://twitter.com/some*user/status/1235430985/photo/1")));
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.URL, "https://pbs.twimg.com/tweet_video/CEphgfeWAAEBurm.mp4", "video/mp4")));
+		assertEquals("gif", t.getUserSubtitle());
+	}
+
+	@Test
+	public void itExpandsTwitterVideo () throws Exception {
+		final Status s = mockTweet("media.");
+		final ExtendedMediaEntity me1 = mockExtendedMediaEntry("http://twitter.com/twitter/status/560070183650213889/video/1", "https://pbs.twimg.com/ext_tw_video_thumb/560070131976392705/pu/img/TcG_ep5t-iqdLV5R.jpg");
+		final Variant v1 = mock(Variant.class);
+		final Variant v2 = mock(Variant.class);
+		final Variant v3 = mock(Variant.class);
+		final Variant v4 = mock(Variant.class);
+		final Variant v5 = mock(Variant.class);
+		when(s.getExtendedMediaEntities()).thenReturn(new ExtendedMediaEntity[] { me1 });
+		when(me1.getType()).thenReturn("video");
+		when(me1.getVideoDurationMillis()).thenReturn(30033L);
+		when(me1.getVideoVariants()).thenReturn(new Variant[] { v1, v2, v3, v4, v5 });
+
+		when(v1.getContentType()).thenReturn("video/mp4");
+		when(v1.getBitrate()).thenReturn(2176000);
+		when(v1.getUrl()).thenReturn("https://video.twimg.com/ext_tw_video/560070131976392705/pu/vid/1280x720/c4E56sl91ZB7cpYi.mp4");
+
+		when(v2.getContentType()).thenReturn("video/mp4");
+		when(v2.getBitrate()).thenReturn(320000);
+		when(v2.getUrl()).thenReturn("https://video.twimg.com/ext_tw_video/560070131976392705/pu/vid/320x180/nXXsvs7vOhcMivwl.mp4");
+
+		when(v3.getContentType()).thenReturn("video/webm");
+		when(v3.getBitrate()).thenReturn(832000);
+		when(v3.getUrl()).thenReturn("https://video.twimg.com/ext_tw_video/560070131976392705/pu/vid/640x360/vmLr5JlVs2kBLrXS.webm");
+
+		when(v4.getContentType()).thenReturn("video/mp4");
+		when(v4.getBitrate()).thenReturn(832000);
+		when(v4.getUrl()).thenReturn("https://video.twimg.com/ext_tw_video/560070131976392705/pu/vid/640x360/vmLr5JlVs2kBLrXS.mp4");
+
+		when(v5.getContentType()).thenReturn("application/x-mpegURL");
+		when(v5.getUrl()).thenReturn("https://video.twimg.com/ext_tw_video/560070131976392705/pu/pl/r1kgzh5PmLgium3-.m3u8");
+
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false);
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, "https://pbs.twimg.com/ext_tw_video_thumb/560070131976392705/pu/img/TcG_ep5t-iqdLV5R.jpg", "http://twitter.com/twitter/status/560070183650213889/video/1")));
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.URL, "https://video.twimg.com/ext_tw_video/560070131976392705/pu/vid/1280x720/c4E56sl91ZB7cpYi.mp4", "video/mp4 0:30 2.1 MB/s")));
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.URL, "https://video.twimg.com/ext_tw_video/560070131976392705/pu/vid/320x180/nXXsvs7vOhcMivwl.mp4", "video/mp4 0:30 312.5 KB/s")));
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.URL, "https://video.twimg.com/ext_tw_video/560070131976392705/pu/vid/640x360/vmLr5JlVs2kBLrXS.webm", "video/webm 0:30 812.5 KB/s")));
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.URL, "https://video.twimg.com/ext_tw_video/560070131976392705/pu/vid/640x360/vmLr5JlVs2kBLrXS.mp4", "video/mp4 0:30 812.5 KB/s")));
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.URL, "https://video.twimg.com/ext_tw_video/560070131976392705/pu/pl/r1kgzh5PmLgium3-.m3u8", "application/x-mpegURL 0:30")));
+		assertEquals("video", t.getUserSubtitle());
 	}
 
 	@Test
@@ -272,6 +335,16 @@ public class TwitterUtilsTest {
 		return me;
 	}
 
+	private static ExtendedMediaEntity mockExtendedMediaEntry (final String mediaPageUrl, final String mediaImgUrl) {
+		final ExtendedMediaEntity me = mock(ExtendedMediaEntity.class);
+		when(me.getURL()).thenReturn(mediaPageUrl);
+		when(me.getExpandedURL()).thenReturn(mediaPageUrl);
+		when(me.getMediaURLHttps()).thenReturn(mediaImgUrl);
+		when(me.getStart()).thenReturn(7);
+		when(me.getEnd()).thenReturn(7 + mediaPageUrl.length());
+		return me;
+	}
+
 	private static Status mockTweet (final String msg) {
 		return mockTweet(msg, "screenname", "name", 1234);
 	}
@@ -282,7 +355,7 @@ public class TwitterUtilsTest {
 		final Status s = mock(Status.class);
 		when(s.getText()).thenReturn(msg);
 
-		long t = System.currentTimeMillis();
+		final long t = System.currentTimeMillis();
 		lastMockTime = t > lastMockTime ? t : lastMockTime + 1;
 		when(s.getCreatedAt()).thenReturn(new Date(lastMockTime));
 
@@ -306,7 +379,7 @@ public class TwitterUtilsTest {
 	}
 
 	private static void assertNoMetaOfType (final Tweet t, final MetaType type) throws AssertionError {
-		for (Meta meta : t.getMetas()) {
+		for (final Meta meta : t.getMetas()) {
 			if (meta.getType() == type) throw new AssertionError("Metas should not have any " + type + ": " + t.getMetas());
 		}
 	}
@@ -335,7 +408,7 @@ public class TwitterUtilsTest {
 
 	@Test
 	public void itMakesFriendlyErrorForInternalJsonError () throws Exception {
-		twitter4j.JSONException je = new twitter4j.JSONException("Expected a ',' or '}' at 7733 [character 7734 line 1]");
+		final twitter4j.JSONException je = new twitter4j.JSONException("Expected a ',' or '}' at 7733 [character 7734 line 1]");
 		final TwitterException te = new TwitterException(je);
 		assertEquals("Network error: Invalid or incomplete data received.", TwitterUtils.friendlyExceptionMessage(te));
 	}
