@@ -677,7 +677,7 @@ public class DbAdapter implements DbInterface {
 					new String[] { TBL_TM_TYPE, TBL_TM_DATA, TBL_TM_TITLE },
 					TBL_TM_TWID + "=?",
 					new String[] { String.valueOf(tweetUid) },
-					null, null, null, null);
+					null, null, TBL_TM_ID + " asc", null);
 			if (c != null && c.moveToFirst()) {
 				final int colType = c.getColumnIndex(TBL_TM_TYPE);
 				final int colData = c.getColumnIndex(TBL_TM_DATA);

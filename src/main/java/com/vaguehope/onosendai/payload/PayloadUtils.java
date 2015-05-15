@@ -3,7 +3,6 @@ package com.vaguehope.onosendai.payload;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,21 +38,17 @@ public final class PayloadUtils {
 
 	public static PayloadList makePayloads (final Config conf, final Tweet tweet) {
 		final Account account = MetaUtils.accountFromMeta(tweet, conf);
-
 		final Set<Payload> set = new LinkedHashSet<Payload>();
 		set.add(new PrincipalPayload(tweet));
-		replyToOwner(account, tweet, set);
 		if (account != null) convertMeta(account, tweet, set);
+		replyToOwner(account, tweet, set);
 		extractUrls(tweet, set);
 		extractHashTags(tweet, set);
 		if (account != null) {
 			repliesAndExtractMentions(account, tweet, set);
 			addShareOptions(account, tweet, set);
 		}
-
-		final List<Payload> sorted = new ArrayList<Payload>(set);
-		Collections.sort(sorted, Payload.TYPE_COMP);
-		return new PayloadList(sorted);
+		return new PayloadList(new ArrayList<Payload>(set));
 	}
 
 	private static void addShareOptions (final Account account, final Tweet tweet, final Set<Payload> set) {
