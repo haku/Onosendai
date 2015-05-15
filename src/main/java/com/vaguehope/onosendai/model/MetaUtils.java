@@ -32,4 +32,11 @@ public final class MetaUtils {
 		return c;
 	}
 
+	public static boolean containsMetaWithTitle (final Collection<Meta> metas, final String title) {
+		for (final Meta meta : metas) {
+			if (title.equals(meta.getTitle())) return true;
+		}
+		return false;
+	}
+
 }

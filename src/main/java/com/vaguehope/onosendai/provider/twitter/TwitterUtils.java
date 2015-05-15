@@ -5,7 +5,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -85,17 +84,16 @@ public final class TwitterUtils {
 	}
 
 	static Tweet convertTweet (final Account account, final Status status, final long ownId, final boolean hdMedia) {
+		// The order things are added to these lists is important.
 		final List<Meta> metas = new ArrayList<Meta>();
+		final List<String> userSubtitle = new ArrayList<String>();
+
 		metas.add(new Meta(MetaType.ACCOUNT, account.getId()));
-		if (status.getUser().getId() == ownId) metas.add(new Meta(MetaType.EDIT_SID, status.getId()));
 
 		final User viaUser;
 		if (status.isRetweet()) {
 			viaUser = status.getUser();
 			metas.add(new Meta(MetaType.POST_TIME, String.valueOf(TimeUnit.MILLISECONDS.toSeconds(status.getRetweetedStatus().getCreatedAt().getTime()))));
-			if (status.getUser().getId() != ownId) {
-				metas.add(new Meta(MetaType.MENTION, status.getUser().getScreenName(), status.getUser().getName()));
-			}
 		}
 		else {
 			viaUser = null;
@@ -103,9 +101,17 @@ public final class TwitterUtils {
 
 		final Status s = status.isRetweet() ? status.getRetweetedStatus() : status;
 
+		addMedia(s, metas, hdMedia, userSubtitle);
+		checkUrlsForMedia(s, metas, hdMedia);
+
 		final URLEntity[] urls = mergeArrays(s.getURLEntities(), s.getMediaEntities());
 		final String text = expandUrls(s.getText(), urls, metas);
+		addHashtags(s, metas);
 
+		addMentions(s, metas, status.getUser().getId(), ownId);
+		if (viaUser != null && viaUser.getId() != ownId) metas.add(new Meta(MetaType.MENTION, viaUser.getScreenName(), viaUser.getName()));
+
+		if (status.getUser().getId() == ownId) metas.add(new Meta(MetaType.EDIT_SID, status.getId()));
 		if (s.getInReplyToStatusId() > 0) {
 			metas.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getInReplyToStatusId())));
 		}
@@ -113,24 +119,17 @@ public final class TwitterUtils {
 			metas.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getRetweetedStatus().getId())));
 		}
 
-		final List<String> userSubtitle = new ArrayList<String>();
-
-		addMedia(s, metas, hdMedia, userSubtitle);
-		checkUrlsForMedia(s, metas, hdMedia);
-		addHashtags(s, metas);
-		addMentions(s, metas, status.getUser().getId(), ownId);
+		final int mediaCount = MetaUtils.countMetaOfType(metas, MetaType.MEDIA);
+		if (mediaCount > 1) userSubtitle.add(String.format("%s pictures", mediaCount)); //ES
 
 		if (viaUser != null) userSubtitle.add(String.format("via %s", viaUser.getScreenName())); //ES
 		final String fullSubtitle = viaUser != null ? String.format("via %s", viaUser.getName()) : null; //ES
-
-		final int mediaCount = MetaUtils.countMetaOfType(metas, MetaType.MEDIA);
-		if (mediaCount > 1) userSubtitle.add(String.format("%s pictures", mediaCount)); //ES
 
 		// https://dev.twitter.com/docs/user-profile-images-and-banners
 
 		return new Tweet(String.valueOf(s.getId()),
 				s.getUser().getScreenName(), s.getUser().getName(),
-				ArrayHelper.join(userSubtitle, ", "),
+				userSubtitle.size() > 0 ? ArrayHelper.join(userSubtitle, ", ") : null,
 				fullSubtitle,
 				text,
 				TimeUnit.MILLISECONDS.toSeconds(status.getCreatedAt().getTime()),
@@ -173,7 +172,9 @@ public final class TwitterUtils {
 			if (url.getStart() < 0 || url.getEnd() > text.length()) return text; // All bets are off.
 			final String fullUrl = url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL();
 			bld.append(text.substring(i == 0 ? 0 : urls[i - 1].getEnd(), url.getStart())).append(fullUrl);
-			if (!(url instanceof MediaEntity)) metas.add(new Meta(MetaType.URL, fullUrl, url.getDisplayURL()));
+			if (!(url instanceof MediaEntity) && !MetaUtils.containsMetaWithTitle(metas, fullUrl)) {
+				metas.add(new Meta(MetaType.URL, fullUrl, url.getDisplayURL()));
+			}
 		}
 		bld.append(text.substring(urls[urls.length - 1].getEnd()));
 		final String expandedText = bld.toString();
@@ -222,14 +223,6 @@ public final class TwitterUtils {
 			final String thumbUrl = ImageHostHelper.thumbUrl(fullUrl, hdMedia);
 			if (thumbUrl != null) {
 				metas.add(new Meta(MetaType.MEDIA, thumbUrl, fullUrl));
-
-				// TODO put this somewhere nicer.
-				// Remove redundant URL entries added by expandUrls().
-				final Iterator<Meta> ittr = metas.iterator();
-				while (ittr.hasNext()) {
-					final Meta meta = ittr.next();
-					if (meta.getType() == MetaType.URL && fullUrl.equals(meta.getData())) ittr.remove();
-				}
 			}
 		}
 	}
