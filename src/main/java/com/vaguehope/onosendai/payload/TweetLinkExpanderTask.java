@@ -29,6 +29,7 @@ import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void> {
 
 	private static final Pattern TWEET_URL = Pattern.compile("^https?://(?:mobile\\.)?twitter.com/([^/]+)/status/([0-9]+)[^/]*$");
+	private static final Pattern UNTITLEABLE_URL = Pattern.compile("^.*\\.(mp[0-9]|m3u8|mov|jpe?g|png|gif|pdf)$", Pattern.CASE_INSENSITIVE);
 	private static final LogWrapper LOG = new LogWrapper("LE");
 
 	public static void checkAndRun (final ExecutorEventListener eventListener, final Context context, final ProviderMgr provMgr, final Tweet tweet, final boolean hdMedia, final Account account, final PayloadListAdapter payloadListAdapter, final Executor es) {
@@ -71,10 +72,10 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 			final Matcher m = TWEET_URL.matcher(meta.getData());
 			if (m.matches()) {
 				fetchLinkedTweet(db, meta, m.group(2));
+				continue;
 			}
-			else {
-				fetchLinkTitle(meta);
-			}
+			if (UNTITLEABLE_URL.matcher(meta.getData()).matches()) continue;
+			fetchLinkTitle(meta);
 		}
 		return null;
 	}
