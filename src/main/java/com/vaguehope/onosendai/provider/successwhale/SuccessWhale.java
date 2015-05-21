@@ -19,6 +19,7 @@ import local.apache.StringPart;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -26,6 +27,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -57,6 +59,7 @@ public class SuccessWhale {
 	private static final String API_POSTTOACCOUNTS = "/v3/posttoaccounts.xml";
 	private static final String API_ITEM = "/v3/item";
 	private static final String API_ACTION = "/v3/action";
+	private static final String API_BANNED_PHRASES = "/v3/bannedphrases.json";
 
 	private static final String AUTH_TOKEN_PREFIX = "SW_AUTH_TOKEN_";
 	private static final String PTA_PREFIX = "SW_PTA_";
@@ -342,6 +345,22 @@ public class SuccessWhale {
 		client.execute(post, new CheckStatusOnlyHandler());
 	}
 
+	public List<String> getBannedPhrases () throws SuccessWhaleException {
+		return authenticated(new SwCall<List<String>>() {
+			@Override
+			public List<String> invoke (final HttpClient client) throws IOException {
+				final HttpGet req = new HttpGet(makeAuthedUrl(API_BANNED_PHRASES));
+				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
+				return client.execute(req, BannedPhrasesHandler.INSTANCE);
+			}
+
+			@Override
+			public String describeFailure (final Exception e) {
+				return "Failed to fetch banned phrases: " + e.toString();
+			}
+		});
+	}
+
 	String makeAuthedUrl (final String api, final String... params) {
 		final StringBuilder u = new StringBuilder().append(BASE_URL).append(api).append("?")
 				.append("&token=").append(this.token);
@@ -469,6 +488,28 @@ public class SuccessWhale {
 				return new SuccessWhaleFeedXml(this.account, AndroidHttpClient.getUngzippedContent(entity)).getTweets();
 			}
 			catch (final SAXException e) {
+				throw new IOException("Failed to parse response: " + e.toString(), e);
+			}
+		}
+
+	}
+
+	private enum BannedPhrasesHandler implements ResponseHandler<List<String>> {
+		INSTANCE;
+
+		@Override
+		public List<String> handleResponse (final HttpResponse response) throws ClientProtocolException, IOException {
+			checkReponseCode(response);
+			final String raw = IoHelper.toString(AndroidHttpClient.getUngzippedContent(response.getEntity()));
+			try {
+				final JSONArray arr = ((JSONObject) new JSONTokener(raw).nextValue()).getJSONArray("bannedphrases");
+				final List<String> ret = new ArrayList<String>();
+				for (int i = 0; i < arr.length(); i++) {
+					ret.add(arr.getString(i));
+				}
+				return ret;
+			}
+			catch (final JSONException e) {
 				throw new IOException("Failed to parse response: " + e.toString(), e);
 			}
 		}

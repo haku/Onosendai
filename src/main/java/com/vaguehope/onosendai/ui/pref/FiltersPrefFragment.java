@@ -1,7 +1,12 @@
 package com.vaguehope.onosendai.ui.pref;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import org.json.JSONException;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -9,25 +14,35 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceFragment;
 import android.support.v4.util.Pair;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
+import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.model.Filters;
+import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.Selection;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
+import com.vaguehope.onosendai.storage.VolatileKvStore;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.Result;
+import com.vaguehope.onosendai.util.Titleable;
 
 public class FiltersPrefFragment extends PreferenceFragment {
 
@@ -39,6 +54,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 	@Override
 	public void onCreate (final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setHasOptionsMenu(true);
 		setPreferenceScreen(getPreferenceManager().createPreferenceScreen(getActivity()));
 		refreshFiltersList();
 	}
@@ -72,6 +88,24 @@ public class FiltersPrefFragment extends PreferenceFragment {
 		for (final String filterId : getPrefs().readFilterIds()) {
 			final String filter = getPrefs().readFilter(filterId);
 			getPreferenceScreen().addPreference(new FilterDialogPref(getActivity(), filterId, filter, this));
+		}
+	}
+
+	private static final int MNU_SW_PULL = 1001;
+
+	@Override
+	public void onCreateOptionsMenu (final Menu menu, final MenuInflater inflater) {
+		menu.add(Menu.NONE, MNU_SW_PULL, Menu.NONE, "Pull from SuccessWhale"); //ES
+	}
+
+	@Override
+	public boolean onOptionsItemSelected (final MenuItem item) {
+		switch (item.getItemId()) {
+			case MNU_SW_PULL:
+				startSwPull();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
 		}
 	}
 
@@ -147,7 +181,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 	private final OnPreferenceClickListener reapplyFiltersListener = new OnPreferenceClickListener() {
 		@Override
 		public boolean onPreferenceClick (final Preference preference) {
-			new ReapplyFiltersTask(getActivity(), FiltersPrefFragment.this.prefs).execute();
+			new ReapplyFiltersTask(getActivity(), getPrefs()).execute();
 			return true;
 		}
 	};
@@ -229,6 +263,105 @@ public class FiltersPrefFragment extends PreferenceFragment {
 			if (result != null) {
 				LOG.e("Error while reapplying filters.", result);
 				DialogHelper.alert(getContext(), result);
+			}
+		}
+
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private Collection<Account> readAccountsOrAlert () {
+		try {
+			return this.prefs.readAccounts();
+		}
+		catch (final JSONException e) {
+			DialogHelper.alert(getActivity(), "Failed to read accounts.", e); //ES
+			return null;
+		}
+	}
+
+	private void startSwPull () {
+		final Collection<Account> acs = readAccountsOrAlert();
+		if (acs == null) return;
+
+		final List<Account> swAcs = new ArrayList<Account>();
+		for (final Account a : acs) {
+			if (a.getProvider() == AccountProvider.SUCCESSWHALE) swAcs.add(a);
+		}
+
+		if (swAcs.size() < 1) {
+			DialogHelper.alert(getActivity(), "No SW accounts configured."); //ES
+		}
+		else if (swAcs.size() > 1) {
+			DialogHelper.askItem(getActivity(), "Account", new ArrayList<Titleable>(readAccountsOrAlert()), new Listener<Titleable>() {
+				@Override
+				public void onAnswer (final Titleable item) {
+					new SwPullTask(FiltersPrefFragment.this, getPrefs(), (Account) item).execute();
+				}
+			});
+		}
+		else {
+			new SwPullTask(this, getPrefs(), swAcs.get(0)).execute();
+		}
+	}
+
+	private static class SwPullTask extends AsyncTask<Void, Void, Result<Pair<Integer, Integer>>> {
+
+		private final FiltersPrefFragment host;
+		private final Prefs prefs;
+		private final Account account;
+		private ProgressDialog dialog;
+
+		public SwPullTask (final FiltersPrefFragment host, final Prefs prefs, final Account account) {
+			this.host = host;
+			this.prefs = prefs;
+			this.account = account;
+		}
+
+		@Override
+		protected void onPreExecute () {
+			this.dialog = ProgressDialog.show(this.host.getActivity(), "Filters", "Fetching...", true); //ES
+		}
+
+		@Override
+		protected Result<Pair<Integer, Integer>> doInBackground (final Void... params) {
+			final SuccessWhaleProvider swProv = new SuccessWhaleProvider(new VolatileKvStore());
+			try {
+				final List<String> bps = swProv.getBannedPhrases(this.account);
+
+				final Set<String> existing = new HashSet<String>();
+				for (final String filterId : this.prefs.readFilterIds()) {
+					existing.add(this.prefs.readFilter(filterId));
+				}
+
+				int merged = 0;
+				for (final String bp : bps) {
+					if (!existing.contains(bp)) {
+						this.prefs.writeFilter(this.prefs.getNextFilterId(), bp);
+						merged += 1;
+					}
+				}
+
+				return new Result<Pair<Integer, Integer>>(new Pair<Integer, Integer>(bps.size(), merged));
+			}
+			catch (final Exception e) { // NOSONAR want to report errors to UI.
+				return new Result<Pair<Integer, Integer>>(e);
+			}
+			finally {
+				swProv.shutdown();
+			}
+		}
+
+		@Override
+		protected void onPostExecute (final Result<Pair<Integer, Integer>> result) {
+			this.dialog.dismiss();
+			if (result.isSuccess()) {
+				this.host.refreshFiltersList();
+				DialogHelper.alert(this.host.getActivity(), "Fetched " + result.getData().first + " and added " + result.getData().second + "."); //ES
+			}
+			else {
+				LOG.e("Error fetching filters.", result.getE());
+				DialogHelper.alert(this.host.getActivity(), result.getE());
 			}
 		}
 
