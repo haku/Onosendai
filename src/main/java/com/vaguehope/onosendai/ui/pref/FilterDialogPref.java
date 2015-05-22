@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.preference.DialogPreference;
 import android.view.View;
 
+import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 
@@ -23,6 +24,7 @@ public class FilterDialogPref extends DialogPreference {
 		this.filter = filter;
 		this.filtersPrefFragment = filtersPrefFragment;
 
+		setLayoutResource(R.layout.filterpref);
 		setKey(filterId);
 		setTitle(filter);
 
