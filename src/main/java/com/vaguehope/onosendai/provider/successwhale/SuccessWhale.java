@@ -361,6 +361,27 @@ public class SuccessWhale {
 		});
 	}
 
+	public void setBannedPhrases (final List<String> bannedPhrases) throws SuccessWhaleException {
+		authenticated(new SwCall<Void>() {
+			@Override
+			public Void invoke (final HttpClient client) throws IOException {
+				final HttpPost post = new HttpPost(BASE_URL + API_BANNED_PHRASES);
+				final List<NameValuePair> params = new ArrayList<NameValuePair>(4);
+				addAuthParams(params);
+				params.add(new BasicNameValuePair("bannedphrases", new JSONArray(bannedPhrases).toString()));
+
+				post.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+				client.execute(post, new CheckStatusOnlyHandler());
+				return null;
+			}
+
+			@Override
+			public String describeFailure (final Exception e) {
+				return "Failed to set banned phrases: " + e.toString();
+			}
+		});
+	}
+
 	String makeAuthedUrl (final String api, final String... params) {
 		final StringBuilder u = new StringBuilder().append(BASE_URL).append(api).append("?")
 				.append("&token=").append(this.token);

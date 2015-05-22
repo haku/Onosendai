@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.ui.pref;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -92,10 +93,12 @@ public class FiltersPrefFragment extends PreferenceFragment {
 	}
 
 	private static final int MNU_SW_PULL = 1001;
+	private static final int MNU_SW_PUSH = 1002;
 
 	@Override
 	public void onCreateOptionsMenu (final Menu menu, final MenuInflater inflater) {
 		menu.add(Menu.NONE, MNU_SW_PULL, Menu.NONE, "Pull from SuccessWhale"); //ES
+		menu.add(Menu.NONE, MNU_SW_PUSH, Menu.NONE, "Push to SuccessWhale"); //ES
 	}
 
 	@Override
@@ -103,6 +106,9 @@ public class FiltersPrefFragment extends PreferenceFragment {
 		switch (item.getItemId()) {
 			case MNU_SW_PULL:
 				startSwPull();
+				return true;
+			case MNU_SW_PUSH:
+				startSwPush();
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
@@ -280,29 +286,64 @@ public class FiltersPrefFragment extends PreferenceFragment {
 		}
 	}
 
-	private void startSwPull () {
+	private void askSwAccount (final Listener<Account> onSwAccount) {
 		final Collection<Account> acs = readAccountsOrAlert();
 		if (acs == null) return;
-
 		final List<Account> swAcs = new ArrayList<Account>();
 		for (final Account a : acs) {
 			if (a.getProvider() == AccountProvider.SUCCESSWHALE) swAcs.add(a);
 		}
-
 		if (swAcs.size() < 1) {
 			DialogHelper.alert(getActivity(), "No SW accounts configured."); //ES
 		}
 		else if (swAcs.size() > 1) {
-			DialogHelper.askItem(getActivity(), "Account", new ArrayList<Titleable>(readAccountsOrAlert()), new Listener<Titleable>() {
-				@Override
-				public void onAnswer (final Titleable item) {
-					new SwPullTask(FiltersPrefFragment.this, getPrefs(), (Account) item).execute();
-				}
-			});
+			DialogHelper.askItem(getActivity(), "Account", new ArrayList<Account>(acs), onSwAccount);
 		}
 		else {
-			new SwPullTask(this, getPrefs(), swAcs.get(0)).execute();
+			onSwAccount.onAnswer(swAcs.get(0));
 		}
+	}
+
+	private void startSwPull () {
+		askSwAccount(new Listener<Account>() {
+			@Override
+			public void onAnswer (final Account account) {
+				new SwPullTask(FiltersPrefFragment.this, getPrefs(), account).execute();
+			}
+		});
+	}
+
+	private enum MergeMode implements Titleable {
+		OVERWRITE("Overwrite"), //ES
+		MERGE("Merge"); //ES
+		private final String title;
+
+		private MergeMode (final String title) {
+			this.title = title;
+		}
+
+		@Override
+		public String getUiTitle () {
+			return this.title;
+		}
+	}
+
+	private void startSwPush () {
+		askSwAccount(new Listener<Account>() {
+			@Override
+			public void onAnswer (final Account account) {
+				startSwPush(account);
+			}
+		});
+	}
+
+	protected void startSwPush (final Account account) {
+		DialogHelper.askItem(getActivity(), "Mode", MergeMode.values(), new Listener<MergeMode>() { //ES
+			@Override
+			public void onAnswer (final MergeMode mergeMode) {
+				new SwPushTask(FiltersPrefFragment.this, getPrefs(), account, mergeMode).execute();
+			}
+		});
 	}
 
 	private static class SwPullTask extends AsyncTask<Void, Void, Result<Pair<Integer, Integer>>> {
@@ -342,6 +383,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 					}
 				}
 
+				LOG.i("Fetched %s filters from SW, added %s new filters.", bps.size(), merged);
 				return new Result<Pair<Integer, Integer>>(new Pair<Integer, Integer>(bps.size(), merged));
 			}
 			catch (final Exception e) { // NOSONAR want to report errors to UI.
@@ -361,6 +403,78 @@ public class FiltersPrefFragment extends PreferenceFragment {
 			}
 			else {
 				LOG.e("Error fetching filters.", result.getE());
+				DialogHelper.alert(this.host.getActivity(), result.getE());
+			}
+		}
+
+	}
+
+	private static class SwPushTask extends AsyncTask<Void, String, Result<Integer>> {
+
+		private final FiltersPrefFragment host;
+		private final Prefs prefs;
+		private final Account account;
+		private final MergeMode mergeMode;
+		private ProgressDialog dialog;
+
+		public SwPushTask (final FiltersPrefFragment host, final Prefs prefs, final Account account, final MergeMode mergeMode) {
+			this.host = host;
+			this.prefs = prefs;
+			this.account = account;
+			this.mergeMode = mergeMode;
+		}
+
+		@Override
+		protected void onPreExecute () {
+			this.dialog = ProgressDialog.show(this.host.getActivity(), "Filters", "Pushing...", true); //ES
+		}
+
+		@Override
+		protected void onProgressUpdate (final String... msgs) {
+			if (msgs == null || msgs.length < 1) return;
+			this.dialog.setMessage(msgs[0]);
+		}
+
+		@Override
+		protected Result<Integer> doInBackground (final Void... params) {
+			final SuccessWhaleProvider swProv = new SuccessWhaleProvider(new VolatileKvStore());
+			try {
+				final LinkedHashSet<String> toPush = new LinkedHashSet<String>();
+				if (this.mergeMode == MergeMode.MERGE) {
+					publishProgress("Fetching current..."); //ES
+					toPush.addAll(swProv.getBannedPhrases(this.account));
+					LOG.i("Fetched %s existing filters from SW.");
+					publishProgress("Merging and pushing..."); //ES
+				}
+				else if (this.mergeMode == MergeMode.OVERWRITE) {
+					// Nothing.
+				}
+				else {
+					throw new IllegalStateException("Unknown: " + this.mergeMode);
+				}
+				for (final String filterId : this.prefs.readFilterIds()) {
+					toPush.add(this.prefs.readFilter(filterId));
+				}
+				swProv.setBannedPhrases(this.account, new ArrayList<String>(toPush));
+				LOG.d("Pushed %s filters to SW.", toPush.size());
+				return new Result<Integer>(toPush.size());
+			}
+			catch (final Exception e) { // NOSONAR want to report errors to UI.
+				return new Result<Integer>(e);
+			}
+			finally {
+				swProv.shutdown();
+			}
+		}
+
+		@Override
+		protected void onPostExecute (final Result<Integer> result) {
+			this.dialog.dismiss();
+			if (result.isSuccess()) {
+				DialogHelper.alert(this.host.getActivity(), "Pushed " + result.getData() + " filters."); //ES
+			}
+			else {
+				LOG.e("Error pushing filters.", result.getE());
 				DialogHelper.alert(this.host.getActivity(), result.getE());
 			}
 		}
