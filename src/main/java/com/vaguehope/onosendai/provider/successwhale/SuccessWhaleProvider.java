@@ -90,6 +90,10 @@ public class SuccessWhaleProvider {
 		return getAccount(account).getBannedPhrases();
 	}
 
+	public void setBannedPhrases (final Account account, final List<String> bannedPhrases) throws SuccessWhaleException {
+		getAccount(account).setBannedPhrases(bannedPhrases);
+	}
+
 	public void shutdown () {
 		this.httpClientFactory.shutdown();
 	}

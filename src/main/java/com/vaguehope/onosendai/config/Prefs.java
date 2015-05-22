@@ -255,7 +255,7 @@ public class Prefs {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	public String getNextFilterId () {
-		return nextId(readFilterIds(), KEY_FILTER_PREFIX);
+		return nextIdHighest(readFilterIds(), KEY_FILTER_PREFIX);
 	}
 
 	public List<String> readFilterIds () {
@@ -310,6 +310,14 @@ public class Prefs {
 			if (!existingIds.contains(id)) return id;
 			x += 1;
 		}
+	}
+
+	private static String nextIdHighest (final List<String> existingIds, final String prefix) {
+		int x = 1;
+		for (String exId : existingIds) {
+			x = Math.max(x, Integer.parseInt(exId.substring(prefix.length())));
+		}
+		return prefix + (x + 1);
 	}
 
 	private List<String> readIds (final String key) {
