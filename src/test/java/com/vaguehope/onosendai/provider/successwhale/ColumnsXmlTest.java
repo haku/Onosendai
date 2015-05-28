@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.provider.successwhale;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
@@ -9,6 +10,7 @@ import org.junit.Test;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.ColumnFeed;
 
 public class ColumnsXmlTest {
 
@@ -35,9 +37,8 @@ public class ColumnsXmlTest {
 
 	private static void assertColumn (final Column c, final int id, final String title, final String resource) {
 		assertEquals(id, c.getId());
-		assertEquals(ACCOUNT_ID, c.getAccountId());
 		assertEquals(title, c.getTitle());
-		assertEquals(resource, c.getResource());
+		assertEquals(Collections.singleton(new ColumnFeed(ACCOUNT_ID, resource)), c.getFeeds());
 		assertEquals(null, c.getExcludeColumnIds());
 		assertEquals(30, c.getRefreshIntervalMins());
 	}

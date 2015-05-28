@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -22,6 +23,7 @@ public class Column implements Titleable {
 
 	private static final String KEY_ID = "id";
 	private static final String KEY_TITLE = "title";
+	private static final String KEY_FEEDS = "feeds";
 	private static final String KEY_ACCOUNT = "account";
 	private static final String KEY_RESOURCE = "resource";
 	private static final String KEY_REFRESH = "refresh";
@@ -34,8 +36,7 @@ public class Column implements Titleable {
 
 	private final int id;
 	private final String title;
-	private final String accountId;
-	private final String resource;
+	private final Set<ColumnFeed> feeds;
 	private final int refreshIntervalMins;
 	private final Set<Integer> excludeColumnIds;
 	private final NotificationStyle notificationStyle;
@@ -43,22 +44,29 @@ public class Column implements Titleable {
 	private final boolean hdMedia;
 
 	public Column (final int id, final Column c) {
-		this(id, c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.getNotificationStyle(), c.getInlineMediaStyle(), c.isHdMedia());
-	}
-
-	public Column (final Account newAccount, final Column c) {
-		this(c.getId(), c.getTitle(), newAccount.getId(), c.getResource(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.getNotificationStyle(), c.getInlineMediaStyle(), c.isHdMedia());
+		this(id, c.getTitle(), c.getFeeds(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.getNotificationStyle(), c.getInlineMediaStyle(), c.isHdMedia());
 	}
 
 	public Column (final Set<Integer> newExcludeColumnIds, final Column c) {
-		this(c.getId(), c.getTitle(), c.getAccountId(), c.getResource(), c.getRefreshIntervalMins(), newExcludeColumnIds, c.getNotificationStyle(), c.getInlineMediaStyle(), c.isHdMedia());
+		this(c.getId(), c.getTitle(), c.getFeeds(), c.getRefreshIntervalMins(), newExcludeColumnIds, c.getNotificationStyle(), c.getInlineMediaStyle(), c.isHdMedia());
 	}
 
 	public Column (
 			final int id,
 			final String title,
-			final String accountId,
-			final String resource,
+			final ColumnFeed feed,
+			final int refreshIntervalMins,
+			final Set<Integer> excludeColumnIds,
+			final NotificationStyle notificationStyle,
+			final InlineMediaStyle inlineMediaStyle,
+			final boolean hdMedia) {
+		this(id, title, Collections.singleton(feed), refreshIntervalMins, excludeColumnIds, notificationStyle, inlineMediaStyle, hdMedia);
+	}
+
+	public Column (
+			final int id,
+			final String title,
+			final Set<ColumnFeed> feeds,
 			final int refreshIntervalMins,
 			final Set<Integer> excludeColumnIds,
 			final NotificationStyle notificationStyle,
@@ -66,13 +74,19 @@ public class Column implements Titleable {
 			final boolean hdMedia) {
 		this.id = id;
 		this.title = title;
-		this.accountId = accountId;
-		this.resource = resource;
+		this.feeds = feeds;
 		this.refreshIntervalMins = refreshIntervalMins;
 		this.excludeColumnIds = excludeColumnIds;
 		this.notificationStyle = notificationStyle;
 		this.inlineMediaStyle = inlineMediaStyle;
 		this.hdMedia = hdMedia;
+	}
+
+	public Column replaceAccount (final Account newAccount) {
+		if (getFeeds().size() != 1) throw new IllegalArgumentException("Can only replace account on column with a single feed: " + toString());
+		final ColumnFeed oldFeed = getFeeds().iterator().next();
+		final ColumnFeed newFeed = new ColumnFeed(newAccount.getId(), oldFeed.getResource());
+		return new Column(getId(), getTitle(), Collections.singleton(newFeed), getRefreshIntervalMins(), getExcludeColumnIds(), getNotificationStyle(), getInlineMediaStyle(), isHdMedia());
 	}
 
 	@Override
@@ -81,8 +95,7 @@ public class Column implements Titleable {
 		int result = 1;
 		result = prime * result + this.id;
 		result = prime * result + ((this.title == null) ? 0 : this.title.hashCode());
-		result = prime * result + ((this.accountId == null) ? 0 : this.accountId.hashCode());
-		result = prime * result + ((this.resource == null) ? 0 : this.resource.hashCode());
+		result = prime * result + ((this.feeds == null) ? 0 : this.feeds.hashCode());
 		result = prime * result + this.refreshIntervalMins;
 		result = prime * result + ((this.excludeColumnIds == null) ? 0 : this.title.hashCode());
 		result = prime * result + (this.notificationStyle == null ? 0 : this.notificationStyle.hashCode());
@@ -97,8 +110,7 @@ public class Column implements Titleable {
 		final Column that = (Column) o;
 		return EqualHelper.equal(this.id, that.id) &&
 				EqualHelper.equal(this.title, that.title) &&
-				EqualHelper.equal(this.accountId, that.accountId) &&
-				EqualHelper.equal(this.resource, that.resource) &&
+				EqualHelper.equal(this.feeds, that.feeds) &&
 				this.refreshIntervalMins == that.refreshIntervalMins &&
 				EqualHelper.equal(this.excludeColumnIds, that.excludeColumnIds) &&
 				EqualHelper.equal(this.notificationStyle, that.notificationStyle) &&
@@ -118,8 +130,7 @@ public class Column implements Titleable {
 		final StringBuilder s = new StringBuilder();
 		s.append("Column{").append(this.id)
 				.append(",").append(this.title)
-				.append(",").append(this.accountId)
-				.append(",").append(this.resource)
+				.append(",").append(this.feeds)
 				.append(",").append(this.refreshIntervalMins)
 				.append(",").append(this.excludeColumnIds)
 				.append(",").append(this.notificationStyle)
@@ -137,12 +148,9 @@ public class Column implements Titleable {
 		return this.title;
 	}
 
-	public String getAccountId () {
-		return this.accountId;
-	}
-
-	public String getResource () {
-		return this.resource;
+	public Set<ColumnFeed> getFeeds () {
+		if (this.feeds == null) return Collections.emptySet();
+		return this.feeds;
 	}
 
 	public int getRefreshIntervalMins () {
@@ -178,8 +186,17 @@ public class Column implements Titleable {
 		final JSONObject json = new JSONObject();
 		json.put(KEY_ID, getId());
 		json.put(KEY_TITLE, getTitle());
-		json.put(KEY_ACCOUNT, getAccountId());
-		json.put(KEY_RESOURCE, getResource());
+
+		final Set<ColumnFeed> fs = getFeeds();
+		if (fs.size() == 1) {
+			final ColumnFeed cf = fs.iterator().next();
+			json.put(KEY_ACCOUNT, cf.getAccountId());
+			json.put(KEY_RESOURCE, cf.getResource());
+		}
+		else if (fs.size() > 1) {
+			json.put(KEY_FEEDS, new JSONArray(fs));
+		}
+
 		json.put(KEY_REFRESH, getRefreshIntervalMins() + "mins");
 		json.put(KEY_EXCLUDE, toJsonArray(getExcludeColumnIds()));
 		json.put(KEY_NOTIFY, getNotificationStyle() != null ? getNotificationStyle().toJson() : null);
@@ -205,22 +222,39 @@ public class Column implements Titleable {
 	public static Column parseJson (final JSONObject json) throws JSONException {
 		final int id = json.optInt(KEY_ID, Integer.MIN_VALUE);
 		if (id < 0) throw new JSONException("Column ID must be positive a integer.");
-
 		final String title = json.getString(KEY_TITLE);
-		final String account = json.has(KEY_ACCOUNT) ? json.getString(KEY_ACCOUNT) : null;
-		final String resource = json.getString(KEY_RESOURCE);
+
+		final Set<ColumnFeed> feeds = new LinkedHashSet<ColumnFeed>();
+		if (json.has(KEY_RESOURCE)) {
+			final String resource = json.getString(KEY_RESOURCE);
+			final String account = json.has(KEY_ACCOUNT) ? json.getString(KEY_ACCOUNT) : null;
+			feeds.add(new ColumnFeed(account, resource));
+		}
+		final JSONArray jFeeds = json.optJSONArray(KEY_FEEDS);
+		for (int i = 0; i < jFeeds.length(); i++) {
+			feeds.add(ColumnFeed.parseJson(jFeeds.getJSONObject(i)));
+		}
+
+		boolean hasAccount = false;
+		for (final ColumnFeed cf : feeds) {
+			if (cf.getAccountId() != null) {
+				hasAccount = true;
+				break;
+			}
+		}
+
 		final String refreshRaw = json.optString(KEY_REFRESH, null);
-		final int refreshIntervalMins = parseFeedRefreshInterval(refreshRaw, account, title);
+		final int refreshIntervalMins = parseFeedRefreshInterval(refreshRaw, hasAccount, title);
 		final Set<Integer> excludeColumnIds = parseFeedExcludeColumns(json, title);
 		final NotificationStyle notificationStyle = NotificationStyle.parseJson(json.opt(KEY_NOTIFY));
 		final InlineMediaStyle inlineMedia = InlineMediaStyle.parseJson(json.opt(KEY_INLINE_MEDIA));
 		final boolean hdMedia = json.optBoolean(KEY_HD_MEDIA, false);
-		return new Column(id, title, account, resource, refreshIntervalMins, excludeColumnIds, notificationStyle, inlineMedia, hdMedia);
+		return new Column(id, title, feeds, refreshIntervalMins, excludeColumnIds, notificationStyle, inlineMedia, hdMedia);
 	}
 
-	private static int parseFeedRefreshInterval (final String refreshRaw, final String account, final String title) {
+	private static int parseFeedRefreshInterval (final String refreshRaw, final boolean hasAccount, final String title) {
 		final int refreshIntervalMins = TimeParser.parseDuration(refreshRaw);
-		if (refreshIntervalMins < 0 && account != null) LOG.w("Column '%s' has invalid refresh interval: '%s'.", title, refreshRaw);
+		if (refreshIntervalMins < 0 && hasAccount) LOG.w("Column '%s' has invalid refresh interval: '%s'.", title, refreshRaw);
 		return refreshIntervalMins;
 	}
 

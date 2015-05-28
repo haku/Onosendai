@@ -21,6 +21,7 @@ import org.powermock.reflect.Whitebox;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.ColumnFeed;
 import com.vaguehope.onosendai.model.Filters;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
@@ -58,7 +59,7 @@ public class FetchColumnTest {
 		when(this.account.getId()).thenReturn(ACC_ID);
 		when(this.account.getProvider()).thenReturn(AccountProvider.TWITTER);
 		when(this.column.getId()).thenReturn(COL_ID);
-		when(this.column.getResource()).thenReturn("TIMELINE");
+		when(this.column.getFeeds()).thenReturn(Collections.singleton(new ColumnFeed(ACC_ID, "TIMELINE")));
 
 		when(this.providerMgr.getTwitterProvider()).thenReturn(this.twitterProvider);
 		when(this.twitterProvider.getTweets(isA(TwitterFeed.class), eq(this.account), anyLong(), anyBoolean())).thenReturn(this.tweetList);

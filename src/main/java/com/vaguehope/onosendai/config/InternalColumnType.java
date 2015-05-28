@@ -20,7 +20,10 @@ public enum InternalColumnType implements Titleable {
 	}
 
 	public boolean matchesColumn(final Column col) {
-		return name().equalsIgnoreCase(col.getResource());
+		for (final ColumnFeed cf : col.getFeeds()) {
+			return name().equalsIgnoreCase(cf.getResource());
+		}
+		return false;
 	}
 
 	public static InternalColumnType fromColumn(final Column col) {
