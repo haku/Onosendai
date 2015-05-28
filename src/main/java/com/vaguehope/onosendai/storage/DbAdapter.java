@@ -521,6 +521,11 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public List<Tweet> findTweetsWithMeta (final MetaType metaType, final String data, final int numberOf) {
+		return findTweetsWithMeta(Integer.MIN_VALUE, metaType, data, numberOf);
+	}
+
+	@Override
+	public List<Tweet> findTweetsWithMeta (final int columnId, final MetaType metaType, final String data, final int numberOf) {
 		if (!checkDbOpen()) return null;
 		Cursor c = null;
 		try {
@@ -529,7 +534,8 @@ public class DbAdapter implements DbInterface {
 			qb.setDistinct(true);
 			c = qb.query(this.mDb,
 					new String[] { TBL_TW + "." + TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_FILTERED },
-					TBL_TW + "." + TBL_TW_ID + "=" + TBL_TM_TWID + " AND " + TBL_TM_TYPE + "=" + metaType.getId() + " AND " + TBL_TM_DATA + "=?",
+					TBL_TW + "." + TBL_TW_ID + "=" + TBL_TM_TWID + " AND " + TBL_TM_TYPE + "=" + metaType.getId() + " AND " + TBL_TM_DATA + "=?"
+							+ (columnId > Integer.MIN_VALUE ? " AND " + TBL_TW_COLID + "=" + columnId : ""),
 					new String[] { data },
 					TBL_TW_SID, null, TBL_TW_TIME + " desc", String.valueOf(numberOf));
 			return readTweets(c, false);
