@@ -32,17 +32,17 @@ public class FetchColumn implements Callable<Void> {
 	protected static final LogWrapper LOG = new LogWrapper("FC");
 
 	private final DbInterface db;
-	private final FetchFeedRequest feed;
+	private final FetchFeedRequest ffr;
 	private final ProviderMgr providerMgr;
 	private final Filters filters;
 
-	public FetchColumn (final DbInterface db, final FetchFeedRequest feed, final ProviderMgr providerMgr, final Filters filters) {
+	public FetchColumn (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters) {
 		if (db == null) throw new IllegalArgumentException("db can not be null.");
 		this.db = db;
-		if (this.feed == null) throw new IllegalArgumentException("account can not be null.");
-		if (this.feed.column == null) throw new IllegalArgumentException("column can not be null.");
-		if (this.feed.account == null) throw new IllegalArgumentException("account can not be null.");
-		this.feed = feed;
+		if (ffr == null) throw new IllegalArgumentException("ffr can not be null.");
+		if (ffr.column == null) throw new IllegalArgumentException("ffr.column can not be null.");
+		if (ffr.account == null) throw new IllegalArgumentException("ffr.account can not be null.");
+		this.ffr = ffr;
 		if (providerMgr == null) throw new IllegalArgumentException("providerMgr can not be null.");
 		this.providerMgr = providerMgr;
 		this.filters = filters;
@@ -50,33 +50,33 @@ public class FetchColumn implements Callable<Void> {
 
 	@Override
 	public Void call () {
-		fetchColumn(this.db, this.feed, this.providerMgr, this.filters);
+		fetchColumn(this.db, this.ffr, this.providerMgr, this.filters);
 		return null;
 	}
 
-	public static void fetchColumn (final DbInterface db, final FetchFeedRequest feed, final ProviderMgr providerMgr, final Filters filters) {
-		db.notifyTwListenersColumnState(feed.column.getId(), ColumnState.UPDATE_RUNNING);
+	public static void fetchColumn (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters) {
+		db.notifyTwListenersColumnState(ffr.column.getId(), ColumnState.UPDATE_RUNNING);
 		try {
-			fetchColumnInner(db, feed, providerMgr, filters);
+			fetchColumnInner(db, ffr, providerMgr, filters);
 		}
 		finally {
-			db.notifyTwListenersColumnState(feed.column.getId(), ColumnState.UPDATE_OVER);
+			db.notifyTwListenersColumnState(ffr.column.getId(), ColumnState.UPDATE_OVER);
 		}
 	}
 
-	private static void fetchColumnInner (final DbInterface db, final FetchFeedRequest feed, final ProviderMgr providerMgr, final Filters filters) {
-		switch (feed.account.getProvider()) {
+	private static void fetchColumnInner (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters) {
+		switch (ffr.account.getProvider()) {
 			case TWITTER:
-				fetchTwitterColumn(db, feed.account, feed.column, feed.feed, providerMgr, filters);
+				fetchTwitterColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters);
 				break;
 			case SUCCESSWHALE:
-				fetchSuccessWhaleColumn(db, feed.account, feed.column, feed.feed, providerMgr, filters);
+				fetchSuccessWhaleColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters);
 				break;
 			case INSTAPAPER:
-				pushInstapaperColumn(db, feed.account, feed.column, providerMgr);
+				pushInstapaperColumn(db, ffr.account, ffr.column, providerMgr);
 				break;
 			default:
-				LOG.e("Unknown account type: %s", feed.account.getProvider());
+				LOG.e("Unknown account type: %s", ffr.account.getProvider());
 		}
 	}
 

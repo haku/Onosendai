@@ -178,6 +178,17 @@ public class Column implements Titleable {
 		return this.hdMedia;
 	}
 
+	/**
+	 * Does not return null.
+	 */
+	public Set<String> uniqAccountIds () {
+		final Set<String> ret = new LinkedHashSet<String>();
+		for (final ColumnFeed cf : getFeeds()) {
+			if (!StringHelper.isEmpty(cf.getAccountId())) ret.add(cf.getAccountId());
+		}
+		return ret;
+	}
+
 	public static List<String> titles (final Collection<Column> columns) {
 		if (columns == null) return null;
 		final List<String> ret = new ArrayList<String>(columns.size());
@@ -187,7 +198,10 @@ public class Column implements Titleable {
 		return ret;
 	}
 
-	public static Set<String> uniqAccountIds(final Collection<Column> cols) {
+	/**
+	 * Does not return null.
+	 */
+	public static Set<String> uniqAccountIds (final Collection<Column> cols) {
 		if (cols == null || cols.size() < 1) return Collections.emptySet();
 		final Set<String> ret = new LinkedHashSet<String>();
 		for (final Column col : cols) {
@@ -247,8 +261,10 @@ public class Column implements Titleable {
 			feeds.add(new ColumnFeed(account, resource));
 		}
 		final JSONArray jFeeds = json.optJSONArray(KEY_FEEDS);
-		for (int i = 0; i < jFeeds.length(); i++) {
-			feeds.add(ColumnFeed.parseJson(jFeeds.getJSONObject(i)));
+		if (jFeeds != null) {
+			for (int i = 0; i < jFeeds.length(); i++) {
+				feeds.add(ColumnFeed.parseJson(jFeeds.getJSONObject(i)));
+			}
 		}
 
 		boolean hasAccount = false;

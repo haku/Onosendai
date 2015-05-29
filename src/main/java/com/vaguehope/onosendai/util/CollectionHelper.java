@@ -13,14 +13,14 @@ public final class CollectionHelper {
 		throw new AssertionError();
 	}
 
-	public static <I, O, C extends Collection<O>> C map (final I[] input, final Function<I, O> funciton, final C output) {
+	public static <J, I extends J, O, C extends Collection<O>> C map (final I[] input, final Function<J, O> funciton, final C output) {
 		for (I i : input) {
 			output.add(funciton.exec(i));
 		}
 		return output;
 	}
 
-	public static <I, O, C extends Collection<O>> C map (final Collection<I> input, final Function<I, O> funciton, final C output) {
+	public static <J, I extends J, O, C extends Collection<O>> C map (final Collection<I> input, final Function<J, O> funciton, final C output) {
 		for (I i : input) {
 			output.add(funciton.exec(i));
 		}

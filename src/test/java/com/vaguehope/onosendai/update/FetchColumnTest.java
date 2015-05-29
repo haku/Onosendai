@@ -38,12 +38,12 @@ public class FetchColumnTest {
 
 	private static final String ACC_ID = "a_32";
 	private static final Integer COL_ID = 123;
+	private static final String RES = "TIMELINE";
 
 	@Mock private LogWrapper logWrapper;
 	@Mock private DbInterface db;
 	@Mock private Account account;
 	@Mock private Column column;
-	@Mock private ColumnFeed feed;
 	@Mock private ProviderMgr providerMgr;
 	@Mock private Filters filters;
 
@@ -54,13 +54,15 @@ public class FetchColumnTest {
 
 	@Before
 	public void before () throws Exception {
-		this.undertest = new FetchColumn(this.db, new FetchFeedRequest(this.column, this.feed, this.account), this.providerMgr, this.filters);
+		this.undertest = new FetchColumn(this.db,
+				new FetchFeedRequest(this.column, new ColumnFeed(ACC_ID, RES), this.account),
+				this.providerMgr, this.filters);
 		Whitebox.setInternalState(FetchColumn.class, "LOG", this.logWrapper);
 
 		when(this.account.getId()).thenReturn(ACC_ID);
 		when(this.account.getProvider()).thenReturn(AccountProvider.TWITTER);
 		when(this.column.getId()).thenReturn(COL_ID);
-		when(this.column.getFeeds()).thenReturn(Collections.singleton(new ColumnFeed(ACC_ID, "TIMELINE")));
+		when(this.column.getFeeds()).thenReturn(Collections.singleton(new ColumnFeed(ACC_ID, RES)));
 
 		when(this.providerMgr.getTwitterProvider()).thenReturn(this.twitterProvider);
 		when(this.twitterProvider.getTweets(isA(TwitterFeed.class), eq(this.account), anyLong(), anyBoolean())).thenReturn(this.tweetList);
