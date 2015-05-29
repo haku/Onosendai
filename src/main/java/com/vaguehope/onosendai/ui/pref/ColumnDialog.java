@@ -33,7 +33,6 @@ import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.config.NotificationStyle;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.ui.pref.ColumnChooser.ColumnChoiceListener;
-import com.vaguehope.onosendai.util.ArrayHelper;
 import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
@@ -110,7 +109,7 @@ class ColumnDialog {
 
 		this.txtTitle = (EditText) this.llParent.findViewById(R.id.txtTitle);
 		this.spnPosition = (Spinner) this.llParent.findViewById(R.id.spnPosition);
-		this.btnFeeds = (Button) this.llParent.findViewById(R.id.btnResource);
+		this.btnFeeds = (Button) this.llParent.findViewById(R.id.btnFeeds);
 		this.btnExclude = (Button) this.llParent.findViewById(R.id.btnExclude);
 		this.spnRefresh = (Spinner) this.llParent.findViewById(R.id.spnRefresh);
 		this.spnInlineMedia = (Spinner) this.llParent.findViewById(R.id.spnInlineMedia);
@@ -190,7 +189,7 @@ class ColumnDialog {
 	}
 
 	private void redrawFeeds () {
-		this.btnFeeds.setText(ArrayHelper.join(this.feeds, "\n"));
+		this.btnFeeds.setText(String.format("Click to edit (%s)", this.feeds.size())); //ES
 		if (ColumnFeed.uniqAccountIds(this.feeds).size() > 0) this.spnRefresh.setEnabled(false); // TODO is this right?
 	}
 
@@ -210,7 +209,7 @@ class ColumnDialog {
 			}
 		}
 		else {
-			s.append("(none)");
+			s.append("(none)"); //ES
 		}
 		this.btnExclude.setText(s.toString());
 	}
