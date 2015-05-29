@@ -15,6 +15,7 @@ import org.json.JSONTokener;
 
 import com.vaguehope.onosendai.util.EqualHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.Titleable;
 
 public class Column implements Titleable {
@@ -83,6 +84,7 @@ public class Column implements Titleable {
 	}
 
 	public Column replaceAccount (final Account newAccount) {
+		// TODO require specifying which resource this is for.
 		if (getFeeds().size() != 1) throw new IllegalArgumentException("Can only replace account on column with a single feed: " + toString());
 		final ColumnFeed oldFeed = getFeeds().iterator().next();
 		final ColumnFeed newFeed = new ColumnFeed(newAccount.getId(), oldFeed.getResource());
@@ -148,6 +150,9 @@ public class Column implements Titleable {
 		return this.title;
 	}
 
+	/**
+	 * Does not return null.
+	 */
 	public Set<ColumnFeed> getFeeds () {
 		if (this.feeds == null) return Collections.emptySet();
 		return this.feeds;
@@ -178,6 +183,17 @@ public class Column implements Titleable {
 		final List<String> ret = new ArrayList<String>(columns.size());
 		for (final Column col : columns) {
 			ret.add(col.getTitle());
+		}
+		return ret;
+	}
+
+	public static Set<String> uniqAccountIds(final Collection<Column> cols) {
+		if (cols == null || cols.size() < 1) return Collections.emptySet();
+		final Set<String> ret = new LinkedHashSet<String>();
+		for (final Column col : cols) {
+			for (final ColumnFeed cf : col.getFeeds()) {
+				if (!StringHelper.isEmpty(cf.getAccountId())) ret.add(cf.getAccountId());
+			}
 		}
 		return ret;
 	}

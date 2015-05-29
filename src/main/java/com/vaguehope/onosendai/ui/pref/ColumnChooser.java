@@ -221,7 +221,8 @@ class ColumnChooser {
 		DialogHelper.askItem(this.context, "SuccessWhale Columns", columns.getColumns(), new Listener<Column>() { //ES
 			@Override
 			public void onAnswer (final Column column) {
-				onColumn(account, column.getResource(), column.getTitle());
+				if (column.getFeeds().size() != 1) throw new IllegalArgumentException("Expected column to only have one feed: " + column);
+				onColumn(account, column.getFeeds().iterator().next().getResource(), column.getTitle());
 			}
 		});
 	}

@@ -43,6 +43,7 @@ public class FetchColumnTest {
 	@Mock private DbInterface db;
 	@Mock private Account account;
 	@Mock private Column column;
+	@Mock private ColumnFeed feed;
 	@Mock private ProviderMgr providerMgr;
 	@Mock private Filters filters;
 
@@ -53,7 +54,7 @@ public class FetchColumnTest {
 
 	@Before
 	public void before () throws Exception {
-		this.undertest = new FetchColumn(this.db, this.account, this.column, this.providerMgr, this.filters);
+		this.undertest = new FetchColumn(this.db, new FetchFeedRequest(this.column, this.feed, this.account), this.providerMgr, this.filters);
 		Whitebox.setInternalState(FetchColumn.class, "LOG", this.logWrapper);
 
 		when(this.account.getId()).thenReturn(ACC_ID);

@@ -5,6 +5,8 @@ import org.json.JSONObject;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.ColumnFeed;
+import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.ScrollState.ScrollDirection;
 import com.vaguehope.onosendai.util.HashHelper;
@@ -66,10 +68,14 @@ public class HosakaColumn {
 		return new HosakaColumn(itemId, itemTime, unreadTime, null);
 	}
 
-	public static String columnHash (final Account account, final Column column) {
-		return HashHelper.sha1String(String.format("%s:%s",
-				account.getTitle(), column.getResource()
-				)).toString(16);
+	public static String columnHash (final Column col, final Config conf) {
+		final StringBuilder s = new StringBuilder();
+		for (final ColumnFeed cf : col.getFeeds()) {
+			final Account act = conf.getAccount(cf.getAccountId());
+			s.append(String.format("%s:%s:", act != null ? act.getTitle() : null, cf.getResource()));
+		}
+		if (s.length() > 0) s.deleteCharAt(s.length() - 1); // Remove last :.
+		return HashHelper.sha1String(s.toString()).toString(16);
 	}
 
 	public ScrollState toScrollState () {

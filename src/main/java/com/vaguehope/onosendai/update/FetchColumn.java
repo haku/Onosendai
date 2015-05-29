@@ -8,6 +8,7 @@ import twitter4j.TwitterException;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.ColumnFeed;
 import com.vaguehope.onosendai.model.Filters;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
@@ -31,61 +32,60 @@ public class FetchColumn implements Callable<Void> {
 	protected static final LogWrapper LOG = new LogWrapper("FC");
 
 	private final DbInterface db;
-	private final Account account;
-	private final Column column;
+	private final FetchFeedRequest feed;
 	private final ProviderMgr providerMgr;
 	private final Filters filters;
 
-	public FetchColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
-		this.filters = filters;
+	public FetchColumn (final DbInterface db, final FetchFeedRequest feed, final ProviderMgr providerMgr, final Filters filters) {
 		if (db == null) throw new IllegalArgumentException("db can not be null.");
-		if (account == null) throw new IllegalArgumentException("account can not be null.");
-		if (column == null) throw new IllegalArgumentException("column can not be null.");
-		if (providerMgr == null) throw new IllegalArgumentException("providerMgr can not be null.");
 		this.db = db;
-		this.account = account;
-		this.column = column;
+		if (this.feed == null) throw new IllegalArgumentException("account can not be null.");
+		if (this.feed.column == null) throw new IllegalArgumentException("column can not be null.");
+		if (this.feed.account == null) throw new IllegalArgumentException("account can not be null.");
+		this.feed = feed;
+		if (providerMgr == null) throw new IllegalArgumentException("providerMgr can not be null.");
 		this.providerMgr = providerMgr;
+		this.filters = filters;
 	}
 
 	@Override
 	public Void call () {
-		fetchColumn(this.db, this.account, this.column, this.providerMgr, this.filters);
+		fetchColumn(this.db, this.feed, this.providerMgr, this.filters);
 		return null;
 	}
 
-	public static void fetchColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
-		db.notifyTwListenersColumnState(column.getId(), ColumnState.UPDATE_RUNNING);
+	public static void fetchColumn (final DbInterface db, final FetchFeedRequest feed, final ProviderMgr providerMgr, final Filters filters) {
+		db.notifyTwListenersColumnState(feed.column.getId(), ColumnState.UPDATE_RUNNING);
 		try {
-			fetchColumnInner(db, account, column, providerMgr, filters);
+			fetchColumnInner(db, feed, providerMgr, filters);
 		}
 		finally {
-			db.notifyTwListenersColumnState(column.getId(), ColumnState.UPDATE_OVER);
+			db.notifyTwListenersColumnState(feed.column.getId(), ColumnState.UPDATE_OVER);
 		}
 	}
 
-	private static void fetchColumnInner (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
-		switch (account.getProvider()) {
+	private static void fetchColumnInner (final DbInterface db, final FetchFeedRequest feed, final ProviderMgr providerMgr, final Filters filters) {
+		switch (feed.account.getProvider()) {
 			case TWITTER:
-				fetchTwitterColumn(db, account, column, providerMgr, filters);
+				fetchTwitterColumn(db, feed.account, feed.column, feed.feed, providerMgr, filters);
 				break;
 			case SUCCESSWHALE:
-				fetchSuccessWhaleColumn(db, account, column, providerMgr, filters);
+				fetchSuccessWhaleColumn(db, feed.account, feed.column, feed.feed, providerMgr, filters);
 				break;
 			case INSTAPAPER:
-				pushInstapaperColumn(db, account, column, providerMgr);
+				pushInstapaperColumn(db, feed.account, feed.column, providerMgr);
 				break;
 			default:
-				LOG.e("Unknown account type: %s", account.getProvider());
+				LOG.e("Unknown account type: %s", feed.account.getProvider());
 		}
 	}
 
-	private static void fetchTwitterColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
+	private static void fetchTwitterColumn (final DbInterface db, final Account account, final Column column, final ColumnFeed columnFeed, final ProviderMgr providerMgr, final Filters filters) {
 		final long startTime = System.nanoTime();
 		try {
 			final TwitterProvider twitterProvider = providerMgr.getTwitterProvider();
 			twitterProvider.addAccount(account);
-			final TwitterFeed feed = TwitterFeeds.parse(column.getResource());
+			final TwitterFeed feed = TwitterFeeds.parse(columnFeed.getResource());
 
 			long sinceId = -1;
 			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.ACCOUNT, account.getId(), 1);
@@ -104,12 +104,12 @@ public class FetchColumn implements Callable<Void> {
 		}
 	}
 
-	private static void fetchSuccessWhaleColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
+	private static void fetchSuccessWhaleColumn (final DbInterface db, final Account account, final Column column, final ColumnFeed columnFeed, final ProviderMgr providerMgr, final Filters filters) {
 		final long startTime = System.nanoTime();
 		try {
 			final SuccessWhaleProvider successWhaleProvider = providerMgr.getSuccessWhaleProvider();
 			successWhaleProvider.addAccount(account);
-			final SuccessWhaleFeed feed = new SuccessWhaleFeed(column);
+			final SuccessWhaleFeed feed = new SuccessWhaleFeed(column, columnFeed);
 
 			String sinceId = null;
 			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.ACCOUNT, account.getId(), 1);

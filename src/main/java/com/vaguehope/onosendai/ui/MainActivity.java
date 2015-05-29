@@ -3,7 +3,9 @@ package com.vaguehope.onosendai.ui;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -399,9 +401,13 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	}
 
 	protected void showPost () {
-		final List<Column> visCol = getVisibleColumns();
-		final String accountId = visCol.size() == 1 ? visCol.iterator().next().getAccountId() : null;
-		showPost(this.conf.getAccount(accountId), null);
+		showPost(getVisibleColumns(), null);
+	}
+
+	protected void showPost (final Collection<Column> cols, final Tweet tweetToQuote) {
+		final Set<String> acIds = Column.uniqAccountIds(cols);
+		final String accountId = acIds.size() == 1 ? acIds.iterator().next() : null;
+		showPost(this.conf.getAccount(accountId), tweetToQuote);
 	}
 
 	protected void showPost (final Account account, final Tweet tweetToQuote) {
@@ -620,7 +626,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 		@Override
 		public void onColumnTitleClick (final int argPosition) {
-			int position = this.host.convertPagePosition(argPosition);
+			final int position = this.host.convertPagePosition(argPosition);
 			final Column col = this.host.getConf().getColumnByPosition(position);
 			if (col == null) return;
 			final TweetListFragment page = this.host.getActivePageById(col.getId());
@@ -640,7 +646,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 		@Override
 		public void onPageSelected (final int argPosition) {
-			int position = this.host.convertPagePosition(argPosition);
+			final int position = this.host.convertPagePosition(argPosition);
 			final Column col = this.host.getConf().getColumnByPosition(position);
 			Notifications.clearColumn(this.host, col);
 		}

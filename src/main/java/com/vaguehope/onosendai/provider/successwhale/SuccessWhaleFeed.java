@@ -1,18 +1,21 @@
 package com.vaguehope.onosendai.provider.successwhale;
 
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.ColumnFeed;
 
 public class SuccessWhaleFeed {
 
 	private final Column column;
+	private final ColumnFeed columnFeed;
 
-	public SuccessWhaleFeed (final Column column) {
+	public SuccessWhaleFeed (final Column column, final ColumnFeed columnFeed) {
 		// TODO Validate resource.  Convert from a nicer format?  Throw if not valid.
 		this.column = column;
+		this.columnFeed = columnFeed;
 	}
 
 	public String getSources () {
-		return this.column.getResource();
+		return this.columnFeed.getResource();
 	}
 
 	@Override
@@ -20,7 +23,8 @@ public class SuccessWhaleFeed {
 		return new StringBuilder()
 				.append("SWFeed{c{").append(this.column.getId())
 				.append(",").append(this.column.getTitle())
-				.append(",").append(this.column.getAccountId())
+				.append(",").append(this.columnFeed.getAccountId())
+				.append(",").append(this.columnFeed.getResource())
 				.append("}}").toString();
 	}
 
