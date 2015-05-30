@@ -161,7 +161,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 		if (account.getProvider() == AccountProvider.INSTAPAPER) {
 			final Column later = getPrefs().asConfig().findInternalColumn(InternalColumnType.LATER);
 			if (later != null) {
-				getPrefs().writeUpdatedColumn(later.replaceAccount(account));
+				getPrefs().writeUpdatedColumn(later.replaceAccount(account, InternalColumnType.LATER));
 				LOG.i("Updated column %s to use account %s.", later.getId(), account.getId());
 			}
 		}

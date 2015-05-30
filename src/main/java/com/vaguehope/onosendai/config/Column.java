@@ -85,12 +85,12 @@ public class Column implements Titleable {
 		this.hdMedia = hdMedia;
 	}
 
-	public Column replaceAccount (final Account newAccount) {
-		// TODO require specifying which resource this is for.
-		if (getFeeds().size() != 1) throw new IllegalArgumentException("Can only replace account on column with a single feed: " + toString());
-		final ColumnFeed oldFeed = getFeeds().iterator().next();
-		final ColumnFeed newFeed = new ColumnFeed(newAccount.getId(), oldFeed.getResource());
-		return new Column(getId(), getTitle(), Collections.singleton(newFeed), getRefreshIntervalMins(), getExcludeColumnIds(), getNotificationStyle(), getInlineMediaStyle(), isHdMedia());
+	public Column replaceAccount (final Account newAccount, final InternalColumnType ict) {
+		final ColumnFeed oldFeed = ict.findInFeeds(getFeeds());
+		if (oldFeed == null) throw new IllegalArgumentException("ICT " + ict + " not found in feeds: " + getFeeds());
+		final List<ColumnFeed> newFeeds = new ArrayList<ColumnFeed>(getFeeds());
+		Collections.replaceAll(newFeeds, oldFeed, new ColumnFeed(newAccount.getId(), oldFeed.getResource()));
+		return new Column(getId(), getTitle(), new LinkedHashSet<ColumnFeed>(newFeeds), getRefreshIntervalMins(), getExcludeColumnIds(), getNotificationStyle(), getInlineMediaStyle(), isHdMedia());
 	}
 
 	@Override

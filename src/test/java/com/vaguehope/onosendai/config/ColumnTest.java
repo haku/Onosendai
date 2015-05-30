@@ -33,15 +33,25 @@ public class ColumnTest {
 	}
 
 	@Test
-	public void itClonesWithNewAccountId () throws Exception {
+	public void itAddsAccountToLaterColumn () throws Exception {
 		final Account a1 = mock(Account.class);
 		final Account a2 = mock(Account.class);
+		final Account a3 = mock(Account.class);
 		when(a1.getId()).thenReturn("accountid");
 		when(a2.getId()).thenReturn("newaccountid");
+		final Column c = new Column(12, "title",
+				CollectionHelper.setOf(
+						new ColumnFeed(a1.getId(), "resource"),
+						new ColumnFeed(null, InternalColumnType.LATER.name())),
+				15, CollectionHelper.setOf(1, 2), NotificationStyle.DEFAULT, InlineMediaStyle.NONE, false);
 
-		Column c = new Column(12, "title", new ColumnFeed(a1.getId(), "resource"), 15, CollectionHelper.setOf(1, 2), NotificationStyle.DEFAULT, InlineMediaStyle.NONE, false);
-		Column c1 = c.replaceAccount(a2);
-		Column c2 = c1.replaceAccount(a1);
+		final Column c1 = c.replaceAccount(a2, InternalColumnType.LATER);
+		assertEquals(CollectionHelper.setOf(
+				new ColumnFeed(a1.getId(), "resource"),
+				new ColumnFeed("newaccountid", InternalColumnType.LATER.name())),
+				c1.getFeeds());
+
+		final Column c2 = c.replaceAccount(a3, InternalColumnType.LATER);
 		assertEquals(c, c2);
 	}
 
