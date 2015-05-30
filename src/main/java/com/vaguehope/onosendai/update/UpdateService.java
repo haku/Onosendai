@@ -168,7 +168,7 @@ public class UpdateService extends DbBindingService {
 
 	private void fetchFeedsMultiThread (final ProviderMgr providerMgr, final Collection<FetchFeedRequest> feeds, final UpdateRequest req) {
 		final int poolSize = Math.min(feeds.size(), C.UPDATER_MAX_THREADS);
-		LOG.i("Using thread pool size %d for %d columns.", poolSize, feeds.size());
+		LOG.i("Using thread pool size %d for %d feeds.", poolSize, feeds.size());
 		final ExecutorService ex = Executors.newFixedThreadPool(poolSize);
 		try {
 			final Map<FetchFeedRequest, Future<Void>> jobs = new LinkedHashMap<FetchFeedRequest, Future<Void>>();

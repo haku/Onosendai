@@ -110,6 +110,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 			this.conf = this.prefs.asConfig();
 		}
 		catch (final Exception e) { // No point continuing if any exception.
+			LOG.wtf("Unparsable config.", e);
 			DialogHelper.alertAndClose(this, e);
 			return;
 		}
