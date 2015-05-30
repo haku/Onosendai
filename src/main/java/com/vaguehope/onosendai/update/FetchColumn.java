@@ -99,7 +99,7 @@ public class FetchColumn implements Callable<Void> {
 
 			storeSuccess(db, column);
 			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-			LOG.i("Fetched %d items for '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), durationMillis, filteredCount);
+			LOG.i("Fetched %d items for '%s' '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), columnFeed.getResource(), durationMillis, filteredCount);
 		}
 		catch (final TwitterException e) {
 			LOG.w("Failed to fetch from Twitter: %s", ExcpetionHelper.causeTrace(e));
@@ -124,7 +124,7 @@ public class FetchColumn implements Callable<Void> {
 
 			storeSuccess(db, column);
 			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-			LOG.i("Fetched %d items for '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), durationMillis, filteredCount);
+			LOG.i("Fetched %d items for '%s' '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), columnFeed.getResource(), durationMillis, filteredCount);
 		}
 		catch (final SuccessWhaleException e) {
 			LOG.w("Failed to fetch from SuccessWhale: %s", ExcpetionHelper.causeTrace(e));
