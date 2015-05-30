@@ -190,7 +190,7 @@ class ColumnDialog {
 
 	private void redrawFeeds () {
 		this.btnFeeds.setText(String.format("Click to edit (%s)", this.feeds.size())); //ES
-		if (ColumnFeed.uniqAccountIds(this.feeds).size() > 0) this.spnRefresh.setEnabled(false); // TODO is this right?
+		this.spnRefresh.setEnabled(ColumnFeed.uniqAccountIds(this.feeds).size() > 0);
 	}
 
 	private void setExcludeIds (final Set<Integer> excludes) {
