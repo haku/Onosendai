@@ -1,8 +1,10 @@
 package com.vaguehope.onosendai.config;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.json.JSONException;
@@ -19,10 +21,16 @@ public class ColumnFeed implements Titleable {
 
 	private final String accountId;
 	private final String resource;
+	private final String title;
 
 	public ColumnFeed (final String accountId, final String resource) {
+		this(accountId, resource, resource);
+	}
+
+	public ColumnFeed (final String accountId, final String resource, final String title) {
 		this.accountId = accountId;
 		this.resource = resource;
+		this.title = title;
 	}
 
 	public String getAccountId () {
@@ -35,7 +43,7 @@ public class ColumnFeed implements Titleable {
 
 	@Override
 	public String getUiTitle () {
-		return this.resource; // TODO could this be nicer?
+		return this.title;
 	}
 
 	@Override
@@ -64,6 +72,13 @@ public class ColumnFeed implements Titleable {
 				.append("}").toString();
 	}
 
+	public JSONObject toJson () throws JSONException {
+		final JSONObject json = new JSONObject();
+		json.put(KEY_ACCOUNT, getAccountId());
+		json.put(KEY_RESOURCE, getResource());
+		return json;
+	}
+
 	public static ColumnFeed parseJson (final JSONObject json) throws JSONException {
 		final String account = json.has(KEY_ACCOUNT) ? json.getString(KEY_ACCOUNT) : null;
 		final String resource = json.getString(KEY_RESOURCE);
@@ -78,6 +93,16 @@ public class ColumnFeed implements Titleable {
 		final Set<String> ret = new LinkedHashSet<String>();
 		for (final ColumnFeed cf : feeds) {
 			if (!StringHelper.isEmpty(cf.getAccountId())) ret.add(cf.getAccountId());
+		}
+		return ret;
+	}
+
+	public static List<ColumnFeed> mixInAccountTitles (final Collection<ColumnFeed> feeds, final Config conf) {
+		final List<ColumnFeed> ret = new ArrayList<ColumnFeed>();
+		for (final ColumnFeed cf : feeds) {
+			final Account act = conf.getAccount(cf.getAccountId());
+			final String title = (act != null && !StringHelper.isEmpty(act.getTitle()) ? act.getTitle() + " / " : "") + cf.getResource();
+			ret.add(new ColumnFeed(cf.getAccountId(), cf.getResource(), title));
 		}
 		return ret;
 	}

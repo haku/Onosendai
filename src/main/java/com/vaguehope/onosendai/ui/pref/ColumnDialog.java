@@ -282,7 +282,13 @@ class ColumnDialog {
 	protected void btnFeedsClick () {
 		final List<Titleable> items = new ArrayList<Titleable>();
 		items.add(AddFeed.INSTANCE);
-		items.addAll(this.feeds);
+		try {
+			items.addAll(ColumnFeed.mixInAccountTitles(this.feeds, this.prefs.asConfig()));
+		}
+		catch (final JSONException e) {
+			DialogHelper.alert(this.context, e);
+			return;
+		}
 		DialogHelper.askItem(this.context, "Feeds", items, new Listener<Titleable>() { //ES
 			@Override
 			public void onAnswer (final Titleable item) {
@@ -323,7 +329,8 @@ class ColumnDialog {
 			account = this.prefs.readAccount(feed.getAccountId());
 		}
 		catch (final JSONException e) {
-			throw new IllegalStateException(e); // FIXME
+			DialogHelper.alert(this.context, e);
+			return;
 		}
 
 		final ColumFeedDialog dlg = new ColumFeedDialog(this.context, this.prefs, feed, account);
