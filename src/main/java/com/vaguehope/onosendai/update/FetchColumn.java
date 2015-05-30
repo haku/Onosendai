@@ -88,6 +88,7 @@ public class FetchColumn implements Callable<Void> {
 			final TwitterFeed feed = TwitterFeeds.parse(columnFeed.getResource());
 
 			long sinceId = -1;
+			// TODO FIXME what about to feeds from same account?
 			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.ACCOUNT, account.getId(), 1);
 			if (existingTweets.size() > 0) sinceId = Long.parseLong(existingTweets.get(existingTweets.size() - 1).getSid());
 
@@ -112,6 +113,7 @@ public class FetchColumn implements Callable<Void> {
 			final SuccessWhaleFeed feed = new SuccessWhaleFeed(column, columnFeed);
 
 			String sinceId = null;
+			// TODO FIXME what about to feeds from same account?
 			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.ACCOUNT, account.getId(), 1);
 			if (existingTweets.size() > 0) sinceId = existingTweets.get(existingTweets.size() - 1).getSid();
 
