@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +58,7 @@ public final class TwitterUtils {
 	 * http://twitter4j.org/en/code-examples.html
 	 */
 
-	static TweetList fetchTwitterFeed (final Account account, final Twitter t, final FeedGetter getter, final long sinceId, final boolean hdMedia) throws TwitterException {
+	static TweetList fetchTwitterFeed (final Account account, final Twitter t, final FeedGetter getter, final long sinceId, final boolean hdMedia, final Collection<Meta> extraMetas) throws TwitterException {
 		final List<Tweet> tweets = new ArrayList<Tweet>();
 		final int minCount = getter.recommendedFetchCount();
 		final int pageSize = Math.min(minCount, C.TWEET_FETCH_PAGE_SIZE);
@@ -70,25 +71,30 @@ public final class TwitterUtils {
 			final ResponseList<Status> timelinePage = getter.getTweets(t, paging);
 			LOG.i("Page %d of '%s'(sinceId=%s) contains %d items.", page, getter.toString(), sinceId, timelinePage.size());
 			if (timelinePage.size() < 1) break;
-			addTweetsToList(tweets, account, timelinePage, t.getId(), hdMedia);
+			addTweetsToList(tweets, account, timelinePage, t.getId(), hdMedia, extraMetas);
 			minId = TwitterUtils.minIdOf(minId, timelinePage);
 			page++;
 		}
 		return new TweetList(tweets);
 	}
 
-	static void addTweetsToList (final List<Tweet> list, final Account account, final List<Status> tweets, final long ownId, final boolean hdMedia) {
+	static void addTweetsToList (final List<Tweet> list, final Account account, final List<Status> tweets, final long ownId, final boolean hdMedia, final Collection<Meta> extraMetas) {
 		for (final Status status : tweets) {
-			list.add(convertTweet(account, status, ownId, hdMedia));
+			list.add(convertTweet(account, status, ownId, hdMedia, extraMetas));
 		}
 	}
 
 	static Tweet convertTweet (final Account account, final Status status, final long ownId, final boolean hdMedia) {
+		return convertTweet(account, status, ownId, hdMedia, null);
+	}
+
+	static Tweet convertTweet (final Account account, final Status status, final long ownId, final boolean hdMedia, final Collection<Meta> extraMetas) {
 		// The order things are added to these lists is important.
 		final List<Meta> metas = new ArrayList<Meta>();
 		final List<String> userSubtitle = new ArrayList<String>();
 
 		metas.add(new Meta(MetaType.ACCOUNT, account.getId()));
+		if (extraMetas != null) metas.addAll(extraMetas);
 
 		final User viaUser;
 		if (status.isRetweet()) {

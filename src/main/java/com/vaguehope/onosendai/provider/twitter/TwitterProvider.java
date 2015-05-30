@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.provider.twitter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -18,6 +19,7 @@ import twitter4j.UserList;
 import twitter4j.conf.ConfigurationBuilder;
 
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.util.ImageMetadata;
@@ -53,13 +55,17 @@ public class TwitterProvider {
 	/**
 	 * TODO use a call back to return tweets progressively.
 	 */
-	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId, final boolean hdMedia) throws TwitterException {
-		return feed.getTweets(account, getTwitter(account), sinceId, hdMedia);
+	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId, final boolean hdMedia, final Collection<Meta> extraMetas) throws TwitterException {
+		return feed.getTweets(account, getTwitter(account), sinceId, hdMedia, extraMetas);
 	}
 
 	public Tweet getTweet (final Account account, final long id, final boolean hdMedia) throws TwitterException {
+		return getTweet(account, id, hdMedia, null);
+	}
+
+	public Tweet getTweet (final Account account, final long id, final boolean hdMedia, final Collection<Meta> extraMetas) throws TwitterException {
 		final Twitter t = getTwitter(account);
-		return TwitterUtils.convertTweet(account, t.showStatus(id), t.getId(), hdMedia);
+		return TwitterUtils.convertTweet(account, t.showStatus(id), t.getId(), hdMedia, extraMetas);
 	}
 
 	public void post (final Account account, final String body, final long inReplyTo, final ImageMetadata media) throws TwitterException, IOException {

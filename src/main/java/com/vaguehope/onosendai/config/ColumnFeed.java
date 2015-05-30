@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.util.HashHelper;
 import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.Titleable;
 
@@ -44,6 +45,11 @@ public class ColumnFeed implements Titleable {
 	@Override
 	public String getUiTitle () {
 		return this.title;
+	}
+
+	public String feedHash() {
+		if (this.accountId == null && this.resource == null) return null;
+		return HashHelper.sha1String(String.format("%s:%s", this.accountId,  this.resource)).toString(16).substring(0, 8);
 	}
 
 	@Override

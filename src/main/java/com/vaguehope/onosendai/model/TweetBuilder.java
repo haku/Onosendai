@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class TweetBuilder {
@@ -95,6 +96,12 @@ public class TweetBuilder {
 	public TweetBuilder meta (final Meta v) {
 		if (this.metas == null) this.metas = new ArrayList<Meta>();
 		this.metas.add(v);
+		return this;
+	}
+
+	public TweetBuilder metas (final Collection<Meta> v) {
+		if (this.metas == null) this.metas = new ArrayList<Meta>();
+		this.metas.addAll(v);
 		return this;
 	}
 

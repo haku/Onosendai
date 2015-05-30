@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.provider.twitter;
 
+import java.util.Collection;
+
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -8,6 +10,7 @@ import twitter4j.TwitterException;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.util.StringHelper;
 
@@ -57,8 +60,8 @@ class ListFeed implements FeedGetter {
 	}
 
 	@Override
-	public TweetList getTweets (final Account account, final Twitter t, final long sinceId, final boolean hdMedia) throws TwitterException {
-		return TwitterUtils.fetchTwitterFeed(account, t, this, sinceId, hdMedia);
+	public TweetList getTweets (final Account account, final Twitter t, final long sinceId, final boolean hdMedia, final Collection<Meta> extraMetas) throws TwitterException {
+		return TwitterUtils.fetchTwitterFeed(account, t, this, sinceId, hdMedia, extraMetas);
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.provider.twitter;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -34,6 +35,7 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.util.CollectionHelper;
 
 @RunWith(RobolectricTestRunner.class)
 public class TwitterUtilsTest {
@@ -43,6 +45,14 @@ public class TwitterUtilsTest {
 	@Before
 	public void before () throws Exception {
 		this.account = mock(Account.class);
+	}
+
+	@Test
+	public void itAddsExtraMetas () throws Exception {
+		final Status s = mockTweet("foo");
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false, CollectionHelper.listOf(new Meta(MetaType.FEED_HASH, "abcdefgh")));
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.FEED_HASH, "abcdefgh")));
+		assertThat(t.getMetas(), hasSize(2));
 	}
 
 	@Test

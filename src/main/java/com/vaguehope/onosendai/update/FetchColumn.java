@@ -10,6 +10,7 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.ColumnFeed;
 import com.vaguehope.onosendai.model.Filters;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
@@ -24,6 +25,7 @@ import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterUtils;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
+import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -87,12 +89,12 @@ public class FetchColumn implements Callable<Void> {
 			twitterProvider.addAccount(account);
 			final TwitterFeed feed = TwitterFeeds.parse(columnFeed.getResource());
 
+			final String feedHash = columnFeed.feedHash();
 			long sinceId = -1;
-			// TODO FIXME what about to feeds from same account?
-			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.ACCOUNT, account.getId(), 1);
+			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.FEED_HASH, feedHash, 1);
 			if (existingTweets.size() > 0) sinceId = Long.parseLong(existingTweets.get(existingTweets.size() - 1).getSid());
 
-			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia());
+			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia(), CollectionHelper.listOf(new Meta(MetaType.FEED_HASH, feedHash)));
 			final int filteredCount = filterAndStore(db, column, filters, tweets);
 
 			storeSuccess(db, column);
@@ -112,12 +114,12 @@ public class FetchColumn implements Callable<Void> {
 			successWhaleProvider.addAccount(account);
 			final SuccessWhaleFeed feed = new SuccessWhaleFeed(column, columnFeed);
 
+			final String feedHash = columnFeed.feedHash();
 			String sinceId = null;
-			// TODO FIXME what about to feeds from same account?
-			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.ACCOUNT, account.getId(), 1);
+			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.FEED_HASH, feedHash, 1);
 			if (existingTweets.size() > 0) sinceId = existingTweets.get(existingTweets.size() - 1).getSid();
 
-			final TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId);
+			final TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId, CollectionHelper.listOf(new Meta(MetaType.FEED_HASH, feedHash)));
 			final int filteredCount = filterAndStore(db, column, filters, tweets);
 
 			storeSuccess(db, column);

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +39,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetBuilder;
@@ -49,12 +51,18 @@ import com.vaguehope.onosendai.util.StringHelper;
 public class SuccessWhaleFeedXml implements ContentHandler {
 
 	private final Account account;
+	private final Collection<Meta> extraMetas;
 	private final List<Tweet> tweets = new ArrayList<Tweet>();
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	public SuccessWhaleFeedXml (final Account account, final InputStream dataIs) throws SAXException {
+	protected SuccessWhaleFeedXml (final Account account, final InputStream dataIs) throws SAXException {
+		this(account, dataIs, null);
+	}
+
+	public SuccessWhaleFeedXml (final Account account, final InputStream dataIs, final Collection<Meta> extraMetas) throws SAXException {
 		this.account = account;
+		this.extraMetas = extraMetas;
 		final SAXParserFactory spf = SAXParserFactory.newInstance();
 		SAXParser sp;
 		try {
@@ -128,6 +136,7 @@ public class SuccessWhaleFeedXml implements ContentHandler {
 						? this.stashedFromUserName + " > " + this.stashedToUserName
 						: this.stashedFromUserName);
 				this.currentItem.meta(MetaType.ACCOUNT, this.account.getId());
+				if (this.extraMetas != null) this.currentItem.metas(this.extraMetas);
 				this.currentItem.meta(MetaType.SERVICE, ServiceRef.createServiceMeta(this.stashedService, this.stashedFetchedForUserid));
 				if (this.stashedRetweetedByUserId != null && !this.stashedRetweetedByUserId.equals(this.stashedFetchedForUserid)) {
 					this.currentItem.meta(MetaType.MENTION, this.stashedRetweetedByUser, String.format("RT by %s", this.stashedRetweetedByUserName));
