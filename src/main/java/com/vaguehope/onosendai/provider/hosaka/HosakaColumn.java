@@ -1,5 +1,8 @@
 package com.vaguehope.onosendai.provider.hosaka;
 
+import java.util.Arrays;
+import java.util.Iterator;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,6 +12,7 @@ import com.vaguehope.onosendai.config.ColumnFeed;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.ScrollState.ScrollDirection;
+import com.vaguehope.onosendai.util.ArrayHelper;
 import com.vaguehope.onosendai.util.HashHelper;
 
 public class HosakaColumn {
@@ -69,13 +73,15 @@ public class HosakaColumn {
 	}
 
 	public static String columnHash (final Column col, final Config conf) {
-		final StringBuilder s = new StringBuilder();
-		for (final ColumnFeed cf : col.getFeeds()) {
+		final String[] arr = new String[col.getFeeds().size()];
+		final Iterator<ColumnFeed> feedsItr = col.getFeeds().iterator();
+		for (int i = 0; feedsItr.hasNext(); i++) {
+			final ColumnFeed cf = feedsItr.next();
 			final Account act = conf.getAccount(cf.getAccountId());
-			s.append(String.format("%s:%s:", act != null ? act.getTitle() : null, cf.getResource()));
+			arr[i] = String.format("%s:%s", act != null ? act.getTitle() : null, cf.getResource());
 		}
-		if (s.length() > 0) s.deleteCharAt(s.length() - 1); // Remove last :.
-		return HashHelper.sha1String(s.toString()).toString(16);
+		Arrays.sort(arr);
+		return HashHelper.sha1String(ArrayHelper.join(arr, ":")).toString(16);
 	}
 
 	public ScrollState toScrollState () {

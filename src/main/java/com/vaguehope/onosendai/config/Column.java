@@ -61,7 +61,7 @@ public class Column implements Titleable {
 			final NotificationStyle notificationStyle,
 			final InlineMediaStyle inlineMediaStyle,
 			final boolean hdMedia) {
-		this(id, title, Collections.singleton(feed), refreshIntervalMins, excludeColumnIds, notificationStyle, inlineMediaStyle, hdMedia);
+		this(id, title, feed != null ? Collections.singleton(feed) : null, refreshIntervalMins, excludeColumnIds, notificationStyle, inlineMediaStyle, hdMedia);
 	}
 
 	public Column (
@@ -75,7 +75,7 @@ public class Column implements Titleable {
 			final boolean hdMedia) {
 		this.id = id;
 		this.title = title;
-		this.feeds = feeds;
+		this.feeds = feeds != null ? Collections.unmodifiableSet(feeds) : null;
 		this.refreshIntervalMins = refreshIntervalMins;
 		this.excludeColumnIds = excludeColumnIds;
 		this.notificationStyle = notificationStyle;
