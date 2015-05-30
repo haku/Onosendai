@@ -97,6 +97,7 @@ public final class PayloadUtils {
 			case INREPLYTO:
 			case SERVICE:
 			case ACCOUNT:
+			case FEED_HASH:
 			case POST_TIME:
 				return null;
 			default:
