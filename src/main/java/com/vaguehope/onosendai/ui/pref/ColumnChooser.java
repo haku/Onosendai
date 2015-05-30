@@ -133,6 +133,9 @@ class ColumnChooser {
 			case ANOTHERS_LIST:
 				promptAddTwitterAnothersListColumn(account);
 				break;
+			case ANOTHERS_FAVORITES:
+				promptAddTwitterAnothersFavoritesColumn(account);
+				break;
 			case SEARCH:
 				promptAddTwitterSearchColumn(account);
 				break;
@@ -171,6 +174,21 @@ class ColumnChooser {
 			public void onAnswer (final String answer) {
 				final String owner = StringHelper.isEmpty(ownerScreenName) ? "" : ownerScreenName + "/";
 				onColumn(account, TwitterColumnType.LIST.getResource() + owner + answer);
+			}
+		});
+	}
+
+	protected void promptAddTwitterAnothersFavoritesColumn (final Account account) {
+		// TODO auto complete screen names?
+		DialogHelper.askString(this.context, "Their screen name (without @):", new Listener<String>() { //ES
+			@Override
+			public void onAnswer (final String answer) {
+				if (StringHelper.isEmpty(answer)) {
+					DialogHelper.alert(ColumnChooser.this.context, "Screen name was empty."); //ES
+				}
+				else {
+					onColumn(account, TwitterColumnType.ANOTHERS_FAVORITES.getResource() + answer);
+				}
 			}
 		});
 	}

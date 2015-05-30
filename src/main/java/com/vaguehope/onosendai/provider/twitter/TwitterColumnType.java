@@ -7,9 +7,10 @@ public enum TwitterColumnType implements Titleable {
 	TIMELINE("Home Timeline"), //ES
 	MENTIONS("Mentions"), //ES
 	ME("Me"), //ES
-	FAVORITES("My Favorites"), //ES
 	LIST("My List..."), //ES
+	FAVORITES("My Favorites"), //ES
 	ANOTHERS_LIST("Another's List..."), //ES
+	ANOTHERS_FAVORITES("Another's Favorites..."), //ES
 	SEARCH("Search..."); //ES
 
 	private final String title;
@@ -36,6 +37,8 @@ public enum TwitterColumnType implements Titleable {
 			case LIST:
 			case ANOTHERS_LIST:
 				return TwitterFeeds.PREFIX_LISTS;
+			case ANOTHERS_FAVORITES:
+				return TwitterFeeds.PREFIX_FAVORITES;
 			case SEARCH:
 				return TwitterFeeds.PREFIX_SEARCH;
 			default:
