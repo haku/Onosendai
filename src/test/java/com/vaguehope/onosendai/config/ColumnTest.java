@@ -1,5 +1,8 @@
 package com.vaguehope.onosendai.config;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
@@ -77,7 +80,8 @@ public class ColumnTest {
 			Column.parseJson(new Column(-1, "title", new ColumnFeed("accountid", "resource"), 15, null, NotificationStyle.DEFAULT, InlineMediaStyle.NONE, false).toJson().toString(2));
 		}
 		catch (JSONException e) {
-			assertEquals("Column ID must be positive a integer.", e.getMessage());
+			assertThat(e.getMessage(), startsWith("Failed to parse column:"));
+			assertThat(e.getMessage(), endsWith("Column ID must be positive a integer."));
 		}
 	}
 
@@ -112,6 +116,19 @@ public class ColumnTest {
 		j.put("inline_media", true);
 		Column c = Column.parseJson(j.toString(2));
 		assertEquals(InlineMediaStyle.INLINE, c.getInlineMediaStyle());
+	}
+
+	@Test
+	public void itRoundTripsMultipleFeeds () throws Exception {
+		Column c = new Column(12, "title",
+				CollectionHelper.setOf(
+						new ColumnFeed("accountid1", "resource1"),
+						new ColumnFeed("accountid2", "resource2"),
+						new ColumnFeed("accountid3", "resource3")),
+				15, CollectionHelper.setOf(1, 2), NotificationStyle.DEFAULT, InlineMediaStyle.NONE, false);
+		String j = c.toJson().toString(2);
+		Column c1 = Column.parseJson(j);
+		assertEquals(c, c1);
 	}
 
 }

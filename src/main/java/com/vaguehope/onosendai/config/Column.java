@@ -13,7 +13,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.Titleable;
@@ -75,7 +77,7 @@ public class Column implements Titleable {
 			final boolean hdMedia) {
 		this.id = id;
 		this.title = title;
-		this.feeds = feeds != null ? Collections.unmodifiableSet(feeds) : null;
+		this.feeds = feeds != null ? Collections.unmodifiableSet(CollectionHelper.assertNoNulls(feeds)) : null;
 		this.refreshIntervalMins = refreshIntervalMins;
 		this.excludeColumnIds = excludeColumnIds;
 		this.notificationStyle = notificationStyle;
@@ -224,7 +226,11 @@ public class Column implements Titleable {
 			json.put(KEY_RESOURCE, cf.getResource());
 		}
 		else if (fs.size() > 1) {
-			json.put(KEY_FEEDS, new JSONArray(fs));
+			final JSONArray feedsArr = new JSONArray();
+			for (final ColumnFeed cf : fs) {
+				feedsArr.put(cf.toJson());
+			}
+			json.put(KEY_FEEDS, feedsArr);
 		}
 
 		json.put(KEY_REFRESH, getRefreshIntervalMins() + "mins");
@@ -250,38 +256,43 @@ public class Column implements Titleable {
 	}
 
 	public static Column parseJson (final JSONObject json) throws JSONException {
-		final int id = json.optInt(KEY_ID, Integer.MIN_VALUE);
-		if (id < 0) throw new JSONException("Column ID must be positive a integer.");
-		final String title = json.getString(KEY_TITLE);
+		try {
+			final int id = json.optInt(KEY_ID, Integer.MIN_VALUE);
+			if (id < 0) throw new JSONException("Column ID must be positive a integer.");
+			final String title = json.getString(KEY_TITLE);
 
-		final Set<ColumnFeed> feeds = new LinkedHashSet<ColumnFeed>();
-		if (json.has(KEY_RESOURCE)) {
-			final String resource = json.getString(KEY_RESOURCE);
-			final String account = json.has(KEY_ACCOUNT) ? json.getString(KEY_ACCOUNT) : null;
-			feeds.add(new ColumnFeed(account, resource));
-		}
-		final JSONArray jFeeds = json.optJSONArray(KEY_FEEDS);
-		if (jFeeds != null) {
-			for (int i = 0; i < jFeeds.length(); i++) {
-				feeds.add(ColumnFeed.parseJson(jFeeds.getJSONObject(i)));
+			final Set<ColumnFeed> feeds = new LinkedHashSet<ColumnFeed>();
+			if (json.has(KEY_RESOURCE)) {
+				final String resource = json.getString(KEY_RESOURCE);
+				final String account = json.has(KEY_ACCOUNT) ? json.getString(KEY_ACCOUNT) : null;
+				feeds.add(new ColumnFeed(account, resource));
 			}
-		}
-
-		boolean hasAccount = false;
-		for (final ColumnFeed cf : feeds) {
-			if (cf.getAccountId() != null) {
-				hasAccount = true;
-				break;
+			final JSONArray jFeeds = json.optJSONArray(KEY_FEEDS);
+			if (jFeeds != null) {
+				for (int i = 0; i < jFeeds.length(); i++) {
+					feeds.add(ColumnFeed.parseJson(jFeeds.getJSONObject(i)));
+				}
 			}
-		}
 
-		final String refreshRaw = json.optString(KEY_REFRESH, null);
-		final int refreshIntervalMins = parseFeedRefreshInterval(refreshRaw, hasAccount, title);
-		final Set<Integer> excludeColumnIds = parseFeedExcludeColumns(json, title);
-		final NotificationStyle notificationStyle = NotificationStyle.parseJson(json.opt(KEY_NOTIFY));
-		final InlineMediaStyle inlineMedia = InlineMediaStyle.parseJson(json.opt(KEY_INLINE_MEDIA));
-		final boolean hdMedia = json.optBoolean(KEY_HD_MEDIA, false);
-		return new Column(id, title, feeds, refreshIntervalMins, excludeColumnIds, notificationStyle, inlineMedia, hdMedia);
+			boolean hasAccount = false;
+			for (final ColumnFeed cf : feeds) {
+				if (cf.getAccountId() != null) {
+					hasAccount = true;
+					break;
+				}
+			}
+
+			final String refreshRaw = json.optString(KEY_REFRESH, null);
+			final int refreshIntervalMins = parseFeedRefreshInterval(refreshRaw, hasAccount, title);
+			final Set<Integer> excludeColumnIds = parseFeedExcludeColumns(json, title);
+			final NotificationStyle notificationStyle = NotificationStyle.parseJson(json.opt(KEY_NOTIFY));
+			final InlineMediaStyle inlineMedia = InlineMediaStyle.parseJson(json.opt(KEY_INLINE_MEDIA));
+			final boolean hdMedia = json.optBoolean(KEY_HD_MEDIA, false);
+			return new Column(id, title, feeds, refreshIntervalMins, excludeColumnIds, notificationStyle, inlineMedia, hdMedia);
+		}
+		catch (final JSONException e) {
+			throw new JSONException("Failed to parse column: " + json.toString() + " > " + ExcpetionHelper.causeTrace(e, " > "));
+		}
 	}
 
 	private static int parseFeedRefreshInterval (final String refreshRaw, final boolean hasAccount, final String title) {

@@ -14,14 +14,14 @@ public final class CollectionHelper {
 	}
 
 	public static <J, I extends J, O, C extends Collection<O>> C map (final I[] input, final Function<J, O> funciton, final C output) {
-		for (I i : input) {
+		for (final I i : input) {
 			output.add(funciton.exec(i));
 		}
 		return output;
 	}
 
 	public static <J, I extends J, O, C extends Collection<O>> C map (final Collection<I> input, final Function<J, O> funciton, final C output) {
-		for (I i : input) {
+		for (final I i : input) {
 			output.add(funciton.exec(i));
 		}
 		return output;
@@ -50,6 +50,13 @@ public final class CollectionHelper {
 	 */
 	public static <T> Set<T> setOf(final T... items) {
 		return Collections.unmodifiableSet(new LinkedHashSet<T>(Arrays.asList(items)));
+	}
+
+	public static <O, C extends Collection<O>> C assertNoNulls(final C col) {
+		for (final O i : col) {
+			if (i == null) throw new IllegalArgumentException("Must not contain nulls: " + col);
+		}
+		return col;
 	}
 
 }
