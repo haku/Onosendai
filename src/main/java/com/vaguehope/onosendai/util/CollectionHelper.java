@@ -3,7 +3,7 @@ package com.vaguehope.onosendai.util;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -13,15 +13,15 @@ public final class CollectionHelper {
 		throw new AssertionError();
 	}
 
-	public static <I, O, C extends Collection<O>> C map (final I[] input, final Function<I, O> funciton, final C output) {
-		for (I i : input) {
+	public static <J, I extends J, O, C extends Collection<O>> C map (final I[] input, final Function<J, O> funciton, final C output) {
+		for (final I i : input) {
 			output.add(funciton.exec(i));
 		}
 		return output;
 	}
 
-	public static <I, O, C extends Collection<O>> C map (final Collection<I> input, final Function<I, O> funciton, final C output) {
-		for (I i : input) {
+	public static <J, I extends J, O, C extends Collection<O>> C map (final Collection<I> input, final Function<J, O> funciton, final C output) {
+		for (final I i : input) {
 			output.add(funciton.exec(i));
 		}
 		return output;
@@ -45,8 +45,18 @@ public final class CollectionHelper {
 		return Collections.unmodifiableList(Arrays.asList(items));
 	}
 
+	/**
+	 * Ordered as specified.
+	 */
 	public static <T> Set<T> setOf(final T... items) {
-		return Collections.unmodifiableSet(new HashSet<T>(Arrays.asList(items)));
+		return Collections.unmodifiableSet(new LinkedHashSet<T>(Arrays.asList(items)));
+	}
+
+	public static <O, C extends Collection<O>> C assertNoNulls(final C col) {
+		for (final O i : col) {
+			if (i == null) throw new IllegalArgumentException("Must not contain nulls: " + col);
+		}
+		return col;
 	}
 
 }

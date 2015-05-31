@@ -5,6 +5,7 @@ import java.util.Locale;
 public final class TwitterFeeds {
 
 	static final String PREFIX_LISTS = "lists/";
+	static final String PREFIX_FAVORITES = "favorites/";
 	static final String PREFIX_SEARCH = "search/";
 
 	private TwitterFeeds () {
@@ -19,6 +20,10 @@ public final class TwitterFeeds {
 		else if (resource.startsWith(PREFIX_SEARCH)) {
 			final String term = resource.substring(PREFIX_SEARCH.length());
 			return new SearchFeed(term);
+		}
+		else if (resource.startsWith(PREFIX_FAVORITES)) {
+			final String screenName = resource.substring(PREFIX_FAVORITES.length());
+			return new FavoritesFeed(screenName);
 		}
 		return MainFeeds.valueOf(resource.toUpperCase(Locale.UK));
 	}

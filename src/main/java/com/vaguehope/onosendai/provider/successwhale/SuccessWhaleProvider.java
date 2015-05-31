@@ -1,11 +1,13 @@
 package com.vaguehope.onosendai.provider.successwhale;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.KvStore;
@@ -53,8 +55,8 @@ public class SuccessWhaleProvider {
 		return getAccount(account).getSources();
 	}
 
-	public TweetList getTweets (final SuccessWhaleFeed feed, final Account account, final String sinceId) throws SuccessWhaleException {
-		return fetchSuccessWhaleFeed(getAccount(account), feed, sinceId);
+	public TweetList getTweets (final SuccessWhaleFeed feed, final Account account, final String sinceId, final Collection<Meta> extraMetas) throws SuccessWhaleException {
+		return fetchSuccessWhaleFeed(getAccount(account), feed, sinceId, extraMetas);
 	}
 
 	/**
@@ -98,9 +100,9 @@ public class SuccessWhaleProvider {
 		this.httpClientFactory.shutdown();
 	}
 
-	private static TweetList fetchSuccessWhaleFeed (final SuccessWhale sw, final SuccessWhaleFeed feed, final String sinceId) throws SuccessWhaleException {
+	private static TweetList fetchSuccessWhaleFeed (final SuccessWhale sw, final SuccessWhaleFeed feed, final String sinceId, final Collection<Meta> extraMetas) throws SuccessWhaleException {
 		// TODO paging, etc.
-		return sw.getFeed(feed, sinceId);
+		return sw.getFeed(feed, sinceId, extraMetas);
 	}
 
 }

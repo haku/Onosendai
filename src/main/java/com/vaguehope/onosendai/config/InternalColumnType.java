@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.config;
 
+import java.util.Collection;
 import java.util.Locale;
 
 import com.vaguehope.onosendai.util.Titleable;
@@ -20,7 +21,22 @@ public enum InternalColumnType implements Titleable {
 	}
 
 	public boolean matchesColumn(final Column col) {
-		return name().equalsIgnoreCase(col.getResource());
+		for (final ColumnFeed cf : col.getFeeds()) {
+			if (matchesFeed(cf)) return true;
+		}
+		return false;
+	}
+
+	public boolean matchesFeed (final ColumnFeed cf) {
+		return name().equalsIgnoreCase(cf.getResource());
+	}
+
+	public ColumnFeed findInFeeds(final Collection<ColumnFeed> feeds) {
+		if (feeds == null) return null;
+		for (final ColumnFeed cf : feeds) {
+			if (matchesFeed(cf)) return cf;
+		}
+		return null;
 	}
 
 	public static InternalColumnType fromColumn(final Column col) {

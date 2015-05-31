@@ -36,7 +36,7 @@ public class Config {
 			IoHelper.resourceToFile("/deck.conf", t);
 			return t;
 		}
-		catch (IOException e) {
+		catch (final IOException e) {
 			throw new ConfigException(e);
 		}
 	}
@@ -47,10 +47,10 @@ public class Config {
 		try {
 			return new Config(f);
 		}
-		catch (IOException e) {
+		catch (final IOException e) {
 			throw new ConfigUnavailableException(e);
 		}
-		catch (JSONException e) {
+		catch (final JSONException e) {
 			throw new ConfigUnavailableException(e);
 		}
 	}
@@ -71,7 +71,7 @@ public class Config {
 
 	Config (final Collection<Account> accounts, final Collection<Column> columns) {
 		final Map<String, Account> a = new LinkedHashMap<String, Account>();
-		for (Account account : accounts) {
+		for (final Account account : accounts) {
 			a.put(account.getId(), account);
 		}
 
@@ -89,6 +89,16 @@ public class Config {
 	public Account getAccount (final String accountId) {
 		if (StringHelper.isEmpty(accountId)) return null;
 		return this.accounts.get(accountId);
+	}
+
+	public List<Account> getAccounts (final Collection<String> accountIds) {
+		if (accountIds == null || accountIds.size() < 1) return Collections.emptyList();
+		final List<Account> ret = new ArrayList<Account>(accountIds.size());
+		for (final String id : accountIds) {
+			final Account a = getAccount(id);
+			if (a != null) ret.add(a);
+		}
+		return ret;
 	}
 
 	public Account firstAccountOfType (final AccountProvider provider) {

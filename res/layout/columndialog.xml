@@ -48,13 +48,11 @@
 
 			<TextView
 				android:paddingRight="10dp"
-				android:text="@string/columndlg_field_resource_label" />
+				android:text="@string/columndlg_field_feeds_label" />
 
 			<Button
-				android:id="@+id/btnResource"
-				android:layout_weight="1"
-				android:textSize="14sp"
-				android:maxLines="5" />
+				android:id="@+id/btnFeeds"
+				android:layout_weight="1" />
 
 		</TableRow>
 

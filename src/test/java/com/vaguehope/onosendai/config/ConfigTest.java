@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -74,8 +75,7 @@ public class ConfigTest {
 		Column c0 = cs.get(0);
 		assertEquals(0, c0.getId());
 		assertEquals("main", c0.getTitle());
-		assertEquals("t0", c0.getAccountId());
-		assertEquals("timeline", c0.getResource());
+		assertEquals(Collections.singleton(new ColumnFeed("t0", "timeline")), c0.getFeeds());
 		assertEquals(15, c0.getRefreshIntervalMins());
 		assertEquals(null, c0.getNotificationStyle());
 		assertEquals(InlineMediaStyle.NONE, c0.getInlineMediaStyle());
@@ -83,8 +83,7 @@ public class ConfigTest {
 		Column c1 = cs.get(1);
 		assertEquals(1, c1.getId());
 		assertEquals("my list", c1.getTitle());
-		assertEquals("t0", c1.getAccountId());
-		assertEquals("lists/mylist", c1.getResource());
+		assertEquals(Collections.singleton(new ColumnFeed("t0", "lists/mylist")), c1.getFeeds());
 		assertEquals(15, c1.getRefreshIntervalMins());
 		assertEquals(NotificationStyle.DEFAULT, c1.getNotificationStyle());
 		assertEquals(InlineMediaStyle.NONE, c1.getInlineMediaStyle());
@@ -92,8 +91,7 @@ public class ConfigTest {
 		Column c2 = cs.get(2);
 		assertEquals(2, c2.getId());
 		assertEquals("reading list", c2.getTitle());
-		assertEquals(null, c2.getAccountId());
-		assertEquals("later", c2.getResource());
+		assertEquals(Collections.singleton(new ColumnFeed(null, "later")), c2.getFeeds());
 		assertEquals(0, c2.getRefreshIntervalMins());
 		assertEquals(null, c2.getNotificationStyle());
 		assertEquals(InlineMediaStyle.NONE, c2.getInlineMediaStyle());

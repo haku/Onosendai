@@ -8,7 +8,9 @@ import twitter4j.TwitterException;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.ColumnFeed;
 import com.vaguehope.onosendai.model.Filters;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
@@ -23,6 +25,7 @@ import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterUtils;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
+import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -31,72 +34,72 @@ public class FetchColumn implements Callable<Void> {
 	protected static final LogWrapper LOG = new LogWrapper("FC");
 
 	private final DbInterface db;
-	private final Account account;
-	private final Column column;
+	private final FetchFeedRequest ffr;
 	private final ProviderMgr providerMgr;
 	private final Filters filters;
 
-	public FetchColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
-		this.filters = filters;
+	public FetchColumn (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters) {
 		if (db == null) throw new IllegalArgumentException("db can not be null.");
-		if (account == null) throw new IllegalArgumentException("account can not be null.");
-		if (column == null) throw new IllegalArgumentException("column can not be null.");
-		if (providerMgr == null) throw new IllegalArgumentException("providerMgr can not be null.");
 		this.db = db;
-		this.account = account;
-		this.column = column;
+		if (ffr == null) throw new IllegalArgumentException("ffr can not be null.");
+		if (ffr.column == null) throw new IllegalArgumentException("ffr.column can not be null.");
+		if (ffr.account == null) throw new IllegalArgumentException("ffr.account can not be null.");
+		this.ffr = ffr;
+		if (providerMgr == null) throw new IllegalArgumentException("providerMgr can not be null.");
 		this.providerMgr = providerMgr;
+		this.filters = filters;
 	}
 
 	@Override
 	public Void call () {
-		fetchColumn(this.db, this.account, this.column, this.providerMgr, this.filters);
+		fetchColumn(this.db, this.ffr, this.providerMgr, this.filters);
 		return null;
 	}
 
-	public static void fetchColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
-		db.notifyTwListenersColumnState(column.getId(), ColumnState.UPDATE_RUNNING);
+	public static void fetchColumn (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters) {
+		db.notifyTwListenersColumnState(ffr.column.getId(), ColumnState.UPDATE_RUNNING);
 		try {
-			fetchColumnInner(db, account, column, providerMgr, filters);
+			fetchColumnInner(db, ffr, providerMgr, filters);
 		}
 		finally {
-			db.notifyTwListenersColumnState(column.getId(), ColumnState.UPDATE_OVER);
+			db.notifyTwListenersColumnState(ffr.column.getId(), ColumnState.UPDATE_OVER);
 		}
 	}
 
-	private static void fetchColumnInner (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
-		switch (account.getProvider()) {
+	private static void fetchColumnInner (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters) {
+		switch (ffr.account.getProvider()) {
 			case TWITTER:
-				fetchTwitterColumn(db, account, column, providerMgr, filters);
+				fetchTwitterColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters);
 				break;
 			case SUCCESSWHALE:
-				fetchSuccessWhaleColumn(db, account, column, providerMgr, filters);
+				fetchSuccessWhaleColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters);
 				break;
 			case INSTAPAPER:
-				pushInstapaperColumn(db, account, column, providerMgr);
+				pushInstapaperColumn(db, ffr.account, ffr.column, providerMgr);
 				break;
 			default:
-				LOG.e("Unknown account type: %s", account.getProvider());
+				LOG.e("Unknown account type: %s", ffr.account.getProvider());
 		}
 	}
 
-	private static void fetchTwitterColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
+	private static void fetchTwitterColumn (final DbInterface db, final Account account, final Column column, final ColumnFeed columnFeed, final ProviderMgr providerMgr, final Filters filters) {
 		final long startTime = System.nanoTime();
 		try {
 			final TwitterProvider twitterProvider = providerMgr.getTwitterProvider();
 			twitterProvider.addAccount(account);
-			final TwitterFeed feed = TwitterFeeds.parse(column.getResource());
+			final TwitterFeed feed = TwitterFeeds.parse(columnFeed.getResource());
 
+			final String feedHash = columnFeed.feedHash();
 			long sinceId = -1;
-			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.ACCOUNT, account.getId(), 1);
+			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.FEED_HASH, feedHash, 1);
 			if (existingTweets.size() > 0) sinceId = Long.parseLong(existingTweets.get(existingTweets.size() - 1).getSid());
 
-			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia());
+			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia(), CollectionHelper.listOf(new Meta(MetaType.FEED_HASH, feedHash)));
 			final int filteredCount = filterAndStore(db, column, filters, tweets);
 
 			storeSuccess(db, column);
 			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-			LOG.i("Fetched %d items for '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), durationMillis, filteredCount);
+			LOG.i("Fetched %d items for '%s' '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), columnFeed.getResource(), durationMillis, filteredCount);
 		}
 		catch (final TwitterException e) {
 			LOG.w("Failed to fetch from Twitter: %s", ExcpetionHelper.causeTrace(e));
@@ -104,23 +107,24 @@ public class FetchColumn implements Callable<Void> {
 		}
 	}
 
-	private static void fetchSuccessWhaleColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr, final Filters filters) {
+	private static void fetchSuccessWhaleColumn (final DbInterface db, final Account account, final Column column, final ColumnFeed columnFeed, final ProviderMgr providerMgr, final Filters filters) {
 		final long startTime = System.nanoTime();
 		try {
 			final SuccessWhaleProvider successWhaleProvider = providerMgr.getSuccessWhaleProvider();
 			successWhaleProvider.addAccount(account);
-			final SuccessWhaleFeed feed = new SuccessWhaleFeed(column);
+			final SuccessWhaleFeed feed = new SuccessWhaleFeed(column, columnFeed);
 
+			final String feedHash = columnFeed.feedHash();
 			String sinceId = null;
-			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.ACCOUNT, account.getId(), 1);
+			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.FEED_HASH, feedHash, 1);
 			if (existingTweets.size() > 0) sinceId = existingTweets.get(existingTweets.size() - 1).getSid();
 
-			final TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId);
+			final TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId, CollectionHelper.listOf(new Meta(MetaType.FEED_HASH, feedHash)));
 			final int filteredCount = filterAndStore(db, column, filters, tweets);
 
 			storeSuccess(db, column);
 			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-			LOG.i("Fetched %d items for '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), durationMillis, filteredCount);
+			LOG.i("Fetched %d items for '%s' '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), columnFeed.getResource(), durationMillis, filteredCount);
 		}
 		catch (final SuccessWhaleException e) {
 			LOG.w("Failed to fetch from SuccessWhale: %s", ExcpetionHelper.causeTrace(e));

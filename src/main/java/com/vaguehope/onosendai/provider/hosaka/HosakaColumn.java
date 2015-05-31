@@ -1,12 +1,18 @@
 package com.vaguehope.onosendai.provider.hosaka;
 
+import java.util.Arrays;
+import java.util.Iterator;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.ColumnFeed;
+import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.ScrollState.ScrollDirection;
+import com.vaguehope.onosendai.util.ArrayHelper;
 import com.vaguehope.onosendai.util.HashHelper;
 
 public class HosakaColumn {
@@ -66,10 +72,16 @@ public class HosakaColumn {
 		return new HosakaColumn(itemId, itemTime, unreadTime, null);
 	}
 
-	public static String columnHash (final Account account, final Column column) {
-		return HashHelper.sha1String(String.format("%s:%s",
-				account.getTitle(), column.getResource()
-				)).toString(16);
+	public static String columnHash (final Column col, final Config conf) {
+		final String[] arr = new String[col.getFeeds().size()];
+		final Iterator<ColumnFeed> feedsItr = col.getFeeds().iterator();
+		for (int i = 0; feedsItr.hasNext(); i++) {
+			final ColumnFeed cf = feedsItr.next();
+			final Account act = conf.getAccount(cf.getAccountId());
+			arr[i] = String.format("%s:%s", act != null ? act.getTitle() : null, cf.getResource());
+		}
+		Arrays.sort(arr);
+		return HashHelper.sha1String(ArrayHelper.join(arr, ":")).toString(16);
 	}
 
 	public ScrollState toScrollState () {

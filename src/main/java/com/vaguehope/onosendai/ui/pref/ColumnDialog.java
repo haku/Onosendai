@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,8 +27,8 @@ import android.widget.TableRow;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
-import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.ColumnFeed;
 import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.config.NotificationStyle;
 import com.vaguehope.onosendai.config.Prefs;
@@ -36,7 +37,7 @@ import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.DialogHelper.Question;
-import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.util.Titleable;
 
 class ColumnDialog {
 
@@ -52,21 +53,19 @@ class ColumnDialog {
 			new Duration(60 * 6, "6 hours"), //ES
 			new Duration(60 * 12, "12 hours"), //ES
 			new Duration(60 * 24, "24 hours") //ES
-			);
+	);
 
 	private final Context context;
 	private final Map<Integer, Column> allColumns;
 
 	private final int id;
-	private final String accountId;
 	private final Column initialValue;
-	private final Account account;
 	private final Prefs prefs;
 
 	private final View llParent;
 	private final EditText txtTitle;
 	private final Spinner spnPosition;
-	private final Button btnResource;
+	private final Button btnFeeds;
 	private final Button btnExclude;
 	private final Spinner spnRefresh;
 	private final Spinner spnInlineMedia;
@@ -76,36 +75,30 @@ class ColumnDialog {
 	private final TableRow rowNotification;
 	private final Button btnNotification;
 
-	private String resource;
+	private final Set<ColumnFeed> feeds = new LinkedHashSet<ColumnFeed>();
 	private final Set<Integer> excludes = new HashSet<Integer>();
 	private NotificationStyle notificationStyle = null;
 
-	public ColumnDialog (final Context context, final Prefs prefs, final int id, final String accountId) {
-		this(context, prefs, id, accountId, null);
+	public ColumnDialog (final Context context, final Prefs prefs, final int id) {
+		this(context, prefs, id, null);
 	}
 
 	public ColumnDialog (final Context context, final Prefs prefs, final Column initialValue) {
-		this(context, prefs, // NOSONAR Sonar things there is a Possible null pointer dereference.  I disagree.
-		initialValue != null ? initialValue.getId() : null,
-				initialValue != null ? initialValue.getAccountId() : null,
-				initialValue);
+		this(context, prefs, initialValue != null ? initialValue.getId() : null, initialValue);
 	}
 
-	private ColumnDialog (final Context context, final Prefs prefs, final int id, final String accountId, final Column initialValue) {
+	private ColumnDialog (final Context context, final Prefs prefs, final int id, final Column initialValue) {
 		this.context = context;
 
 		if (prefs == null) throw new IllegalArgumentException("Prefs can not be null.");
 		if (initialValue != null && initialValue.getId() != id) throw new IllegalStateException("ID and initialValue ID do not match.");
-		if (initialValue != null && !EqualHelper.equal(initialValue.getAccountId(), accountId)) throw new IllegalStateException("Account ID and initialValue account ID do not match.");
 
 		this.id = id;
-		this.accountId = accountId;
 		this.initialValue = initialValue;
 		this.prefs = prefs;
 
 		try {
 			this.allColumns = Collections.unmodifiableMap(prefs.readColumnsAsMap());
-			this.account = prefs.readAccount(accountId);
 		}
 		catch (final JSONException e) {
 			throw new IllegalStateException(e); // FIXME
@@ -116,7 +109,7 @@ class ColumnDialog {
 
 		this.txtTitle = (EditText) this.llParent.findViewById(R.id.txtTitle);
 		this.spnPosition = (Spinner) this.llParent.findViewById(R.id.spnPosition);
-		this.btnResource = (Button) this.llParent.findViewById(R.id.btnResource);
+		this.btnFeeds = (Button) this.llParent.findViewById(R.id.btnFeeds);
 		this.btnExclude = (Button) this.llParent.findViewById(R.id.btnExclude);
 		this.spnRefresh = (Spinner) this.llParent.findViewById(R.id.spnRefresh);
 		this.spnInlineMedia = (Spinner) this.llParent.findViewById(R.id.spnInlineMedia);
@@ -130,8 +123,8 @@ class ColumnDialog {
 		posAdapter.addAll(CollectionHelper.sequence(1, prefs.readColumnIds().size() + (initialValue == null ? 1 : 0)));
 		this.spnPosition.setAdapter(posAdapter);
 
-		this.btnResource.setOnClickListener(this.btnResourceClickListener);
-		this.btnResource.setOnLongClickListener(this.btnResourceLongClickListener);
+		this.btnFeeds.setOnClickListener(this.btnFeedsClickListener);
+		this.btnFeeds.setOnLongClickListener(this.btnFeedsLongClickListener);
 		this.btnExclude.setOnClickListener(this.btnExcludeClickListener);
 		this.chkNotify.setOnClickListener(this.chkNotifyClickListener);
 		this.btnNotification.setOnClickListener(this.btnNotificationClickListener);
@@ -149,10 +142,9 @@ class ColumnDialog {
 		if (initialValue != null) {
 			this.txtTitle.setText(initialValue.getTitle());
 			this.spnPosition.setSelection(posAdapter.getPosition(Integer.valueOf(prefs.readColumnPosition(initialValue.getId()) + 1)));
-			setResource(initialValue.getResource());
+			setFeeds(initialValue.getFeeds());
 			setExcludeIds(initialValue.getExcludeColumnIds());
 			setDurationSpinner(initialValue.getRefreshIntervalMins(), refAdapter);
-			if (this.account == null) this.spnRefresh.setEnabled(false);
 			this.spnInlineMedia.setSelection(inlineMediaAdapter.getPosition(initialValue.getInlineMediaStyle()));
 			this.chkHdMedia.setChecked(initialValue.isHdMedia());
 			setNotificationStyle(initialValue.getNotificationStyle());
@@ -173,11 +165,32 @@ class ColumnDialog {
 		setExcludeIds(ids);
 	}
 
-	public void setResource (final String resource) {
-		this.resource = resource;
-		this.btnResource.setText(String.valueOf(resource).replace(':', '\n'));
-		final AccountProvider provider = this.account != null ? this.account.getProvider() : null;
-		this.btnResource.setEnabled(provider == AccountProvider.TWITTER || provider == AccountProvider.SUCCESSWHALE);
+	public void setFeeds (final Set<ColumnFeed> feeds) {
+		this.feeds.clear();
+		if (feeds != null) this.feeds.addAll(feeds);
+		redrawFeeds();
+	}
+
+	public void addFeed (final ColumnFeed feed) {
+		this.feeds.add(feed);
+		redrawFeeds();
+	}
+
+	public void removeFeed (final ColumnFeed feed) {
+		this.feeds.remove(feed);
+		redrawFeeds();
+	}
+
+	public void replaceFeed (final ColumnFeed was, final ColumnFeed replaceWith) {
+		// TODO could avoid reordering?
+		this.feeds.remove(was);
+		this.feeds.add(replaceWith);
+		redrawFeeds();
+	}
+
+	private void redrawFeeds () {
+		this.btnFeeds.setText(String.format("Click to edit (%s)", this.feeds.size())); //ES
+		this.spnRefresh.setEnabled(ColumnFeed.uniqAccountIds(this.feeds).size() > 0);
 	}
 
 	private void setExcludeIds (final Set<Integer> excludes) {
@@ -196,7 +209,7 @@ class ColumnDialog {
 			}
 		}
 		else {
-			s.append("(none)");
+			s.append("(none)"); //ES
 		}
 		this.btnExclude.setText(s.toString());
 	}
@@ -222,17 +235,17 @@ class ColumnDialog {
 		this.btnNotification.setText(this.notificationStyle != null ? this.notificationStyle.getUiTitle() : "false");
 	}
 
-	private final OnClickListener btnResourceClickListener = new OnClickListener() {
+	private final OnClickListener btnFeedsClickListener = new OnClickListener() {
 		@Override
 		public void onClick (final View v) {
-			btnResourceClick();
+			btnFeedsClick();
 		}
 	};
 
-	private final OnLongClickListener btnResourceLongClickListener = new OnLongClickListener() {
+	private final OnLongClickListener btnFeedsLongClickListener = new OnLongClickListener() {
 		@Override
 		public boolean onLongClick (final View v) {
-			btnResourceLongClick();
+			btnFeedsLongClick();
 			return true;
 		}
 	};
@@ -258,21 +271,88 @@ class ColumnDialog {
 		}
 	};
 
-	protected void btnResourceClick () {
-		new ColumnChooser(this.context, this.prefs, new ColumnChoiceListener() {
-			@Override
-			public void onColumn (final Account unused, final String newResource, final String title) {
-				if (newResource != null) setResource(newResource);
-				if (title != null) setTitle(title);
-			}
-		}).promptAddColumn(this.account, this.resource);
+	private static enum AddFeed implements Titleable {
+		INSTANCE;
+		@Override
+		public String getUiTitle () {
+			return "Add feed..."; //ES
+		}
 	}
 
-	protected void btnResourceLongClick () {
-		DialogHelper.askString(this.context, "Resource:", this.resource, true, false, new Listener<String>() { //ES
+	protected void btnFeedsClick () {
+		final List<Titleable> items = new ArrayList<Titleable>();
+		items.add(AddFeed.INSTANCE);
+		try {
+			items.addAll(ColumnFeed.mixInAccountTitles(this.feeds, this.prefs.asConfig()));
+		}
+		catch (final JSONException e) {
+			DialogHelper.alert(this.context, e);
+			return;
+		}
+		DialogHelper.askItem(this.context, "Feeds", items, new Listener<Titleable>() { //ES
 			@Override
-			public void onAnswer (final String newResource) {
-				if (newResource != null) setResource(newResource);
+			public void onAnswer (final Titleable item) {
+				if (item instanceof ColumnFeed) {
+					showEditFeed((ColumnFeed) item);
+				}
+				else if (item == AddFeed.INSTANCE) {
+					promptAddFeed();
+				}
+				else {
+					DialogHelper.alert(ColumnDialog.this.context, "Unknown item: " + item);
+				}
+			}
+		});
+	}
+
+	protected void btnFeedsLongClick () {
+		DialogHelper.askItem(this.context, "Delete a Feed", new ArrayList<ColumnFeed>(this.feeds), new Listener<ColumnFeed>() { //ES
+			@Override
+			public void onAnswer (final ColumnFeed feed) {
+				askDeleteFeed(feed);
+			}
+		});
+	}
+
+	protected void promptAddFeed () {
+		new ColumnChooser(this.context, this.prefs, new ColumnChoiceListener() {
+			@Override
+			public void onColumn (final Account account, final String newResource, final String newTitle) {
+				if (newResource != null) addFeed(new ColumnFeed(account != null ? account.getId() : null, newResource));
+			}
+		}).promptAddColumn();
+	}
+
+	protected void showEditFeed (final ColumnFeed feed) {
+		final Account account;
+		try {
+			account = this.prefs.readAccount(feed.getAccountId());
+		}
+		catch (final JSONException e) {
+			DialogHelper.alert(this.context, e);
+			return;
+		}
+
+		final ColumFeedDialog dlg = new ColumFeedDialog(this.context, this.prefs, feed, account);
+		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(this.context);
+		dlgBuilder.setTitle(dlg.getUiTitle());
+		dlgBuilder.setView(dlg.getRootView());
+		dlgBuilder.setPositiveButton(android.R.string.ok, new android.content.DialogInterface.OnClickListener() {
+			@Override
+			public void onClick (final DialogInterface dialog, final int which) {
+				replaceFeed(feed, dlg.getValue());
+				dialog.dismiss();
+			}
+		});
+		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER); //ES
+		dlgBuilder.create().show();
+	}
+
+	protected void askDeleteFeed (final ColumnFeed feed) {
+		DialogHelper.askYesNo(this.context, "Delete feed?\n" + feed.getUiTitle(), "Delete", "Keep", new Runnable() { //ES
+			@Override
+			public void run () {
+				removeFeed(feed);
 			}
 		});
 	}
@@ -310,12 +390,7 @@ class ColumnDialog {
 				dialog.dismiss();
 			}
 		});
-		dlgBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() { //ES
-			@Override
-			public void onClick (final DialogInterface dialog, final int whichButton) {
-				dialog.cancel();
-			}
-		});
+		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER); //ES
 		dlgBuilder.create().show();
 	}
 
@@ -352,8 +427,7 @@ class ColumnDialog {
 	public Column getValue () {
 		return new Column(this.id,
 				this.txtTitle.getText().toString(),
-				this.accountId,
-				this.resource,
+				this.feeds,
 				((Duration) this.spnRefresh.getSelectedItem()).getMins(),
 				this.excludes.size() > 0 ? this.excludes : null,
 				this.notificationStyle,

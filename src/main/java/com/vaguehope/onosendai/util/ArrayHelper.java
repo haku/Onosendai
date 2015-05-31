@@ -18,6 +18,15 @@ public final class ArrayHelper {
 		return s.toString();
 	}
 
+	public static String join (final Object[] arr, final String sep) {
+		final StringBuilder s = new StringBuilder();
+		for (final Object obj : arr) {
+			if (s.length() > 0) s.append(sep);
+			s.append(obj.toString());
+		}
+		return s.toString();
+	}
+
 	public static <T> T[] joinArrays (final Class<T> type, final T[]... arrs) {
 		int total = 0;
 		for (final T[] arr : arrs) {

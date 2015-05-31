@@ -8,6 +8,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -36,6 +37,7 @@ import org.xml.sax.SAXException;
 import android.net.http.AndroidHttpClient;
 
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ServiceRef;
@@ -197,7 +199,7 @@ public class SuccessWhale {
 		});
 	}
 
-	public TweetList getFeed (final SuccessWhaleFeed feed, final String sinceId) throws SuccessWhaleException {
+	public TweetList getFeed (final SuccessWhaleFeed feed, final String sinceId, final Collection<Meta> extraMetas) throws SuccessWhaleException {
 		return authenticated(new SwCall<TweetList>() {
 			private String url;
 
@@ -210,7 +212,7 @@ public class SuccessWhale {
 
 				final HttpGet req = new HttpGet(this.url);
 				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
-				return client.execute(req, new FeedHandler(getAccount()));
+				return client.execute(req, new FeedHandler(getAccount(), extraMetas));
 			}
 
 			@Override
@@ -227,7 +229,7 @@ public class SuccessWhale {
 				final String url = makeAuthedUrl(API_THREAD, "&service=", serviceType, "&uid=" + serviceSid, "&postid=", forSid);
 				final HttpGet req = new HttpGet(url);
 				AndroidHttpClient.modifyRequestToAcceptGzipResponse(req);
-				final TweetList thread = client.execute(req, new FeedHandler(getAccount()));
+				final TweetList thread = client.execute(req, new FeedHandler(getAccount(), null));
 				return removeItem(thread, forSid);
 			}
 
@@ -495,9 +497,11 @@ public class SuccessWhale {
 	private static class FeedHandler implements ResponseHandler<TweetList> {
 
 		private final Account account;
+		private final Collection<Meta> extraMetas;
 
-		public FeedHandler (final Account account) {
+		public FeedHandler (final Account account, final Collection<Meta> extraMetas) {
 			this.account = account;
+			this.extraMetas = extraMetas;
 		}
 
 		@Override
@@ -506,7 +510,7 @@ public class SuccessWhale {
 			try {
 				final HttpEntity entity = response.getEntity();
 				LOG.d("Feed content encoding: '%s', headers: %s.", entity.getContentEncoding(), Arrays.asList(response.getAllHeaders()));
-				return new SuccessWhaleFeedXml(this.account, AndroidHttpClient.getUngzippedContent(entity)).getTweets();
+				return new SuccessWhaleFeedXml(this.account, AndroidHttpClient.getUngzippedContent(entity), this.extraMetas).getTweets();
 			}
 			catch (final SAXException e) {
 				throw new IOException("Failed to parse response: " + e.toString(), e);
