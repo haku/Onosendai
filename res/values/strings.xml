@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-	<!-- 
-	https://developer.android.com/intl/fr/guide/topics/resources/string-resource.html
-	-->
-
 	<string name="app_name">Onosendai</string>
+
+<!-- Services. -->
 	<string name="update_service_label">Onosendai update service</string>
 	<string name="fetch_picture_service_label">Onosendai fetch picture service</string>
 	<string name="hosaka_sync_service_label">Onosendai Hosaka Sync service</string>
@@ -14,11 +12,13 @@
 	<string name="cleanup_service_label">Onosendai cleanup service</string>
 	<string name="mark_as_read_service_label">Onosendai mark as read service</string>
 
+<!-- Crash reporting. -->
 	<string name="crash_dialog_title">CSI Onosendai</string>
 	<string name="crash_dialog_text">Thank you for crash testing Onosendai.  Please email a bug report.</string>
 	<string name="crash_dialog_comment_prompt">You message here:</string>
 	<string name="crash_dialog_ok_toast">Thank you for your time.</string>
 
+<!-- Welcome screens. -->
 	<string name="setup_title">Onosendai Setup</string>
 	<string name="setup_welcome">
 		Onosendai is not currently configured.
@@ -61,13 +61,16 @@
 		${conf_path}
 	</string>
 
+<!-- Main activity. -->
+
 	<string name="main_menu_post">Post</string>
-	<string name="main_menu_outbox">Outbox</string>
 	<string name="main_menu_refresh_column">Refresh Column</string>
 	<string name="main_menu_refresh_visible_columns">Refresh Visible Columns</string>
 	<string name="main_menu_refresh_all">Refresh All</string>
-	<string name="main_menu_preferences">Preferences</string>
+	<string name="main_menu_outbox">Outbox</string>
 	<string name="main_menu_local_search">Local Search</string>
+	<string name="main_menu_preferences">Preferences</string>
+
 	<string name="main_no_internet_connection_available">No internet connection available.</string>
 	<string name="main_refresh_columns_requested">Refresh %s requested.</string>
 	<string name="main_refresh_all_columns_requested">Refresh all requested.</string>
@@ -101,6 +104,8 @@
 	<string name="tweetlist_confirm_rt_button">RT</string>
 	<string name="tweetlist_confirm_favourite_question">Favourite?</string>
 	<string name="tweetlist_confirm_favourite_button">Favourite</string>
+
+<!-- Preferences. -->
 
 	<string name="preferences_title">Onosendai Preferences</string>
 	<string name="column_stats_title">Column stats</string>
@@ -143,6 +148,7 @@
 	<string name="searchdlg_btn_search">Search</string>
 	<string name="searchdlg_no_results">No results.</string>
 
+<!-- Posting. -->
 	<string name="post_btn_cancel">Cancel</string>
 	<string name="post_btn_post">Post</string>
 	<string name="post_btn_update_post">Update Post</string>
@@ -167,11 +173,13 @@
 	<string name="post_confirm_post_btn_update_post">Update Post</string>
 	<string name="post_confirm_post_btn_cancel">Cancel</string>
 
+<!-- Outbox. -->
 	<string name="outbox_title">Onosendai Outbox</string>
 	<string name="outbox_btn_reset_failures">Reset Failures</string>
 	<string name="outbox_btn_send_pending">Send Pending</string>
 	<string name="outbox_lbl_is_empty">Outbox is empty.</string>
 
+<!-- Generic. -->
 	<string name="dialog_general_error">Error:</string>
 	<string name="dialog_general_btn_yes">Yes</string>
 	<string name="dialog_general_btn_no">No</string>
