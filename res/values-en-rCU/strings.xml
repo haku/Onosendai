@@ -1,6 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-	<string name="main_menu_post">Post desu~</string>
+	<string name="app_name">Onosendesu~</string>
+
+<!-- Main activity. -->
+
+	<string name="main_menu_post">Make a Wish</string>
+	<string name="main_menu_refresh_column">Wave Dreamcatcher</string>
+	<string name="main_menu_refresh_visible_columns">Wave Dreamcatcher</string>
+	<string name="main_menu_refresh_all">Dream Trawler</string>
+	<string name="main_menu_outbox">Delayed Wishes</string>
+	<string name="main_menu_local_search">Forage</string>
+	<string name="main_menu_preferences">Delve</string>
+
+	<string name="main_no_internet_connection_available">You are all alone.</string>
+	<string name="main_refresh_columns_requested">Catching %s dreams...</string>
+	<string name="main_refresh_all_columns_requested">Trawling dreams....</string>
+
+	<string name="tweet_filtered">[ do not want ]</string>
+	<string name="tweetlist_refresh">Ponder</string>
+	<string name="tweetlist_details_close">Whatever</string>
+	<string name="tweetlist_details_later">Hoard</string>
+	<string name="tweetlist_details_read">Forget</string>
+	<string name="tweetlist_details_rt">Scatter</string>
+	<string name="tweetlist_details_like">Exclaim</string>
+	<string name="tweetlist_details_quote">Parrot</string>
+	<string name="payload_edit_btn_delete">Misgiving</string>
+	<string name="payload_media_btn_retry">Perchance?</string>
+	<string name="sharetweet_text">Words</string>
+	<string name="sharetweet_picture">Likeness</string>
+
+	<string name="tweetlist_saved_for_later">Squirrelled away</string>
+	<string name="tweetlist_removed_from_later">Lapsed</string>
+
+<!-- Posting. -->
+	<string name="post_btn_cancel">Falter</string>
+	<string name="post_btn_post">Wish</string>
+	<string name="post_btn_update_post">Amend</string>
+
+<!-- Outbox. -->
+	<string name="outbox_title">Delayed Wishes</string>
+	<string name="outbox_btn_reset_failures">Reconsider</string>
+	<string name="outbox_btn_send_pending">Nudge</string>
+	<string name="outbox_lbl_is_empty">All gone.</string>
+
+<!-- Generic. -->
+	<string name="dialog_general_error">Alas:</string>
 
 </resources>

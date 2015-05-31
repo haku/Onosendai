@@ -3,6 +3,8 @@
 
 	<string name="app_name">オノセンダイ</string>
 
+<!-- Main activity. -->
+
 	<string name="main_menu_post">ポスト</string>
 	<string name="main_menu_outbox">オウトボクス</string>
 	<string name="main_menu_refresh_column">リフレシュ コルム</string>
@@ -24,6 +26,7 @@
 	<string name="sharetweet_text">テキスト</string>
 	<string name="sharetweet_picture">ピクチャー</string>
 
+<!-- Posting. -->
 	<string name="post_btn_cancel">キャンセル</string>
 	<string name="post_btn_post">ポスト</string>
 
