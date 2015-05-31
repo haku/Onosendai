@@ -49,7 +49,7 @@ public class ColumnFeed implements Titleable {
 
 	public String feedHash() {
 		if (this.accountId == null && this.resource == null) return null;
-		return HashHelper.sha1String(String.format("%s:%s", this.accountId,  this.resource)).toString(16).substring(0, 8);
+		return HashHelper.sha1String(String.format("%s:%s", this.accountId,  this.resource)).toString(36).substring(0, 8);
 	}
 
 	@Override
