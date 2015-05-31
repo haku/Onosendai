@@ -56,6 +56,12 @@ public enum MetaType {
 	 */
 	DELETED(11),
 	/**
+	 * Used to hint which resource item was fetched from.
+	 * Data is ColumnFeed.resourceHash().
+	 * Title is unused.
+	 */
+	FEED_HASH(12),
+	/**
 	 * This is hack that will never be in the DB.
 	 * This is to attach the source column ID to search results.
 	 */
@@ -95,6 +101,8 @@ public enum MetaType {
 				return EDIT_SID;
 			case 11: // NOSONAR 11 is not magical.
 				return DELETED;
+			case 12: // NOSONAR 12 is not magical.
+				return FEED_HASH;
 			case 90:// NOSONAR 90 is not that magical.
 				return COLUMN_ID;
 			default:

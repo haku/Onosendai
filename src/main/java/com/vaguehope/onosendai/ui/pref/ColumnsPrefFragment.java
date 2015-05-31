@@ -1,6 +1,8 @@
 package com.vaguehope.onosendai.ui.pref;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.json.JSONException;
@@ -15,6 +17,7 @@ import android.preference.PreferenceFragment;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.ColumnFeed;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.storage.DbInterface;
@@ -51,8 +54,8 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		try {
 			final Config config = getPrefs().asConfig();
 			for (final Column column : config.getColumns()) {
-				final Account account = config.getAccount(column.getAccountId());
-				getPreferenceScreen().addPreference(new ColumnDialogPreference(getActivity(), column, account, this));
+				final List<Account> accounts = config.getAccounts(column.uniqAccountIds());
+				getPreferenceScreen().addPreference(new ColumnDialogPreference(getActivity(), column, accounts, this));
 			}
 		}
 		catch (final JSONException e) {
@@ -73,8 +76,8 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 
 	protected void promptAddColumn (final Account account, final String resource, final String title) {
 		final int id = getPrefs().getNextColumnId();
-		final ColumnDialog dlg = new ColumnDialog(getActivity(), this.prefs, id, account != null ? account.getId() : null);
-		if (resource != null) dlg.setResource(resource);
+		final ColumnDialog dlg = new ColumnDialog(getActivity(), this.prefs, id);
+		if (resource != null) dlg.setFeeds(Collections.singleton(new ColumnFeed(account != null ? account.getId() : null, resource)));
 		if (title != null) dlg.setTitle(title);
 
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(getActivity());

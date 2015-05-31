@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
@@ -21,6 +20,7 @@ import android.content.Intent;
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.ColumnFeed;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.model.Filters;
@@ -91,7 +91,11 @@ public class UpdateService extends DbBindingService {
 		final long startTime = System.nanoTime();
 
 		final Collection<Column> columns = columnsToFetch(conf, req);
-		fetchColumns(conf, providerMgr, columns, req);
+		LOG.i("Updating columns: %s.", Column.titles(columns));
+
+		final Collection<FetchFeedRequest> fetches = feedsToFetchs(conf, columns);
+		fetchFeeds(providerMgr, req, fetches);
+
 		if (!req.manual) Notifications.update(getBaseContext(), getDb(), columns);
 
 		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
@@ -103,12 +107,12 @@ public class UpdateService extends DbBindingService {
 	private Collection<Column> columnsToFetch (final Config conf, final UpdateRequest req) {
 		final Collection<Column> columns = new ArrayList<Column>();
 		if (req.columnIds != null && req.columnIds.length > 0) {
-			for (int columnId : req.columnIds) {
+			for (final int columnId : req.columnIds) {
 				columns.add(conf.getColumnById(columnId));
 			}
 		}
 		else {
-			columns.addAll(removeNotFetchable(conf.getColumns()));
+			columns.addAll(conf.getColumns());
 		}
 
 		if (!req.manual) removeNotDue(columns);
@@ -119,14 +123,6 @@ public class UpdateService extends DbBindingService {
 		}
 
 		return columns;
-	}
-
-	private static Collection<Column> removeNotFetchable (final Collection<Column> columns) {
-		final List<Column> ret = new ArrayList<Column>();
-		for (final Column column : columns) {
-			if (column.getAccountId() != null) ret.add(column);
-		}
-		return ret;
 	}
 
 	private void removeNotDue (final Collection<Column> columns) {
@@ -144,44 +140,50 @@ public class UpdateService extends DbBindingService {
 		}
 	}
 
-	private void fetchColumns (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns, final UpdateRequest req) {
-		LOG.i("Updating columns: %s.", Column.titles(columns));
-		if (columns.size() >= C.UPDATER_MIN_COLUMS_TO_USE_THREADPOOL) {
-			fetchColumnsMultiThread(conf, providerMgr, columns, req);
+	private static Collection<FetchFeedRequest> feedsToFetchs (final Config conf, final Collection<Column> columns) {
+		final Collection<FetchFeedRequest> ret = new ArrayList<FetchFeedRequest>();
+		for (final Column col : columns) {
+			for (final ColumnFeed feed : col.getFeeds()) {
+				final Account account = resolveFeedAccount(conf, feed);
+				if (account != null) ret.add(new FetchFeedRequest(col, feed, account));
+			}
+		}
+		return ret;
+	}
+
+	private void fetchFeeds (final ProviderMgr providerMgr, final UpdateRequest req, final Collection<FetchFeedRequest> fetches) {
+		if (fetches.size() >= C.UPDATER_MIN_COLUMS_TO_USE_THREADPOOL) {
+			fetchFeedsMultiThread(providerMgr, fetches, req);
 		}
 		else {
-			fetchColumnsSingleThread(conf, providerMgr, columns, req);
+			fetchFeedsSingleThread(providerMgr, fetches, req);
 		}
 	}
 
-	private void fetchColumnsSingleThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns, final UpdateRequest req) {
-		for (final Column column : columns) {
-			final Account account = resolveColumnsAccount(conf, column);
-			if (account == null) continue;
-			FetchColumn.fetchColumn(getDb(), account, column, providerMgr, req.filters);
+	private void fetchFeedsSingleThread (final ProviderMgr providerMgr, final Collection<FetchFeedRequest> feeds, final UpdateRequest req) {
+		for (final FetchFeedRequest feed : feeds) {
+			FetchColumn.fetchColumn(getDb(), feed, providerMgr, req.filters);
 		}
 	}
 
-	private void fetchColumnsMultiThread (final Config conf, final ProviderMgr providerMgr, final Collection<Column> columns, final UpdateRequest req) {
-		final int poolSize = Math.min(columns.size(), C.UPDATER_MAX_THREADS);
-		LOG.i("Using thread pool size %d for %d columns.", poolSize, columns.size());
+	private void fetchFeedsMultiThread (final ProviderMgr providerMgr, final Collection<FetchFeedRequest> feeds, final UpdateRequest req) {
+		final int poolSize = Math.min(feeds.size(), C.UPDATER_MAX_THREADS);
+		LOG.i("Using thread pool size %d for %d feeds.", poolSize, feeds.size());
 		final ExecutorService ex = Executors.newFixedThreadPool(poolSize);
 		try {
-			final Map<Column, Future<Void>> jobs = new LinkedHashMap<Column, Future<Void>>();
-			for (final Column column : columns) {
-				final Account account = resolveColumnsAccount(conf, column);
-				if (account == null) continue;
-				jobs.put(column, ex.submit(new FetchColumn(getDb(), account, column, providerMgr, req.filters)));
+			final Map<FetchFeedRequest, Future<Void>> jobs = new LinkedHashMap<FetchFeedRequest, Future<Void>>();
+			for (final FetchFeedRequest feed : feeds) {
+				jobs.put(feed, ex.submit(new FetchColumn(getDb(), feed, providerMgr, req.filters)));
 			}
-			for (final Entry<Column, Future<Void>> job : jobs.entrySet()) {
+			for (final Entry<FetchFeedRequest, Future<Void>> job : jobs.entrySet()) {
 				try {
 					job.getValue().get();
 				}
 				catch (final InterruptedException e) {
-					LOG.w("Error fetching column '%s': %s %s", job.getKey().getTitle(), e.getClass().getName(), e.toString());
+					LOG.w("Error fetching feed '%s': %s %s", job.getKey().getUiTitle(), e.getClass().getName(), e.toString());
 				}
 				catch (final ExecutionException e) {
-					LOG.w("Error fetching column '%s': %s %s", job.getKey().getTitle(), e.getClass().getName(), e.toString());
+					LOG.w("Error fetching feed '%s': %s %s", job.getKey().getUiTitle(), e.getClass().getName(), e.toString());
 				}
 			}
 		}
@@ -190,9 +192,9 @@ public class UpdateService extends DbBindingService {
 		}
 	}
 
-	private static Account resolveColumnsAccount (final Config conf, final Column column) {
-		final Account account = conf.getAccount(column.getAccountId());
-		if (account == null) LOG.e("Unknown acountId: '%s'.", column.getAccountId());
+	private static Account resolveFeedAccount (final Config conf, final ColumnFeed feed) {
+		final Account account = conf.getAccount(feed.getAccountId());
+		if (account == null) LOG.e("Unknown acountId: '%s'.", feed.getAccountId());
 		return account;
 	}
 

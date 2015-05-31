@@ -84,7 +84,7 @@ public class HosakaSyncService extends DbBindingService {
 		for (final Column col : conf.getColumns()) {
 			if (InternalColumnType.fromColumn(col) != null) continue; // Do not sync internal columns.
 
-			final String hash = HosakaColumn.columnHash(conf.getAccount(col.getAccountId()), col);
+			final String hash = HosakaColumn.columnHash(col, conf);
 			hashToCol.put(hash, col);
 			final ScrollState ss = db.getScroll(col.getId());
 			if (ss == null) continue; // In case of (new) empty columns.

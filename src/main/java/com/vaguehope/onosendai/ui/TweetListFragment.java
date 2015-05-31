@@ -259,10 +259,6 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		return this.conf.getColumnById(this.columnId);
 	}
 
-	protected Account getColumnAccount () {
-		return this.conf.getAccount(getColumn().getAccountId());
-	}
-
 	protected TweetListCursorAdapter getAdapter () {
 		return this.adapter;
 	}
@@ -511,7 +507,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 					askRt(payload.getOwnerTweet());
 					break;
 				case SharePayload.BTN_SHARE_QUOTE:
-					getMainActivity().showPost(getColumnAccount(), payload.getOwnerTweet());
+					getMainActivity().showPost(Collections.singleton(getColumn()), payload.getOwnerTweet());
 					break;
 				case SharePayload.BTN_SHARE_FAV:
 					askFav(payload.getOwnerTweet());
