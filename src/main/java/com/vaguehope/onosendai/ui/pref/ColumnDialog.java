@@ -289,7 +289,7 @@ class ColumnDialog {
 			DialogHelper.alert(this.context, e);
 			return;
 		}
-		DialogHelper.askItem(this.context, "Feeds", items, new Listener<Titleable>() { //ES
+		DialogHelper.askItem(this.context, "Edit Feeds", items, new Listener<Titleable>() { //ES
 			@Override
 			public void onAnswer (final Titleable item) {
 				if (item instanceof ColumnFeed) {
@@ -301,15 +301,6 @@ class ColumnDialog {
 				else {
 					DialogHelper.alert(ColumnDialog.this.context, "Unknown item: " + item);
 				}
-			}
-		});
-	}
-
-	protected void btnFeedsLongClick () {
-		DialogHelper.askItem(this.context, "Delete a Feed", new ArrayList<ColumnFeed>(this.feeds), new Listener<ColumnFeed>() { //ES
-			@Override
-			public void onAnswer (final ColumnFeed feed) {
-				askDeleteFeed(feed);
 			}
 		});
 	}
@@ -332,20 +323,29 @@ class ColumnDialog {
 			DialogHelper.alert(this.context, e);
 			return;
 		}
-
-		final ColumFeedDialog dlg = new ColumFeedDialog(this.context, this.prefs, feed, account);
-		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(this.context);
-		dlgBuilder.setTitle(dlg.getUiTitle());
-		dlgBuilder.setView(dlg.getRootView());
-		dlgBuilder.setPositiveButton(android.R.string.ok, new android.content.DialogInterface.OnClickListener() {
+		new ColumnChooser(this.context, this.prefs, new ColumnChoiceListener() {
 			@Override
-			public void onClick (final DialogInterface dialog, final int which) {
-				replaceFeed(feed, dlg.getValue());
-				dialog.dismiss();
+			public void onColumn (final Account newAccount, final String newResource, final String newTitle) {
+				if (newResource != null) replaceFeed(feed, new ColumnFeed(newAccount.getId(), newResource));
+			}
+		}).promptAddColumn(account, feed.getResource());
+	}
+
+	protected void btnFeedsLongClick () {
+		final List<ColumnFeed> items;
+		try {
+			items = ColumnFeed.mixInAccountTitles(this.feeds, this.prefs.asConfig());
+		}
+		catch (final JSONException e) {
+			DialogHelper.alert(this.context, e);
+			return;
+		}
+		DialogHelper.askItem(this.context, "Delete a Feed", items, new Listener<ColumnFeed>() { //ES
+			@Override
+			public void onAnswer (final ColumnFeed feed) {
+				askDeleteFeed(feed);
 			}
 		});
-		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER); //ES
-		dlgBuilder.create().show();
 	}
 
 	protected void askDeleteFeed (final ColumnFeed feed) {
