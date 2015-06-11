@@ -141,6 +141,24 @@ public class Config {
 		return null;
 	}
 
+	public JSONObject toJson () throws JSONException {
+		final JSONObject j = new JSONObject();
+
+		final JSONArray aj = new JSONArray();
+		for (final Account a : this.accounts.values()) {
+			aj.put(a.withoutSecrets().toJson());
+		}
+		j.put(SECTION_ACCOUNTS, aj);
+
+		final JSONArray fj = new JSONArray();
+		for (final Column c : this.feeds) {
+			fj.put(c.toJson());
+		}
+		j.put(SECTION_FEEDS, fj);
+
+		return j;
+	}
+
 	private static Map<String, Account> parseAccounts (final JSONArray accountsJson) throws JSONException {
 		final Map<String, Account> ret = new LinkedHashMap<String, Account>();
 		for (int i = 0; i < accountsJson.length(); i++) {

@@ -53,6 +53,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 	private void addEntries () {
 		addThreadInspector();
 		addImportConfPref();
+		addExportConfPref();
 		addDumpLogPref();
 		addDumpReadLaterPref();
 		addHousekeepPref();
@@ -77,6 +78,14 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 			pref.setSummary("File not found: " + Config.configFile().getAbsolutePath());
 			pref.setEnabled(false);
 		}
+		getPreferenceScreen().addPreference(pref);
+	}
+
+	private void addExportConfPref () {
+		final Preference pref = new Preference(getActivity());
+		pref.setTitle("Export deck.conf (without secrets)"); //ES
+		pref.setSummary("Write to /sdcard/deck.<time>.conf"); //ES
+		pref.setOnPreferenceClickListener(this.exportClickListener);
 		getPreferenceScreen().addPreference(pref);
 	}
 
@@ -108,6 +117,14 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		@Override
 		public boolean onPreferenceClick (final Preference preference) {
 			askImport();
+			return true;
+		}
+	};
+
+	private final OnPreferenceClickListener exportClickListener = new OnPreferenceClickListener() {
+		@Override
+		public boolean onPreferenceClick (final Preference preference) {
+			doExport();
 			return true;
 		}
 	};
@@ -156,6 +173,18 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		}
 		catch (final Exception e) { // NOSONAR show user all errors.
 			LOG.e("Failed to import configuration.", e);
+			DialogHelper.alertAndClose(getActivity(), e);
+		}
+	}
+
+	protected void doExport () {
+		try {
+			final File file = new File(Environment.getExternalStorageDirectory(), "deck." + System.currentTimeMillis() + ".conf");
+			IoHelper.stringToFile(this.prefs.asConfig().toJson().toString(2), file);
+			DialogHelper.alert(getActivity(), "Written to:\n" + file.getAbsolutePath()); //ES
+		}
+		catch (final Exception e) { // NOSONAR show user all errors.
+			LOG.e("Failed to export configuration.", e);
 			DialogHelper.alertAndClose(getActivity(), e);
 		}
 	}
