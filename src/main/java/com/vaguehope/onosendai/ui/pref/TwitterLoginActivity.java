@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -35,6 +37,8 @@ public class TwitterLoginActivity extends Activity {
 	protected void onCreate (final Bundle bundle) {
 		super.onCreate(bundle);
 
+		CookieSyncManager.createInstance(this);
+
 		final LinearLayout layout = new LinearLayout(this);
 		layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -51,9 +55,17 @@ public class TwitterLoginActivity extends Activity {
 
 		final WebSettings webSettings = webView.getSettings();
 		webSettings.setJavaScriptEnabled(true);
+		webSettings.setSaveFormData(false);
 		webView.setWebChromeClient(new LoginWebChromeClient(prgBar));
 		webView.setWebViewClient(new LoginWebViewClient(this));
 		webView.loadUrl(this.getIntent().getExtras().getString(TwitterOauth.IEXTRA_AUTH_URL));
+	}
+
+	@Override
+	protected void onDestroy () {
+		CookieManager.getInstance().removeAllCookie();
+		LOG.i("Cleared cookies.");
+		super.onDestroy();
 	}
 
 	private static class LoginWebChromeClient extends WebChromeClient {
