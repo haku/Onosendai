@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.ui.pref;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.JSONException;
@@ -33,7 +34,6 @@ public class TwitterOauthWizard {
 	private final TwitterOauthHelper helperCallback;
 
 	private Configuration twitterConfiguration;
-	private Twitter twitter;
 	private RequestToken requestToken;
 
 	public interface TwitterOauthHelper {
@@ -45,8 +45,9 @@ public class TwitterOauthWizard {
 		void onAccount (Account account, String screenName) throws JSONException;
 	}
 
-	private final AtomicInteger requestCode = new AtomicInteger(100);
+	private final AtomicInteger requestCodeCounter = new AtomicInteger(100);
 	private final Map<Integer, TwitterOauthComplete> completeCallbacks = new ConcurrentHashMap<Integer, TwitterOauthWizard.TwitterOauthComplete>();
+	private final ConcurrentMap<Integer, Twitter> twitters = new ConcurrentHashMap<Integer, Twitter>();
 
 	public TwitterOauthWizard (final Context context, final TwitterOauthHelper helperCallback) {
 		this.context = context;
@@ -54,7 +55,7 @@ public class TwitterOauthWizard {
 	}
 
 	public void start (final TwitterOauthComplete completeCallback) {
-		final int requestCode = Integer.valueOf(this.requestCode.incrementAndGet());
+		final int requestCode = Integer.valueOf(this.requestCodeCounter.incrementAndGet());
 		this.completeCallbacks.put(requestCode, completeCallback);
 		new TwitterOauthInitTask(this, requestCode).execute();
 	}
@@ -81,12 +82,17 @@ public class TwitterOauthWizard {
 		return this.twitterConfiguration;
 	}
 
-	protected Twitter getTwitter () {
-		if (this.twitter == null) {
-			final TwitterFactory factory = new TwitterFactory(getTwitterConfiguration());
-			this.twitter = factory.getInstance();
-		}
-		return this.twitter;
+	private Twitter makeTwitter () {
+		final TwitterFactory factory = new TwitterFactory(getTwitterConfiguration());
+		return factory.getInstance();
+	}
+
+	protected Twitter getTwitter (final int requestCode) {
+		final Twitter existingT = this.twitters.get(Integer.valueOf(requestCode));
+		if (existingT != null) return existingT;
+		final Twitter newT = makeTwitter();
+		this.twitters.putIfAbsent(requestCode, newT);
+		return this.twitters.get(Integer.valueOf(requestCode));
 	}
 
 	protected void stashRequestToken (final RequestToken token) {
@@ -121,7 +127,7 @@ public class TwitterOauthWizard {
 		@Override
 		protected Result<RequestToken> doInBackground (final Void... params) {
 			try {
-				return new Result<RequestToken>(this.host.getTwitter().getOAuthRequestToken(TwitterOauth.CALLBACK_URL));
+				return new Result<RequestToken>(this.host.getTwitter(this.requestCode).getOAuthRequestToken(TwitterOauth.CALLBACK_URL));
 			}
 			catch (final Exception e) { // NOSONAR report all errors to user.
 				return new Result<RequestToken>(e);
@@ -152,7 +158,7 @@ public class TwitterOauthWizard {
 		if (completeCallback != null) {
 			if (resultCode == Activity.RESULT_OK) {
 				final String oauthVerifier = intent.getExtras().getString(TwitterOauth.IEXTRA_OAUTH_VERIFIER);
-				new TwitterOauthPostTask(this, oauthVerifier, completeCallback).execute();
+				new TwitterOauthPostTask(this, requestCode, oauthVerifier, completeCallback).execute();
 			}
 			else if (resultCode == Activity.RESULT_CANCELED) {
 				DialogHelper.alert(getContext(), "Twitter auth canceled."); //ES
@@ -163,12 +169,14 @@ public class TwitterOauthWizard {
 	private static class TwitterOauthPostTask extends AsyncTask<Void, Void, Result<AccessToken>> {
 
 		private final TwitterOauthWizard host;
+		private final int requestCode;
 		private final String oauthVerifier;
 		private final TwitterOauthComplete completeCallback;
 		private ProgressDialog dialog;
 
-		public TwitterOauthPostTask (final TwitterOauthWizard host, final String oauthVerifier, final TwitterOauthComplete completeCallback) {
+		public TwitterOauthPostTask (final TwitterOauthWizard host, final int requestCode, final String oauthVerifier, final TwitterOauthComplete completeCallback) {
 			this.host = host;
+			this.requestCode = requestCode;
 			this.oauthVerifier = oauthVerifier;
 			this.completeCallback = completeCallback;
 		}
@@ -182,7 +190,7 @@ public class TwitterOauthWizard {
 		protected Result<AccessToken> doInBackground (final Void... params) {
 			try {
 				final RequestToken token = this.host.unstashRequestToken();
-				return new Result<AccessToken>(this.host.getTwitter().getOAuthAccessToken(token, this.oauthVerifier));
+				return new Result<AccessToken>(this.host.getTwitter(this.requestCode).getOAuthAccessToken(token, this.oauthVerifier));
 			}
 			catch (final Exception e) { // NOSONAR report all errors to user.
 				return new Result<AccessToken>(e);
