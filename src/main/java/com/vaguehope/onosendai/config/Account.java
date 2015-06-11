@@ -119,6 +119,10 @@ public class Account implements Titleable {
 		return this.accessSecret;
 	}
 
+	public Account withoutSecrets () {
+		return new Account(this.id, this.title, this.provider, this.consumerKey, null, this.accessToken, null);
+	}
+
 	public JSONObject toJson () throws JSONException {
 		final JSONObject json = new JSONObject();
 		json.put(KEY_ID, this.id);
