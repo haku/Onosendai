@@ -19,8 +19,11 @@ import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.VolatileKvStore;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 class AccountDialog {
+
+	protected static final LogWrapper LOG = new LogWrapper("AD");
 
 	private final Context context;
 	private final String id;
@@ -219,6 +222,7 @@ class AccountDialog {
 				}
 			}
 			catch (final Exception e) { // NOSONAR want to report all errors.
+				if (e instanceof RuntimeException) LOG.e("Failed to test account access.", e);
 				return ExcpetionHelper.causeTrace(e);
 			}
 			finally {
