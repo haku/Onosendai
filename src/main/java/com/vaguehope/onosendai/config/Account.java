@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import com.vaguehope.onosendai.util.EqualHelper;
+import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.Titleable;
 
 public class Account implements Titleable {
@@ -120,7 +121,24 @@ public class Account implements Titleable {
 	}
 
 	public Account withoutSecrets () {
-		return new Account(this.id, this.title, this.provider, this.consumerKey, null, this.accessToken, null);
+		return new Account(this.id, this.title, this.provider,
+				this.consumerKey, null,
+				this.provider == AccountProvider.BUFFER ? null : this.accessToken, null);
+	}
+
+	public boolean hasSecrets () {
+		switch (this.provider) {
+			case TWITTER:
+				return !StringHelper.isEmpty(this.consumerSecret) && !StringHelper.isEmpty(this.accessSecret);
+			case SUCCESSWHALE:
+			case INSTAPAPER:
+			case HOSAKA:
+				return !StringHelper.isEmpty(this.accessSecret);
+			case BUFFER:
+				return !StringHelper.isEmpty(this.accessToken);
+			default:
+				throw new IllegalArgumentException("Unsupported account provilder: " + this.provider);
+		}
 	}
 
 	public JSONObject toJson () throws JSONException {
@@ -185,22 +203,22 @@ public class Account implements Titleable {
 	private static Account parseTwitterAccount (final JSONObject accountJson, final String id) throws JSONException {
 		final String title = accountJson.optString(KEY_TITLE, null);
 		final String consumerKey = accountJson.getString(KEY_CONSUMER_KEY);
-		final String consumerSecret = accountJson.getString(KEY_CONSUMER_SECRET);
+		final String consumerSecret = accountJson.optString(KEY_CONSUMER_SECRET);
 		final String accessToken = accountJson.getString(KEY_ACCESS_TOKEN);
-		final String accessSecret = accountJson.getString(KEY_ACCESS_SECRET);
+		final String accessSecret = accountJson.optString(KEY_ACCESS_SECRET);
 		return new Account(id, title, AccountProvider.TWITTER, consumerKey, consumerSecret, accessToken, accessSecret);
 	}
 
 	private static Account parseUsernamePasswordLikeAccount (final JSONObject accountJson, final String id, final AccountProvider provider) throws JSONException {
 		final String accessToken = accountJson.getString(KEY_USERNAME);
-		final String accessSecret = accountJson.getString(KEY_PASSWORD);
+		final String accessSecret = accountJson.optString(KEY_PASSWORD);
 		final String title = accountJson.optString(KEY_TITLE, accessToken);
 		return new Account(id, title, provider, null, null, accessToken, accessSecret);
 	}
 
-	private static Account parseBufferAccount (final JSONObject accountJson, final String id) throws JSONException {
+	private static Account parseBufferAccount (final JSONObject accountJson, final String id) {
 		final String title = accountJson.optString(KEY_TITLE, null);
-		final String accessToken = accountJson.getString(KEY_ACCESS_TOKEN);
+		final String accessToken = accountJson.optString(KEY_ACCESS_TOKEN);
 		return new Account(id, title, AccountProvider.BUFFER, null, null, accessToken, null);
 	}
 

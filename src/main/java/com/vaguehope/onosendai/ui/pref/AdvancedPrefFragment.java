@@ -170,6 +170,11 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 			new ConfigBuilder()
 					.config(config)
 					.writeOverMain(getActivity());
+
+			final int accountsWithoutSecrets = config.countAccountsWithoutSecrets();
+			if (accountsWithoutSecrets > 0) DialogHelper.alert(getActivity(), String.format(
+					"%s accounts imported are missing secrets.  You must add them before things will work again.",
+					accountsWithoutSecrets)); //ES
 		}
 		catch (final Exception e) { // NOSONAR show user all errors.
 			LOG.e("Failed to import configuration.", e);
