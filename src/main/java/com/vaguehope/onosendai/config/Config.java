@@ -141,6 +141,14 @@ public class Config {
 		return null;
 	}
 
+	public int countAccountsWithoutSecrets () {
+		int ret = 0;
+		for (final Account account : this.accounts.values()) {
+			if (!account.hasSecrets()) ret += 1;
+		}
+		return ret;
+	}
+
 	public JSONObject toJson () throws JSONException {
 		final JSONObject j = new JSONObject();
 
