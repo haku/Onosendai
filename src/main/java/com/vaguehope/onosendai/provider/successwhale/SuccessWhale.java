@@ -42,6 +42,7 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.storage.KvStore;
+import com.vaguehope.onosendai.update.KvKeys;
 import com.vaguehope.onosendai.util.HttpClientFactory;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.IoHelper;
@@ -62,9 +63,6 @@ public class SuccessWhale {
 	private static final String API_ITEM = "/v3/item";
 	private static final String API_ACTION = "/v3/action";
 	private static final String API_BANNED_PHRASES = "/v3/bannedphrases.json";
-
-	private static final String AUTH_TOKEN_PREFIX = "SW_AUTH_TOKEN_";
-	private static final String PTA_PREFIX = "SW_PTA_";
 
 	static final LogWrapper LOG = new LogWrapper("SW");
 
@@ -121,12 +119,12 @@ public class SuccessWhale {
 	}
 
 	private void readAuthFromKvStore () {
-		final String t = this.kvStore.getValue(AUTH_TOKEN_PREFIX + getAccount().getId());
+		final String t = this.kvStore.getValue(KvKeys.SW_AUTH_TOKEN_PREFIX + getAccount().getId());
 		if (t != null && !t.isEmpty()) this.token = t;
 	}
 
 	private void writeAuthToKvStore () {
-		this.kvStore.storeValue(AUTH_TOKEN_PREFIX + getAccount().getId(), this.token);
+		this.kvStore.storeValue(KvKeys.SW_AUTH_TOKEN_PREFIX + getAccount().getId(), this.token);
 	}
 
 	static void checkReponseCode (final HttpResponse response) throws IOException {
@@ -255,7 +253,7 @@ public class SuccessWhale {
 	}
 
 	public List<ServiceRef> getPostToAccountsCached () {
-		final String key = PTA_PREFIX + getAccount().getId();
+		final String key = KvKeys.SW_PTA_PREFIX + getAccount().getId();
 		try {
 			final String cached = this.kvStore.getValue(key);
 			if (cached == null || cached.isEmpty()) return null;
@@ -269,7 +267,7 @@ public class SuccessWhale {
 	}
 
 	protected void writePostToAccountsToCache (final String data) {
-		this.kvStore.storeValue(PTA_PREFIX + getAccount().getId(), data);
+		this.kvStore.storeValue(KvKeys.SW_PTA_PREFIX + getAccount().getId(), data);
 	}
 
 	public void post (final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final ImageMetadata image) throws SuccessWhaleException {
