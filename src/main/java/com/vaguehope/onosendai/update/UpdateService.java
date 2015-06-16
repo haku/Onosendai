@@ -125,7 +125,7 @@ public class UpdateService extends DbBindingService {
 		// For now treating the configured interval as an 'attempt rate' not 'success rate' so write update time now.
 		final long now = System.currentTimeMillis();
 		for (final Column column : columns) {
-			getDb().storeValue(KvKeys.KEY_PREFIX_COL_LAST_REFRESH_TIME + column.getId(), String.valueOf(now));
+			getDb().storeValue(KvKeys.colLastRefreshTime(column), String.valueOf(now));
 		}
 
 		return columns;
@@ -138,11 +138,11 @@ public class UpdateService extends DbBindingService {
 			final Column column = colItr.next();
 			final int refIntMins = column.getRefreshIntervalMins();
 			if (refIntMins < 1) colItr.remove(); // Do not refresh columns not configured to refresh.
-			final String lastTimeRaw = getDb().getValue(KvKeys.KEY_PREFIX_COL_LAST_REFRESH_TIME + column.getId());
+			final String lastTimeRaw = getDb().getValue(KvKeys.colLastRefreshTime(column));
 			if (lastTimeRaw == null) continue; // Never refreshed.
 			final long lastTime = Long.parseLong(lastTimeRaw);
 			if (lastTime <= 0L) continue; // Probably never refreshed.
-			if (now - lastTime < TimeUnit.MINUTES.toMillis(refIntMins)) colItr.remove(); // No not refresh up to date columns.
+			if (now - lastTime < TimeUnit.MINUTES.toMillis(refIntMins)) colItr.remove(); // Do not refresh up to date columns.
 		}
 	}
 

@@ -23,4 +23,13 @@ public class TweetList {
 		return this.tweets;
 	}
 
+	public Tweet getMostRecent () {
+		if (this.tweets == null || this.tweets.size() < 1) throw new IllegalStateException("Tweet list has no items.");
+		Tweet ret = null;
+		for (final Tweet tweet : this.tweets) {
+			if (ret == null || (tweet.getTime() >= ret.getTime() && tweet.getSid().compareTo(ret.getSid()) > 0)) ret = tweet;
+		}
+		return ret;
+	}
+
 }

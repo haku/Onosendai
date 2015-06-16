@@ -290,6 +290,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public void deleteValue (final String key) {
+		this.dbAdaptor.deleteValue(key);
+	}
+
+	@Override
 	public void housekeep () {
 		this.dbAdaptor.housekeep();
 	}

@@ -60,6 +60,7 @@ public enum MetaType {
 	 * Data is ColumnFeed.resourceHash().
 	 * Title is unused.
 	 */
+	@Deprecated
 	FEED_HASH(12),
 	/**
 	 * This is hack that will never be in the DB.

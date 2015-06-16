@@ -1077,7 +1077,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		final String msg;
 		final DbInterface db = getDb();
 		if (db != null) {
-			msg = db.getValue(KvKeys.KEY_PREFIX_COL_LAST_REFRESH_ERROR + this.columnId);
+			msg = db.getValue(KvKeys.colLastRefreshError(this.columnId));
 		}
 		else {
 			msg = "Can not get last update status; DB not connected.";
