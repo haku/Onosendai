@@ -1,11 +1,9 @@
 package com.vaguehope.onosendai.update;
 
 import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,15 +22,11 @@ import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.ColumnFeed;
 import com.vaguehope.onosendai.model.Filters;
-import com.vaguehope.onosendai.model.Meta;
-import com.vaguehope.onosendai.model.MetaType;
-import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeed;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbInterface;
-import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 @RunWith(PowerMockRunner.class)
@@ -69,20 +63,17 @@ public class FetchColumnTest {
 		when(this.column.getFeeds()).thenReturn(Collections.singleton(this.columnFeed));
 
 		when(this.providerMgr.getTwitterProvider()).thenReturn(this.twitterProvider);
-		when(this.twitterProvider.getTweets(isA(TwitterFeed.class), eq(this.account), anyLong(), anyBoolean(), anyCollectionOf(Meta.class))).thenReturn(this.tweetList);
+		when(this.twitterProvider.getTweets(isA(TwitterFeed.class), eq(this.account), anyLong(), anyBoolean())).thenReturn(this.tweetList);
 	}
 
 	@Test
 	public void itFindsCorrectSinceIdWhenFetchingFromTwitter () throws Exception {
 		final long sinceId = 120394230492830123L;
-		final Tweet sinceTweet = mock(Tweet.class);
-		when(sinceTweet.getSid()).thenReturn(String.valueOf(sinceId));
-		when(this.db.findTweetsWithMeta(COL_ID, MetaType.FEED_HASH, this.columnFeed.feedHash(), 1)).thenReturn(Collections.singletonList(sinceTweet));
+		when(this.db.getValue(KvKeys.feedSinceId(this.columnFeed))).thenReturn(String.valueOf(sinceId));
 
 		this.undertest.call();
 
-		verify(this.twitterProvider).getTweets(isA(TwitterFeed.class), eq(this.account), eq(sinceId), anyBoolean(),
-				eq(CollectionHelper.listOf(new Meta(MetaType.FEED_HASH, this.columnFeed.feedHash()))));
+		verify(this.twitterProvider).getTweets(isA(TwitterFeed.class), eq(this.account), eq(sinceId), anyBoolean());
 	}
 
 }

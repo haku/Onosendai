@@ -13,6 +13,11 @@ public class VolatileKvStore implements KvStore {
 	}
 
 	@Override
+	public void deleteValue (final String key) {
+		this.m.remove(key);
+	}
+
+	@Override
 	public String getValue (final String key) {
 		return this.m.get(key);
 	}

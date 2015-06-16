@@ -628,7 +628,6 @@ public class DbAdapter implements DbInterface {
 		if (!checkDbOpen()) return null;
 		Tweet ret = null;
 		Cursor c = null;
-		Cursor d = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
 					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_FILTERED },
@@ -1251,6 +1250,19 @@ public class DbAdapter implements DbInterface {
 		}
 		else {
 			this.log.d("Stored KV: '%s' = '%s'.", key, value);
+		}
+	}
+
+	@Override
+	public void deleteValue (final String key) {
+		this.mDb.beginTransaction();
+		try {
+			this.mDb.delete(TBL_KV, TBL_KV_KEY + "=?", new String[] { key });
+			this.mDb.setTransactionSuccessful();
+			this.log.d("Deleted key=%s from %s.", key, TBL_KV);
+		}
+		finally {
+			this.mDb.endTransaction();
 		}
 	}
 

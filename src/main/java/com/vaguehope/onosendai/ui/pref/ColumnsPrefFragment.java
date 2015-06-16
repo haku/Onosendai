@@ -22,9 +22,13 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.ui.pref.ColumnChooser.ColumnChoiceListener;
+import com.vaguehope.onosendai.update.KvKeys;
 import com.vaguehope.onosendai.util.DialogHelper;
+import com.vaguehope.onosendai.util.LogWrapper;
 
 public class ColumnsPrefFragment extends PreferenceFragment {
+
+	private static final LogWrapper LOG = new LogWrapper("CPF");
 
 	private Prefs prefs;
 	private ColumnChooser columnChooser;
@@ -141,6 +145,13 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		final DbInterface db = act.getDb();
 		if (db == null) throw new IllegalStateException("Database not bound, aborting column deletion.");
 		db.deleteTweets(column);
+		db.deleteValue(KvKeys.colLastPushTime(column));
+		db.deleteValue(KvKeys.colLastRefreshError(column));
+		db.deleteValue(KvKeys.colLastRefreshTime(column));
+		for (final ColumnFeed feed : column.getFeeds()) {
+			db.deleteValue(KvKeys.feedSinceId(feed));
+		}
+		LOG.i("Deleted: %s", column);
 	}
 
 	private static class AddAcountClickListener implements OnPreferenceClickListener {

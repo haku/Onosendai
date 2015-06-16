@@ -55,6 +55,10 @@ public class SuccessWhaleProvider {
 		return getAccount(account).getSources();
 	}
 
+	public TweetList getTweets (final SuccessWhaleFeed feed, final Account account, final String sinceId) throws SuccessWhaleException {
+		return getTweets(feed, account, sinceId, null);
+	}
+
 	public TweetList getTweets (final SuccessWhaleFeed feed, final Account account, final String sinceId, final Collection<Meta> extraMetas) throws SuccessWhaleException {
 		return fetchSuccessWhaleFeed(getAccount(account), feed, sinceId, extraMetas);
 	}

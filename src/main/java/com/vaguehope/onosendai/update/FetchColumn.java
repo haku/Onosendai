@@ -10,8 +10,6 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.ColumnFeed;
 import com.vaguehope.onosendai.model.Filters;
-import com.vaguehope.onosendai.model.Meta;
-import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ProviderMgr;
@@ -25,7 +23,6 @@ import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterUtils;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
-import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -88,15 +85,10 @@ public class FetchColumn implements Callable<Void> {
 			final TwitterProvider twitterProvider = providerMgr.getTwitterProvider();
 			twitterProvider.addAccount(account);
 			final TwitterFeed feed = TwitterFeeds.parse(columnFeed.getResource());
-
-			final String feedHash = columnFeed.feedHash();
-			long sinceId = -1;
-			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.FEED_HASH, feedHash, 1);
-			if (existingTweets.size() > 0) sinceId = Long.parseLong(existingTweets.get(existingTweets.size() - 1).getSid());
-
-			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia(), CollectionHelper.listOf(new Meta(MetaType.FEED_HASH, feedHash)));
-			final int filteredCount = filterAndStore(db, column, filters, tweets);
-
+			final String sinceIdRaw = readSinceId(db, columnFeed);
+			final long sinceId = sinceIdRaw != null ? Long.parseLong(sinceIdRaw) : -1;
+			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia());
+			final int filteredCount = filterAndStore(db, column, columnFeed, filters, tweets);
 			storeSuccess(db, column);
 			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 			LOG.i("Fetched %d items for '%s' '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), columnFeed.getResource(), durationMillis, filteredCount);
@@ -113,15 +105,9 @@ public class FetchColumn implements Callable<Void> {
 			final SuccessWhaleProvider successWhaleProvider = providerMgr.getSuccessWhaleProvider();
 			successWhaleProvider.addAccount(account);
 			final SuccessWhaleFeed feed = new SuccessWhaleFeed(column, columnFeed);
-
-			final String feedHash = columnFeed.feedHash();
-			String sinceId = null;
-			final List<Tweet> existingTweets = db.findTweetsWithMeta(column.getId(), MetaType.FEED_HASH, feedHash, 1);
-			if (existingTweets.size() > 0) sinceId = existingTweets.get(existingTweets.size() - 1).getSid();
-
-			final TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId, CollectionHelper.listOf(new Meta(MetaType.FEED_HASH, feedHash)));
-			final int filteredCount = filterAndStore(db, column, filters, tweets);
-
+			final String sinceId = readSinceId(db, columnFeed);
+			final TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId);
+			final int filteredCount = filterAndStore(db, column, columnFeed, filters, tweets);
 			storeSuccess(db, column);
 			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 			LOG.i("Fetched %d items for '%s' '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), columnFeed.getResource(), durationMillis, filteredCount);
@@ -132,12 +118,17 @@ public class FetchColumn implements Callable<Void> {
 		}
 	}
 
-	private static int filterAndStore (final DbInterface db, final Column column, final Filters filters, final TweetList tweets) {
+	private static String readSinceId (final DbInterface db, final ColumnFeed columnFeed) {
+		return db.getValue(KvKeys.feedSinceId(columnFeed));
+	}
+
+	private static int filterAndStore (final DbInterface db, final Column column, final ColumnFeed columnFeed, final Filters filters, final TweetList tweets) {
 		int filteredCount = 0;
 		if (tweets.count() > 0) {
 			final List<Tweet> filteredTweets = filters.matchAndSet(tweets.getTweets());
 			filteredCount = Filters.countFiltered(filteredTweets);
 			db.storeTweets(column, filteredTweets);
+			db.storeValue(KvKeys.feedSinceId(columnFeed), tweets.getMostRecent().getSid());
 		}
 		return filteredCount;
 	}
@@ -147,7 +138,7 @@ public class FetchColumn implements Callable<Void> {
 		try {
 			final InstapaperProvider provider = providerMgr.getInstapaperProvider();
 
-			final String lastPushTimeRaw = db.getValue(KvKeys.KEY_PREFIX_COL_LAST_PUSH_TIME + column.getId());
+			final String lastPushTimeRaw = db.getValue(KvKeys.colLastPushTime(column));
 			final long lastPushTime = lastPushTimeRaw != null ? Long.parseLong(lastPushTimeRaw) : 0L;
 
 			LOG.i("Looking for items since t=%s to push...", lastPushTime);
@@ -157,7 +148,7 @@ public class FetchColumn implements Callable<Void> {
 			for (final Tweet tweet : tweets) {
 				final Tweet fullTweet = db.getTweetDetails(column.getId(), tweet);
 				provider.add(account, fullTweet);
-				db.storeValue(KvKeys.KEY_PREFIX_COL_LAST_PUSH_TIME + column.getId(), String.valueOf(tweet.getTime()));
+				db.storeValue(KvKeys.colLastPushTime(column), String.valueOf(tweet.getTime()));
 				LOG.i("Pushed item sid=%s.", tweet.getSid());
 			}
 
@@ -179,13 +170,12 @@ public class FetchColumn implements Callable<Void> {
 		storeResult(db, column, msg);
 	}
 
-	public static void storeDismiss(final DbInterface db, final Column column) {
+	public static void storeDismiss (final DbInterface db, final Column column) {
 		storeResult(db, column, null);
 	}
 
 	private static void storeResult (final DbInterface db, final Column column, final String result) {
-		db.storeValue(KvKeys.KEY_PREFIX_COL_LAST_REFRESH_ERROR + column.getId(), result);
+		db.storeValue(KvKeys.colLastRefreshError(column), result);
 	}
-
 
 }

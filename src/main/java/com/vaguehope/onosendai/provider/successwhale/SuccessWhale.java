@@ -119,12 +119,12 @@ public class SuccessWhale {
 	}
 
 	private void readAuthFromKvStore () {
-		final String t = this.kvStore.getValue(KvKeys.SW_AUTH_TOKEN_PREFIX + getAccount().getId());
+		final String t = this.kvStore.getValue(KvKeys.swAuthToken(getAccount()));
 		if (t != null && !t.isEmpty()) this.token = t;
 	}
 
 	private void writeAuthToKvStore () {
-		this.kvStore.storeValue(KvKeys.SW_AUTH_TOKEN_PREFIX + getAccount().getId(), this.token);
+		this.kvStore.storeValue(KvKeys.swAuthToken(getAccount()), this.token);
 	}
 
 	static void checkReponseCode (final HttpResponse response) throws IOException {
@@ -253,7 +253,7 @@ public class SuccessWhale {
 	}
 
 	public List<ServiceRef> getPostToAccountsCached () {
-		final String key = KvKeys.SW_PTA_PREFIX + getAccount().getId();
+		final String key = KvKeys.swPta(getAccount());
 		try {
 			final String cached = this.kvStore.getValue(key);
 			if (cached == null || cached.isEmpty()) return null;
@@ -267,7 +267,7 @@ public class SuccessWhale {
 	}
 
 	protected void writePostToAccountsToCache (final String data) {
-		this.kvStore.storeValue(KvKeys.SW_PTA_PREFIX + getAccount().getId(), data);
+		this.kvStore.storeValue(KvKeys.swPta(getAccount()), data);
 	}
 
 	public void post (final Set<ServiceRef> postToSvc, final String body, final String inReplyToSid, final ImageMetadata image) throws SuccessWhaleException {
