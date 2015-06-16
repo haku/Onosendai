@@ -108,7 +108,13 @@ public class UpdateService extends DbBindingService {
 		final Collection<Column> columns = new ArrayList<Column>();
 		if (req.columnIds != null && req.columnIds.length > 0) {
 			for (final int columnId : req.columnIds) {
-				columns.add(conf.getColumnById(columnId));
+				final Column column = conf.getColumnById(columnId);
+				if (column != null) {
+					columns.add(column);
+				}
+				else {
+					LOG.i("Column not found: %s", columnId);
+				}
 			}
 		}
 		else {
