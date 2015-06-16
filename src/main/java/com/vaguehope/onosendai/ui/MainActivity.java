@@ -541,7 +541,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 
 	private boolean isAnyFrequentFetchColumnsConfigured () {
 		for (final Column col : this.conf.getColumns()) {
-			if (col.getRefreshIntervalMins() < C.FETCH_VISIBLE_THRESHOLD_MIN) return true;
+			if (col.getRefreshIntervalMins() > 0 && col.getRefreshIntervalMins() < C.FETCH_VISIBLE_THRESHOLD_MIN) return true;
 		}
 		return false;
 	}
