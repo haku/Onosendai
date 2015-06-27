@@ -75,6 +75,7 @@ public final class Notifications {
 			final PendingIntent showMainActPi = PendingIntent.getActivity(context, col.getId(), showMainActI, PendingIntent.FLAG_CANCEL_CURRENT);
 
 			final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5), Selection.FILTERED, col.getExcludeColumnIds());
+			final String msg = makeMsg(col, tweets, count);
 			final Style style = makePreview(tweets, count);
 			final PendingIntent markAsReadPi = MarkAsReadReceiver.makePi(context, col, tweets);
 
@@ -82,7 +83,8 @@ public final class Notifications {
 					.setOnlyAlertOnce(true)
 					.setSmallIcon(notificationIcon())
 					.setContentTitle(col.getTitle())
-					.setContentText(String.format("%d new updates.", count)) //ES
+					.setContentText(msg)
+					.setTicker(msg)
 					.setNumber(count)
 					.setContentIntent(showMainActPi)
 					.setAutoCancel(true)
@@ -113,6 +115,14 @@ public final class Notifications {
 		nb.setDefaults(defaults);
 	}
 
+	private static String makeMsg (final Column col, final List<Tweet> tweets, final int count) {
+		if (count == 1 && tweets != null && tweets.size() == 1) {
+			final Tweet t = tweets.get(0);
+			return String.format("%s: %s", readName(t), t.getBody());
+		}
+		return String.format("%s: %s new updates.", col.getTitle(), count); //ES
+	}
+
 	// https://stackoverflow.com/questions/14602072/styling-notification-inboxstyle
 	private static Style makePreview (final List<Tweet> tweets, final int count) {
 		if (tweets == null || tweets.size() < 1) return null;
@@ -131,12 +141,16 @@ public final class Notifications {
 	}
 
 	private static Spannable tweetToSpanable (final Tweet tweet) {
-		final String username = !StringHelper.isEmpty(tweet.getUsername())
+		final String name = readName(tweet);
+		final Spannable s = new SpannableString(String.format("%s: %s", name, tweet.getBody()));
+		s.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+		return s;
+	}
+
+	private static String readName (final Tweet tweet) {
+		return !StringHelper.isEmpty(tweet.getUsername())
 				? StringHelper.firstLine(tweet.getUsername())
 				: StringHelper.firstLine(tweet.getFullname());
-		final Spannable s = new SpannableString(String.format("%s: %s", username, tweet.getBody()));
-		s.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, username.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-		return s;
 	}
 
 }
