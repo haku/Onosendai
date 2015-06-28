@@ -5,6 +5,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -851,8 +852,13 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 		@Override
 		public void columnChanged (final int changeColumnId) {
-			if (changeColumnId != getColumnId()) return;
-			refreshUi();
+			if (changeColumnId == getColumnId()) {
+				refreshUi();
+			}
+			else {
+				final Set<Integer> ex = getColumn().getExcludeColumnIds();
+				if (ex != null && ex.contains(Integer.valueOf(changeColumnId))) refreshUi();
+			}
 		}
 
 		@Override
