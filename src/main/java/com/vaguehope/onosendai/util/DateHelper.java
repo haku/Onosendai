@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.util;
 
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -8,20 +9,34 @@ import android.content.Context;
 
 public final class DateHelper {
 
-	private static final long ONE_DAY_MILLIS = TimeUnit.DAYS.toMillis(1);
+	protected static final long ONE_DAY_MILLIS = TimeUnit.DAYS.toMillis(1);
 
 	private DateHelper () {
 		throw new AssertionError();
 	}
 
-	public static String friendlyAbsoluteDate (final Context context, final long now, final long time) {
-		final StringBuilder s = new StringBuilder();
-		final Date tweetDate = new Date(time);
-		if (now - time >= ONE_DAY_MILLIS) {
-			s.append(android.text.format.DateFormat.getDateFormat(context).format(tweetDate)).append(" ");
+	public static String formatDateTime (final Context context, final long timeMillis) {
+		final Date date = new Date(timeMillis);
+		return String.format("%s %s",
+				android.text.format.DateFormat.getDateFormat(context).format(date),
+				android.text.format.DateFormat.getTimeFormat(context).format(date));
+	}
+
+	public static class FriendlyDateTimeFormat {
+		private final DateFormat dateFormat;
+		private final DateFormat timeFormat;
+
+		public FriendlyDateTimeFormat (final Context context) {
+			this.dateFormat = android.text.format.DateFormat.getDateFormat(context);
+			this.timeFormat = android.text.format.DateFormat.getTimeFormat(context);
 		}
-		s.append(android.text.format.DateFormat.getTimeFormat(context).format(tweetDate));
-		return s.toString();
+
+		public String format (final long now, final long time) {
+			final Date date = new Date(time);
+			final String sT = this.timeFormat.format(date);
+			if (now - time < ONE_DAY_MILLIS) return sT;
+			return String.format("%s %s", this.dateFormat.format(date), sT);
+		}
 	}
 
 	public static String formatDurationSeconds (final long seconds) {

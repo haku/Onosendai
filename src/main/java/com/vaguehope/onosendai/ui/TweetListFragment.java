@@ -78,7 +78,7 @@ import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
 import com.vaguehope.onosendai.storage.DbProvider;
 import com.vaguehope.onosendai.update.FetchColumn;
 import com.vaguehope.onosendai.update.KvKeys;
-import com.vaguehope.onosendai.util.DateHelper;
+import com.vaguehope.onosendai.util.DateHelper.FriendlyDateTimeFormat;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.FileHelper;
@@ -111,6 +111,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	private InlineMediaStyle inlineMediaStyle;
 	private boolean showFiltered;
 	private Config conf;
+	private FriendlyDateTimeFormat friendlyDateTimeFormat;
 	private ImageLoader imageLoader;
 	private RefreshUiHandler refreshUiHandler;
 
@@ -147,6 +148,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 		this.mainActivity = (MainActivity) getActivity();
 		this.conf = this.mainActivity.getConf();
+		this.friendlyDateTimeFormat = new FriendlyDateTimeFormat(this.mainActivity);
 		this.imageLoader = ImageLoaderUtils.fromActivity(getActivity());
 
 		/*
@@ -1062,7 +1064,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 		final long time = this.adapter.getItemTime(position);
 		if (time > 0L) {
-			getMainActivity().setTempColumnTitle(this.columnPosition, DateHelper.friendlyAbsoluteDate(getActivity(), now, TimeUnit.SECONDS.toMillis(time)));
+			getMainActivity().setTempColumnTitle(this.columnPosition, this.friendlyDateTimeFormat.format(now, TimeUnit.SECONDS.toMillis(time)));
 		}
 	}
 

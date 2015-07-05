@@ -1,15 +1,15 @@
 package com.vaguehope.onosendai.payload;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import android.content.Context;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Config;
@@ -19,6 +19,7 @@ import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.ServiceRef;
+import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.EqualHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.StringHelper;
@@ -36,11 +37,11 @@ public final class PayloadUtils {
 		throw new AssertionError();
 	}
 
-	public static PayloadList makePayloads (final Config conf, final Tweet tweet) {
+	public static PayloadList makePayloads (final Context context, final Config conf, final Tweet tweet) {
 		final Account account = MetaUtils.accountFromMeta(tweet, conf);
 		final Set<Payload> set = new LinkedHashSet<Payload>();
 		set.add(new PrincipalPayload(tweet));
-		if (account != null) convertMeta(account, tweet, set);
+		if (account != null) convertMeta(context, account, tweet, set);
 		replyToOwner(account, tweet, set);
 		extractUrls(tweet, set);
 		extractHashTags(tweet, set);
@@ -70,16 +71,16 @@ public final class PayloadUtils {
 		}
 	}
 
-	private static void convertMeta (final Account account, final Tweet tweet, final Set<Payload> ret) {
+	private static void convertMeta (final Context context, final Account account, final Tweet tweet, final Set<Payload> ret) {
 		final List<Meta> metas = tweet.getMetas();
 		if (metas == null) return;
 		for (final Meta meta : metas) {
-			final Payload payload = metaToPayload(account, tweet, meta);
+			final Payload payload = metaToPayload(context, account, tweet, meta);
 			if (payload != null) ret.add(payload);
 		}
 	}
 
-	private static Payload metaToPayload (final Account account, final Tweet tweet, final Meta meta) {
+	private static Payload metaToPayload (final Context context, final Account account, final Tweet tweet, final Meta meta) {
 		switch (meta.getType()) {
 			case MEDIA:
 				return new MediaPayload(tweet, meta);
@@ -93,7 +94,7 @@ public final class PayloadUtils {
 				return new EditPayload(tweet, meta);
 			case DELETED:
 				return new PlaceholderPayload(tweet, String.format("Deleted at %s.", //ES
-						DateFormat.getDateTimeInstance().format(new Date(TimeUnit.SECONDS.toMillis(meta.toLong(0L))))));
+						DateHelper.formatDateTime(context, TimeUnit.SECONDS.toMillis(meta.toLong(0L)))));
 			case INREPLYTO:
 			case SERVICE:
 			case ACCOUNT:

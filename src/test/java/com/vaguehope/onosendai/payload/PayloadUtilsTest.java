@@ -10,6 +10,9 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Config;
@@ -17,6 +20,7 @@ import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetBuilder;
 
+@RunWith(RobolectricTestRunner.class)
 public class PayloadUtilsTest {
 
 	private static final String ACCOUNT_ID = "ac0";
@@ -120,7 +124,7 @@ public class PayloadUtilsTest {
 
 	private void testLinkExtraction (final String body, final String... expectedUrls) {
 		Tweet tweet = new TweetBuilder().body(body).meta(MetaType.ACCOUNT, ACCOUNT_ID).build();
-		PayloadList payloadList = PayloadUtils.makePayloads(this.conf, tweet);
+		PayloadList payloadList = PayloadUtils.makePayloads(Robolectric.application, this.conf, tweet);
 		payloadList = removeNotOfType(PayloadType.LINK, payloadList);
 
 		assertEquals(expectedUrls.length, payloadList.size());
@@ -133,7 +137,7 @@ public class PayloadUtilsTest {
 
 	private void testHashTagExtraction (final String body, final String... expectedTags) {
 		Tweet tweet = new TweetBuilder().body(body).meta(MetaType.ACCOUNT, ACCOUNT_ID).build();
-		PayloadList payloadList = PayloadUtils.makePayloads(this.conf, tweet);
+		PayloadList payloadList = PayloadUtils.makePayloads(Robolectric.application, this.conf, tweet);
 		payloadList = removeNotOfType(PayloadType.HASHTAG, payloadList);
 		assertEquals(expectedTags.length, payloadList.size());
 		for (int i = 0; i < expectedTags.length; i++) {

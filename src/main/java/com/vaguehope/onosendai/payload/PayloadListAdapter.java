@@ -15,6 +15,7 @@ import com.vaguehope.onosendai.model.Tweet;
 
 public class PayloadListAdapter extends BaseAdapter {
 
+	private final Context context;
 	private final LayoutInflater layoutInflater;
 	private final ImageLoader imageLoader;
 	private final View listView;
@@ -24,6 +25,7 @@ public class PayloadListAdapter extends BaseAdapter {
 	private PayloadList listData;
 
 	public PayloadListAdapter (final Context context, final ImageLoader imageLoader, final View listView, final PayloadClickListener clickListener) {
+		this.context = context;
 		this.listView = listView;
 		this.clickListener = clickListener;
 		this.layoutInflater = LayoutInflater.from(context);
@@ -36,7 +38,7 @@ public class PayloadListAdapter extends BaseAdapter {
 
 	public void setInput (final Config config, final Tweet tweet) {
 		this.tweet = tweet;
-		this.listData = PayloadUtils.makePayloads(config, tweet);
+		this.listData = PayloadUtils.makePayloads(this.context, config, tweet);
 		notifyDataSetChanged();
 	}
 

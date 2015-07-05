@@ -1,9 +1,7 @@
 package com.vaguehope.onosendai.update;
 
 import java.io.IOException;
-import java.text.DateFormat;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -32,6 +30,7 @@ import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.storage.DbInterface.ScrollChangeType;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
 import com.vaguehope.onosendai.ui.pref.FetchingPrefFragment;
+import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -150,7 +149,7 @@ public class HosakaSyncService extends DbBindingService {
 		}
 	}
 
-	private static void storeResult (final DbInterface db, final int pushedCount, final int pulledCount, final Exception e) {
+	private void storeResult (final DbInterface db, final int pushedCount, final int pulledCount, final Exception e) {
 		final String status;
 		if (e != null) {
 			status = String.format("Failed: %s", ExcpetionHelper.causeTrace(e)); //ES
@@ -161,7 +160,7 @@ public class HosakaSyncService extends DbBindingService {
 		}
 		db.storeValue(KvKeys.KEY_HOSAKA_STATUS,
 				String.format("%s %s",
-						DateFormat.getDateTimeInstance().format(new Date()),
+						DateHelper.formatDateTime(this, System.currentTimeMillis()),
 						status));
 	}
 

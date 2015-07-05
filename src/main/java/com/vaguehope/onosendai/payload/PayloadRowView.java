@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.payload;
 import java.util.Collections;
 import java.util.Map;
 
+import android.content.Context;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -51,7 +52,7 @@ class PayloadRowView {
 		this.tertiary = null;
 		this.image = null;
 		this.pendingImage = pendingImage;
-		this.buttons = button != null ? Collections.<Integer, View>singletonMap(0, button) : null;
+		this.buttons = button != null ? Collections.<Integer, View> singletonMap(0, button) : null;
 	}
 
 	public PayloadRowView (final Map<Integer, View> buttons) {
@@ -101,6 +102,16 @@ class PayloadRowView {
 
 	public Map<Integer, View> getButtons () {
 		return this.buttons;
+	}
+
+	public Context anyContext () {
+		if (this.main != null) return this.main.getContext();
+		if (this.secondary != null) return this.secondary.getContext();
+		if (this.tertiary != null) return this.tertiary.getContext();
+		if (this.image != null) return this.image.getContext();
+		if (this.pendingImage != null) return this.pendingImage.getContext();
+		if (this.buttons != null && this.buttons.size() > 0) return this.buttons.values().iterator().next().getContext();
+		return null;
 	}
 
 }

@@ -3,11 +3,9 @@ package com.vaguehope.onosendai.ui;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -63,6 +61,7 @@ import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbProvider;
 import com.vaguehope.onosendai.storage.UsernameSearchAdapter;
+import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.ImageMetadata;
@@ -365,7 +364,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				((TextView) view.findViewById(R.id.tweetDetailBody)).setText(tweet.getBody());
 				if (tweet.getAvatarUrl() != null) loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), (ImageView) view.findViewById(R.id.tweetDetailAvatar)));
 				((TextView) view.findViewById(R.id.tweetDetailName)).setText(tweet.getFullname());
-				((TextView) view.findViewById(R.id.tweetDetailDate)).setText(DateFormat.getDateTimeInstance().format(new Date(TimeUnit.SECONDS.toMillis(tweet.getTime()))));
+				((TextView) view.findViewById(R.id.tweetDetailDate)).setText(DateHelper.formatDateTime(this, TimeUnit.SECONDS.toMillis(tweet.getTime())));
 			}
 		}
 		initBody(tweet);

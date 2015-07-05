@@ -1,7 +1,5 @@
 package com.vaguehope.onosendai.payload;
 
-import java.text.DateFormat;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import android.view.View;
@@ -15,10 +13,9 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.ui.pref.AddFilterSelectionActionModeCallback;
+import com.vaguehope.onosendai.util.DateHelper;
 
 public class PrincipalPayload extends Payload {
-
-	private final DateFormat dateFormat = DateFormat.getDateTimeInstance();
 
 	public PrincipalPayload (final Tweet tweet) {
 		super(tweet, null, PayloadType.PRINCIPAL);
@@ -54,7 +51,7 @@ public class PrincipalPayload extends Payload {
 
 		final Meta postTimeMeta = tweet.getFirstMetaOfType(MetaType.POST_TIME);
 		final long tweetTime = postTimeMeta != null ? postTimeMeta.toLong(0L) : tweet.getTime();
-		rowView.setTertiaryText(this.dateFormat.format(new Date(TimeUnit.SECONDS.toMillis(tweetTime))));
+		rowView.setTertiaryText(DateHelper.formatDateTime(rowView.anyContext(), TimeUnit.SECONDS.toMillis(tweetTime)));
 
 		final String avatarUrl = tweet.getAvatarUrl();
 		if (avatarUrl != null) {
