@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.content.Context;
@@ -18,6 +17,7 @@ import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.TaskUtils;
+import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.HtmlTitleParser;
@@ -28,7 +28,6 @@ import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 
 public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void> {
 
-	private static final Pattern TWEET_URL = Pattern.compile("^https?://(?:mobile\\.)?twitter.com/([^/]+)/status/([0-9]+)[^/]*$");
 	private static final Pattern UNTITLEABLE_URL = Pattern.compile("^.*\\.(mp[0-9]|m3u8|mov|webm|mpd|jpe?g|png|gif|pdf)$", Pattern.CASE_INSENSITIVE);
 	private static final LogWrapper LOG = new LogWrapper("LE");
 
@@ -69,9 +68,9 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 	protected Void doInBackgroundWithDb (final DbInterface db, final Void... params) {
 		for (final Meta meta : this.tweet.getMetas()) {
 			if (meta.getType() != MetaType.URL) continue;
-			final Matcher m = TWEET_URL.matcher(meta.getData());
-			if (m.matches()) {
-				fetchLinkedTweet(db, meta, m.group(2));
+			final String linkedTweetSid = TwitterUrls.readTweetSidFromUrl(meta.getData());
+			if (linkedTweetSid != null) {
+				fetchLinkedTweet(db, meta, linkedTweetSid);
 				continue;
 			}
 			if (UNTITLEABLE_URL.matcher(meta.getData()).matches()) continue;

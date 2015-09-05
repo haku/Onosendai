@@ -69,6 +69,7 @@ import com.vaguehope.onosendai.provider.OutboxActionFactory;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.provider.ServiceRef;
+import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
@@ -84,6 +85,7 @@ import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.FileHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.Result;
+import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.Titleable;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
@@ -510,7 +512,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 					askRt(payload.getOwnerTweet());
 					break;
 				case SharePayload.BTN_SHARE_QUOTE:
-					getMainActivity().showPost(Collections.singleton(getColumn()), payload.getOwnerTweet());
+					askQuote(payload.getOwnerTweet());
 					break;
 				case SharePayload.BTN_SHARE_FAV:
 					askFav(payload.getOwnerTweet());
@@ -616,6 +618,49 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		getDb().addPostToOutput(OutboxActionFactory.newRt(account, tweet));
 		getActivity().startService(new Intent(getActivity(), SendOutboxService.class));
 		Toast.makeText(getActivity(), R.string.tweetlist_requested_via_outbox, Toast.LENGTH_SHORT).show();
+	}
+
+	private enum QuoteType implements Titleable {
+		INLINE("Inline"), //ES
+		LINK("Link"); //ES
+
+		private final String title;
+
+		private QuoteType (final String title) {
+			this.title = title;
+		}
+
+		@Override
+		public String getUiTitle () {
+			return this.title;
+		}
+	}
+
+	private void askQuote (final Tweet tweet) {
+		DialogHelper.askItem(getActivity(), getString(R.string.tweetlist_ask_quote_type), QuoteType.values(), new Listener<QuoteType>() {
+			@Override
+			public void onAnswer (final QuoteType answer) {
+				doQuote(tweet, answer);
+			}
+		});
+	}
+
+	protected void doQuote (final Tweet tweet, final QuoteType type) {
+		final String body;
+		final int cursorPosition;
+		switch (type) {
+			case INLINE:
+				body = String.format("RT @%s %s", StringHelper.firstLine(tweet.getUsername()), tweet.getBody());
+				cursorPosition = body.length();
+				break;
+			case LINK:
+				body = String.format(" %s", TwitterUrls.tweet(tweet));
+				cursorPosition = 0;
+				break;
+			default:
+				return;
+		}
+		getMainActivity().showPost(Collections.singleton(getColumn()), body, cursorPosition);
 	}
 
 	private void askFav (final Tweet tweet) {
