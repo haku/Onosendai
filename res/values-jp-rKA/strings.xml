@@ -23,6 +23,7 @@
 	<string name="tweetlist_details_quote">コヲート</string>
 	<string name="payload_edit_btn_delete">デリート</string>
 	<string name="payload_media_btn_retry">リトライ</string>
+	<string name="sharetweet_link">リンク</string>
 	<string name="sharetweet_text">テキスト</string>
 	<string name="sharetweet_picture">ピクチャー</string>
 

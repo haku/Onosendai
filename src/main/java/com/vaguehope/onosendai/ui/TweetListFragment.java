@@ -733,6 +733,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	protected boolean shareMenuItemClick (final MenuItem item, final Tweet tweet) {
 		switch (item.getItemId()) {
+			case R.id.mnuLink:
+				doShareIntentLink(tweet);
+				return true;
 			case R.id.mnuText:
 				doShareIntentText(tweet);
 				return true;
@@ -742,6 +745,11 @@ public class TweetListFragment extends Fragment implements DbProvider {
 			default:
 				return false;
 		}
+	}
+
+	private void doShareIntentLink (final Tweet tweet) {
+		startActivity(new Intent(Intent.ACTION_VIEW)
+				.setData(Uri.parse(TwitterUrls.tweet(tweet))));
 	}
 
 	private void doShareIntentText (final Tweet tweet) {
