@@ -30,11 +30,14 @@ public final class C {
 	public static final int DB_CONNECT_TIMEOUT_SECONDS = 5;
 
 	public static final int TWEET_FETCH_PAGE_SIZE = 20;
-	public static final int TWITTER_TIMELINE_MAX_FETCH = TWEET_FETCH_PAGE_SIZE * 5;
-	public static final int TWITTER_ME_MAX_FETCH = TWEET_FETCH_PAGE_SIZE;
-	public static final int TWITTER_MENTIONS_MAX_FETCH = TWEET_FETCH_PAGE_SIZE;
-	public static final int TWITTER_LIST_MAX_FETCH = TWEET_FETCH_PAGE_SIZE * 5;
-	public static final int TWITTER_SEARCH_MAX_FETCH = TWEET_FETCH_PAGE_SIZE * 5;
+	public static final int TWEET_FETCH_COUNT = TWEET_FETCH_PAGE_SIZE * 5;
+
+	public static final int TWITTER_FETCH_COUNT_TIMELINE = TWEET_FETCH_COUNT;
+	public static final int TWITTER_FETCH_COUNT_ME = TWEET_FETCH_COUNT;
+	public static final int TWITTER_FETCH_COUNT_MENTIONS = TWEET_FETCH_COUNT;
+	public static final int TWITTER_FETCH_COUNT_FAVORITES = TWEET_FETCH_COUNT;
+	public static final int TWITTER_FETCH_COUNT_LIST = TWEET_FETCH_COUNT;
+	public static final int TWITTER_FETCH_COUNT_SEARCH = TWEET_FETCH_COUNT;
 
 	public static final int DATA_TW_MAX_COL_ENTRIES = 500;
 

@@ -30,7 +30,7 @@ class FavoritesFeed implements FeedGetter {
 
 	@Override
 	public int recommendedFetchCount () {
-		return C.TWITTER_ME_MAX_FETCH;
+		return C.TWITTER_FETCH_COUNT_FAVORITES;
 	}
 
 	@Override
