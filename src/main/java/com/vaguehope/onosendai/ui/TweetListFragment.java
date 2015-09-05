@@ -22,6 +22,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -119,6 +121,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	private MainActivity mainActivity;
 	private SidebarLayout sidebar;
+	private SwipeRefreshLayout tweetListSwiper;
 	private ListView tweetList;
 	private TextView tweetListStatus;
 	private Button tweetListEmptyRefresh;
@@ -174,6 +177,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		this.tweetListEmptyRefresh = (Button) rootView.findViewById(R.id.tweetListEmptyRefresh);
 		this.tweetListEmptyRefresh.setOnClickListener(this.refreshClickListener);
 
+		this.tweetListSwiper = (SwipeRefreshLayout) rootView.findViewById(R.id.tweetListListSwiper);
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
 		this.adapter = new TweetListCursorAdapter(container.getContext(), this.inlineMediaStyle, this.imageLoader, this.tweetList);
 		this.tweetList.setAdapter(this.adapter);
@@ -194,6 +198,13 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		this.scrollIndicator = ScrollIndicator.attach(getActivity(),
 				(ViewGroup) rootView.findViewById(R.id.tweetListView),
 				this.tweetList, this.tweetListScrollListener);
+
+		this.tweetListSwiper.setOnRefreshListener(new OnRefreshListener() {
+			@Override
+			public void onRefresh () {
+				getMainActivity().scheduleRefreshInteractive(getColumnId());
+			}
+		});
 
 		this.tweetListStatus = (TextView) rootView.findViewById(R.id.tweetListStatus);
 		this.tweetListStatus.setOnClickListener(this.tweetListStatusClickListener);
@@ -1009,6 +1020,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 			case UPDATE_OVER:
 				getMainActivity().progressIndicator(false);
 				this.tweetListEmptyRefresh.setEnabled(true);
+				this.tweetListSwiper.setRefreshing(false);
 				redrawLastUpdateError();
 				break;
 			case STILL_SCROLLING_CHECK:
