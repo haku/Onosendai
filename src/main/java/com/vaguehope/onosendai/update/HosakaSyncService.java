@@ -1,12 +1,9 @@
 package com.vaguehope.onosendai.update;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
@@ -26,9 +23,8 @@ import com.vaguehope.onosendai.provider.hosaka.HosakaColumn;
 import com.vaguehope.onosendai.provider.hosaka.HosakaProvider;
 import com.vaguehope.onosendai.storage.DbBindingService;
 import com.vaguehope.onosendai.storage.DbInterface;
-import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.storage.DbInterface.ScrollChangeType;
-import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
+import com.vaguehope.onosendai.storage.SaveScrollNow;
 import com.vaguehope.onosendai.ui.pref.FetchingPrefFragment;
 import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
@@ -76,7 +72,7 @@ public class HosakaSyncService extends DbBindingService {
 		if (!waitForDbReady()) return;
 		final DbInterface db = getDb();
 
-		requestAndWaitForUiToSaveScroll(db);
+		SaveScrollNow.requestAndWaitForUiToSaveScroll(db);
 
 		final Map<String, Column> hashToCol = new HashMap<String, Column>();
 		final Map<String, HosakaColumn> toPush = new HashMap<String, HosakaColumn>();
@@ -132,23 +128,6 @@ public class HosakaSyncService extends DbBindingService {
 		}
 	}
 
-	private static void requestAndWaitForUiToSaveScroll (final DbInterface db) {
-		final ScrollStoreCountingListener twUpdateListener = new ScrollStoreCountingListener();
-		db.addTwUpdateListener(twUpdateListener);
-		try {
-			final long startTime = now();
-			final Set<Integer> requestedColumnIds = db.requestStoreScrollNow();
-			if (requestedColumnIds.size() > 0) {
-				final boolean storedSuccessfully = twUpdateListener.awaitScrollStores(requestedColumnIds, 5, TimeUnit.SECONDS);
-				final long durationMillis = TimeUnit.NANOSECONDS.toMillis(now() - startTime);
-				LOG.i("Request UI store %s scrolls success=%s in %d millis.", requestedColumnIds, storedSuccessfully, durationMillis);
-			}
-		}
-		finally {
-			db.removeTwUpdateListener(twUpdateListener);
-		}
-	}
-
 	private void storeResult (final DbInterface db, final int pushedCount, final int pulledCount, final Exception e) {
 		final String status;
 		if (e != null) {
@@ -162,52 +141,6 @@ public class HosakaSyncService extends DbBindingService {
 				String.format("%s %s",
 						DateHelper.formatDateTime(this, System.currentTimeMillis()),
 						status));
-	}
-
-	private static class ScrollStoreCountingListener implements TwUpdateListener {
-
-		private final Set<Integer> requestedColumnIds = Collections.synchronizedSet(new HashSet<Integer>());
-
-		public ScrollStoreCountingListener () {}
-
-		public boolean awaitScrollStores (final Set<Integer> columnIds, final int timeout, final TimeUnit unit) {
-			final long timeoutNanos = unit.toNanos(timeout);
-			final long startTime = now();
-			while (true) {
-				synchronized (this.requestedColumnIds) {
-					if (columnIds.equals(this.requestedColumnIds)) return true;
-				}
-				if (now() - startTime > timeoutNanos) return false;
-				try {
-					Thread.sleep(100);
-				}
-				catch (InterruptedException e) {
-					return false;
-				}
-			}
-		}
-
-		@Override
-		public void columnChanged (final int columnId) {/* unused */}
-
-		@Override
-		public void columnStatus (final int columnId, final ColumnState state) {/* unused */}
-
-		@Override
-		public void unreadOrScrollChanged (final int columnId, final ScrollChangeType type) {/* unused */}
-
-		@Override
-		public Integer requestStoreScrollStateNow () {
-			return null;
-		}
-
-		@Override
-		public void scrollStored (final int columnId) {
-			synchronized (this.requestedColumnIds) {
-				this.requestedColumnIds.add(columnId);
-			}
-		}
-
 	}
 
 	private static final long NANO_ORIGIN = System.nanoTime();

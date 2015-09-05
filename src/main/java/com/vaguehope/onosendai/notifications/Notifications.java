@@ -24,6 +24,7 @@ import com.vaguehope.onosendai.config.NotificationStyle;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.Selection;
+import com.vaguehope.onosendai.storage.SaveScrollNow;
 import com.vaguehope.onosendai.ui.MainActivity;
 import com.vaguehope.onosendai.util.StringHelper;
 
@@ -46,6 +47,8 @@ public final class Notifications {
 	}
 
 	public static void update (final Context context, final DbInterface db, final Collection<Column> columns) {
+		SaveScrollNow.requestAndWaitForUiToSaveScroll(db);
+
 		final NotificationManager nm = getManager(context);
 		for (final Column col : columns) {
 			if (col.getNotificationStyle() == null) continue;
