@@ -11,13 +11,15 @@ import java.util.regex.Pattern;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
+
 public class TweetLinkExpanderTaskTest {
 
 	private Pattern tweetPatter;
 
 	@Before
 	public void before () throws Exception {
-		final Field f = TweetLinkExpanderTask.class.getDeclaredField("TWEET_URL");
+		final Field f = TwitterUrls.class.getDeclaredField("TWEET_URL_PATTERN");
 		f.setAccessible(true);
 		this.tweetPatter = (Pattern) f.get(null);
 	}

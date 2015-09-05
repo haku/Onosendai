@@ -98,6 +98,8 @@
 	<string name="tweetlist_deleted_via_outbox">Deleted via Outbox</string>
 	<string name="tweetlist_can_not_find_this_tweet_s_account_metadata">Can not find this tweet\'s account metadata.</string>
 
+	<string name="tweetlist_ask_quote_type">Quote Type</string>
+
 	<string name="tweetlist_confirm_like_question">Like?</string>
 	<string name="tweetlist_confirm_like_btn">Like</string>
 	<string name="tweetlist_confirm_rt_question">Retweet?</string>

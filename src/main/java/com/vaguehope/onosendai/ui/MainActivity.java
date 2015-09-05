@@ -63,7 +63,6 @@ import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.MultiplexingOnPageChangeListener;
 import com.vaguehope.onosendai.util.NetHelper;
-import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.exec.ExecUtils;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.widget.SidebarAwareViewPager;
@@ -401,21 +400,21 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		}
 	}
 
-	protected void showPost () {
-		showPost(getVisibleColumns(), null);
+	private void showPost () {
+		showPost(getVisibleColumns(), null, -1);
 	}
 
-	protected void showPost (final Collection<Column> cols, final Tweet tweetToQuote) {
+	protected void showPost (final Collection<Column> cols, final String initialBody, final int cursorPosition) {
 		final Set<String> acIds = Column.uniqAccountIds(cols);
 		final String accountId = acIds.size() == 1 ? acIds.iterator().next() : null;
-		showPost(this.conf.getAccount(accountId), tweetToQuote);
+		showPost(this.conf.getAccount(accountId), initialBody, cursorPosition);
 	}
 
-	protected void showPost (final Account account, final Tweet tweetToQuote) {
+	private void showPost (final Account account, final String initialBody, final int cursorPosition) {
 		final Intent intent = new Intent(this, PostActivity.class);
 		if (account != null) intent.putExtra(PostActivity.ARG_ACCOUNT_ID, account.getId());
-		if (tweetToQuote != null) intent.putExtra(PostActivity.ARG_BODY,
-				String.format("RT @%s %s", StringHelper.firstLine(tweetToQuote.getUsername()), tweetToQuote.getBody()));
+		if (initialBody != null) intent.putExtra(PostActivity.ARG_BODY, initialBody);
+		if (cursorPosition >= 0) intent.putExtra(PostActivity.ARG_BODY_CURSOR_POSITION, cursorPosition);
 		startActivity(intent);
 	}
 

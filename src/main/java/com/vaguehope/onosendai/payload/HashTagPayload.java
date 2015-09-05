@@ -6,11 +6,10 @@ import android.net.Uri;
 
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.util.EqualHelper;
 
 public class HashTagPayload extends Payload {
-
-	private static final String HASHTAG_URL_TEMPLATE = "https://twitter.com/search?q=%s";
 
 	private final String hashtag;
 
@@ -40,7 +39,7 @@ public class HashTagPayload extends Payload {
 	@Override
 	public Intent toIntent (final Context context) {
 		final Intent i = new Intent(Intent.ACTION_VIEW);
-		i.setData(Uri.parse(String.format(HASHTAG_URL_TEMPLATE, Uri.encode(this.hashtag))));
+		i.setData(Uri.parse(TwitterUrls.hashtag(this.hashtag)));
 		return i;
 	}
 

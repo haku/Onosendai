@@ -85,6 +85,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	public static final String ARG_ALT_REPLY_TO_SID = "reply_to_sid";
 	public static final String ARG_ALSO_MENTIONS = "also_mentions";
 	public static final String ARG_BODY = "body"; // If present mentions will not be prepended to body.
+	public static final String ARG_BODY_CURSOR_POSITION = "cursor_position";
 	public static final String ARG_SVCS = "svcs";
 	public static final String ARG_ATTACHMENT = "post_attachment_uri";
 	public static final String ARG_OUTBOX_UID = "outbox_uid";
@@ -368,7 +369,6 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			}
 		}
 		initBody(tweet);
-		this.txtBody.setSelection(this.txtBody.getText().length());
 	}
 
 	private void setPostToAccountExclusive (final ServiceRef svc) {
@@ -397,6 +397,8 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			}
 		}
 
+		final int cursorPosition = this.intentExtras != null ? this.intentExtras.getInt(ARG_BODY_CURSOR_POSITION, -1) : -1;
+		this.txtBody.setSelection(cursorPosition >= 0 ? cursorPosition : this.txtBody.getText().length());
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

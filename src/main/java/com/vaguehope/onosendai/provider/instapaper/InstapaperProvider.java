@@ -10,6 +10,7 @@ import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.ServiceRef;
+import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.util.HttpClientFactory;
 import com.vaguehope.onosendai.util.StringHelper;
 
@@ -63,7 +64,7 @@ public class InstapaperProvider {
 					linkTitle != null ? linkTitle + " via" : "Tweet by", //ES
 							StringHelper.firstLine(tweet.getFullname()),
 							StringHelper.firstLine(tweet.getUsername()));
-			tweetUrl = twitterUrlOf(tweet);
+			tweetUrl = TwitterUrls.tweet(tweet);
 		}
 		else {
 			title = linkUrl != null ? linkTitle : "Text saved by you"; // Leave title null so Instapaper fills it in. //ES
@@ -100,12 +101,6 @@ public class InstapaperProvider {
 		final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
 		final ServiceRef serviceRef = svcMeta != null ? ServiceRef.parseServiceMeta(svcMeta) : null;
 		return serviceRef != null ? serviceRef.getType() : null;
-	}
-
-	private static String twitterUrlOf (final Tweet tweet) {
-		return String.format("https://twitter.com/%s/status/%s",
-				StringHelper.firstLine(tweet.getUsername()),
-				tweet.getSid());
 	}
 
 	private static String facebookUrlOf (final Tweet tweet) {
