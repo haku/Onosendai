@@ -56,7 +56,7 @@ class ListFeed implements FeedGetter {
 
 	@Override
 	public int recommendedFetchCount () {
-		return C.TWITTER_LIST_MAX_FETCH;
+		return C.TWITTER_FETCH_COUNT_LIST;
 	}
 
 	@Override

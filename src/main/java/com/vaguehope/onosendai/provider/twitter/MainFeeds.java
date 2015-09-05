@@ -14,25 +14,25 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.TweetList;
 
 enum MainFeeds implements FeedGetter {
-	TIMELINE(C.TWITTER_TIMELINE_MAX_FETCH) {
+	TIMELINE(C.TWITTER_FETCH_COUNT_TIMELINE) {
 		@Override
 		public ResponseList<Status> getTweets (final Twitter t, final Paging paging) throws TwitterException {
 			return t.getHomeTimeline(paging);
 		}
 	},
-	MENTIONS(C.TWITTER_MENTIONS_MAX_FETCH) {
+	MENTIONS(C.TWITTER_FETCH_COUNT_MENTIONS) {
 		@Override
 		public ResponseList<Status> getTweets (final Twitter t, final Paging paging) throws TwitterException {
 			return t.getMentionsTimeline(paging);
 		}
 	},
-	ME(C.TWITTER_ME_MAX_FETCH) {
+	ME(C.TWITTER_FETCH_COUNT_ME) {
 		@Override
 		public ResponseList<Status> getTweets (final Twitter t, final Paging paging) throws TwitterException {
 			return t.getUserTimeline(paging);
 		}
 	},
-	FAVORITES(C.TWITTER_ME_MAX_FETCH) {
+	FAVORITES(C.TWITTER_FETCH_COUNT_FAVORITES) {
 		@Override
 		public ResponseList<Status> getTweets (final Twitter t, final Paging paging) throws TwitterException {
 			return t.getFavorites(paging);
