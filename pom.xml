@@ -22,7 +22,7 @@
 		<android.platform>19</android.platform> <!-- android:targetSdkVersion, same as project.properties -->
 		<android-compatibility.version>21.0.3</android-compatibility.version>
 
-		<twitter4j.version>4.0.3</twitter4j.version>
+		<twitter4j.version>4.0.4</twitter4j.version>
 
 		<android-maven.version>3.6.0</android-maven.version>
 		<junit.version>4.11</junit.version>
