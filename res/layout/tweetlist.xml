@@ -65,13 +65,20 @@
 			android:layout_centerInParent="true"
 			android:text="@string/tweetlist_refresh" />
 
-		<ListView
-			android:id="@+id/tweetListList"
+		<android.support.v4.widget.SwipeRefreshLayout
+			android:id="@+id/tweetListListSwiper"
 			android:layout_width="fill_parent"
 			android:layout_height="0dip"
 			android:layout_alignParentTop="true"
-			android:layout_alignParentBottom="true"
-			android:scrollbars="none" />
+			android:layout_alignParentBottom="true" >
+
+			<ListView
+				android:id="@+id/tweetListList"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:scrollbars="none" />
+
+		</android.support.v4.widget.SwipeRefreshLayout>
 
 		<TextView
 			android:id="@+id/tweetListStatus"
