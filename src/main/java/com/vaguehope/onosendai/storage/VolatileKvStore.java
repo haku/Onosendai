@@ -9,7 +9,13 @@ public class VolatileKvStore implements KvStore {
 
 	@Override
 	public void storeValue (final String key, final String value) {
-		this.m.put(key, value);
+		if (key == null) throw new IllegalArgumentException("Can not store against null key.");
+		if (value != null) {
+			this.m.put(key, value);
+		}
+		else {
+			this.m.remove(key);
+		}
 	}
 
 	@Override
