@@ -18,6 +18,7 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.TaskUtils;
 import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
+import com.vaguehope.onosendai.storage.CachedStringGroup;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.HtmlTitleParser;
@@ -74,7 +75,7 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 				continue;
 			}
 			if (UNTITLEABLE_URL.matcher(meta.getData()).matches()) continue;
-			fetchLinkTitle(meta);
+			fetchLinkTitle(db, meta);
 		}
 		return null;
 	}
@@ -86,6 +87,7 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 		MSG,
 		FAIL;
 	}
+
 	private final Map<Meta, Payload> metaToPayload = new HashMap<Meta, Payload>();
 
 	@Override
@@ -164,17 +166,28 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 		this.payloadListAdapter.replaceItem(placeHolder, new PlaceholderPayload(this.tweet, msg));
 	}
 
-	private void fetchLinkTitle (final Meta meta) {
+	private void fetchLinkTitle (final DbInterface db, final Meta meta) {
 		publishProgress(Prg.INIT, meta, "Fetching title..."); //ES
 		try {
-			// TODO some form of caching of titles?
-			final FinalUrlHandler<Spanned> handler = new FinalUrlHandler<Spanned>(HtmlTitleParser.INSTANCE);
-			final CharSequence title = HttpHelper.get(meta.getData(), handler);
-			if (title != null) {
-				publishProgress(Prg.URL_AND_TITLE, meta, handler.getUrl(), title);
+			final String cachedTitle = db.cachedString(CachedStringGroup.LINK_TITLE, meta.getData());
+			final String cachedDestUrl = db.cachedString(CachedStringGroup.LINK_DEST_URL, meta.getData());
+
+			if (cachedTitle != null || cachedDestUrl != null) {
+				publishProgress(Prg.URL_AND_TITLE, meta,
+						new URL(cachedDestUrl != null ? cachedDestUrl : meta.getData()),
+						cachedTitle != null ? cachedTitle : "Title not found."); //ES
 			}
 			else {
-				publishProgress(Prg.MSG, meta, "Title not found."); //ES
+				final FinalUrlHandler<Spanned> handler = new FinalUrlHandler<Spanned>(HtmlTitleParser.INSTANCE);
+				final CharSequence title = HttpHelper.get(meta.getData(), handler);
+				if (title != null) {
+					publishProgress(Prg.URL_AND_TITLE, meta, handler.getUrl(), title);
+					db.cacheString(CachedStringGroup.LINK_TITLE, meta.getData(), title.toString());
+				}
+				else {
+					publishProgress(Prg.MSG, meta, "Title not found."); //ES
+				}
+				db.cacheString(CachedStringGroup.LINK_DEST_URL, meta.getData(), handler.getUrl().toString());
 			}
 		}
 		catch (final Exception e) {

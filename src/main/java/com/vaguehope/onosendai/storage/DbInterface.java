@@ -113,6 +113,9 @@ public interface DbInterface extends KvStore {
 		void outboxChanged();
 	}
 
+	void cacheString(CachedStringGroup group, String key, String value);
+	String cachedString(CachedStringGroup group, String key);
+
 	void housekeep ();
 
 	long getTotalTweetsEverSeen ();
