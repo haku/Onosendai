@@ -27,6 +27,7 @@ import com.vaguehope.onosendai.model.Filters;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbBindingService;
+import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.NetHelper;
 
@@ -46,21 +47,24 @@ public class UpdateService extends DbBindingService {
 		final int[] columnIds = i.getIntArrayExtra(ARG_COLUMN_IDS);
 		final boolean manual = i.getBooleanExtra(ARG_IS_MANUAL, false);
 		LOG.i("UpdateService invoked (column_ids=%s, is_manual=%b).", Arrays.toString(columnIds), manual);
-		doWork(columnIds, manual);
+		if (!fetchIfConnected(columnIds, manual) && columnIds != null) {
+			for (final int columnId : columnIds) {
+				getDb().notifyTwListenersColumnState(columnId, ColumnState.NOT_STARTED);
+			}
+		}
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private void doWork (final int[] columnIds, final boolean manual) {
+	private boolean fetchIfConnected (final int[] columnIds, final boolean manual) {
 		if (NetHelper.connectionPresent(this)) {
-			fetchColumns(columnIds, manual);
+			return fetchColumns(columnIds, manual);
 		}
-		else {
-			LOG.i("No connection, all updating aborted.");
-		}
+		LOG.i("No connection, all updating aborted.");
+		return false;
 	}
 
-	private void fetchColumns (final int[] columnIds, final boolean manual) {
+	private boolean fetchColumns (final int[] columnIds, final boolean manual) {
 		final Prefs prefs = new Prefs(getBaseContext());
 
 		final Config conf;
@@ -69,11 +73,11 @@ public class UpdateService extends DbBindingService {
 		}
 		catch (final JSONException e) {
 			LOG.w("Can not update: %s", e.toString());
-			return;
+			return false;
 		}
 		final UpdateRequest req = new UpdateRequest(columnIds, manual, new Filters(prefs.readFilters()));
 
-		if (!waitForDbReady()) return;
+		if (!waitForDbReady()) return false;
 		final Collection<Column> columnsFetched;
 		final ProviderMgr providerMgr = new ProviderMgr(getDb());
 		try {
@@ -85,6 +89,8 @@ public class UpdateService extends DbBindingService {
 
 		HosakaSyncService.startServiceIfConfigured(this, conf, columnIds);
 		FetchPictureService.startServiceIfConfigured(this, prefs, columnsFetched, manual);
+
+		return true;
 	}
 
 	private Collection<Column> fetchColumns (final Config conf, final UpdateRequest req, final ProviderMgr providerMgr) {
