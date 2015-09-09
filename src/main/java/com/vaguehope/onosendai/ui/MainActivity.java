@@ -422,12 +422,16 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		startActivity(new Intent(this, OutboxActivity.class));
 	}
 
-	protected void scheduleRefreshInteractive (final int... columnIds) {
+	/**
+	 * return true if scheduled.
+	 */
+	protected boolean scheduleRefreshInteractive (final int... columnIds) {
 		if (!NetHelper.connectionPresent(this)) {
 			DialogHelper.alert(this, getString(R.string.main_no_internet_connection_available));
-			return;
+			return false;
 		}
 		scheduleRefresh(true, columnIds);
+		return true;
 	}
 
 	protected void scheduleRefreshBackground (final int... columnIds) {

@@ -73,7 +73,14 @@ public interface DbInterface extends KvStore {
 	Set<Integer> requestStoreScrollNow();
 
 	enum ColumnState {
+		/**
+		 * Always called before and instead of UPDATE_RUNNING.
+		 */
+		NOT_STARTED,
 		UPDATE_RUNNING,
+		/**
+		 * Always once after each UPDATE_RUNNING event.
+		 */
 		UPDATE_OVER;
 	}
 

@@ -202,7 +202,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		this.tweetListSwiper.setOnRefreshListener(new OnRefreshListener() {
 			@Override
 			public void onRefresh () {
-				getMainActivity().scheduleRefreshInteractive(getColumnId());
+				if (!getMainActivity().scheduleRefreshInteractive(getColumnId())) {
+					TweetListFragment.this.tweetListSwiper.setRefreshing(false);
+				}
 			}
 		});
 
@@ -952,6 +954,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	private enum Msgs {
 		REFRESH,
+		UPDATE_NOT_STARTED,
 		UPDATE_RUNNING,
 		UPDATE_OVER,
 		STILL_SCROLLING_CHECK,
@@ -967,6 +970,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	protected void statusChanged (final ColumnState state) {
 		switch (state) {
+			case NOT_STARTED:
+				this.refreshUiHandler.sendEmptyMessage(Msgs.UPDATE_NOT_STARTED.ordinal());
+				break;
 			case UPDATE_RUNNING:
 				this.refreshUiHandler.sendEmptyMessage(Msgs.UPDATE_RUNNING.ordinal());
 				break;
@@ -1012,6 +1018,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		switch (Msgs.values[msg.what]) {
 			case REFRESH:
 				refreshUiOnUiThread();
+				break;
+			case UPDATE_NOT_STARTED:
+				this.tweetListSwiper.setRefreshing(false);
 				break;
 			case UPDATE_RUNNING:
 				getMainActivity().progressIndicator(true);
