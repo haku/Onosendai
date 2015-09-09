@@ -295,6 +295,16 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public void cacheString (final CachedStringGroup group, final String key, final String value) {
+		this.dbAdaptor.cacheString(group, key, value);
+	}
+
+	@Override
+	public String cachedString (final CachedStringGroup group, final String key) {
+		return this.dbAdaptor.cachedString(group, key);
+	}
+
+	@Override
 	public void housekeep () {
 		this.dbAdaptor.housekeep();
 	}

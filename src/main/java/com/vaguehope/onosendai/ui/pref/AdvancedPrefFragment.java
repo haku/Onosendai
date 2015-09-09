@@ -348,8 +348,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		@Override
 		protected Exception doInBackgroundWithDb (final DbInterface db, final Void... params) {
 			try {
-				CleanupService.clean(getContext());
-				db.housekeep();
+				CleanupService.clean(getContext(), db);
 				return null;
 			}
 			catch (final Exception e) { // NOSONAR show user all errors.

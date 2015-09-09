@@ -37,7 +37,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 20;
+	private static final int DB_VERSION = 21;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -71,6 +71,8 @@ public class DbAdapter implements DbInterface {
 			db.execSQL(TBL_OB_CREATE);
 			db.execSQL(TBL_KV_CREATE);
 			db.execSQL(TBL_KV_CREATE_INDEX);
+			db.execSQL(TBL_CA_CREATE);
+			db.execSQL(TBL_CA_CREATE_INDEX);
 		}
 
 		@Override
@@ -130,6 +132,12 @@ public class DbAdapter implements DbInterface {
 				if (oldVersion < 20) { // NOSONAR not a magic number.
 					this.log.w("Adding column %s...", TBL_TW_FILTERED);
 					db.execSQL("ALTER TABLE " + TBL_TW + " ADD COLUMN " + TBL_TW_FILTERED + " boolean;");
+				}
+				if (oldVersion < 21) { // NOSONAR not a magic number.
+					this.log.w("Creating table %s...", TBL_CA);
+					db.execSQL(TBL_CA_CREATE);
+					this.log.w("Creating index %s...", TBL_CA_INDEX);
+					db.execSQL(TBL_CA_CREATE_INDEX);
 				}
 			}
 		}
@@ -1296,10 +1304,110 @@ public class DbAdapter implements DbInterface {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	private static final String TBL_CA = "ca";
+	private static final String TBL_CA_ID = "_id";
+	private static final String TBL_CA_TIME = "time";
+	private static final String TBL_CA_GROUP = "grp";
+	private static final String TBL_CA_KEY = "key";
+	private static final String TBL_CA_VAL = "val";
+
+	private static final String TBL_CA_CREATE = "create table " + TBL_CA + " ("
+			+ TBL_CA_ID + " integer primary key autoincrement,"
+			+ TBL_CA_TIME + " integer,"
+			+ TBL_CA_GROUP + " integer,"
+			+ TBL_CA_KEY + " text,"
+			+ TBL_CA_VAL + " text,"
+			+ "UNIQUE(" + TBL_CA_GROUP + ", " + TBL_CA_KEY + ") ON CONFLICT REPLACE" +
+			");";
+
+	private static final String TBL_CA_INDEX = TBL_CA + "_idx";
+	private static final String TBL_CA_CREATE_INDEX = "CREATE INDEX " + TBL_CA_INDEX + " ON " + TBL_CA + "(" + TBL_CA_GROUP + "," + TBL_CA_KEY + ");";
+
+	@Override
+	public void cacheString (final CachedStringGroup group, final String key, final String value) {
+		final ContentValues values = new ContentValues();
+		values.put(TBL_CA_TIME, System.currentTimeMillis());
+		values.put(TBL_CA_GROUP, group.getId());
+		values.put(TBL_CA_KEY, key);
+		values.put(TBL_CA_VAL, value);
+
+		this.mDb.beginTransaction();
+		try {
+			this.mDb.insertWithOnConflict(TBL_CA, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+			this.mDb.setTransactionSuccessful();
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+
+		if (value == null) {
+			this.log.d("Cached: %s '%s' = null.", group.getId(), key);
+		}
+		else {
+			this.log.d("Cached: %s '%s' = '%s'.", group.getId(), key, value);
+		}
+	}
+
+	@Override
+	public String cachedString (final CachedStringGroup group, final String key) {
+		if (!checkDbOpen()) return null;
+		long uid = -1;
+		long time = -1;
+		String val = null;
+		Cursor c = null;
+		try {
+			c = this.mDb.query(true, TBL_CA,
+					new String[] { TBL_CA_ID, TBL_CA_TIME, TBL_CA_VAL },
+					TBL_CA_GROUP + "=? AND " + TBL_CA_KEY + "=?",
+					new String[] { String.valueOf(group.getId()), key },
+					null, null, null, null);
+
+			if (c != null && c.moveToFirst()) {
+				final int colId = c.getColumnIndex(TBL_CA_ID);
+				final int colTime = c.getColumnIndex(TBL_CA_TIME);
+				final int colVal = c.getColumnIndex(TBL_CA_VAL);
+
+				uid = c.getLong(colId);
+				time = c.getLong(colTime);
+				val = c.getString(colVal);
+			}
+		}
+		finally {
+			IoHelper.closeQuietly(c);
+		}
+
+		final long now = System.currentTimeMillis();
+		if (uid >= 0 && time > 0 && now - time > C.DATA_CA_TOUCH_AFTER_MILLIS) {
+			final ContentValues values = new ContentValues();
+			values.put(TBL_CA_TIME, now);
+			this.mDb.beginTransaction();
+			try {
+				final int affected = this.mDb.update(TBL_CA, values, TBL_CA_ID + "=?", new String[] { String.valueOf(uid) });
+				if (affected > 1) throw new IllegalStateException("Updating " + uid + " time affected " + affected + " rows, expected 1.");
+				if (affected < 1) this.log.w("Updating %s time to %s affected %s rows, expected 1.", uid, now, affected);
+				this.mDb.setTransactionSuccessful();
+			}
+			finally {
+				this.mDb.endTransaction();
+			}
+		}
+
+		if (val == null) {
+			this.log.d("Read cached: %s '%s' = null.", group.getId(), key);
+		}
+		else {
+			this.log.d("Read cached: %s '%s' = '%s'.", group.getId(), key, val);
+		}
+		return val;
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	@Override
 	public void housekeep () {
 		if (!checkDbOpen()) return;
 		pruneMetadataTable();
+		pruneCachedStringsTable();
 		vacuum();
 	}
 
@@ -1310,6 +1418,21 @@ public class DbAdapter implements DbInterface {
 					" NOT IN (SELECT " + TBL_TW + "." + TBL_TW_ID + " FROM " + TBL_TW + ");");
 			this.mDb.setTransactionSuccessful();
 			this.log.i("Pruned table '%s'.", TBL_TM);
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+	}
+
+	private void pruneCachedStringsTable () {
+		final long deleteBeforeMillis = System.currentTimeMillis() - C.DATA_CA_EXPIRY_MILLIS;
+		this.mDb.beginTransaction();
+		try {
+			final int n = this.mDb.delete(TBL_CA,
+					TBL_CA_TIME + "<?",
+					new String[] { String.valueOf(deleteBeforeMillis) });
+			this.log.i("Pruned table %s: deleted %d rows older than %s.", TBL_CA, n, deleteBeforeMillis);
+			this.mDb.setTransactionSuccessful();
 		}
 		finally {
 			this.mDb.endTransaction();
