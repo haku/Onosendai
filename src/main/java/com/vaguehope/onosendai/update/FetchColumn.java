@@ -1,5 +1,6 @@
 package com.vaguehope.onosendai.update;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -89,6 +90,7 @@ public class FetchColumn implements Callable<Void> {
 			final long sinceId = sinceIdRaw != null ? Long.parseLong(sinceIdRaw) : -1;
 			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia());
 			final int filteredCount = filterAndStore(db, column, columnFeed, filters, tweets);
+			storeQuoted(db, tweets);
 			storeSuccess(db, column);
 			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 			LOG.i("Fetched %d items for '%s' '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), columnFeed.getResource(), durationMillis, filteredCount);
@@ -131,6 +133,15 @@ public class FetchColumn implements Callable<Void> {
 			db.storeValue(KvKeys.feedSinceId(columnFeed), tweets.getMostRecent().getSid());
 		}
 		return filteredCount;
+	}
+
+	/**
+	 * TODO This should be a short term solution, or until a better idea presents.
+	 */
+	private static void storeQuoted (final DbInterface db, final TweetList tweets) {
+		for (final Tweet t : tweets.getQuotedTweets()) {
+			db.storeTweets(Column.ID_CACHED, Collections.singletonList(t));
+		}
 	}
 
 	private static void pushInstapaperColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr) {

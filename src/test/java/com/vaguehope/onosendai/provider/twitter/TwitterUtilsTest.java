@@ -50,7 +50,7 @@ public class TwitterUtilsTest {
 	@Test
 	public void itAddsExtraMetas () throws Exception {
 		final Status s = mockTweet("foo");
-		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false, CollectionHelper.listOf(new Meta(MetaType.FEED_HASH, "abcdefgh")));
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false, CollectionHelper.listOf(new Meta(MetaType.FEED_HASH, "abcdefgh")), null);
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.FEED_HASH, "abcdefgh")));
 		assertThat(t.getMetas(), hasSize(2));
 	}

@@ -63,6 +63,11 @@ public enum MetaType {
 	@Deprecated
 	FEED_HASH(12),
 	/**
+	 * The SID of the quoted tweet.
+	 * Title is unused.
+	 */
+	QUOTED_SID(13),
+	/**
 	 * This is hack that will never be in the DB.
 	 * This is to attach the source column ID to search results.
 	 */
@@ -104,6 +109,8 @@ public enum MetaType {
 				return DELETED;
 			case 12: // NOSONAR 12 is not magical.
 				return FEED_HASH;
+			case 13: // NOSONAR 13 is not magical.
+				return QUOTED_SID;
 			case 90:// NOSONAR 90 is not that magical.
 				return COLUMN_ID;
 			default:
