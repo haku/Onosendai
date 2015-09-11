@@ -2,7 +2,7 @@ package com.vaguehope.onosendai.model;
 
 import com.vaguehope.onosendai.util.Titleable;
 
-public enum PrefetchImages implements Titleable {
+public enum PrefetchMode implements Titleable {
 	NO("no", "No"), //ES
 	WIFI_ONLY("wifi_only", "WiFi Only"), //ES
 	ALWAYS("always", "Always"); //ES
@@ -10,7 +10,7 @@ public enum PrefetchImages implements Titleable {
 	private final String value;
 	private final String title;
 
-	private PrefetchImages (final String value, final String title) {
+	private PrefetchMode (final String value, final String title) {
 		this.value = value;
 		this.title = title;
 	}
@@ -25,7 +25,7 @@ public enum PrefetchImages implements Titleable {
 	}
 
 	public static CharSequence[] prefEntries () {
-		final PrefetchImages[] pis = PrefetchImages.values();
+		final PrefetchMode[] pis = PrefetchMode.values();
 		final CharSequence[] ret = new CharSequence[pis.length];
 		for (int i = 0; i < pis.length; i++) {
 			ret[i] = pis[i].getUiTitle();
@@ -34,7 +34,7 @@ public enum PrefetchImages implements Titleable {
 	}
 
 	public static CharSequence[] prefEntryValues () {
-		final PrefetchImages[] pis = PrefetchImages.values();
+		final PrefetchMode[] pis = PrefetchMode.values();
 		final CharSequence[] ret = new CharSequence[pis.length];
 		for (int i = 0; i < pis.length; i++) {
 			ret[i] = pis[i].getValue();
@@ -42,9 +42,9 @@ public enum PrefetchImages implements Titleable {
 		return ret;
 	}
 
-	public static PrefetchImages parseValue (final String value) {
+	public static PrefetchMode parseValue (final String value) {
 		if (value == null) return null;
-		final PrefetchImages[] pis = PrefetchImages.values();
+		final PrefetchMode[] pis = PrefetchMode.values();
 		for (int i = 0; i < pis.length; i++) {
 			if (value.equals(pis[i].getValue())) return pis[i];
 		}

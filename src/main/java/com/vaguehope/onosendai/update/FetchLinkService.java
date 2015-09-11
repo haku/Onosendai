@@ -10,31 +10,29 @@ import android.database.Cursor;
 
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Prefs;
-import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.storage.CachedStringGroup;
+import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
 import com.vaguehope.onosendai.ui.pref.FetchingPrefFragment;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-public class FetchPictureService extends AbstractBgFetch {
+public class FetchLinkService extends AbstractBgFetch {
 
-	protected static final LogWrapper LOG = new LogWrapper("FPS");
+	protected static final LogWrapper LOG = new LogWrapper("FLS");
 
 	public static void startServiceIfConfigured (final Context context, final Prefs prefs, final Collection<Column> columns, final boolean manual) {
-		AbstractBgFetch.startServiceIfConfigured(FetchPictureService.class, FetchingPrefFragment.KEY_PREFETCH_MEDIA, context, prefs, columns, manual);
+		AbstractBgFetch.startServiceIfConfigured(FetchLinkService.class, FetchingPrefFragment.KEY_PREFETCH_LINKS, context, prefs, columns, manual);
 	}
 
-	public FetchPictureService () {
-		super(FetchPictureService.class, LOG);
+	public FetchLinkService () {
+		super(FetchLinkService.class, LOG);
 	}
 
 	@Override
 	protected void readUrls (final Cursor cursor, final TweetCursorReader reader, final List<String> urls) {
-		final String avatarUrl = reader.readAvatar(cursor);
-		if (avatarUrl != null) urls.add(avatarUrl);
-
-		final List<Meta> metas = getDb().getTweetMetasOfType(reader.readUid(cursor), MetaType.MEDIA);
+		final List<Meta> metas = getDb().getTweetMetasOfType(reader.readUid(cursor), MetaType.URL);
 		if (metas != null) {
 			for (final Meta m : metas) {
 				if (m.getData() != null) urls.add(m.getData());
@@ -44,10 +42,11 @@ public class FetchPictureService extends AbstractBgFetch {
 
 	@Override
 	protected void makeJobs (final List<String> urls, final Map<String, Callable<?>> jobs) {
-		final HybridBitmapCache hybridBitmapCache = new HybridBitmapCache(this, 0);
+		final DbInterface db = getDb();
 		for (final String url : urls) {
-			if (!hybridBitmapCache.touchFileIfExists(url)) {
-				jobs.put(url, new FetchPicture(hybridBitmapCache, url));
+			if (db.cachedString(CachedStringGroup.LINK_TITLE, url) == null
+					&& db.cachedString(CachedStringGroup.LINK_DEST_URL, url) == null) {
+				jobs.put(url, new FetchLinkTitle(db, url));
 			}
 		}
 	}
