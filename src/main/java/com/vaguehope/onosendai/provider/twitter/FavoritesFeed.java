@@ -25,7 +25,7 @@ class FavoritesFeed implements FeedGetter {
 
 	@Override
 	public ResponseList<Status> getTweets (final Twitter t, final Paging paging) throws TwitterException {
-		return t.getFavorites(this.screenName);
+		return t.getFavorites(this.screenName, paging);
 	}
 
 	@Override
