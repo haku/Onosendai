@@ -11,7 +11,7 @@ import android.preference.PreferenceFragment;
 
 import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Prefs;
-import com.vaguehope.onosendai.model.PrefetchImages;
+import com.vaguehope.onosendai.model.PrefetchMode;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.update.KvKeys;
@@ -22,6 +22,7 @@ import com.vaguehope.onosendai.util.StringHelper;
 public class FetchingPrefFragment extends PreferenceFragment {
 
 	public static final String KEY_PREFETCH_MEDIA = "pref_prefetch_media";
+	public static final String KEY_PREFETCH_LINKS = "pref_prefetch_links";
 	public static final String KEY_SYNC_SCROLL = "pref_sync_scroll";
 	private static final LogWrapper LOG = new LogWrapper("FPF");
 
@@ -30,6 +31,7 @@ public class FetchingPrefFragment extends PreferenceFragment {
 		super.onCreate(savedInstanceState);
 		setPreferenceScreen(getPreferenceManager().createPreferenceScreen(getActivity()));
 		addPrefetchMedia();
+		addPrefetchLinks();
 		addColumnStats();
 		addHosakaStatus();
 		addSyncScroll();
@@ -40,9 +42,20 @@ public class FetchingPrefFragment extends PreferenceFragment {
 		pref.setKey(KEY_PREFETCH_MEDIA);
 		pref.setTitle("Prefetch media"); //ES
 		pref.setSummary("Fetch new pictures during background updates."); //ES
-		pref.setEntries(PrefetchImages.prefEntries());
-		pref.setEntryValues(PrefetchImages.prefEntryValues());
-		pref.setDefaultValue(PrefetchImages.NO.getValue());
+		pref.setEntries(PrefetchMode.prefEntries());
+		pref.setEntryValues(PrefetchMode.prefEntryValues());
+		pref.setDefaultValue(PrefetchMode.NO.getValue());
+		getPreferenceScreen().addPreference(pref);
+	}
+
+	private void addPrefetchLinks () {
+		final ListPreference pref = new ListPreference(getActivity());
+		pref.setKey(KEY_PREFETCH_LINKS);
+		pref.setTitle("Prefetch links"); //ES
+		pref.setSummary("Fetch new link titles during background updates."); //ES
+		pref.setEntries(PrefetchMode.prefEntries());
+		pref.setEntryValues(PrefetchMode.prefEntryValues());
+		pref.setDefaultValue(PrefetchMode.NO.getValue());
 		getPreferenceScreen().addPreference(pref);
 	}
 
