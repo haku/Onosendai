@@ -60,6 +60,7 @@ public final class TwitterUtils {
 
 	static TweetList fetchTwitterFeed (final Account account, final Twitter t, final FeedGetter getter, final long sinceId, final boolean hdMedia, final Collection<Meta> extraMetas) throws TwitterException {
 		final List<Tweet> tweets = new ArrayList<Tweet>();
+		final List<Tweet> quotedTweets = new ArrayList<Tweet>();
 		final int minCount = getter.recommendedFetchCount();
 		final int pageSize = Math.min(minCount, C.TWEET_FETCH_PAGE_SIZE);
 		int page = 1; // First page is 1.
@@ -71,24 +72,24 @@ public final class TwitterUtils {
 			final ResponseList<Status> timelinePage = getter.getTweets(t, paging);
 			LOG.i("Page %d of '%s'(sinceId=%s) contains %d items.", page, getter.toString(), sinceId, timelinePage.size());
 			if (timelinePage.size() < 1) break;
-			addTweetsToList(tweets, account, timelinePage, t.getId(), hdMedia, extraMetas);
+			addTweetsToList(tweets, account, timelinePage, t.getId(), hdMedia, extraMetas, quotedTweets);
 			minId = TwitterUtils.minIdOf(minId, timelinePage);
 			page++;
 		}
-		return new TweetList(tweets);
+		return new TweetList(tweets, quotedTweets);
 	}
 
-	static void addTweetsToList (final List<Tweet> list, final Account account, final List<Status> tweets, final long ownId, final boolean hdMedia, final Collection<Meta> extraMetas) {
+	static void addTweetsToList (final List<Tweet> list, final Account account, final List<Status> tweets, final long ownId, final boolean hdMedia, final Collection<Meta> extraMetas, final List<Tweet> quotedTweets) {
 		for (final Status status : tweets) {
-			list.add(convertTweet(account, status, ownId, hdMedia, extraMetas));
+			list.add(convertTweet(account, status, ownId, hdMedia, extraMetas, quotedTweets));
 		}
 	}
 
 	static Tweet convertTweet (final Account account, final Status status, final long ownId, final boolean hdMedia) {
-		return convertTweet(account, status, ownId, hdMedia, null);
+		return convertTweet(account, status, ownId, hdMedia, null, null);
 	}
 
-	static Tweet convertTweet (final Account account, final Status status, final long ownId, final boolean hdMedia, final Collection<Meta> extraMetas) {
+	static Tweet convertTweet (final Account account, final Status status, final long ownId, final boolean hdMedia, final Collection<Meta> extraMetas, final List<Tweet> quotedTweets) {
 		// The order things are added to these lists is important.
 		final List<Meta> metas = new ArrayList<Meta>();
 		final List<String> userSubtitle = new ArrayList<String>();
@@ -121,8 +122,14 @@ public final class TwitterUtils {
 		if (s.getInReplyToStatusId() > 0) {
 			metas.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getInReplyToStatusId())));
 		}
-		else if (s.isRetweet() && s.getRetweetedStatus().getId() > 0) {
+		else if (s.isRetweet() && s.getRetweetedStatus().getId() > 0) { // FIXME should be status no s?
 			metas.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getRetweetedStatus().getId())));
+		}
+
+		final Status q = s.getQuotedStatus();
+		if (q != null && quotedTweets != null) {
+			metas.add(new Meta(MetaType.QUOTED_SID, q.getId()));
+			quotedTweets.add(convertTweet(account, status, ownId, hdMedia, extraMetas, quotedTweets));
 		}
 
 		final int mediaCount = MetaUtils.countMetaOfType(metas, MetaType.MEDIA);

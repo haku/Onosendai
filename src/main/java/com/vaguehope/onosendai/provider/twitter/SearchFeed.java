@@ -30,6 +30,7 @@ class SearchFeed implements TwitterFeed {
 	@Override
 	public TweetList getTweets (final Account account, final Twitter t, final long sinceId, final boolean hdMedia, final Collection<Meta> extraMetas) throws TwitterException {
 		final List<Tweet> tweets = new ArrayList<Tweet>();
+		final List<Tweet> quotedTweets = new ArrayList<Tweet>();
 		final int page = 1; // First page is 1.
 		Query query = new Query()
 				.query(this.term)
@@ -41,10 +42,10 @@ class SearchFeed implements TwitterFeed {
 			result = t.search(query);
 			final List<Status> resTweets = result.getTweets();
 			LOG.i("Page %d of query '%s' contains %d items.", page, this.term, resTweets.size());
-			TwitterUtils.addTweetsToList(tweets, account, resTweets, t.getId(), hdMedia, extraMetas);
+			TwitterUtils.addTweetsToList(tweets, account, resTweets, t.getId(), hdMedia, extraMetas, quotedTweets);
 		}
 		while (tweets.size() < C.TWITTER_FETCH_COUNT_SEARCH && (query = result.nextQuery()) != null); // NOSONAR I am ok with this inner assignment.
-		return new TweetList(tweets);
+		return new TweetList(tweets, quotedTweets);
 	}
 
 	@Override
