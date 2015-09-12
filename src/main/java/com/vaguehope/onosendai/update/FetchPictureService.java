@@ -13,6 +13,7 @@ import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
 import com.vaguehope.onosendai.ui.pref.FetchingPrefFragment;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -34,10 +35,21 @@ public class FetchPictureService extends AbstractBgFetch {
 		final String avatarUrl = reader.readAvatar(cursor);
 		if (avatarUrl != null) retMetas.add(new Meta(MetaType.MEDIA, avatarUrl)); // Fake meta for type consistency.
 
-		final List<Meta> metas = getDb().getTweetMetasOfType(reader.readUid(cursor), MetaType.MEDIA);
-		if (metas != null) {
-			for (final Meta m : metas) {
+		final List<Meta> mediaMetas = getDb().getTweetMetasOfType(reader.readUid(cursor), MetaType.MEDIA);
+		if (mediaMetas != null) {
+			for (final Meta m : mediaMetas) {
 				if (m.getData() != null) retMetas.add(m);
+			}
+		}
+	}
+
+	@Override
+	protected void readUrls (final Tweet tweet, final List<Meta> retMetas) {
+		if (tweet.getAvatarUrl() != null) retMetas.add(new Meta(MetaType.MEDIA, tweet.getAvatarUrl())); // Fake meta for type consistency.
+
+		for (final Meta meta : tweet.getMetas()) {
+			if (meta.getType() == MetaType.MEDIA && meta.getData() != null) {
+				retMetas.add(meta);
 			}
 		}
 	}
