@@ -1,14 +1,13 @@
 package com.vaguehope.onosendai.payload;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
-import java.util.regex.Pattern;
 
 import android.content.Context;
-import android.text.Spanned;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
@@ -18,18 +17,15 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.TaskUtils;
 import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
-import com.vaguehope.onosendai.storage.CachedStringGroup;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
-import com.vaguehope.onosendai.util.HtmlTitleParser;
-import com.vaguehope.onosendai.util.HttpHelper;
-import com.vaguehope.onosendai.util.HttpHelper.FinalUrlHandler;
+import com.vaguehope.onosendai.update.FetchLinkTitle;
+import com.vaguehope.onosendai.update.FetchLinkTitle.FetchTitleListener;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 
-public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void> {
+public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void> implements FetchTitleListener {
 
-	private static final Pattern UNTITLEABLE_URL = Pattern.compile("^.*\\.(mp[0-9]|m3u8|mov|webm|mpd|jpe?g|png|gif|pdf)$", Pattern.CASE_INSENSITIVE);
 	private static final LogWrapper LOG = new LogWrapper("LE");
 
 	public static void checkAndRun (final ExecutorEventListener eventListener, final Context context, final ProviderMgr provMgr, final Tweet tweet, final boolean hdMedia, final Account account, final PayloadListAdapter payloadListAdapter, final Executor es) {
@@ -74,7 +70,7 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 				fetchLinkedTweet(db, meta, linkedTweetSid);
 				continue;
 			}
-			if (UNTITLEABLE_URL.matcher(meta.getData()).matches()) continue;
+			if (!FetchLinkTitle.shouldFetchTitle(meta)) continue;
 			fetchLinkTitle(db, meta);
 		}
 		return null;
@@ -169,31 +165,19 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 	private void fetchLinkTitle (final DbInterface db, final Meta meta) {
 		publishProgress(Prg.INIT, meta, "Fetching title..."); //ES
 		try {
-			final String cachedTitle = db.cachedString(CachedStringGroup.LINK_TITLE, meta.getData());
-			final String cachedDestUrl = db.cachedString(CachedStringGroup.LINK_DEST_URL, meta.getData());
-
-			if (cachedTitle != null || cachedDestUrl != null) {
-				publishProgress(Prg.URL_AND_TITLE, meta,
-						new URL(cachedDestUrl != null ? cachedDestUrl : meta.getData()),
-						cachedTitle != null ? cachedTitle : "Title not found."); //ES
-			}
-			else {
-				final FinalUrlHandler<Spanned> handler = new FinalUrlHandler<Spanned>(HtmlTitleParser.INSTANCE);
-				final CharSequence title = HttpHelper.get(meta.getData(), handler);
-				if (title != null) {
-					publishProgress(Prg.URL_AND_TITLE, meta, handler.getUrl(), title);
-					db.cacheString(CachedStringGroup.LINK_TITLE, meta.getData(), title.toString());
-				}
-				else {
-					publishProgress(Prg.MSG, meta, "Title not found."); //ES
-				}
-				db.cacheString(CachedStringGroup.LINK_DEST_URL, meta.getData(), handler.getUrl().toString());
-			}
+			FetchLinkTitle.fetchTitle(db, meta, this);
 		}
 		catch (final Exception e) {
 			LOG.w("Failed to retrieve title: %s", e.toString());
 			publishProgress(Prg.FAIL, meta, e);
 		}
+	}
+
+	@Override
+	public void onLinkTitle (final Meta m, final String title, final URL finalUrl) throws IOException {
+		publishProgress(Prg.URL_AND_TITLE, m,
+				finalUrl != null ? finalUrl : new URL(m.getData()),
+				title != null ? title : "Title not found."); //ES
 	}
 
 	private void fetchLinkedTweet (final DbInterface db, final Meta meta, final String linkedTweetSid) {
