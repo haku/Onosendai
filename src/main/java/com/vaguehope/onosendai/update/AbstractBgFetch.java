@@ -27,9 +27,12 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.PrefetchMode;
 import com.vaguehope.onosendai.model.ScrollState;
+import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.storage.DbBindingService;
+import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.Selection;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
 import com.vaguehope.onosendai.util.BatteryHelper;
@@ -160,8 +163,9 @@ public abstract class AbstractBgFetch extends DbBindingService {
 	 * Ordered oldest (first to be scrolled up to) first.
 	 */
 	private List<Meta> findToFetch (final Column col) {
-		final ScrollState scroll = getDb().getScroll(col.getId());
-		final Cursor cursor = getDb().getTweetsCursor(col.getId(), Selection.FILTERED, col.getExcludeColumnIds(), this.withInlineMediaOnly);
+		final DbInterface db = getDb();
+		final ScrollState scroll = db.getScroll(col.getId());
+		final Cursor cursor = db.getTweetsCursor(col.getId(), Selection.FILTERED, col.getExcludeColumnIds(), this.withInlineMediaOnly);
 		try {
 			final TweetCursorReader reader = new TweetCursorReader();
 			if (cursor != null && cursor.moveToFirst()) {
@@ -169,6 +173,16 @@ public abstract class AbstractBgFetch extends DbBindingService {
 				do {
 					if (scroll != null && reader.readTime(cursor) < scroll.getUnreadTime()) break; // Stop gathering URLs at unread point.
 					readUrls(cursor, reader, metas);
+
+					final List<Meta> quotedMetas = db.getTweetMetasOfType(reader.readUid(cursor), MetaType.QUOTED_SID);
+					if (quotedMetas != null) {
+						for (final Meta m : quotedMetas) {
+							if (m.getData() != null) {
+								final Tweet quotedTweet = db.getTweetDetails(m.getData());
+								if (quotedTweet != null) readUrls(quotedTweet, metas);
+							}
+						}
+					}
 				}
 				while (cursor.moveToNext());
 				Collections.reverse(metas); // Fetch oldest first.
@@ -182,6 +196,7 @@ public abstract class AbstractBgFetch extends DbBindingService {
 	}
 
 	protected abstract void readUrls (final Cursor cursor, final TweetCursorReader reader, final List<Meta> retMetas);
+	protected abstract void readUrls (final Tweet tweet, final List<Meta> retMetas);
 
 	private int download (final List<Meta> metas) {
 		if (metas == null || metas.size() < 1) return 0;

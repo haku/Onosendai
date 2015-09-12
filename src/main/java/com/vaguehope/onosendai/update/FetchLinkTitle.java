@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import android.text.Spanned;
 
 import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.storage.CachedStringGroup;
 import com.vaguehope.onosendai.storage.DbInterface;
@@ -26,7 +27,8 @@ public class FetchLinkTitle implements Callable<Void> {
 	private static final LogWrapper LOG = new LogWrapper("FLT");
 
 	public static boolean shouldFetchTitle (final Meta m) {
-		return m.getData() != null &&
+		return m.getType() == MetaType.URL &&
+				m.getData() != null &&
 				TwitterUrls.readTweetSidFromUrl(m.getData()) == null &&
 				!UNTITLEABLE_URL.matcher(m.getData()).matches();
 	}

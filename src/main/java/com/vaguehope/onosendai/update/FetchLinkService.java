@@ -12,6 +12,7 @@ import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
 import com.vaguehope.onosendai.ui.pref.FetchingPrefFragment;
@@ -31,7 +32,15 @@ public class FetchLinkService extends AbstractBgFetch {
 
 	@Override
 	protected void readUrls (final Cursor cursor, final TweetCursorReader reader, final List<Meta> retMetas) {
-		final List<Meta> tms = getDb().getTweetMetasOfType(reader.readUid(cursor), MetaType.URL);
+		addMetas(getDb().getTweetMetasOfType(reader.readUid(cursor), MetaType.URL), retMetas);
+	}
+
+	@Override
+	protected void readUrls (final Tweet tweet, final List<Meta> retMetas) {
+		addMetas(tweet.getMetas(), retMetas);
+	}
+
+	private void addMetas (final List<Meta> tms, final List<Meta> retMetas) {
 		if (tms != null) {
 			for (final Meta m : tms) {
 				if (FetchLinkTitle.shouldFetchTitle(m)) retMetas.add(m);
