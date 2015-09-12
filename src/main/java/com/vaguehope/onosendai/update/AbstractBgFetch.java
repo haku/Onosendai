@@ -41,7 +41,7 @@ public abstract class AbstractBgFetch extends DbBindingService {
 	public static final String ARG_COLUMN_IDS = "column_ids";
 	public static final String ARG_IS_MANUAL = "is_manual";
 
-	protected static final LogWrapper LOG = new LogWrapper("ABF");
+	private static final LogWrapper LOG = new LogWrapper("ABF");
 
 	protected static void startServiceIfConfigured (final Class<? extends AbstractBgFetch> cls, final String prefKey, final Context context, final Prefs prefs, final Collection<Column> columns, final boolean manual) {
 		final PrefetchMode prefetchMode = readPrefetchMode(prefs, prefKey);
