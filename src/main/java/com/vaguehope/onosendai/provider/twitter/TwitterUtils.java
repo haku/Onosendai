@@ -129,7 +129,7 @@ public final class TwitterUtils {
 		final Status q = s.getQuotedStatus();
 		if (q != null && quotedTweets != null) {
 			metas.add(new Meta(MetaType.QUOTED_SID, q.getId()));
-			quotedTweets.add(convertTweet(account, status, ownId, hdMedia, extraMetas, quotedTweets));
+			quotedTweets.add(convertTweet(account, q, ownId, hdMedia, extraMetas, quotedTweets));
 		}
 
 		final int mediaCount = MetaUtils.countMetaOfType(metas, MetaType.MEDIA);
