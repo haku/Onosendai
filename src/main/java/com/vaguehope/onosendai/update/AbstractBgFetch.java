@@ -26,6 +26,7 @@ import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
+import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.PrefetchMode;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.storage.DbBindingService;
@@ -85,8 +86,11 @@ public abstract class AbstractBgFetch extends DbBindingService {
 		context.startService(intent);
 	}
 
-	public AbstractBgFetch (final Class<? extends AbstractBgFetch> cls, final LogWrapper log) {
+	private final boolean withInlineMediaOnly;
+
+	public AbstractBgFetch (final Class<? extends AbstractBgFetch> cls, final boolean withInlineMediaOnly, final LogWrapper log) {
 		super(cls.getSimpleName(), log);
+		this.withInlineMediaOnly = withInlineMediaOnly;
 	}
 
 	@Override
@@ -142,11 +146,11 @@ public abstract class AbstractBgFetch extends DbBindingService {
 	private void fetch (final Collection<Column> columnsToFetch) {
 		final long startTime = System.nanoTime();
 
-		final List<String> urls = new ArrayList<String>();
+		final List<Meta> metas = new ArrayList<Meta>();
 		for (final Column col : columnsToFetch) {
-			urls.addAll(findToFetch(col));
+			metas.addAll(findToFetch(col));
 		}
-		final int downloadCount = download(urls);
+		final int downloadCount = download(metas);
 
 		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 		getLog().i("Fetched %d in %d millis.", downloadCount, durationMillis);
@@ -155,20 +159,20 @@ public abstract class AbstractBgFetch extends DbBindingService {
 	/**
 	 * Ordered oldest (first to be scrolled up to) first.
 	 */
-	private List<String> findToFetch (final Column col) {
+	private List<Meta> findToFetch (final Column col) {
 		final ScrollState scroll = getDb().getScroll(col.getId());
-		final Cursor cursor = getDb().getTweetsCursor(col.getId(), Selection.FILTERED, col.getExcludeColumnIds(), true);
+		final Cursor cursor = getDb().getTweetsCursor(col.getId(), Selection.FILTERED, col.getExcludeColumnIds(), this.withInlineMediaOnly);
 		try {
 			final TweetCursorReader reader = new TweetCursorReader();
 			if (cursor != null && cursor.moveToFirst()) {
-				final List<String> urls = new ArrayList<String>();
+				final List<Meta> metas = new ArrayList<Meta>();
 				do {
 					if (scroll != null && reader.readTime(cursor) < scroll.getUnreadTime()) break; // Stop gathering URLs at unread point.
-					readUrls(cursor, reader, urls);
+					readUrls(cursor, reader, metas);
 				}
 				while (cursor.moveToNext());
-				Collections.reverse(urls); // Fetch oldest first.
-				return urls;
+				Collections.reverse(metas); // Fetch oldest first.
+				return metas;
 			}
 			return Collections.emptyList();
 		}
@@ -177,13 +181,13 @@ public abstract class AbstractBgFetch extends DbBindingService {
 		}
 	}
 
-	protected abstract void readUrls (final Cursor cursor, final TweetCursorReader reader, final List<String> urls);
+	protected abstract void readUrls (final Cursor cursor, final TweetCursorReader reader, final List<Meta> retMetas);
 
-	private int download (final List<String> urls) {
-		if (urls == null || urls.size() < 1) return 0;
+	private int download (final List<Meta> metas) {
+		if (metas == null || metas.size() < 1) return 0;
 
 		final Map<String, Callable<?>> jobs = new LinkedHashMap<String, Callable<?>>();
-		makeJobs(urls, jobs);
+		makeJobs(metas, jobs);
 		if (jobs.size() < 1) return 0;
 
 		final int poolSize = Math.min(jobs.size(), C.UPDATER_MAX_THREADS);
@@ -213,6 +217,6 @@ public abstract class AbstractBgFetch extends DbBindingService {
 		}
 	}
 
-	protected abstract void makeJobs (final List<String> urls, final Map<String, Callable<?>> jobs);
+	protected abstract void makeJobs (final List<Meta> metas, final Map<String, Callable<?>> jobs);
 
 }
