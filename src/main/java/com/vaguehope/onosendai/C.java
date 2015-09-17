@@ -32,7 +32,7 @@ public final class C {
 	public static final int TWEET_FETCH_PAGE_SIZE = 20;
 	public static final int TWEET_FETCH_COUNT = TWEET_FETCH_PAGE_SIZE * 5;
 
-	public static final int TWITTER_FETCH_COUNT_TIMELINE = TWEET_FETCH_COUNT;
+	public static final int TWITTER_FETCH_COUNT_TIMELINE = TWEET_FETCH_COUNT * 2;
 	public static final int TWITTER_FETCH_COUNT_ME = TWEET_FETCH_COUNT;
 	public static final int TWITTER_FETCH_COUNT_MENTIONS = TWEET_FETCH_COUNT;
 	public static final int TWITTER_FETCH_COUNT_FAVORITES = TWEET_FETCH_COUNT;
