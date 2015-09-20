@@ -42,7 +42,7 @@ public class InstapaperProviderTest {
 	@Test
 	public void itConvertsBasicTweet () throws Exception {
 		final List<Meta> metas = new ArrayList<Meta>();
-		final Tweet tweet = new Tweet("sid", "username", "fullname", "via foo", "via Foo Bar", "body", System.currentTimeMillis(), "avatarUrl", "inlineMediaUrl", metas);
+		final Tweet tweet = new Tweet("sid", "username", "fullname", "via foo", "via Foo Bar", "body", System.currentTimeMillis(), "avatarUrl", "inlineMediaUrl", null, metas);
 
 		this.undertest.add(this.account, tweet);
 
@@ -54,7 +54,7 @@ public class InstapaperProviderTest {
 	public void itConvertsFacebookUpdate () throws Exception {
 		final List<Meta> metas = new ArrayList<Meta>();
 		metas.add(new Meta(MetaType.SERVICE, "facebook:561234569"));
-		final Tweet tweet = new Tweet("123455200_12345678029520201", null, "fullname\n1like 2 comments", "via foo", "via Foo Bar", "body", System.currentTimeMillis(), "avatarUrl", "inlineMediaUrl", metas);
+		final Tweet tweet = new Tweet("123455200_12345678029520201", null, "fullname\n1like 2 comments", "via foo", "via Foo Bar", "body", System.currentTimeMillis(), "avatarUrl", "inlineMediaUrl", null, metas);
 
 		this.undertest.add(this.account, tweet);
 
@@ -66,7 +66,7 @@ public class InstapaperProviderTest {
 	public void itConvertsTweetWithLink () throws Exception {
 		final List<Meta> metas = new ArrayList<Meta>();
 		metas.add(new Meta(MetaType.URL, "http://example.com/thing", "Thing!"));
-		final Tweet tweet = new Tweet("sid", "username", "fullname", "via foo", "via Foo Bar", "body", System.currentTimeMillis(), "avatarUrl", "inlineMediaUrl", metas);
+		final Tweet tweet = new Tweet("sid", "username", "fullname", "via foo", "via Foo Bar", "body", System.currentTimeMillis(), "avatarUrl", "inlineMediaUrl", null, metas);
 
 		this.undertest.add(this.account, tweet);
 

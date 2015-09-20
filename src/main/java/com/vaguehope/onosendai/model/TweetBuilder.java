@@ -139,7 +139,7 @@ public class TweetBuilder {
 		if (this.replyToId != null && !this.replyToId.equals(this.id)) meta(MetaType.REPLYTO, this.replyToId);
 		final Tweet t = new Tweet(this.id, this.username, this.fullname,
 				this.userSubtitle, resolveFullSubtitle(),
-				this.body, this.unitTimeSeconds, this.avatarUrl, this.inlineMediaUrl, this.metas);
+				this.body, this.unitTimeSeconds, this.avatarUrl, this.inlineMediaUrl, null, this.metas);
 		reset();
 		return t;
 	}

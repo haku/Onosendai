@@ -179,7 +179,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 		this.tweetListSwiper = (SwipeRefreshLayout) rootView.findViewById(R.id.tweetListListSwiper);
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
-		this.adapter = new TweetListCursorAdapter(container.getContext(), this.inlineMediaStyle, this.imageLoader, this.tweetList);
+		this.adapter = new TweetListCursorAdapter(container.getContext(), this.inlineMediaStyle, this.imageLoader, this, this.tweetList);
 		this.tweetList.setAdapter(this.adapter);
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
 		this.tweetList.setEmptyView(this.tweetListEmptyRefresh);
@@ -551,7 +551,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		if (tweet == null) tweet = getDb().getTweetDetails(tweetSid);
 		// TODO better way of showing this error.
 		if (tweet == null) tweet = new Tweet(tweetSid, "", "", null, null, "Error: tweet with SID=" + tweetSid + " not found.",
-				TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), null, null, Collections.<Meta> emptyList());
+				TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), null, null, null, Collections.<Meta> emptyList());
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 
 		new ReplyLoaderTask(getExecutorEventListener(), getActivity(), getDb(), tweet, this.lstTweetPayloadAdaptor).executeOnExecutor(getLocalEs());

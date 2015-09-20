@@ -7,11 +7,13 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 import com.vaguehope.onosendai.images.ImageLoader;
+import com.vaguehope.onosendai.storage.DbProvider;
 
 public class TweetListAdapter extends BaseAdapter {
 
 	private final boolean showInlineMedia;
 	private final ImageLoader imageLoader;
+	private final DbProvider dbProvider;
 	private final View listView;
 	private final LayoutInflater layoutInflater;
 
@@ -19,9 +21,10 @@ public class TweetListAdapter extends BaseAdapter {
 
 	private TweetList listData;
 
-	public TweetListAdapter (final Context context, final boolean showInlineMedia, final ImageLoader imageLoader, final View listView) {
+	public TweetListAdapter (final Context context, final boolean showInlineMedia, final ImageLoader imageLoader, final DbProvider dbProvider, final View listView) {
 		this.showInlineMedia = showInlineMedia;
 		this.imageLoader = imageLoader;
+		this.dbProvider = dbProvider;
 		this.listView = listView;
 		this.layoutInflater = LayoutInflater.from(context);
 	}
@@ -84,7 +87,7 @@ public class TweetListAdapter extends BaseAdapter {
 			rowView = (TweetRowView) view.getTag();
 		}
 
-		layoutType.applyTweetTo(item, rowView, this.imageLoader, this.listView.getWidth());
+		layoutType.applyTweetTo(item, rowView, this.imageLoader, this.listView.getWidth(), this.dbProvider);
 
 		return view;
 	}
