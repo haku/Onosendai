@@ -148,6 +148,7 @@ public final class TwitterUtils {
 				TimeUnit.MILLISECONDS.toSeconds(status.getCreatedAt().getTime()),
 				hdMedia ? s.getUser().getBiggerProfileImageURLHttps() : s.getUser().getProfileImageURLHttps(),
 				MetaUtils.firstMetaOfTypesData(metas, MetaType.MEDIA),
+				q != null ? String.valueOf(q.getId()) : null,
 				metas);
 	}
 
