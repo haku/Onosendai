@@ -65,7 +65,7 @@ public class LocalSearchDialog {
 
 		final ListView tweetList = (ListView) this.llParent.findViewById(R.id.tweetList);
 		tweetList.setEmptyView(this.llParent.findViewById(R.id.empty));
-		this.tweetAdaptor = new TweetListAdapter(context, false, imageLoader, dbProvider, tweetList);
+		this.tweetAdaptor = new TweetListAdapter(context, false, imageLoader, tweetList);
 		tweetList.setAdapter(this.tweetAdaptor);
 
 		((Button) this.llParent.findViewById(R.id.btnSearch)).setOnClickListener(new OnClickListener() {
