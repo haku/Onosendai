@@ -133,10 +133,7 @@ public enum TweetLayout {
 			else {
 				rowView.showInlineMedia(false);
 			}
-
-			// TODO load quoted tweet on BG thread.
-			final Tweet quotedTweet = dbProvider.getDb().getTweetDetails(item.getQuotedSid());
-			applyQuotedTweet(quotedTweet, (QuotingTweetRowView) rowView, imageLoader, reqWidth);
+			applyQuotedTweet(item.getQuotedSid(), dbProvider, (QuotingTweetRowView) rowView, imageLoader, reqWidth);
 		}
 
 		@Override
@@ -149,34 +146,42 @@ public enum TweetLayout {
 			else {
 				rowView.showInlineMedia(false);
 			}
-
-			// TODO load quoted tweet on BG thread.
-			final Tweet quotedTweet = dbProvider.getDb().getTweetDetails(cursorReader.readQuotedSid(c));
-			applyQuotedTweet(quotedTweet, (QuotingTweetRowView) rowView, imageLoader, reqWidth);
+			applyQuotedTweet(cursorReader.readQuotedSid(c), dbProvider, (QuotingTweetRowView) rowView, imageLoader, reqWidth);
 		}
 
-		private void applyQuotedTweet (final Tweet quotedTweet, final QuotingTweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
-			rowView.getQTweet().setText(quotedTweet.getBody());
+		private void applyQuotedTweet (final String quotedSid, final DbProvider dbProvider, final QuotingTweetRowView rowView, final ImageLoader imageLoader, final int reqWidth) {
+			// TODO load quoted tweet on BG thread.
+			final Tweet quotedTweet = dbProvider.getDb().getTweetDetails(quotedSid);
+			if (quotedTweet != null) {
+				rowView.getQTweet().setText(quotedTweet.getBody());
 
-			final String usernameWithSubtitle = quotedTweet.getUsernameWithSubtitle();
-			rowView.getQName().setText(usernameWithSubtitle != null ? usernameWithSubtitle : quotedTweet.getFullnameWithSubtitle());
+				final String usernameWithSubtitle = quotedTweet.getUsernameWithSubtitle();
+				rowView.getQName().setText(usernameWithSubtitle != null ? usernameWithSubtitle : quotedTweet.getFullnameWithSubtitle());
 
-			final String avatarUrl = quotedTweet.getAvatarUrl();
-			if (avatarUrl != null) {
-				imageLoader.loadImage(new ImageLoadRequest(avatarUrl, rowView.getQAvatar()));
+				final String avatarUrl = quotedTweet.getAvatarUrl();
+				if (avatarUrl != null) {
+					imageLoader.loadImage(new ImageLoadRequest(avatarUrl, rowView.getQAvatar()));
+				}
+				else {
+					rowView.getQAvatar().setImageResource(R.drawable.question_blue);
+				}
+
+				final String quotedInlineMediaUrl = quotedTweet.getInlineMediaUrl();
+				if (quotedInlineMediaUrl != null) {
+					rowView.showQInlineMedia(true);
+					imageLoader.loadImage(new ImageLoadRequest(quotedInlineMediaUrl, rowView.getQInlineMedia(), reqWidth, rowView.getQInlineMediaLoadListener()));
+				}
+				else {
+					rowView.showQInlineMedia(false);
+				}
 			}
 			else {
+				rowView.getQTweet().setText(String.format("[ %s ]", quotedSid));
+				rowView.getQName().setText("");
 				rowView.getQAvatar().setImageResource(R.drawable.question_blue);
-			}
-
-			final String quotedInlineMediaUrl = quotedTweet.getInlineMediaUrl();
-			if (quotedInlineMediaUrl != null) {
-				rowView.showQInlineMedia(true);
-				imageLoader.loadImage(new ImageLoadRequest(quotedInlineMediaUrl, rowView.getQInlineMedia(), reqWidth, rowView.getQInlineMediaLoadListener()));
-			}
-			else {
 				rowView.showQInlineMedia(false);
 			}
+
 		}
 	},
 	SEAMLESS_MEDIA(3, R.layout.tweetlistseamlessmediarow) {
