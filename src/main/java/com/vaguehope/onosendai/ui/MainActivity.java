@@ -49,6 +49,7 @@ import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.ProviderMgr;
+import com.vaguehope.onosendai.provider.ProviderMgr.ProviderMgrProvider;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbProvider;
@@ -67,7 +68,7 @@ import com.vaguehope.onosendai.util.exec.ExecUtils;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 import com.vaguehope.onosendai.widget.SidebarAwareViewPager;
 
-public class MainActivity extends FragmentActivity implements ImageLoader, DbProvider, OnSharedPreferenceChangeListener {
+public class MainActivity extends FragmentActivity implements ImageLoader, DbProvider, ProviderMgrProvider, OnSharedPreferenceChangeListener {
 
 	public static final String ARG_FOCUS_COLUMN_ID = "focus_column_id";
 
@@ -268,7 +269,8 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		return this.netEs;
 	}
 
-	ProviderMgr getProviderMgr () {
+	@Override
+	public ProviderMgr getProviderMgr () {
 		if (!waitForDbReady()) throw new IllegalStateException("DB not bound.");
 		return this.providerMgr;
 	}

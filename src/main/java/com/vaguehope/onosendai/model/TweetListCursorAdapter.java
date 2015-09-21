@@ -9,25 +9,24 @@ import android.widget.CursorAdapter;
 
 import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.images.ImageLoader;
-import com.vaguehope.onosendai.storage.DbProvider;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
 
 public class TweetListCursorAdapter extends CursorAdapter {
 
 	private final InlineMediaStyle inlineMediaStyle;
 	private final ImageLoader imageLoader;
-	private final DbProvider dbProvider;
+	private final LinkedTweetLoader tweetLoader;
 	private final View listView;
 	private final LayoutInflater layoutInflater;
 
 	private final TweetCursorReader cursorReader = new TweetCursorReader();
 	private final TweetListViewState tweetListViewState = new TweetListViewState();
 
-	public TweetListCursorAdapter (final Context context, final InlineMediaStyle inlineMediaStyle, final ImageLoader imageLoader, final DbProvider dbProvider, final View listView) {
+	public TweetListCursorAdapter (final Context context, final InlineMediaStyle inlineMediaStyle, final ImageLoader imageLoader, final LinkedTweetLoader tweetLoader, final View listView) {
 		super(context, null, false); // Initialise with no cursor.
 		this.inlineMediaStyle = inlineMediaStyle;
 		this.imageLoader = imageLoader;
-		this.dbProvider = dbProvider;
+		this.tweetLoader = tweetLoader;
 		this.listView = listView;
 		this.layoutInflater = LayoutInflater.from(context);
 	}
@@ -68,7 +67,7 @@ public class TweetListCursorAdapter extends CursorAdapter {
 	public void bindView (final View view, final Context context, final Cursor cursor) {
 		final TweetLayout layoutType = tweetLayoutType(cursor);
 		final TweetRowView rowView = (TweetRowView) view.getTag();
-		layoutType.applyCursorTo(cursor, this.cursorReader, rowView, this.imageLoader, this.listView.getWidth(), this.dbProvider);
+		layoutType.applyCursorTo(cursor, this.cursorReader, rowView, this.imageLoader, this.listView.getWidth(), this.tweetLoader);
 	}
 
 	private TweetLayout tweetLayoutType (final Cursor c) {

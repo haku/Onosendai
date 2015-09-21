@@ -11,6 +11,10 @@ import com.vaguehope.onosendai.storage.KvStore;
 
 public class ProviderMgr {
 
+	public interface ProviderMgrProvider {
+		ProviderMgr getProviderMgr();
+	}
+
 	private final TwitterProvider twitterProvider;
 	private final SuccessWhaleProvider successWhaleProvider;
 	private final InstapaperProvider instapaperProvider;

@@ -49,6 +49,7 @@ import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.images.CachedImageFileProvider;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.images.ImageLoaderUtils;
+import com.vaguehope.onosendai.model.LinkedTweetLoader;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.MetaUtils;
@@ -117,6 +118,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	private Config conf;
 	private FriendlyDateTimeFormat friendlyDateTimeFormat;
 	private ImageLoader imageLoader;
+	private LinkedTweetLoader tweetLoader;
 	private RefreshUiHandler refreshUiHandler;
 
 	private MainActivity mainActivity;
@@ -155,6 +157,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		this.conf = this.mainActivity.getConf();
 		this.friendlyDateTimeFormat = new FriendlyDateTimeFormat(this.mainActivity);
 		this.imageLoader = ImageLoaderUtils.fromActivity(getActivity());
+		this.tweetLoader = new LinkedTweetLoader(this.mainActivity, getLocalEs(), getNetEs(), getExecutorEventListener(), this.conf, this.mainActivity, getColumn().isHdMedia());
 
 		/*
 		 * Fragment life cycles are strange. onCreateView() is called multiple
@@ -179,7 +182,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 		this.tweetListSwiper = (SwipeRefreshLayout) rootView.findViewById(R.id.tweetListListSwiper);
 		this.tweetList = (ListView) rootView.findViewById(R.id.tweetListList);
-		this.adapter = new TweetListCursorAdapter(container.getContext(), this.inlineMediaStyle, this.imageLoader, this, this.tweetList);
+		this.adapter = new TweetListCursorAdapter(container.getContext(), this.inlineMediaStyle, this.imageLoader, this.tweetLoader, this.tweetList);
 		this.tweetList.setAdapter(this.adapter);
 		this.tweetList.setOnItemClickListener(this.tweetItemClickedListener);
 		this.tweetList.setEmptyView(this.tweetListEmptyRefresh);
