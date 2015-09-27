@@ -15,6 +15,7 @@ import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.HtmlTitleParser;
 import com.vaguehope.onosendai.util.HttpHelper;
 import com.vaguehope.onosendai.util.HttpHelper.FinalUrlHandler;
+import com.vaguehope.onosendai.util.HttpHelper.TooManyRedirectsException;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class FetchLinkTitle implements Callable<Void> {
@@ -46,16 +47,23 @@ public class FetchLinkTitle implements Callable<Void> {
 		}
 		else {
 			final FinalUrlHandler<Spanned> handler = new FinalUrlHandler<Spanned>(HtmlTitleParser.INSTANCE);
-			final CharSequence title = HttpHelper.get(m.getData(), handler);
-			final String finalUrl = handler.getUrl().toString();
-			LOG.i("%s: '%s' %s.", m.getData(), title, finalUrl);
-			if (l != null) l.onLinkTitle(m, title != null ? title.toString() : null, handler.getUrl());
-			if (title != null) {
-				db.cacheString(CachedStringGroup.LINK_TITLE, m.getData(), title.toString());
+			try {
+				final CharSequence title = HttpHelper.get(m.getData(), handler);
+				final String finalUrl = handler.getUrl().toString();
+				LOG.i("%s: '%s' %s.", m.getData(), title, finalUrl);
+				if (l != null) l.onLinkTitle(m, title != null ? title.toString() : null, handler.getUrl());
+				if (title != null) {
+					db.cacheString(CachedStringGroup.LINK_TITLE, m.getData(), title.toString());
+				}
+				db.cacheString(CachedStringGroup.LINK_DEST_URL, m.getData(), finalUrl);
 			}
-			db.cacheString(CachedStringGroup.LINK_DEST_URL, m.getData(), finalUrl);
+			catch (final TooManyRedirectsException e) {
+				final String lastUrl = e.getLastUrl().toString();
+				LOG.w("%s: too many redirects, stopped at: %s.", m.getData(), lastUrl);
+				if (l != null) l.onLinkTitle(m, null, handler.getUrl());
+				db.cacheString(CachedStringGroup.LINK_DEST_URL, m.getData(), lastUrl);
+			}
 		}
-
 	}
 
 	private final DbInterface db;
