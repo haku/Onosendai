@@ -31,7 +31,7 @@ public final class HttpHelper {
 
 	private static final int HTTP_CONNECT_TIMEOUT_SECONDS = 20;
 	private static final int HTTP_READ_TIMEOUT_SECONDS = 60;
-	private static final int MAX_REDIRECTS = 3;
+	private static final int MAX_REDIRECTS = 5;
 	private static final int MAX_ERR_BODY_LENGTH_CHAR = 100;
 
 	private static final int HTTP_NOT_FOUND = 404;
@@ -108,7 +108,7 @@ public final class HttpHelper {
 
 				// For some reason some devices do not follow redirects. :(
 				if (responseCode == 301 || responseCode == 302 || responseCode == 307) { // NOSONAR not magic numbers.  Its HTTP spec.
-					if (redirectCount >= MAX_REDIRECTS) throw new HttpResponseException(responseCode, "Max redirects of " + MAX_REDIRECTS + " exceeded.");
+					if (redirectCount >= MAX_REDIRECTS) throw new TooManyRedirectsException(responseCode, url, MAX_REDIRECTS);
 					final String locationHeader = connection.getHeaderField("Location");
 					if (locationHeader == null) throw new HttpResponseException(responseCode, "Location header missing.  Headers present: "
 							+ connection.getHeaderFields() + ".");
@@ -149,4 +149,22 @@ public final class HttpHelper {
 				responseCode, connection.getResponseMessage(),
 				IoHelper.toString(connection.getErrorStream(), MAX_ERR_BODY_LENGTH_CHAR));
 	}
+
+	public static class TooManyRedirectsException extends HttpResponseException {
+
+		private static final long serialVersionUID = -2227184694143723083L;
+
+		private final URL lastUrl;
+
+		public TooManyRedirectsException (final int responseCode, final URL lastUrl, final int redirectCount) {
+			super(responseCode, "Max redirects of " + redirectCount + " exceeded.");
+			this.lastUrl = lastUrl;
+		}
+
+		public URL getLastUrl () {
+			return this.lastUrl;
+		}
+
+	}
+
 }
