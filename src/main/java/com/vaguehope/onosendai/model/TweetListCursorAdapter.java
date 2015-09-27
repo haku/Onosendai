@@ -77,9 +77,11 @@ public class TweetListCursorAdapter extends CursorAdapter {
 				return TweetLayout.MAIN;
 			case INLINE:
 				if (this.cursorReader.readQuotedSid(c) != null) return TweetLayout.QUOTED;
-				return this.cursorReader.readInlineMedia(c) != null ? TweetLayout.INLINE_MEDIA : TweetLayout.MAIN;
+				return this.cursorReader.readInlineMedia(c) != null && !this.cursorReader.readFiltered(c)
+						? TweetLayout.INLINE_MEDIA : TweetLayout.MAIN;
 			case SEAMLESS:
-				return this.cursorReader.readInlineMedia(c) != null ? TweetLayout.SEAMLESS_MEDIA : TweetLayout.MAIN;
+				return this.cursorReader.readInlineMedia(c) != null
+						? TweetLayout.SEAMLESS_MEDIA : TweetLayout.MAIN;
 			default:
 				return TweetLayout.MAIN;
 		}
