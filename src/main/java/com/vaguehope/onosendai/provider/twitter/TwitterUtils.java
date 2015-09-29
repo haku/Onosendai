@@ -90,6 +90,9 @@ public final class TwitterUtils {
 	}
 
 	static Tweet convertTweet (final Account account, final Status status, final long ownId, final boolean hdMedia, final Collection<Meta> extraMetas, final List<Tweet> quotedTweets) {
+		final User statusUser = status.getUser();
+		final long statusUserId = statusUser != null ? statusUser.getId() : -1;
+
 		// The order things are added to these lists is important.
 		final List<Meta> metas = new ArrayList<Meta>();
 		final List<String> userSubtitle = new ArrayList<String>();
@@ -99,7 +102,7 @@ public final class TwitterUtils {
 
 		final User viaUser;
 		if (status.isRetweet()) {
-			viaUser = status.getUser();
+			viaUser = statusUser;
 			metas.add(new Meta(MetaType.POST_TIME, String.valueOf(TimeUnit.MILLISECONDS.toSeconds(status.getRetweetedStatus().getCreatedAt().getTime()))));
 		}
 		else {
@@ -115,10 +118,10 @@ public final class TwitterUtils {
 		final String text = expandUrls(s.getText(), urls, metas);
 		addHashtags(s, metas);
 
-		addMentions(s, metas, status.getUser().getId(), ownId);
+		addMentions(s, metas, statusUserId, ownId);
 		if (viaUser != null && viaUser.getId() != ownId) metas.add(new Meta(MetaType.MENTION, viaUser.getScreenName(), viaUser.getName()));
 
-		if (status.getUser().getId() == ownId) metas.add(new Meta(MetaType.EDIT_SID, status.getId()));
+		if (statusUserId == ownId) metas.add(new Meta(MetaType.EDIT_SID, status.getId()));
 		if (s.getInReplyToStatusId() > 0) {
 			metas.add(new Meta(MetaType.INREPLYTO, String.valueOf(s.getInReplyToStatusId())));
 		}
@@ -253,6 +256,7 @@ public final class TwitterUtils {
 		final UserMentionEntity[] umes = s.getUserMentionEntities();
 		if (umes == null) return;
 		for (final UserMentionEntity ume : umes) {
+			if (ume == null) throw new IllegalStateException("null entry in UME array: " + Arrays.toString(umes));
 			if (ume.getId() == tweetOwnderId) continue;
 			if (ume.getId() == tweetViewerId) continue;
 			metas.add(new Meta(MetaType.MENTION, ume.getScreenName(), ume.getName()));
