@@ -6,17 +6,26 @@
 	android:layout_height="wrap_content"
 	android:orientation="vertical">
 
-		<include
-			android:id="@+id/tweet"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			layout="@layout/tweetlistinlinemediarow" />
+	<include
+		android:id="@+id/tweet"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		layout="@layout/tweetlistinlinemediarow" />
+
+	<com.vaguehope.onosendai.widget.ClickToExpand
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:minHeight="150dip"
+		app:maxHeight="150dip">
 
 		<include
 			android:id="@+id/quotedTweet"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
+			android:layout_gravity="top"
 			layout="@layout/tweetlistinlinemediarow"
 			android:layout_marginLeft="48dip" />
+
+	</com.vaguehope.onosendai.widget.ClickToExpand>
 
 </LinearLayout>
