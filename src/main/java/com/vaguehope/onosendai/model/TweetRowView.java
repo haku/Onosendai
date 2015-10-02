@@ -5,6 +5,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.vaguehope.onosendai.images.ImageLoadRequest.ImageLoadListener;
+import com.vaguehope.onosendai.widget.ClickToExpand;
 import com.vaguehope.onosendai.widget.PendingImage;
 
 class TweetRowView {
@@ -55,6 +56,7 @@ class TweetRowView {
 
 	public static class QuotingTweetRowView extends TweetRowView {
 
+		private final ClickToExpand qcte;
 		private final ImageView qAvatar;
 		private final TextView qTweet;
 		private final TextView qName;
@@ -62,12 +64,18 @@ class TweetRowView {
 
 		public QuotingTweetRowView (
 				final ImageView avatar, final TextView tweet, final TextView name, final PendingImage inImageView,
+				final ClickToExpand qcte,
 				final ImageView qAvatar, final TextView qTweet, final TextView qName, final PendingImage qInImageView) {
 			super(avatar, tweet, name, inImageView);
+			this.qcte = qcte;
 			this.qAvatar = qAvatar;
 			this.qTweet = qTweet;
 			this.qName = qName;
 			this.qInlineMedia = qInImageView;
+		}
+
+		public ClickToExpand getQcte () {
+			return this.qcte;
 		}
 
 		public ImageView getQAvatar () {

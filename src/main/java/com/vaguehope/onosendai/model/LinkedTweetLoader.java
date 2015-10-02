@@ -119,6 +119,7 @@ public class LinkedTweetLoader {
 		}
 
 		public void displayPending () {
+			this.rowView.getQcte().setExpanded(false);
 			this.rowView.getQTweet().setText(String.format("[ %s ]", this.quotedSid));
 			this.rowView.getQName().setText("");
 			this.rowView.getQAvatar().setImageResource(R.drawable.question_blue);
