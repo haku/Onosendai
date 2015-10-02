@@ -45,20 +45,6 @@ public class ClickToExpand extends FrameLayout {
 						: MeasureSpec.makeMeasureSpec(this.maxHeightPixels, MeasureSpec.EXACTLY));
 	}
 
-//	FIXME WIP stop eating first click when expansion not required.
-
-//	@Override
-//	protected void onLayout (final boolean changed, final int left, final int top, final int right, final int bottom) {
-//		super.onLayout(changed, left, top, right, bottom);
-//
-//		// TODO Lazy initial impl assumes only one child and always visible.
-//		if (getChildCount() > 0) {
-//			final View child = getChildAt(0);
-//			final int childHeight = child.getMeasuredHeight();
-//			setClickable(!this.expanded && childHeight > this.maxHeightPixels);
-//		}
-//	}
-
 	public void setExpanded (final boolean expanded) {
 		this.expanded = expanded;
 		setClickable(!expanded);
@@ -69,9 +55,18 @@ public class ClickToExpand extends FrameLayout {
 		}
 	}
 
+	/**
+	 * TODO Lazy initial impl assumes only one child and always visible.
+	 */
+	private boolean expansionRequired () {
+		return getChildCount() > 0 && getChildAt(0).getMeasuredHeight() >= this.maxHeightPixels;
+	}
+
 	@Override
 	public boolean onInterceptTouchEvent (final MotionEvent ev) {
-		return !this.expanded;
+		final boolean eatClick = !this.expanded && expansionRequired();
+		setClickable(eatClick);
+		return eatClick;
 	}
 
 	private static class GoFullHeightListener implements OnClickListener {
