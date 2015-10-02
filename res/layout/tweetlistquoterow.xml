@@ -13,6 +13,7 @@
 		layout="@layout/tweetlistinlinemediarow" />
 
 	<com.vaguehope.onosendai.widget.ClickToExpand
+		android:id="@+id/quotedClickToExpand"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:minHeight="150dip"

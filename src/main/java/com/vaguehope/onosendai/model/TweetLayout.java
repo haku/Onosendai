@@ -11,6 +11,7 @@ import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.model.LinkedTweetLoader.TweetLoadRequest;
 import com.vaguehope.onosendai.model.TweetRowView.QuotingTweetRowView;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
+import com.vaguehope.onosendai.widget.ClickToExpand;
 import com.vaguehope.onosendai.widget.PendingImage;
 
 public enum TweetLayout {
@@ -116,6 +117,7 @@ public enum TweetLayout {
 					(TextView) t.findViewById(R.id.txtTweet),
 					(TextView) t.findViewById(R.id.txtName),
 					pendingImage,
+					(ClickToExpand) view.findViewById(R.id.quotedClickToExpand),
 					(ImageView) qt.findViewById(R.id.imgMain),
 					(TextView) qt.findViewById(R.id.txtTweet),
 					(TextView) qt.findViewById(R.id.txtName),

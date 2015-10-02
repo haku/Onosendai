@@ -59,7 +59,7 @@ public class ClickToExpand extends FrameLayout {
 //		}
 //	}
 
-	protected void setExpanded (final boolean expanded) {
+	public void setExpanded (final boolean expanded) {
 		this.expanded = expanded;
 		setClickable(!expanded);
 		final ViewGroup.LayoutParams lp = getLayoutParams();
