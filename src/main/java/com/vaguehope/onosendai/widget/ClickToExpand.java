@@ -15,6 +15,7 @@ public class ClickToExpand extends FrameLayout {
 	private final int maxHeightPixels;
 
 	private boolean expanded = false;
+	private View fadedEdge;
 
 	public ClickToExpand (final Context context, final AttributeSet attrs) {
 		this(context, attrs, 0);
@@ -48,6 +49,11 @@ public class ClickToExpand extends FrameLayout {
 	public void setExpanded (final boolean expanded) {
 		this.expanded = expanded;
 		setClickable(!expanded);
+
+		// TODO is this really the best way to do this?
+		if (this.fadedEdge == null) this.fadedEdge = findViewById(R.id.fadedEdge);
+		if (this.fadedEdge != null) this.fadedEdge.setVisibility(expanded ? View.INVISIBLE : View.VISIBLE);
+
 		final ViewGroup.LayoutParams lp = getLayoutParams();
 		if (lp != null) {
 			lp.height = expanded ? ViewGroup.LayoutParams.WRAP_CONTENT : this.maxHeightPixels;

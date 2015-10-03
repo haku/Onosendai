@@ -27,6 +27,13 @@
 			layout="@layout/tweetlistinlinemediarow"
 			android:layout_marginLeft="48dip" />
 
+		<View
+			android:id="@+id/fadedEdge"
+			android:layout_width="match_parent"
+			android:layout_height="20dip"
+			android:layout_gravity="bottom"
+			android:background="@drawable/faded_edge" />
+
 	</com.vaguehope.onosendai.widget.ClickToExpand>
 
 </LinearLayout>
