@@ -81,7 +81,12 @@ public final class TwitterUtils {
 
 	static void addTweetsToList (final List<Tweet> list, final Account account, final List<Status> tweets, final long ownId, final boolean hdMedia, final Collection<Meta> extraMetas, final List<Tweet> quotedTweets) {
 		for (final Status status : tweets) {
-			list.add(convertTweet(account, status, ownId, hdMedia, extraMetas, quotedTweets));
+			try {
+				list.add(convertTweet(account, status, ownId, hdMedia, extraMetas, quotedTweets));
+			}
+			catch (final RuntimeException e) { // Better chance of debugging.
+				throw new RuntimeException("Failed to convert status: " + status, e);
+			}
 		}
 	}
 
@@ -111,6 +116,8 @@ public final class TwitterUtils {
 
 		final Status s = status.isRetweet() ? status.getRetweetedStatus() : status;
 
+		if (s.getUser() == null) throw new IllegalStateException("Status has null user: " + s);
+
 		addMedia(s, metas, hdMedia, userSubtitle);
 		checkUrlsForMedia(s, metas, hdMedia);
 
@@ -132,7 +139,13 @@ public final class TwitterUtils {
 		final Status q = s.getQuotedStatus();
 		if (q != null && quotedTweets != null) {
 			metas.add(new Meta(MetaType.QUOTED_SID, q.getId()));
-			quotedTweets.add(convertTweet(account, q, ownId, hdMedia, extraMetas, quotedTweets));
+			if (q.getUser() != null) { // Sometimes Twitter does this.  I have no idea why.
+				quotedTweets.add(convertTweet(account, q, ownId, hdMedia, extraMetas, quotedTweets));
+			}
+			else {
+				// Its not useful, so let it get loaded later.
+				LOG.w("Inline quoted status has null user: " + q);
+			}
 		}
 
 		final int mediaCount = MetaUtils.countMetaOfType(metas, MetaType.MEDIA);
