@@ -53,7 +53,7 @@ import com.vaguehope.onosendai.util.LogWrapper;
  */
 public class SuccessWhale {
 
-	private static final String BASE_URL = "https://api2.successwhale.com:443";
+	private static final String BASE_URL = "https://api.successwhale.com:443";
 	private static final String API_AUTH = "/v3/authenticate.json";
 	private static final String API_COLUMNS = "/v3/columns.xml";
 	private static final String API_SOURCES = "/v3/sources.xml";
