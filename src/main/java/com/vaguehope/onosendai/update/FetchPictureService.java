@@ -27,7 +27,7 @@ public class FetchPictureService extends AbstractBgFetch {
 	}
 
 	public FetchPictureService () {
-		super(FetchPictureService.class, true, LOG);
+		super(FetchPictureService.class, false, LOG);
 	}
 
 	@Override
