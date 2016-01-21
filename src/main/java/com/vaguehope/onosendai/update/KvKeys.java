@@ -33,8 +33,8 @@ public class KvKeys {
 		return KEY_PREFIX_COL_LAST_PUSH_TIME + col.getId();
 	}
 
-	public static String feedSinceId (final ColumnFeed feed) {
-		return FEED_SINCE_ID_PREFIX + feed.feedHash();
+	public static String feedSinceId (final Column col, final ColumnFeed feed) {
+		return FEED_SINCE_ID_PREFIX + col.getId() + "_" + feed.feedHash();
 	}
 
 	public static String swAuthToken (final Account acc) {
