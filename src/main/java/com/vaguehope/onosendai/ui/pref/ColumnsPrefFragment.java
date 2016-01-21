@@ -149,7 +149,7 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		db.deleteValue(KvKeys.colLastRefreshError(column));
 		db.deleteValue(KvKeys.colLastRefreshTime(column));
 		for (final ColumnFeed feed : column.getFeeds()) {
-			db.deleteValue(KvKeys.feedSinceId(feed));
+			db.deleteValue(KvKeys.feedSinceId(column, feed));
 		}
 		LOG.i("Deleted: %s", column);
 	}

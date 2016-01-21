@@ -86,7 +86,7 @@ public class FetchColumn implements Callable<Void> {
 			final TwitterProvider twitterProvider = providerMgr.getTwitterProvider();
 			twitterProvider.addAccount(account);
 			final TwitterFeed feed = TwitterFeeds.parse(columnFeed.getResource());
-			final String sinceIdRaw = readSinceId(db, columnFeed);
+			final String sinceIdRaw = readSinceId(db, column, columnFeed);
 			final long sinceId = sinceIdRaw != null ? Long.parseLong(sinceIdRaw) : -1;
 			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia());
 			final int filteredCount = filterAndStore(db, column, columnFeed, filters, tweets);
@@ -107,7 +107,7 @@ public class FetchColumn implements Callable<Void> {
 			final SuccessWhaleProvider successWhaleProvider = providerMgr.getSuccessWhaleProvider();
 			successWhaleProvider.addAccount(account);
 			final SuccessWhaleFeed feed = new SuccessWhaleFeed(column, columnFeed);
-			final String sinceId = readSinceId(db, columnFeed);
+			final String sinceId = readSinceId(db, column, columnFeed);
 			final TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId);
 			final int filteredCount = filterAndStore(db, column, columnFeed, filters, tweets);
 			storeSuccess(db, column);
@@ -120,8 +120,8 @@ public class FetchColumn implements Callable<Void> {
 		}
 	}
 
-	private static String readSinceId (final DbInterface db, final ColumnFeed columnFeed) {
-		return db.getValue(KvKeys.feedSinceId(columnFeed));
+	private static String readSinceId (final DbInterface db, final Column column, final ColumnFeed columnFeed) {
+		return db.getValue(KvKeys.feedSinceId(column, columnFeed));
 	}
 
 	private static int filterAndStore (final DbInterface db, final Column column, final ColumnFeed columnFeed, final Filters filters, final TweetList tweets) {
@@ -130,7 +130,7 @@ public class FetchColumn implements Callable<Void> {
 			final List<Tweet> filteredTweets = filters.matchAndSet(tweets.getTweets());
 			filteredCount = Filters.countFiltered(filteredTweets);
 			db.storeTweets(column, filteredTweets);
-			db.storeValue(KvKeys.feedSinceId(columnFeed), tweets.getMostRecent().getSid());
+			db.storeValue(KvKeys.feedSinceId(column, columnFeed), tweets.getMostRecent().getSid());
 		}
 		return filteredCount;
 	}

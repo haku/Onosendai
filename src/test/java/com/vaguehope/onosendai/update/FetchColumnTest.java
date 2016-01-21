@@ -69,7 +69,7 @@ public class FetchColumnTest {
 	@Test
 	public void itFindsCorrectSinceIdWhenFetchingFromTwitter () throws Exception {
 		final long sinceId = 120394230492830123L;
-		when(this.db.getValue(KvKeys.feedSinceId(this.columnFeed))).thenReturn(String.valueOf(sinceId));
+		when(this.db.getValue(KvKeys.feedSinceId(this.column, this.columnFeed))).thenReturn(String.valueOf(sinceId));
 
 		this.undertest.call();
 
