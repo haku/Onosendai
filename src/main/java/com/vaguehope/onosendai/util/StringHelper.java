@@ -39,4 +39,15 @@ public final class StringHelper {
 		return x >= 0 ? s.substring(0, x) : s;
 	}
 
+	public static String replaceOnce (final String str, final String from, final String to) {
+		if (isEmpty(str) || isEmpty(from) || to == null) return str;
+		final int x = str.indexOf(from);
+		if (x < 0) return str;
+		return new StringBuilder(str.length() + to.length() - from.length())
+				.append(str.substring(0, x))
+				.append(to)
+				.append(str.substring(x + from.length()))
+				.toString();
+	}
+
 }

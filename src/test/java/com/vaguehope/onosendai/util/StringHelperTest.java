@@ -20,4 +20,12 @@ public class StringHelperTest {
 		assertEquals("...hijkl", StringHelper.maxLengthEnd("abcdefghijkl", 8));
 	}
 
+	@Test
+	public void itReplacesFirst () throws Exception {
+		assertEquals("foo bqwe bat", StringHelper.replaceOnce("foo bar bat", "ar", "qwe"));
+		assertEquals("foo b bat", StringHelper.replaceOnce("foo bar bat", "ar", ""));
+		assertEquals(" bar bat", StringHelper.replaceOnce("foo bar bat", "foo", ""));
+		assertEquals("foo bar ", StringHelper.replaceOnce("foo bar bat", "bat", ""));
+	}
+
 }

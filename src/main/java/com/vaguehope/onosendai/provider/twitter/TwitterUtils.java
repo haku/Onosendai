@@ -5,7 +5,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -121,8 +120,7 @@ public final class TwitterUtils {
 		addMedia(s, metas, hdMedia, userSubtitle);
 		checkUrlsForMedia(s, metas, hdMedia);
 
-		final URLEntity[] urls = mergeArrays(s.getURLEntities(), s.getMediaEntities());
-		final String text = expandUrls(s.getText(), urls, metas);
+		final String text = removeMediaUrls(expandUrls(s.getText(), s.getURLEntities(), metas), s);
 		addHashtags(s, metas);
 
 		addMentions(s, metas, statusUserId, ownId);
@@ -176,40 +174,22 @@ public final class TwitterUtils {
 		return min;
 	}
 
-	private static URLEntity[] mergeArrays (final URLEntity[]... urlss) {
-		int count = 0;
-		for (final URLEntity[] urls : urlss) {
-			if (urls != null) count += urls.length;
-		}
-		final URLEntity[] ret = new URLEntity[count];
-		int x = 0;
-		for (final URLEntity[] urls : urlss) {
-			if (urls != null) {
-				System.arraycopy(urls, 0, ret, x, urls.length);
-				x += urls.length;
-			}
-		}
-		Arrays.sort(ret, URLENTITY_COMP);
-		return ret;
-	}
-
 	private static String expandUrls (final String text, final URLEntity[] urls, final List<Meta> metas) {
 		if (urls == null || urls.length < 1) return text;
 
-		final StringBuilder bld = new StringBuilder();
+		String textWithUrls = text;
 		for (int i = 0; i < urls.length; i++) {
 			final URLEntity url = urls[i];
-			if (url.getStart() < 0 || url.getEnd() > text.length()) return text; // All bets are off.
+			if (url.getURL() != null && url.getExpandedURL() != null) {
+				textWithUrls = StringHelper.replaceOnce(textWithUrls, url.getURL(), url.getExpandedURL());
+			}
 			final String fullUrl = url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL();
-			bld.append(text.substring(i == 0 ? 0 : urls[i - 1].getEnd(), url.getStart())).append(fullUrl);
-			if (!(url instanceof MediaEntity) && !MetaUtils.containsMetaWithTitle(metas, fullUrl)) {
+			if (!(url instanceof MediaEntity) && !MetaUtils.containsMetaWithTitle(metas, fullUrl)) { // Image metas have same title.
 				metas.add(new Meta(MetaType.URL, fullUrl, url.getDisplayURL()));
 			}
 		}
-		bld.append(text.substring(urls[urls.length - 1].getEnd()));
-		final String expandedText = bld.toString();
 		//LOG.d("Expanded '%s' --> '%s'.", text, expandedText);
-		return expandedText;
+		return textWithUrls;
 	}
 
 	private static void addMedia (final Status s, final List<Meta> metas, final boolean hdMedia, final List<String> userSubtitle) {
@@ -245,6 +225,18 @@ public final class TwitterUtils {
 		if (hasVideo) userSubtitle.add("video"); //ES
 	}
 
+	private static String removeMediaUrls(final String text, final Status s) {
+		MediaEntity[] mes = s.getExtendedMediaEntities();
+		if (mes == null || mes.length < 1) mes = s.getMediaEntities();
+		if (mes == null || mes.length < 1) return text;
+
+		String textWithoutMedia = text;
+		for (final MediaEntity me : mes) {
+			textWithoutMedia = StringHelper.replaceOnce(textWithoutMedia, me.getURL(), "");
+		}
+		return textWithoutMedia;
+	}
+
 	private static void checkUrlsForMedia (final Status s, final List<Meta> metas, final boolean hdMedia) {
 		final URLEntity[] urls = s.getURLEntities();
 		if (urls == null) return;
@@ -275,13 +267,6 @@ public final class TwitterUtils {
 			metas.add(new Meta(MetaType.MENTION, ume.getScreenName(), ume.getName()));
 		}
 	}
-
-	private static final Comparator<URLEntity> URLENTITY_COMP = new Comparator<URLEntity>() {
-		@Override
-		public int compare (final URLEntity lhs, final URLEntity rhs) {
-			return lhs.getStart() - rhs.getStart();
-		}
-	};
 
 	public static String friendlyExceptionMessage (final TwitterException e) {
 		switch (e.getErrorCode()) {

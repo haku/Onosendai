@@ -56,10 +56,29 @@ public class TwitterUtilsTest {
 	}
 
 	@Test
+	public void itExpandsUrl () {
+		final Status s = mockTweet("Got some fancy Nespresso from @noriko_hamada this morning. Approve. \ud83d\ude34\u2615\ufe0f\ud83d\udc4c https://t.co/9JdtE36Djy");
+
+		final URLEntity ue = mock(URLEntity.class);
+		when(ue.getExpandedURL()).thenReturn("http://twitter.com/stuarthicks/status/698806076515479552/photo/1");
+		when(ue.getURL()).thenReturn("https://t.co/9JdtE36Djy");
+		when(ue.getStart()).thenReturn(73);
+		when(ue.getEnd()).thenReturn(96);
+
+		when(s.getURLEntities()).thenReturn(new URLEntity[] { ue });
+
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false);
+
+		assertEquals("Got some fancy Nespresso from @noriko_hamada this morning. Approve. \ud83d\ude34\u2615\ufe0f\ud83d\udc4c http://twitter.com/stuarthicks/status/698806076515479552/photo/1", t.getBody());
+	}
+
+	@Test
 	public void itExpandsTwitterMedia () throws Exception {
 		final Status s = mockTweetWithMedia("https://twitter.com/some*user/status/1235430985/photo/1", "https://pbs.twimg.com/media/BjwsdkfjsAAI-4x.jpg");
 		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false);
+
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, "https://pbs.twimg.com/media/BjwsdkfjsAAI-4x.jpg", "https://twitter.com/some*user/status/1235430985/photo/1")));
+		assertEquals("media: ", t.getBody());
 		assertNoMetaOfType(t, MetaType.URL);
 	}
 
