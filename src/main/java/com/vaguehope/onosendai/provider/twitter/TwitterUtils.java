@@ -242,9 +242,11 @@ public final class TwitterUtils {
 		if (urls == null) return;
 		for (final URLEntity url : urls) {
 			final String fullUrl = url.getExpandedURL() != null ? url.getExpandedURL() : url.getURL();
-			final String thumbUrl = ImageHostHelper.thumbUrl(fullUrl, hdMedia);
-			if (thumbUrl != null) {
-				metas.add(new Meta(MetaType.MEDIA, thumbUrl, fullUrl));
+			final List<String> thumbUrls = ImageHostHelper.thumbUrl(fullUrl, hdMedia);
+			if (thumbUrls != null) {
+				for (final String thumbUrl : thumbUrls) {
+					metas.add(new Meta(MetaType.MEDIA, thumbUrl, fullUrl));
+				}
 			}
 		}
 	}

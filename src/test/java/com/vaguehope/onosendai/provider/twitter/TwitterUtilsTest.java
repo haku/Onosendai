@@ -215,6 +215,16 @@ public class TwitterUtilsTest {
 	}
 
 	@Test
+	public void itConvertsImgurMultiToMediasButOnlyTheFirstFive () throws Exception {
+		testPictureUrlExpansion("https://imgur.com/TQcg7B7,okPllv3,zRRz0Zx,IpqDDiZ,GyYMeYy,WeyemzP,8cX3BY0,mXR6EgY,MY4uvJj,3CdRSrX,MkPEr0T", false,
+				"https://i.imgur.com/TQcg7B7l.jpg",
+				"https://i.imgur.com/okPllv3l.jpg",
+				"https://i.imgur.com/zRRz0Zxl.jpg",
+				"https://i.imgur.com/IpqDDiZl.jpg",
+				"https://i.imgur.com/GyYMeYyl.jpg");
+	}
+
+	@Test
 	public void itConvertsYfrogUrlsToMedia () throws Exception {
 		testPictureUrlExpansion("http://yfrog.com/oehccwlqj", false, "http://yfrog.com/oehccwlqj:small");
 	}
@@ -318,10 +328,12 @@ public class TwitterUtilsTest {
 		assertThat(metasCopy, not(hasItem(new Meta(MetaType.MENTION, "bob", "Bob"))));
 	}
 
-	private void testPictureUrlExpansion (final String fromUrl, final boolean hdMedia, final String toUrl) {
+	private void testPictureUrlExpansion (final String fromUrl, final boolean hdMedia, final String... toUrls) {
 		final Status s = mockTweetWithUrl(fromUrl);
 		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, hdMedia);
-		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, toUrl, fromUrl)));
+		for (final String toUrl : toUrls) {
+			assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, toUrl, fromUrl)));
+		}
 		assertNoMetaOfType(t, MetaType.URL);
 	}
 
