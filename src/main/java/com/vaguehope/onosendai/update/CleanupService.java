@@ -35,7 +35,7 @@ public class CleanupService extends DbBindingService {
 
 	public static void clean (final Context context, final DbInterface db) {
 		AttachmentStorage.cleanTempOutputDir(context); // FIXME what if attachment in use in Outbox?
-		HybridBitmapCache.cleanCacheDir(context);
+		HybridBitmapCache.cleanCacheDir(context, db);
 		db.housekeep();
 	}
 

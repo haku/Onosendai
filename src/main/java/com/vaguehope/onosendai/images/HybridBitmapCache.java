@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLConnection;
+import java.util.List;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -13,15 +14,21 @@ import android.graphics.BitmapFactory;
 import android.support.v4.util.LruCache;
 
 import com.vaguehope.onosendai.C;
+import com.vaguehope.onosendai.model.MetaType;
+import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.HashHelper;
 import com.vaguehope.onosendai.util.HttpHelper.HttpStreamHandler;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.IoHelper.CopyProgressListener;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.SyncMgr;
 
 public class HybridBitmapCache {
+
+	private static final String META_EXT = ".txt";
 
 	public interface LoadListener {
 		void onContentLengthToLoad (long contentLength);
@@ -79,6 +86,7 @@ public class HybridBitmapCache {
 
 	/**
 	 * Check if the cache has this file and mark it as just been used if so.
+	 * Returns true if file exists.
 	 */
 	public boolean touchFileIfExists (final String key) {
 		final File f = getCachedFile(key);
@@ -172,13 +180,25 @@ public class HybridBitmapCache {
 		}
 	}
 
-	public static void cleanCacheDir (final Context context) {
+	public static void cleanCacheDir (final Context context, final DbInterface db) {
 		final File dir = getBaseDir(context);
 		long bytesFreed = 0L;
 		if (dir.exists()) {
 			final long now = System.currentTimeMillis();
 			for (final File f : dir.listFiles()) {
+				final boolean isMetaFile;
+				{
+					final File file = metaFileToFile(f);
+					if (file != null && file.exists()) continue;
+					isMetaFile = file != null;
+				}
+
 				if (now - f.lastModified() > C.IMAGE_DISC_CACHE_EXPIRY_MILLIS) {
+					if(!isMetaFile && isImageInUse(f, db)) {
+						refreshFileTimestamp(f);
+						continue;
+					}
+
 					final long fLength = f.length();
 					if (f.delete()) {
 						bytesFreed += fLength;
@@ -190,6 +210,18 @@ public class HybridBitmapCache {
 			}
 		}
 		LOG.i("Freed %s bytes of cached image files.", bytesFreed);
+	}
+
+	private static boolean isImageInUse (final File file, final DbInterface db) {
+		final String key = readKeyFromMetaFile(file);
+		if (!StringHelper.isEmpty(key)) {
+			final List<Tweet> metas = db.findTweetsWithMeta(MetaType.MEDIA, key, 1);
+			if (metas != null && metas.size() > 0) return true;
+		}
+
+		// TODO what about avatars?
+
+		return false;
 	}
 
 	private static File getBaseDir (final Context context) {
@@ -232,6 +264,50 @@ public class HybridBitmapCache {
 
 	private static int estimateSize (final int w, final int h, final int inSampleSize) {
 		return (w * h * 8) / inSampleSize;
+	}
+
+	private static File fileToMetaFile (final File file) {
+		if (file == null) return null;
+		return new File(file.getAbsolutePath() + META_EXT);
+	}
+
+	/**
+	 * Returns null if not a meta file.
+	 */
+	private static File metaFileToFile (final File metaFile) {
+		if (metaFile == null) return null;
+
+		final String path = metaFile.getPath();
+		if (!path.endsWith(META_EXT)) return null;
+
+		return new File(path.substring(0, path.length() - META_EXT.length()));
+	}
+
+	protected static void writeMetaFile(final File file, final String key) throws IOException {
+		final File metaFile = fileToMetaFile(file);
+		IoHelper.stringToFile(key, metaFile);
+	}
+
+	public static String readKeyFromMetaFileName(final Context context, final String fileName) {
+		final File file = new File(getBaseDir(context), fileName);
+		return readKeyFromMetaFile(file);
+	}
+
+	/**
+	 * Return null if not found or read fails.
+	 */
+	private static String readKeyFromMetaFile(final File file) {
+		final File metaFile = fileToMetaFile(file);
+		if (!metaFile.exists()) return null;
+
+		try {
+			final String meta = IoHelper.fileToString(metaFile);
+			return StringHelper.firstLine(meta);
+		}
+		catch (final IOException e) {
+			LOG.w("Failed to read meta file for %s: %s", file, ExcpetionHelper.causeTrace(e));
+			return null;
+		}
 	}
 
 	private static class DiscCacheHandler implements HttpStreamHandler<Bitmap> {
@@ -285,6 +361,8 @@ public class HybridBitmapCache {
 
 			final File file = this.cache.keyToFile(this.key);
 			if (!tmpFile.renameTo(file)) throw new IOException(String.format("Failed to mv tmp file %s to %s.", tmpFile.getAbsolutePath(), file.getAbsolutePath()));
+
+			writeMetaFile(file, this.key);
 
 			if (this.decodeBitmap) return this.cache.getFromDisc(this.key, this.reqWidth, this.listener);
 			return null;
