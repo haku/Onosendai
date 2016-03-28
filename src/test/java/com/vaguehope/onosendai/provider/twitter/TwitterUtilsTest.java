@@ -191,7 +191,13 @@ public class TwitterUtilsTest {
 	@Test
 	public void itExpandsImgurAlbumUrlsToNull () throws Exception {
 		testPictureUrlNonExpansion("http://imgur.com/a/8PKUl");
+		testPictureUrlNonExpansion("http://imgur.com/r/aww");
 		testPictureUrlNonExpansion("http://imgur.com/gallery/FpZwD");
+	}
+
+	@Test
+	public void itExpandsImgurAlbumEntryUrlsToMedia () throws Exception {
+		testPictureUrlExpansion("http://imgur.com/r/aww/qGSAGyf", false, "https://i.imgur.com/qGSAGyfl.jpg");
 	}
 
 	@Test

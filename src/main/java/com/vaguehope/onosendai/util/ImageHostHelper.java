@@ -40,7 +40,20 @@ public final class ImageHostHelper {
 		{ // https://api.imgur.com/models/image
 			final Matcher m = IMGUR_URL.matcher(linkUrl);
 			if (m.matches()) {
-				final String imgIds = m.group(1);
+				String imgIds = m.group(1);
+
+				// Assumes paths with single slash are galleries.
+				final int firstSlash = imgIds.indexOf('/');
+				if (firstSlash >= 0) {
+					final int lastSlash = imgIds.lastIndexOf('/');
+					if (lastSlash > firstSlash) { // i.e. not the same.
+						imgIds = imgIds.substring(lastSlash + 1);
+					}
+					else {
+						return null;
+					}
+				}
+
 				if (imgIds.startsWith("a/") || imgIds.startsWith("gallery/")) return null;
 
 				final List<String> ret = new ArrayList<String>(1);
