@@ -50,4 +50,11 @@ public final class StringHelper {
 				.toString();
 	}
 
+	public static String addSuffexIfCaseInsensitiveMissing (final String str, final String suffex) {
+		if (str == null) return null;
+		if (suffex == null) throw new IllegalArgumentException("Suffex must not be null.");
+		if (str.toLowerCase(Locale.ENGLISH).endsWith(suffex.toLowerCase(Locale.ENGLISH))) return str;
+		return str + suffex;
+	}
+
 }

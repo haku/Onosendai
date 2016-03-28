@@ -43,4 +43,25 @@ public final class FileHelper {
 		return uris;
 	}
 
+	/**
+	 * Returns null if can not determine.
+	 */
+	public static String baseNameFromPath (final String path) {
+		if (StringHelper.isEmpty(path)) return null;
+
+		final int lastSlash = path.lastIndexOf('/');
+		if (lastSlash >= 0) {
+			if (lastSlash > 0 && path.charAt(lastSlash - 1) == '/') return null; // Ignore //.
+			if (lastSlash < path.length() - 1) {
+				final int lastColon = path.lastIndexOf(':');
+				if (lastColon > lastSlash) {
+					return path.substring(lastSlash + 1, lastColon);
+				}
+				return path.substring(lastSlash + 1);
+			}
+			return null;
+		}
+		return path;
+	}
+
 }

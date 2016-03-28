@@ -17,7 +17,9 @@ import android.provider.OpenableColumns;
 import android.support.v4.content.FileProvider;
 import android.webkit.MimeTypeMap;
 
+import com.vaguehope.onosendai.util.FileHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class CachedImageFileProvider extends FileProvider {
 
@@ -28,7 +30,13 @@ public class CachedImageFileProvider extends FileProvider {
 	public static List<File> addFileExtensions (final List<File> input) {
 		final List<File> ret = new ArrayList<File>();
 		for (final File file : input) {
-			ret.add(new File(String.format("%s.%s", file.getAbsolutePath(), identifyFileExtension(file))));
+			final String extension = identifyFileExtension(file);
+			if (!StringHelper.isEmpty(extension)) {
+				ret.add(new File(String.format("%s.%s", file.getAbsolutePath(), extension)));
+			}
+			else {
+				ret.add(file);
+			}
 		}
 		return ret;
 	}
@@ -64,7 +72,7 @@ public class CachedImageFileProvider extends FileProvider {
 		final int dot = path.lastIndexOf(".");
 		final int slash = path.lastIndexOf("/");
 		if (dot > slash && dot < path.length() - 1) return path.substring(dot + 1);
-		return path;
+		return "";
 	}
 
 	protected static long tryReadId (final Uri uri) {
@@ -73,7 +81,7 @@ public class CachedImageFileProvider extends FileProvider {
 		try {
 			return Long.valueOf(baseName, 16);
 		}
-		catch (NumberFormatException e) {
+		catch (final NumberFormatException e) {
 			LOG.w("Failed to read ID from uri=%s baseName=%s.", uri, baseName);
 			return -1;
 		}
@@ -87,15 +95,15 @@ public class CachedImageFileProvider extends FileProvider {
 		final MatrixCursor inputCursor = (MatrixCursor) super.query(uriMinusExtension, projection, selection, selectionArgs, sortOrder);
 
 		// This mess to clone the single entry cursor and append file extensions to display name.
-		final ArrayList<String> cols = new ArrayList<String>();
-		final ArrayList<Object> values = new ArrayList<Object>();
+		final List<String> cols = new ArrayList<String>();
+		final List<Object> values = new ArrayList<Object>();
 		inputCursor.moveToFirst();
 		for (final String colName : projection) {
 			final int colIndex = inputCursor.getColumnIndex(colName);
 			if (OpenableColumns.DISPLAY_NAME.equals(colName)) {
 				if (colIndex >= 0) {
 					cols.add(OpenableColumns.DISPLAY_NAME);
-					values.add(String.format("%s.%s", inputCursor.getString(colIndex), getExtension(uri.getPath())));
+					values.add(makeDisplayName(inputCursor.getString(colIndex), uri));
 				}
 			}
 			else if (OpenableColumns.SIZE.equals(colName)) {
@@ -109,7 +117,7 @@ public class CachedImageFileProvider extends FileProvider {
 				values.add(getType(uri));
 			}
 			else if (BaseColumns._ID.equals(colName)) {
-				long id = tryReadId(uriMinusExtension);
+				final long id = tryReadId(uriMinusExtension);
 				if (id > 0) {
 					cols.add(BaseColumns._ID);
 					values.add(id);
@@ -121,6 +129,20 @@ public class CachedImageFileProvider extends FileProvider {
 		final MatrixCursor updatedCursor = new MatrixCursor(colsArr, 1);
 		updatedCursor.addRow(values);
 		return updatedCursor;
+	}
+
+	private String makeDisplayName (final String baseName, final Uri uri) {
+		final String extension = getExtension(uri.getPath());
+
+		final String key = HybridBitmapCache.readKeyFromMetaFileName(getContext(), baseName(removeExtension(uri)));
+		if (!StringHelper.isEmpty(key)) {
+			final String nameFromKey = FileHelper.baseNameFromPath(key);
+			if (!StringHelper.isEmpty(nameFromKey)) {
+				return StringHelper.addSuffexIfCaseInsensitiveMissing(nameFromKey, extension);
+			}
+		}
+
+		return String.format("%s.%s", baseName, extension);
 	}
 
 	@Override
