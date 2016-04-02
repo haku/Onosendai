@@ -138,7 +138,7 @@ public class CachedImageFileProvider extends FileProvider {
 		if (!StringHelper.isEmpty(key)) {
 			final String nameFromKey = FileHelper.baseNameFromPath(key);
 			if (!StringHelper.isEmpty(nameFromKey)) {
-				return StringHelper.addSuffexIfCaseInsensitiveMissing(nameFromKey, extension);
+				return StringHelper.addSuffexIfCaseInsensitiveMissing(nameFromKey, "." + extension);
 			}
 		}
 
