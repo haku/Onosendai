@@ -208,6 +208,7 @@ public final class TwitterUtils {
 				final ExtendedMediaEntity eme = (ExtendedMediaEntity) me;
 				final Variant[] variants = eme.getVideoVariants();
 				if (variants != null) {
+					Arrays.sort(variants, VariantOrder.INSTANCE);
 					for (final Variant variant : variants) {
 						if ("animated_gif".equals(me.getType())) hasGif = true;
 						else if ("video".equals(me.getType())) hasVideo = true;
