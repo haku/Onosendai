@@ -182,30 +182,30 @@ public class HybridBitmapCache {
 
 	public static void cleanCacheDir (final Context context, final DbInterface db) {
 		final File dir = getBaseDir(context);
+		if (!dir.exists()) return;
+
+		final long now = System.currentTimeMillis();
 		long bytesFreed = 0L;
-		if (dir.exists()) {
-			final long now = System.currentTimeMillis();
-			for (final File f : dir.listFiles()) {
-				final boolean isMetaFile;
-				{
-					final File file = metaFileToFile(f);
-					if (file != null && file.exists()) continue;
-					isMetaFile = file != null;
+		for (final File f : dir.listFiles()) {
+			final boolean isMetaFile;
+			{
+				final File file = metaFileToFile(f);
+				if (file != null && file.exists()) continue;
+				isMetaFile = file != null;
+			}
+
+			if (now - f.lastModified() > C.IMAGE_DISC_CACHE_EXPIRY_MILLIS) {
+				if(!isMetaFile && isImageInUse(f, db)) {
+					refreshFileTimestamp(f);
+					continue;
 				}
 
-				if (now - f.lastModified() > C.IMAGE_DISC_CACHE_EXPIRY_MILLIS) {
-					if(!isMetaFile && isImageInUse(f, db)) {
-						refreshFileTimestamp(f);
-						continue;
-					}
-
-					final long fLength = f.length();
-					if (f.delete()) {
-						bytesFreed += fLength;
-					}
-					else {
-						LOG.w("Failed to delete expired file: '%s'.", f.getAbsolutePath());
-					}
+				final long fLength = f.length();
+				if (f.delete()) {
+					bytesFreed += fLength;
+				}
+				else {
+					LOG.w("Failed to delete expired file: '%s'.", f.getAbsolutePath());
 				}
 			}
 		}
@@ -217,10 +217,10 @@ public class HybridBitmapCache {
 		if (!StringHelper.isEmpty(key)) {
 			final List<Tweet> metas = db.findTweetsWithMeta(MetaType.MEDIA, key, 1);
 			if (metas != null && metas.size() > 0) return true;
+
+			final List<Tweet> tweets = db.findTweetsWithAvatarUrl(key, 1);
+			if (tweets != null && tweets.size() > 0) return true;
 		}
-
-		// TODO what about avatars?
-
 		return false;
 	}
 
@@ -277,7 +277,7 @@ public class HybridBitmapCache {
 	private static File metaFileToFile (final File metaFile) {
 		if (metaFile == null) return null;
 
-		final String path = metaFile.getPath();
+		final String path = metaFile.getAbsolutePath();
 		if (!path.endsWith(META_EXT)) return null;
 
 		return new File(path.substring(0, path.length() - META_EXT.length()));

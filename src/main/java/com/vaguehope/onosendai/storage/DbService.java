@@ -140,6 +140,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public List<Tweet> findTweetsWithAvatarUrl (final String avatarUrl, final int numberOf) {
+		return this.dbAdaptor.findTweetsWithAvatarUrl(avatarUrl, numberOf);
+	}
+
+	@Override
 	public List<Tweet> searchTweets (final String searchTerm, final List<Column> columns, final int numberOf) {
 		return this.dbAdaptor.searchTweets(searchTerm, columns, numberOf);
 	}

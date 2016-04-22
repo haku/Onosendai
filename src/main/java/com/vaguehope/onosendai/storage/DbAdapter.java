@@ -563,6 +563,11 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public List<Tweet> findTweetsWithAvatarUrl (final String avatarUrl, final int numberOf) {
+		return getTweets(TBL_TW_AVATAR + "=?", new String[] { avatarUrl }, TBL_TW_TIME + " asc", numberOf, false);
+	}
+
+	@Override
 	public List<Tweet> searchTweets (final String searchTerm, final List<Column> columns, final int numberOf) {
 		// WHERE body LIKE ? ESCAPE ? COLLATE NOCASE
 		//   AND (
