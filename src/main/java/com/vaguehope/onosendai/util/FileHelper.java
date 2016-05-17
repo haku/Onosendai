@@ -21,7 +21,7 @@ public final class FileHelper {
 	 * This file will not already exist.
 	 */
 	public static File newFileInDir(final File dir, final String nameHint) {
-		final String name = nameHint.replaceAll("[^a-zA-Z0-9\\.-]", "_");
+		final String name = makeSafeName(nameHint);
 		File f = new File(dir, name);
 		if (!f.exists()) return f;
 
@@ -35,6 +35,10 @@ public final class FileHelper {
 		}
 	}
 
+	public static String makeSafeName (final String name) {
+		return name.replaceAll("[^a-zA-Z0-9\\.-]+", "_");
+	}
+
 	public static ArrayList<Uri> filesToProvidedUris (final Context context, final List<File> files) {
 		final ArrayList<Uri> uris = new ArrayList<Uri>();
 		for (final File file : files) {
@@ -46,22 +50,15 @@ public final class FileHelper {
 	/**
 	 * Returns null if can not determine.
 	 */
-	public static String baseNameFromPath (final String path) {
+	public static String nameFromPath (final String path) {
 		if (StringHelper.isEmpty(path)) return null;
-
-		final int lastSlash = path.lastIndexOf('/');
-		if (lastSlash >= 0) {
-			if (lastSlash > 0 && path.charAt(lastSlash - 1) == '/') return null; // Ignore //.
-			if (lastSlash < path.length() - 1) {
-				final int lastColon = path.lastIndexOf(':');
-				if (lastColon > lastSlash) {
-					return path.substring(lastSlash + 1, lastColon);
-				}
-				return path.substring(lastSlash + 1);
-			}
-			return null;
-		}
-		return path;
+		final String cleanedPath = path
+				.replaceFirst("^https?://", "")
+				.replaceFirst("//+", "")
+				.replaceFirst("^/", "")
+				.replaceFirst("/$", "");
+		if (StringHelper.isEmpty(cleanedPath)) return null;
+		return makeSafeName(cleanedPath);
 	}
 
 }

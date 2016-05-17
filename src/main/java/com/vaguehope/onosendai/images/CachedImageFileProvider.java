@@ -136,7 +136,7 @@ public class CachedImageFileProvider extends FileProvider {
 
 		final String key = HybridBitmapCache.readKeyFromMetaFileName(getContext(), baseName(removeExtension(uri)));
 		if (!StringHelper.isEmpty(key)) {
-			final String nameFromKey = FileHelper.baseNameFromPath(key);
+			final String nameFromKey = FileHelper.nameFromPath(key);
 			if (!StringHelper.isEmpty(nameFromKey)) {
 				return StringHelper.addSuffexIfCaseInsensitiveMissing(nameFromKey, "." + extension);
 			}

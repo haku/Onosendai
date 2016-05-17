@@ -27,24 +27,34 @@ public class FileHelperTest {
 	}
 
 	@Test
-	public void itFindsBaseNameFromPath () throws Exception {
-		assertEquals("file.txt", FileHelper.baseNameFromPath("http://example.com/file.txt"));
-		assertEquals("file.txt", FileHelper.baseNameFromPath("http://example.com/path/file.txt"));
-		assertEquals("file", FileHelper.baseNameFromPath("http://example.com/path/file"));
-		assertEquals("1", FileHelper.baseNameFromPath("http://example.com/1"));
-		assertEquals("1", FileHelper.baseNameFromPath("http://example.com:12345/1"));
-		assertEquals("1", FileHelper.baseNameFromPath("http://example.com/1:large"));
-		assertEquals("123", FileHelper.baseNameFromPath("http://example.com:12345/123:small"));
-		assertEquals("1", FileHelper.baseNameFromPath("/1"));
-		assertEquals("1", FileHelper.baseNameFromPath("a/1"));
-		assertEquals("1", FileHelper.baseNameFromPath("1"));
-		assertEquals(null, FileHelper.baseNameFromPath("http://example.com"));
-		assertEquals(null, FileHelper.baseNameFromPath("http://example.com/"));
-		assertEquals(null, FileHelper.baseNameFromPath("1/"));
-		assertEquals(null, FileHelper.baseNameFromPath("//a"));
-		assertEquals(null, FileHelper.baseNameFromPath("//"));
-		assertEquals(null, FileHelper.baseNameFromPath("/"));
-		assertEquals(null, FileHelper.baseNameFromPath(""));
+	public void itMakesSafeFileNames () throws Exception {
+		assertEquals("file.txt", FileHelper.makeSafeName("file.txt"));
+		assertEquals("fileA1.-.txt", FileHelper.makeSafeName("fileA1.-.txt"));
+		assertEquals("file_._.txt", FileHelper.makeSafeName("file+*.?.txt"));
+	}
+
+	@Test
+	public void itFindsNameFromPath () throws Exception {
+		assertEquals("example.com_file.txt", FileHelper.nameFromPath("http://example.com/file.txt"));
+		assertEquals("example.com_path_file.txt", FileHelper.nameFromPath("http://example.com/path/file.txt"));
+		assertEquals("example.com_path_file", FileHelper.nameFromPath("http://example.com/path/file"));
+		assertEquals("example.com_1", FileHelper.nameFromPath("http://example.com/1"));
+		assertEquals("example.com_12345_1", FileHelper.nameFromPath("http://example.com:12345/1"));
+		assertEquals("example.com_1_large", FileHelper.nameFromPath("http://example.com/1:large"));
+		assertEquals("example.com_12345_123_small", FileHelper.nameFromPath("http://example.com:12345/123:small"));
+		assertEquals("instagram.com_p_BFdoIydtZzU_media_size_m", FileHelper.nameFromPath("https://instagram.com/p/BFdoIydtZzU/media/?size=m"));
+		assertEquals("1", FileHelper.nameFromPath("/1"));
+		assertEquals("a_1", FileHelper.nameFromPath("a/1"));
+		assertEquals("1", FileHelper.nameFromPath("1"));
+		assertEquals("1", FileHelper.nameFromPath("1/"));
+		assertEquals("a", FileHelper.nameFromPath("//a"));
+		assertEquals("a", FileHelper.nameFromPath("///a"));
+		assertEquals("example.com", FileHelper.nameFromPath("http://example.com"));
+		assertEquals("example.com", FileHelper.nameFromPath("http://example.com/"));
+		assertEquals(null, FileHelper.nameFromPath("//"));
+		assertEquals(null, FileHelper.nameFromPath("/"));
+		assertEquals(null, FileHelper.nameFromPath(""));
+		assertEquals(null, FileHelper.nameFromPath(null));
 	}
 
 }
