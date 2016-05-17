@@ -161,6 +161,7 @@ public class TwitterUtilsTest {
 	public void itExpandsInstagramUrlsToMedia () throws Exception {
 		testPictureUrlExpansion("http://instagram.com/p/cT0bSXnMqi", false, "https://instagram.com/p/cT0bSXnMqi/media/?size=m");
 		testPictureUrlExpansion("http://instagram.com/p/cT0bSXnMqi/", false, "https://instagram.com/p/cT0bSXnMqi/media/?size=m");
+		testPictureUrlExpansion("https://www.instagram.com/p/BFdoIydtZzU/", false, "https://instagram.com/p/BFdoIydtZzU/media/?size=m");
 	}
 
 	@Test

@@ -10,7 +10,7 @@ public final class ImageHostHelper {
 
 	private static final int MAX_THUMBS = 5;
 
-	private static final Pattern INSTAGRAM_URL = Pattern.compile("^https?://instagram.com/p/([^/]+)/?$");
+	private static final Pattern INSTAGRAM_URL = Pattern.compile("^https?://(?:www\\.)?instagram.com/p/([^/]+)/?$");
 	private static final Pattern TWITPIC_URL = Pattern.compile("^https?://twitpic.com/(.+)$");
 	private static final Pattern IMGUR_URL = Pattern.compile("^https?://(?:i\\.)?imgur.com/(.+?)(?:\\..+)?$");
 	private static final Pattern YFROG_URL = Pattern.compile("^https?://yfrog.com/(.+)$");
