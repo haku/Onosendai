@@ -367,9 +367,14 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 	@Override
 	public boolean onCreateOptionsMenu (final Menu menu) {
 		getMenuInflater().inflate(R.menu.listmenu, menu);
-		if (this.pageSelectionListener.getVisiblePageCount() > 1) {
+
+		/* FIXME apparently this.pageSelectionListener can sometimes be null here.
+		 * Reported on Galaxy S5 stock firmware v6.0.1.
+		 */
+		if (this.pageSelectionListener != null && this.pageSelectionListener.getVisiblePageCount() > 1) {
 			menu.findItem(R.id.mnuRefreshColumnNow).setTitle(R.string.main_menu_refresh_visible_columns);
 		}
+
 		return true;
 	}
 
