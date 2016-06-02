@@ -107,7 +107,7 @@ public final class HttpHelper {
 				final int responseCode = connection.getResponseCode();
 
 				// For some reason some devices do not follow redirects. :(
-				if (responseCode == 301 || responseCode == 302 || responseCode == 307) { // NOSONAR not magic numbers.  Its HTTP spec.
+				if (responseCode == 301 || responseCode == 302 || responseCode == 303 || responseCode == 307) { // NOSONAR not magic numbers.  Its HTTP spec.
 					if (redirectCount >= MAX_REDIRECTS) throw new TooManyRedirectsException(responseCode, url, MAX_REDIRECTS);
 					final String locationHeader = connection.getHeaderField("Location");
 					if (locationHeader == null) throw new HttpResponseException(responseCode, "Location header missing.  Headers present: "
