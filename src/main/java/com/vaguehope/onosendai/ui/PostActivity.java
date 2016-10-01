@@ -83,7 +83,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	 * See MetaType.REPLYTO
 	 */
 	public static final String ARG_ALT_REPLY_TO_SID = "reply_to_sid";
-	public static final String ARG_ALSO_MENTIONS = "also_mentions";
+	public static final String ARG_MENTIONS = "mentions";
 	public static final String ARG_BODY = "body"; // If present mentions will not be prepended to body.
 	public static final String ARG_BODY_CURSOR_POSITION = "cursor_position";
 	public static final String ARG_SVCS = "svcs";
@@ -99,7 +99,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	private long inReplyToUid;
 	private String inReplyToSid;
 	private String altReplyToSid;
-	private String[] alsoMentions;
+	private String[] mentions;
 	private Long outboxUid;
 
 	private DbClient bndDb;
@@ -142,13 +142,13 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			this.inReplyToUid = this.intentExtras.getLong(ARG_IN_REPLY_TO_UID);
 			this.inReplyToSid = this.intentExtras.getString(ARG_IN_REPLY_TO_SID);
 			this.altReplyToSid = this.intentExtras.getString(ARG_ALT_REPLY_TO_SID);
-			this.alsoMentions = this.intentExtras.getStringArray(ARG_ALSO_MENTIONS);
+			this.mentions = this.intentExtras.getStringArray(ARG_MENTIONS);
 
 			final long outboxUidOrDefault = this.intentExtras.getLong(ARG_OUTBOX_UID, -1);
 			if (outboxUidOrDefault >= 0) this.outboxUid = outboxUidOrDefault;
 		}
-		LOG.i("inReplyToUid=%d inReplyToSid=%s altReplyToSid=%s alsoMentions=%s outboxUid=%s",
-				this.inReplyToUid, this.inReplyToSid, this.altReplyToSid, Arrays.toString(this.alsoMentions), this.outboxUid);
+		LOG.i("inReplyToUid=%d inReplyToSid=%s altReplyToSid=%s mentions=%s outboxUid=%s",
+				this.inReplyToUid, this.inReplyToSid, this.altReplyToSid, Arrays.toString(this.mentions), this.outboxUid);
 
 		setupAccounts(savedInstanceState, accounts, conf);
 		setupAttachemnt(savedInstanceState);
@@ -368,7 +368,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				((TextView) view.findViewById(R.id.tweetDetailDate)).setText(DateHelper.formatDateTime(this, TimeUnit.SECONDS.toMillis(tweet.getTime())));
 			}
 		}
-		initBody(tweet);
+		initBody();
 	}
 
 	private void setPostToAccountExclusive (final ServiceRef svc) {
@@ -378,19 +378,21 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		PostToAccountLoaderTask.setAccountBtns(this.llSubAccounts, this.enabledPostToAccounts);
 	}
 
-	private void initBody (final Tweet tweet) {
+	private void initBody () {
 		final String intialBody = this.intentExtras != null ? this.intentExtras.getString(ARG_BODY) : null;
 		if (intialBody != null) {
 			this.txtBody.setText(intialBody);
 		}
 		else {
 			final StringBuilder s = new StringBuilder();
-			if (tweet != null && tweet.getUsername() != null) s.append("@").append(StringHelper.firstLine(tweet.getUsername()));
-			if (this.alsoMentions != null) {
-				for (final String mention : this.alsoMentions) {
-					s.append(" @").append(mention);
+
+			if (this.mentions != null) {
+				for (final String mention : this.mentions) {
+					if (s.length() > 0) s.append(" ");
+					s.append("@").append(mention);
 				}
 			}
+
 			if (s.length() > 0) {
 				s.append(" ");
 				this.txtBody.setText(s.toString());

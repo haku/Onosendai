@@ -11,7 +11,6 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.ui.PostActivity;
 import com.vaguehope.onosendai.util.ArrayHelper;
 import com.vaguehope.onosendai.util.EqualHelper;
-import com.vaguehope.onosendai.util.StringHelper;
 
 /**
  * Note that usernames in here never contain the '@'.
@@ -71,17 +70,10 @@ public class MentionPayload extends Payload {
 	public Intent toIntent (final Context context) {
 		final Intent intent = new Intent(context, PostActivity.class);
 		intent.putExtra(PostActivity.ARG_ACCOUNT_ID, this.account.getId());
-
-		if (this.screenName.equalsIgnoreCase(StringHelper.firstLine(getOwnerTweet().getUsername()))) {
-			intent.putExtra(PostActivity.ARG_IN_REPLY_TO_UID, getOwnerTweet().getUid());
-			intent.putExtra(PostActivity.ARG_IN_REPLY_TO_SID, getOwnerTweet().getSid());
-			if (this.alsoMentions != null) intent.putExtra(PostActivity.ARG_ALSO_MENTIONS, this.alsoMentions);
-		}
-		else {
-			final String[] mentions = ArrayHelper.joinArrays(String.class, new String[] { this.screenName }, this.alsoMentions);
-			intent.putExtra(PostActivity.ARG_ALSO_MENTIONS, mentions);
-		}
-
+		intent.putExtra(PostActivity.ARG_IN_REPLY_TO_UID, getOwnerTweet().getUid());
+		intent.putExtra(PostActivity.ARG_IN_REPLY_TO_SID, getOwnerTweet().getSid());
+		intent.putExtra(PostActivity.ARG_MENTIONS,
+				ArrayHelper.joinArrays(String.class, new String[] { this.screenName }, this.alsoMentions));
 		return intent;
 	}
 
