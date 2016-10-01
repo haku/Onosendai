@@ -20,7 +20,7 @@ public class LocaleHelper {
 		setLocale(contextWrapper, null, locale);
 	}
 
-	public static void setLocale (final ContextWrapper contextWrapper, final Configuration roCfg, final Locale reqLocale) {
+	public static Locale setLocale (final ContextWrapper contextWrapper, final Configuration roCfg, final Locale reqLocale) {
 		final Locale newLocale = reqLocale != null ? reqLocale : BASE_LOCALE;
 		Locale.setDefault(newLocale);
 		final Resources resources = contextWrapper.getBaseContext().getResources();
@@ -32,6 +32,7 @@ public class LocaleHelper {
 			config.locale = newLocale;
 		}
 		resources.updateConfiguration(config, resources.getDisplayMetrics());
+		return newLocale;
 	}
 
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)

@@ -72,9 +72,9 @@ public class Onosendai extends Application {
 	}
 
 	private void loadAndSetLocale (final Configuration roCfg) {
-		final Locale locale = UiPrefFragment.readLocale(this);
-		LOG.i("locale=%s", locale);
-		LocaleHelper.setLocale(this, roCfg, locale);
+		final Locale prefLocale = UiPrefFragment.readLocale(this);
+		final Locale setLocale = LocaleHelper.setLocale(this, roCfg, prefLocale);
+		LOG.i("Locale: pref=%s set=%s", prefLocale, setLocale);
 	}
 
 }
