@@ -20,7 +20,7 @@ public class EditPayload extends Payload {
 
 	@Override
 	public String getTitle () {
-		return "Share";
+		return "Edit";
 	}
 
 	@Override
