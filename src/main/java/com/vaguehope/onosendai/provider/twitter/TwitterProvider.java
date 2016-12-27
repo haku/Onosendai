@@ -139,7 +139,8 @@ public class TwitterProvider {
 				.setOAuthConsumerKey(account.getConsumerKey())
 				.setOAuthConsumerSecret(account.getConsumerSecret())
 				.setOAuthAccessToken(account.getAccessToken())
-				.setOAuthAccessTokenSecret(account.getAccessSecret());
+				.setOAuthAccessTokenSecret(account.getAccessSecret())
+				.setTweetModeExtended(true);
 		return new TwitterFactory(cb.build());
 	}
 

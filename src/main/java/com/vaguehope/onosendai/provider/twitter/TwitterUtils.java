@@ -193,8 +193,7 @@ public final class TwitterUtils {
 	}
 
 	private static void addMedia (final Status s, final List<Meta> metas, final boolean hdMedia, final List<String> userSubtitle) {
-		MediaEntity[] mes = s.getExtendedMediaEntities();
-		if (mes == null || mes.length < 1) mes = s.getMediaEntities();
+		final MediaEntity[] mes = s.getMediaEntities();
 		if (mes == null) return;
 		boolean hasGif = false;
 		boolean hasVideo = false;
@@ -227,8 +226,7 @@ public final class TwitterUtils {
 	}
 
 	private static String removeMediaUrls(final String text, final Status s) {
-		MediaEntity[] mes = s.getExtendedMediaEntities();
-		if (mes == null || mes.length < 1) mes = s.getMediaEntities();
+		final MediaEntity[] mes = s.getMediaEntities();
 		if (mes == null || mes.length < 1) return text;
 
 		String textWithoutMedia = text;
