@@ -68,6 +68,11 @@ public enum MetaType {
 	 */
 	QUOTED_SID(13),
 	/**
+	 * The alt-text of the preceding MEDIA.
+	 * Title is unused.
+	 */
+	ALT_TEXT(14),
+	/**
 	 * This is hack that will never be in the DB.
 	 * This is to attach the source column ID to search results.
 	 */
@@ -111,6 +116,8 @@ public enum MetaType {
 				return FEED_HASH;
 			case 13: // NOSONAR 13 is not magical.
 				return QUOTED_SID;
+			case 14: // NOSONAR 13 is not magical.
+				return ALT_TEXT;
 			case 90:// NOSONAR 90 is not that magical.
 				return COLUMN_ID;
 			default:

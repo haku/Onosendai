@@ -17,6 +17,10 @@ public final class StringHelper {
 		return s == null || s.isEmpty();
 	}
 
+	public static boolean notEmpty (final String s) {
+		return s != null && !s.isEmpty();
+	}
+
 	public static String maxLength(final String s, final int len) {
 		if (s.length() < len) return s;
 		return s.substring(0, len - ELIPSE.length()) + ELIPSE;

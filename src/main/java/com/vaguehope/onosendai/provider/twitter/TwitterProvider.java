@@ -140,7 +140,8 @@ public class TwitterProvider {
 				.setOAuthConsumerSecret(account.getConsumerSecret())
 				.setOAuthAccessToken(account.getAccessToken())
 				.setOAuthAccessTokenSecret(account.getAccessSecret())
-				.setTweetModeExtended(true);
+				.setTweetModeExtended(true)
+				.setIncludeExtAltTextEnabled(true);
 		return new TwitterFactory(cb.build());
 	}
 

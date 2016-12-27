@@ -84,6 +84,8 @@ public final class PayloadUtils {
 		switch (meta.getType()) {
 			case MEDIA:
 				return new MediaPayload(tweet, meta);
+			case ALT_TEXT:
+				return new PlaceholderPayload(tweet, meta.getData());
 			case HASHTAG:
 				return new HashTagPayload(tweet, meta);
 			case MENTION:

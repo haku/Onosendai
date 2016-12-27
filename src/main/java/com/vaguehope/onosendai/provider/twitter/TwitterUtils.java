@@ -203,6 +203,10 @@ public final class TwitterUtils {
 			if (hdMedia) imgUrl += ":large";
 			metas.add(new Meta(MetaType.MEDIA, imgUrl, clickUrl));
 
+			if (StringHelper.notEmpty(me.getExtAltText())) {
+				metas.add(new Meta(MetaType.ALT_TEXT, me.getExtAltText()));
+			}
+
 			if (me instanceof ExtendedMediaEntity) {
 				final ExtendedMediaEntity eme = (ExtendedMediaEntity) me;
 				final Variant[] variants = eme.getVideoVariants();
