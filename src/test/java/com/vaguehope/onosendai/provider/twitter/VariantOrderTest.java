@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import com.vaguehope.onosendai.util.EqualHelper;
 
-import twitter4j.ExtendedMediaEntity.Variant;
+import twitter4j.MediaEntity.Variant;
 
 public class VariantOrderTest {
 

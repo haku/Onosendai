@@ -2,7 +2,7 @@ package com.vaguehope.onosendai.provider.twitter;
 
 import java.util.Comparator;
 
-import twitter4j.ExtendedMediaEntity.Variant;
+import twitter4j.MediaEntity.Variant;
 
 public enum VariantOrder implements Comparator<Variant> {
 	INSTANCE;

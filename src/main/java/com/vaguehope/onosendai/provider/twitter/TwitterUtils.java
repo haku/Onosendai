@@ -8,10 +8,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import twitter4j.ExtendedMediaEntity;
-import twitter4j.ExtendedMediaEntity.Variant;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
+import twitter4j.MediaEntity.Variant;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -207,21 +206,18 @@ public final class TwitterUtils {
 				metas.add(new Meta(MetaType.ALT_TEXT, me.getExtAltText()));
 			}
 
-			if (me instanceof ExtendedMediaEntity) {
-				final ExtendedMediaEntity eme = (ExtendedMediaEntity) me;
-				final Variant[] variants = eme.getVideoVariants();
-				if (variants != null) {
-					Arrays.sort(variants, VariantOrder.INSTANCE);
-					for (final Variant variant : variants) {
-						if ("animated_gif".equals(me.getType())) hasGif = true;
-						else if ("video".equals(me.getType())) hasVideo = true;
+			final Variant[] variants = me.getVideoVariants();
+			if (variants != null) {
+				Arrays.sort(variants, VariantOrder.INSTANCE);
+				for (final Variant variant : variants) {
+					if ("animated_gif".equals(me.getType())) hasGif = true;
+					else if ("video".equals(me.getType())) hasVideo = true;
 
-						final StringBuilder title = new StringBuilder();
-						title.append(variant.getContentType());
-						if (eme.getVideoDurationMillis() > 0) title.append(" ").append(DateHelper.formatDurationMillis(eme.getVideoDurationMillis()));
-						if (variant.getBitrate() > 0) title.append(" ").append(IoHelper.readableFileSize(variant.getBitrate())).append("/s");
-						metas.add(new Meta(MetaType.URL, variant.getUrl(), title.toString()));
-					}
+					final StringBuilder title = new StringBuilder();
+					title.append(variant.getContentType());
+					if (me.getVideoDurationMillis() > 0) title.append(" ").append(DateHelper.formatDurationMillis(me.getVideoDurationMillis()));
+					if (variant.getBitrate() > 0) title.append(" ").append(IoHelper.readableFileSize(variant.getBitrate())).append("/s");
+					metas.add(new Meta(MetaType.URL, variant.getUrl(), title.toString()));
 				}
 			}
 		}
