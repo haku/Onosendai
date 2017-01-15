@@ -15,6 +15,12 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONTokener;
 
 import android.database.Cursor;
 
@@ -179,6 +185,41 @@ public final class IoHelper {
 		finally {
 			closeQuietly(os);
 		}
+	}
+
+	public static void collectionToFile (final Collection<String> data, final File f) throws IOException {
+		try {
+			final JSONArray arr = new JSONArray();
+			for (final String d : data) {
+				arr.put(d);
+			}
+			stringToFile(arr.toString(2), f);
+		}
+		catch (final JSONException e) {
+			throw new IOException(e.toString(), e);
+		}
+	}
+
+	public static Collection<String> fileToCollection (final File f) throws IOException {
+		try {
+			final String s = IoHelper.fileToString(f);
+			final Object root = new JSONTokener(s).nextValue();
+			if (root instanceof JSONArray) {
+				final JSONArray arr = (JSONArray) root;
+				final Collection<String> ret = new ArrayList<String>(arr.length());
+				for (int i = 0; i < arr.length(); i++) {
+					ret.add(arr.getString(i));
+				}
+				return ret;
+			}
+			else {
+				throw new IOException("Expected root object to be array, was: " + root.getClass());
+			}
+		}
+		catch (final JSONException e) {
+			throw new IOException(e.toString(), e);
+		}
+
 	}
 
 }

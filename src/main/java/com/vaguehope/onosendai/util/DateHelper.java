@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.util;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -13,6 +14,10 @@ public final class DateHelper {
 
 	private DateHelper () {
 		throw new AssertionError();
+	}
+
+	public static DateFormat standardDateTimeFormat () {
+		return new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.ENGLISH);
 	}
 
 	public static String formatDateTime (final Context context, final long timeMillis) {

@@ -17,6 +17,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.util.CollectionHelper.Function;
 
 public final class DialogHelper {
 
@@ -143,6 +144,15 @@ public final class DialogHelper {
 		askItem(context, title, list, titles.toArray(new String[] {}), onItem);
 	}
 
+	public static <T> void askItem (final Context context, final String title, final T[] arr, final Function<T, String> titler, final Listener<T> onItem) {
+		askItem(context, title, Arrays.asList(arr), titler, onItem);
+	}
+
+	public static <T> void askItem (final Context context, final String title, final List<T> list, final Function<T, String> titler, final Listener<T> onItem) {
+		final List<String> titles = titlesList(list, titler);
+		askItem(context, title, list, titles.toArray(new String[] {}), onItem);
+	}
+
 	private static <T> void askItem (final Context context, final String title, final List<T> list, final String[] labels, final Listener<T> onItem) {
 		final AlertDialog.Builder bld = new AlertDialog.Builder(context);
 		bld.setTitle(title);
@@ -236,6 +246,14 @@ public final class DialogHelper {
 		final List<String> titles = new ArrayList<String>();
 		for (final T item : list) {
 			titles.add(item.getUiTitle());
+		}
+		return titles;
+	}
+
+	private static <T> List<String> titlesList (final List<T> list, final Function<T, String> titler) {
+		final List<String> titles = new ArrayList<String>();
+		for (final T item : list) {
+			titles.add(titler.exec(item));
 		}
 		return titles;
 	}

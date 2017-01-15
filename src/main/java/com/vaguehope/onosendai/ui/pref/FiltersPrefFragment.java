@@ -1,13 +1,14 @@
 package com.vaguehope.onosendai.ui.pref;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.json.JSONException;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -17,6 +18,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
@@ -26,28 +28,27 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import com.vaguehope.onosendai.config.Account;
-import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.model.Filters;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.Selection;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
-import com.vaguehope.onosendai.storage.VolatileKvStore;
+import com.vaguehope.onosendai.util.DateHelper;
+import com.vaguehope.onosendai.util.CollectionHelper.Function;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.Result;
-import com.vaguehope.onosendai.util.Titleable;
 
 public class FiltersPrefFragment extends PreferenceFragment {
 
 	public static final String KEY_SHOW_FILTERED = "pref_show_filtered";
+	private static final String FILTERS_FILE_PREFIX = "onosendai-filters-";
+	private static final String FILTERS_FILE_EXT = ".txt";
 	protected static final LogWrapper LOG = new LogWrapper("FP");
 
 	private Prefs prefs;
@@ -92,23 +93,23 @@ public class FiltersPrefFragment extends PreferenceFragment {
 		}
 	}
 
-	private static final int MNU_SW_PULL = 1001;
-	private static final int MNU_SW_PUSH = 1002;
+	private static final int MNU_FILE_READ = 1001;
+	private static final int MNU_FILE_WRITE = 1002;
 
 	@Override
 	public void onCreateOptionsMenu (final Menu menu, final MenuInflater inflater) {
-		menu.add(Menu.NONE, MNU_SW_PULL, Menu.NONE, "Pull from SuccessWhale"); //ES
-		menu.add(Menu.NONE, MNU_SW_PUSH, Menu.NONE, "Push to SuccessWhale"); //ES
+		menu.add(Menu.NONE, MNU_FILE_READ, Menu.NONE, "Read from file"); //ES
+		menu.add(Menu.NONE, MNU_FILE_WRITE, Menu.NONE, "Write to file"); //ES
 	}
 
 	@Override
 	public boolean onOptionsItemSelected (final MenuItem item) {
 		switch (item.getItemId()) {
-			case MNU_SW_PULL:
-				startSwPull();
+			case MNU_FILE_READ:
+				startFileRead();
 				return true;
-			case MNU_SW_PUSH:
-				startSwPush();
+			case MNU_FILE_WRITE:
+				startFileWrite();
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
@@ -276,87 +277,45 @@ public class FiltersPrefFragment extends PreferenceFragment {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private Collection<Account> readAccountsOrAlert () {
-		try {
-			return this.prefs.readAccounts();
-		}
-		catch (final JSONException e) {
-			DialogHelper.alert(getActivity(), "Failed to read accounts.", e); //ES
-			return null;
-		}
-	}
-
-	private void askSwAccount (final Listener<Account> onSwAccount) {
-		final Collection<Account> acs = readAccountsOrAlert();
-		if (acs == null) return;
-		final List<Account> swAcs = new ArrayList<Account>();
-		for (final Account a : acs) {
-			if (a.getProvider() == AccountProvider.SUCCESSWHALE) swAcs.add(a);
-		}
-		if (swAcs.size() < 1) {
-			DialogHelper.alert(getActivity(), "No SW accounts configured."); //ES
-		}
-		else if (swAcs.size() > 1) {
-			DialogHelper.askItem(getActivity(), "Account", new ArrayList<Account>(acs), onSwAccount);
-		}
-		else {
-			onSwAccount.onAnswer(swAcs.get(0));
-		}
-	}
-
-	private void startSwPull () {
-		askSwAccount(new Listener<Account>() {
+	private void startFileRead () {
+		final File[] files = Environment.getExternalStorageDirectory().listFiles(new FilenameFilter() {
 			@Override
-			public void onAnswer (final Account account) {
-				new SwPullTask(FiltersPrefFragment.this, getPrefs(), account).execute();
+			public boolean accept (final File dir, final String filename) {
+				return filename.startsWith(FILTERS_FILE_PREFIX) && filename.endsWith(FILTERS_FILE_EXT);
+			}
+		});
+		DialogHelper.askItem(getActivity(), "Select File", files, new Function<File, String>() { //ES
+			@Override
+			public String exec (final File file) {
+				return file.getName();
+			}
+		}, new Listener<File>() {
+			@Override
+			public void onAnswer (final File file) {
+				new FileReadTask(FiltersPrefFragment.this, getPrefs(), file).execute();
 			}
 		});
 	}
 
-	private enum MergeMode implements Titleable {
-		OVERWRITE("Overwrite"), //ES
-		MERGE("Merge"); //ES
-		private final String title;
-
-		private MergeMode (final String title) {
-			this.title = title;
-		}
-
-		@Override
-		public String getUiTitle () {
-			return this.title;
-		}
+	private void startFileWrite () {
+		final File file = new File(Environment.getExternalStorageDirectory(),
+				FILTERS_FILE_PREFIX
+				+ DateHelper.standardDateTimeFormat().format(new Date())
+				+ FILTERS_FILE_EXT);
+		new FileWriteTask(FiltersPrefFragment.this, getPrefs(), file).execute();
 	}
 
-	private void startSwPush () {
-		askSwAccount(new Listener<Account>() {
-			@Override
-			public void onAnswer (final Account account) {
-				startSwPush(account);
-			}
-		});
-	}
-
-	protected void startSwPush (final Account account) {
-		DialogHelper.askItem(getActivity(), "Mode", MergeMode.values(), new Listener<MergeMode>() { //ES
-			@Override
-			public void onAnswer (final MergeMode mergeMode) {
-				new SwPushTask(FiltersPrefFragment.this, getPrefs(), account, mergeMode).execute();
-			}
-		});
-	}
-
-	private static class SwPullTask extends AsyncTask<Void, Void, Result<Pair<Integer, Integer>>> {
+	private static class FileReadTask extends AsyncTask<Void, Void, Result<Pair<Integer, Integer>>> {
 
 		private final FiltersPrefFragment host;
 		private final Prefs prefs;
-		private final Account account;
+		private final File file;
 		private ProgressDialog dialog;
 
-		public SwPullTask (final FiltersPrefFragment host, final Prefs prefs, final Account account) {
+		public FileReadTask (final FiltersPrefFragment host, final Prefs prefs, final File file) {
 			this.host = host;
 			this.prefs = prefs;
-			this.account = account;
+			this.file = file;
 		}
 
 		@Override
@@ -366,9 +325,8 @@ public class FiltersPrefFragment extends PreferenceFragment {
 
 		@Override
 		protected Result<Pair<Integer, Integer>> doInBackground (final Void... params) {
-			final SuccessWhaleProvider swProv = new SuccessWhaleProvider(new VolatileKvStore());
 			try {
-				final List<String> bps = swProv.getBannedPhrases(this.account);
+				final Collection<String> bps = IoHelper.fileToCollection(this.file);
 
 				final Set<String> existing = new HashSet<String>();
 				for (final String filterId : this.prefs.readFilterIds()) {
@@ -383,14 +341,11 @@ public class FiltersPrefFragment extends PreferenceFragment {
 					}
 				}
 
-				LOG.i("Fetched %s filters from SW, added %s new filters.", bps.size(), merged);
+				LOG.i("Read %s filters, added %s new filters.", bps.size(), merged);
 				return new Result<Pair<Integer, Integer>>(new Pair<Integer, Integer>(bps.size(), merged));
 			}
 			catch (final Exception e) { // NOSONAR want to report errors to UI.
 				return new Result<Pair<Integer, Integer>>(e);
-			}
-			finally {
-				swProv.shutdown();
 			}
 		}
 
@@ -399,34 +354,32 @@ public class FiltersPrefFragment extends PreferenceFragment {
 			this.dialog.dismiss();
 			if (result.isSuccess()) {
 				this.host.refreshFiltersList();
-				DialogHelper.alert(this.host.getActivity(), "Fetched " + result.getData().first + " and added " + result.getData().second + "."); //ES
+				DialogHelper.alert(this.host.getActivity(), "Read " + result.getData().first + " and added " + result.getData().second + "."); //ES
 			}
 			else {
-				LOG.e("Error fetching filters.", result.getE());
+				LOG.e("Error reading filters.", result.getE());
 				DialogHelper.alert(this.host.getActivity(), result.getE());
 			}
 		}
 
 	}
 
-	private static class SwPushTask extends AsyncTask<Void, String, Result<Integer>> {
+	private static class FileWriteTask extends AsyncTask<Void, String, Result<Integer>> {
 
 		private final FiltersPrefFragment host;
 		private final Prefs prefs;
-		private final Account account;
-		private final MergeMode mergeMode;
+		private final File file;
 		private ProgressDialog dialog;
 
-		public SwPushTask (final FiltersPrefFragment host, final Prefs prefs, final Account account, final MergeMode mergeMode) {
+		public FileWriteTask (final FiltersPrefFragment host, final Prefs prefs, final File file) {
 			this.host = host;
 			this.prefs = prefs;
-			this.account = account;
-			this.mergeMode = mergeMode;
+			this.file = file;
 		}
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(this.host.getActivity(), "Filters", "Pushing...", true); //ES
+			this.dialog = ProgressDialog.show(this.host.getActivity(), "Filters", "Writing...", true); //ES
 		}
 
 		@Override
@@ -437,33 +390,17 @@ public class FiltersPrefFragment extends PreferenceFragment {
 
 		@Override
 		protected Result<Integer> doInBackground (final Void... params) {
-			final SuccessWhaleProvider swProv = new SuccessWhaleProvider(new VolatileKvStore());
 			try {
 				final LinkedHashSet<String> toPush = new LinkedHashSet<String>();
-				if (this.mergeMode == MergeMode.MERGE) {
-					publishProgress("Fetching current..."); //ES
-					toPush.addAll(swProv.getBannedPhrases(this.account));
-					LOG.i("Fetched %s existing filters from SW.");
-					publishProgress("Merging and pushing..."); //ES
-				}
-				else if (this.mergeMode == MergeMode.OVERWRITE) {
-					// Nothing.
-				}
-				else {
-					throw new IllegalStateException("Unknown: " + this.mergeMode);
-				}
 				for (final String filterId : this.prefs.readFilterIds()) {
 					toPush.add(this.prefs.readFilter(filterId));
 				}
-				swProv.setBannedPhrases(this.account, new ArrayList<String>(toPush));
-				LOG.d("Pushed %s filters to SW.", toPush.size());
+				IoHelper.collectionToFile(toPush, this.file);
+				LOG.d("Write %s filters to %s.", toPush.size(), this.file.getAbsolutePath());
 				return new Result<Integer>(toPush.size());
 			}
 			catch (final Exception e) { // NOSONAR want to report errors to UI.
 				return new Result<Integer>(e);
-			}
-			finally {
-				swProv.shutdown();
 			}
 		}
 
@@ -471,10 +408,10 @@ public class FiltersPrefFragment extends PreferenceFragment {
 		protected void onPostExecute (final Result<Integer> result) {
 			this.dialog.dismiss();
 			if (result.isSuccess()) {
-				DialogHelper.alert(this.host.getActivity(), "Pushed " + result.getData() + " filters."); //ES
+				DialogHelper.alert(this.host.getActivity(), "Wrote " + result.getData() + " filters.\n\n" + this.file.getAbsolutePath()); //ES
 			}
 			else {
-				LOG.e("Error pushing filters.", result.getE());
+				LOG.e("Error writing filters.", result.getE());
 				DialogHelper.alert(this.host.getActivity(), result.getE());
 			}
 		}
