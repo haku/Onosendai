@@ -17,7 +17,13 @@ public final class MetaUtils {
 		return accountMeta != null ? c.getAccount(accountMeta.getData()) : null;
 	}
 
+	public static Account accountFromMeta (final Collection<Meta> metas, final Config c) {
+		final String accountMetaData = firstMetaOfTypesData(metas, MetaType.ACCOUNT);
+		return accountMetaData != null ? c.getAccount(accountMetaData) : null;
+	}
+
 	public static String firstMetaOfTypesData (final Collection<Meta> metas, final MetaType type) {
+		if (metas == null) return null;
 		for (final Meta meta : metas) {
 			if (type == meta.getType()) return meta.getData();
 		}

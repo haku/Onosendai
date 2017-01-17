@@ -31,6 +31,7 @@ import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.PrefetchMode;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbBindingService;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.Selection;
@@ -40,14 +41,14 @@ import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.NetHelper;
 
-public abstract class AbstractBgFetch extends DbBindingService {
+public abstract class AbstractBgFetch<D> extends DbBindingService {
 
 	public static final String ARG_COLUMN_IDS = "column_ids";
 	public static final String ARG_IS_MANUAL = "is_manual";
 
 	private static final LogWrapper LOG = new LogWrapper("ABF");
 
-	protected static void startServiceIfConfigured (final Class<? extends AbstractBgFetch> cls, final String prefKey, final Context context, final Prefs prefs, final Collection<Column> columns, final boolean manual) {
+	protected static void startServiceIfConfigured (final Class<? extends AbstractBgFetch<?>> cls, final String prefKey, final Context context, final Prefs prefs, final Collection<Column> columns, final boolean manual) {
 		final PrefetchMode prefetchMode = readPrefetchMode(prefs, prefKey);
 
 		if (prefetchMode == PrefetchMode.NO) {
@@ -76,7 +77,7 @@ public abstract class AbstractBgFetch extends DbBindingService {
 						PrefetchMode.NO.getValue()));
 	}
 
-	private static void startService (final Class<? extends AbstractBgFetch> cls, final Context context, final Collection<Column> columns, final boolean manual) {
+	private static void startService (final Class<? extends AbstractBgFetch<?>> cls, final Context context, final Collection<Column> columns, final boolean manual) {
 		final int[] columnIds = new int[columns.size()];
 		final Iterator<Column> columnsIttr = columns.iterator();
 		for (int i = 0; i < columnIds.length; i++) {
@@ -91,7 +92,7 @@ public abstract class AbstractBgFetch extends DbBindingService {
 
 	private final boolean withInlineMediaOnly;
 
-	public AbstractBgFetch (final Class<? extends AbstractBgFetch> cls, final boolean withInlineMediaOnly, final LogWrapper log) {
+	public AbstractBgFetch (final Class<? extends AbstractBgFetch<?>> cls, final boolean withInlineMediaOnly, final LogWrapper log) {
 		super(cls.getSimpleName(), log);
 		this.withInlineMediaOnly = withInlineMediaOnly;
 	}
@@ -132,10 +133,10 @@ public abstract class AbstractBgFetch extends DbBindingService {
 
 		if (!waitForDbReady()) return;
 
-		fetchIfBatteryOk(columns, manual);
+		fetchIfBatteryOk(columns, manual, conf);
 	}
 
-	private void fetchIfBatteryOk (final Collection<Column> columnsToFetch, final boolean manual) {
+	private void fetchIfBatteryOk (final Collection<Column> columnsToFetch, final boolean manual, final Config conf) {
 		final double batLimit = manual ? C.MIN_BAT_BG_FETCH_MANUAL : C.MIN_BAT_BG_FETCH_SCHEDULED;
 		final float bl = BatteryHelper.level(getApplicationContext());
 		if (bl < batLimit) {
@@ -143,15 +144,15 @@ public abstract class AbstractBgFetch extends DbBindingService {
 			return;
 		}
 		getLog().i("Fetching (bl=%s, m=%s) ...", bl, manual);
-		fetch(columnsToFetch);
+		fetch(columnsToFetch, conf);
 	}
 
-	private void fetch (final Collection<Column> columnsToFetch) {
+	private void fetch (final Collection<Column> columnsToFetch, final Config conf) {
 		final long startTime = System.nanoTime();
 
-		final List<Meta> metas = new ArrayList<Meta>();
+		final List<D> metas = new ArrayList<D>();
 		for (final Column col : columnsToFetch) {
-			metas.addAll(findToFetch(col));
+			metas.addAll(findToFetch(col, conf));
 		}
 		final int downloadCount = download(metas);
 
@@ -162,24 +163,29 @@ public abstract class AbstractBgFetch extends DbBindingService {
 	/**
 	 * Ordered oldest (first to be scrolled up to) first.
 	 */
-	private List<Meta> findToFetch (final Column col) {
+	private List<D> findToFetch (final Column col, final Config conf) {
 		final DbInterface db = getDb();
 		final ScrollState scroll = db.getScroll(col.getId());
 		final Cursor cursor = db.getTweetsCursor(col.getId(), Selection.FILTERED, col.getExcludeColumnIds(), this.withInlineMediaOnly);
 		try {
 			final TweetCursorReader reader = new TweetCursorReader();
 			if (cursor != null && cursor.moveToFirst()) {
-				final List<Meta> metas = new ArrayList<Meta>();
+				final List<D> metas = new ArrayList<D>();
 				do {
 					if (scroll != null && reader.readTime(cursor) < scroll.getUnreadTime()) break; // Stop gathering URLs at unread point.
-					readUrls(cursor, reader, metas);
+					readUrls(cursor, reader, col, conf, metas);
 
 					final List<Meta> quotedMetas = db.getTweetMetasOfType(reader.readUid(cursor), MetaType.QUOTED_SID);
 					if (quotedMetas != null) {
 						for (final Meta m : quotedMetas) {
 							if (m.getData() != null) {
 								final Tweet quotedTweet = db.getTweetDetails(m.getData());
-								if (quotedTweet != null) readUrls(quotedTweet, metas);
+								if (quotedTweet != null) {
+									readUrls(quotedTweet, col, conf, metas);
+								}
+								else {
+									getLog().w("Quoted tweet not in DB: %s", m.getData());
+								}
 							}
 						}
 					}
@@ -195,14 +201,24 @@ public abstract class AbstractBgFetch extends DbBindingService {
 		}
 	}
 
-	protected abstract void readUrls (final Cursor cursor, final TweetCursorReader reader, final List<Meta> retMetas);
-	protected abstract void readUrls (final Tweet tweet, final List<Meta> retMetas);
+	protected abstract void readUrls (final Cursor cursor, final TweetCursorReader reader, Column col, Config conf, final List<D> retMetas);
+	protected abstract void readUrls (final Tweet tweet, Column col, Config conf, final List<D> retMetas);
 
-	private int download (final List<Meta> metas) {
+	private int download (final List<D> metas) {
 		if (metas == null || metas.size() < 1) return 0;
 
+		final ProviderMgr provMgr = new ProviderMgr(getDb());
+		try {
+			return download(metas, provMgr);
+		}
+		finally {
+			provMgr.shutdown();
+		}
+	}
+
+	private int download (final List<D> metas, final ProviderMgr provMgr) {
 		final Map<String, Callable<?>> jobs = new LinkedHashMap<String, Callable<?>>();
-		makeJobs(metas, jobs);
+		makeJobs(metas, provMgr, jobs);
 		if (jobs.size() < 1) return 0;
 
 		final int poolSize = Math.min(jobs.size(), C.UPDATER_MAX_THREADS);
@@ -232,6 +248,6 @@ public abstract class AbstractBgFetch extends DbBindingService {
 		}
 	}
 
-	protected abstract void makeJobs (final List<Meta> metas, final Map<String, Callable<?>> jobs);
+	protected abstract void makeJobs (final List<D> metas, ProviderMgr provMgr, final Map<String, Callable<?>> jobs);
 
 }
