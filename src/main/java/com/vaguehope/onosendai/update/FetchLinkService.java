@@ -92,14 +92,18 @@ public class FetchLinkService extends AbstractBgFetch<AccountColumnMeta> {
 		for (final AccountColumnMeta acm : acms) {
 			final Meta m = acm.getMeta();
 
+			// Either the title is already fetched,
+			// or fetching the tweet failed and an error is stored as the title.
+			if (FetchLinkTitle.isTitleCached(db, m)) continue;
+
 			final String linkedTweetSid = TwitterUrls.readTweetSidFromUrl(m.getData());
 			if (linkedTweetSid != null) {
-				jobs.put(m.getData(), new FetchTweet(getDb(), provMgr, acm.getAccount(), acm.getColumn(), linkedTweetSid));
+				if (db.getTweetDetails(linkedTweetSid) == null) {
+					jobs.put(m.getData(), new FetchTweet(getDb(), provMgr, acm.getAccount(), acm.getColumn(), linkedTweetSid, m));
+				}
 			}
 			else if (FetchLinkTitle.shouldFetchTitle(m)) {
-				if (!FetchLinkTitle.isTitleCached(db, m)) {
-					jobs.put(m.getData(), new FetchLinkTitle(db, m));
-				}
+				jobs.put(m.getData(), new FetchLinkTitle(db, m));
 			}
 		}
 	}

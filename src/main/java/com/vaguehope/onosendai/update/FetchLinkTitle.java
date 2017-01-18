@@ -66,6 +66,10 @@ public class FetchLinkTitle implements Callable<Void> {
 		}
 	}
 
+	public static void setTitle (final DbInterface db, final Meta m, final String title) {
+		db.cacheString(CachedStringGroup.LINK_TITLE, m.getData(), title);
+	}
+
 	private final DbInterface db;
 	private final Meta meta;
 
