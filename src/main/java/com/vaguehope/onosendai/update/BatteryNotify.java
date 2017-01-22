@@ -28,11 +28,11 @@ public class BatteryNotify {
 		showNotification(context,
 				getUpdateMarkerFile(context),
 				NotificationIds.NOT_UPDATING_NOTIFICATION_ID,
-				context.getString(R.string.background_updating_disabled_notification_title),
-				context.getString(R.string.background_updating_disabled_notification_msg));
+				R.string.background_updating_disabled_notification_title,
+				R.string.background_updating_disabled_notification_msg);
 	}
 
-	private static void showNotification (final Context context, final File file, final int nId, final String msg, final String subMsg) {
+	private static void showNotification (final Context context, final File file, final int nId, final int msg, final int subMsg) {
 			try {
 				if (FileHelper.fileLastModifiedAgeMillis(file) > RENOTIFY_INTERVAL_MILLIS) {
 					showNotification(context, nId, msg, subMsg);
@@ -44,13 +44,13 @@ public class BatteryNotify {
 			}
 	}
 
-	private static void showNotification (final Context context, final int nId, final String msg, final String subMsg) {
+	private static void showNotification (final Context context, final int nId, final int msg, final int subMsg) {
 		final Builder nb = new NotificationCompat.Builder(context)
 				.setOnlyAlertOnce(true)
 				.setSmallIcon(R.drawable.exclamation_red) // TODO better icon.
-				.setContentTitle(msg)
-				.setContentText(subMsg)
-				.setTicker(msg)
+				.setContentTitle(context.getString(msg))
+				.setContentText(context.getString(subMsg))
+				.setTicker(context.getString(msg))
 				.setAutoCancel(true)
 				.setWhen(System.currentTimeMillis());
 		getManager(context).notify(nId, nb.build());
