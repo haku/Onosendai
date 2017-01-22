@@ -38,11 +38,12 @@ Background Tasks
 
 Note that background tasks will run based on battery level.
 
-| Task             | Min battery |
-| ---------------- | ----------- |
-| Fetch tweets     |         30% |
-| Send outbox      |         20% |
-| Clean temp files |         50% |
+| Task                          | Min battery |
+| ----------------------------- | ----------- |
+| Send outbox                   | 15%         |
+| Fetch tweets                  | 30%         |
+| Prefetch pics and link titles | 30%         |
+| Clean temp files              | 50%         |
 
 Advanced Configuration
 ----------------------

@@ -58,7 +58,7 @@ public final class C {
 
 	// Updates.
 	public static final float MIN_BAT_UPDATE = 0.30f;
-	public static final float MIN_BAT_SEND = 0.20f;
+	public static final float MIN_BAT_SEND = 0.15f;
 	public static final float MIN_BAT_CLEANUP = 0.50f;
 	public static final float MIN_BAT_BG_FETCH_SCHEDULED = MIN_BAT_UPDATE;
 	public static final float MIN_BAT_BG_FETCH_MANUAL = 0.20f;
