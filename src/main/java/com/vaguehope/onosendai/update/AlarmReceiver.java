@@ -37,16 +37,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 					LOG.i("Master sync disabled, update aborted.");
 					break;
 				}
-
-				final boolean doUpdate = (bl > C.MIN_BAT_UPDATE);
-				final boolean doSend = (bl > C.MIN_BAT_SEND);
-				if (doUpdate || doSend) {
-					final PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-					final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
-					wl.acquire(TEMP_WAKELOCK_TIMEOUT_MILLIS);
-				}
-				if (doUpdate) context.startService(new Intent(context, UpdateService.class));
-				if (doSend) context.startService(new Intent(context, SendOutboxService.class));
+				updateIfBetteryOk(context, bl);
 				break;
 			case ACTION_CLEANUP:
 				if (bl > C.MIN_BAT_CLEANUP) context.startService(new Intent(context, CleanupService.class));
@@ -55,6 +46,30 @@ public class AlarmReceiver extends BroadcastReceiver {
 				LOG.e("Unknown action: '%s'.", action);
 				break;
 		}
+	}
+
+	private void updateIfBetteryOk (final Context context, final float bl) {
+		final boolean doSend = (bl > C.MIN_BAT_SEND);
+		final boolean doUpdate = (bl > C.MIN_BAT_UPDATE);
+
+		if (doSend || doUpdate) aquireTempWakeLock(context);
+
+		if (doSend) {
+			context.startService(new Intent(context, SendOutboxService.class));
+		}
+
+		if (doUpdate) {
+			context.startService(new Intent(context, UpdateService.class));
+		}
+		else {
+			BatteryNotify.notifyNotUpdating(context);
+		}
+	}
+
+	private void aquireTempWakeLock (final Context context) {
+		final PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+		final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
+		wl.acquire(TEMP_WAKELOCK_TIMEOUT_MILLIS);
 	}
 
 	public static void configureAlarms (final Context context) {

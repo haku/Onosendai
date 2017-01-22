@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -59,6 +60,33 @@ public final class FileHelper {
 				.replaceFirst("/$", "");
 		if (StringHelper.isEmpty(cleanedPath)) return null;
 		return makeSafeName(cleanedPath);
+	}
+
+	public static long fileLastModifiedAgeMillis (final File f) throws IOException {
+		if (!f.exists()) return Long.MAX_VALUE;
+
+		final long lastModified = f.lastModified();
+		if (lastModified != 0) {
+			return System.currentTimeMillis() - lastModified;
+		}
+		else {
+			throw new IOException(String.format("Failed to read last modified date for '%s'.", f.getAbsolutePath()));
+		}
+	}
+
+	public static void touchFile (final File f, final long graceMillis) throws IOException {
+		if (!f.exists()) f.createNewFile();
+
+		final long now = System.currentTimeMillis();
+		final long lastModified = f.lastModified();
+		if (lastModified != 0) {
+			if (now - lastModified > graceMillis && !f.setLastModified(now)) {
+				throw new IOException(String.format("Failed to update last modified date for '%s'.", f.getAbsolutePath()));
+			}
+		}
+		else {
+			throw new IOException(String.format("Failed to read last modified date for '%s'.", f.getAbsolutePath()));
+		}
 	}
 
 }
