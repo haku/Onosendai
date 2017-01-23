@@ -37,7 +37,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 22;
+	private static final int DB_VERSION = 23;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -142,6 +142,12 @@ public class DbAdapter implements DbInterface {
 				if (oldVersion < 22) { // NOSONAR not a magic number.
 					this.log.w("Adding column %s...", TBL_TW_QUOTED_SID);
 					db.execSQL("ALTER TABLE " + TBL_TW + " ADD COLUMN " + TBL_TW_QUOTED_SID + " text;");
+				}
+				if (oldVersion < 23) { // NOSONAR not a magic number.
+					this.log.w("Adding column %s...", TBL_OB_STATUS_TIME);
+					db.execSQL("ALTER TABLE " + TBL_OB + " ADD COLUMN " + TBL_OB_STATUS_TIME + " integer;");
+					this.log.w("Adding column %s...", TBL_OB_SID);
+					db.execSQL("ALTER TABLE " + TBL_OB + " ADD COLUMN " + TBL_OB_SID + " text;");
 				}
 			}
 		}
@@ -1079,8 +1085,10 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_OB_IN_REPLY_TO_SID = "repsid";
 	private static final String TBL_OB_ATTACHMENT = "atch";
 	private static final String TBL_OB_STATUS = "stat";
+	private static final String TBL_OB_STATUS_TIME = "stime";
 	private static final String TBL_OB_ATTEMPT_COUNT = "atct";
 	private static final String TBL_OB_LAST_ERROR = "err";
+	private static final String TBL_OB_SID = "sid";
 
 	private static final String TBL_OB_CREATE = "create table " + TBL_OB + " ("
 			+ TBL_OB_ID + " integer primary key autoincrement,"
@@ -1091,8 +1099,10 @@ public class DbAdapter implements DbInterface {
 			+ TBL_OB_IN_REPLY_TO_SID + " text,"
 			+ TBL_OB_ATTACHMENT + " text,"
 			+ TBL_OB_STATUS + " integer,"
+			+ TBL_OB_STATUS_TIME + " integer,"
 			+ TBL_OB_ATTEMPT_COUNT + " integer,"
-			+ TBL_OB_LAST_ERROR + " text"
+			+ TBL_OB_LAST_ERROR + " text,"
+			+ TBL_OB_SID + " text"
 			+ ");";
 
 	@Override
@@ -1108,8 +1118,10 @@ public class DbAdapter implements DbInterface {
 			values.put(TBL_OB_IN_REPLY_TO_SID, ot.getInReplyToSid());
 			values.put(TBL_OB_ATTACHMENT, ot.getAttachmentStr());
 			values.put(TBL_OB_STATUS, ot.getStatusCode());
+			values.put(TBL_OB_STATUS_TIME, ot.getStatusTime());
 			values.put(TBL_OB_ATTEMPT_COUNT, ot.getAttemptCount());
 			values.put(TBL_OB_LAST_ERROR, ot.getLastError());
+			values.put(TBL_OB_SID, ot.getSid());
 			this.mDb.insert(TBL_OB, null, values);
 			this.mDb.setTransactionSuccessful();
 		}
@@ -1134,8 +1146,10 @@ public class DbAdapter implements DbInterface {
 			values.put(TBL_OB_IN_REPLY_TO_SID, ot.getInReplyToSid());
 			values.put(TBL_OB_ATTACHMENT, ot.getAttachmentStr());
 			values.put(TBL_OB_STATUS, ot.getStatusCode());
+			values.put(TBL_OB_STATUS_TIME, ot.getStatusTime());
 			values.put(TBL_OB_ATTEMPT_COUNT, ot.getAttemptCount());
 			values.put(TBL_OB_LAST_ERROR, ot.getLastError());
+			values.put(TBL_OB_SID, ot.getSid());
 			final int affected = this.mDb.update(TBL_OB, values, TBL_OB_ID + "=?", new String[] { String.valueOf(uid) });
 			if (affected > 1) throw new IllegalStateException("Updating " + ot + " affected " + affected + " rows, expected 1.");
 			if (affected < 1) this.log.w("Updating outbox entry %s affected %s rows, expected 1.", ot, affected);
@@ -1149,8 +1163,10 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public List<OutboxTweet> getOutboxEntries () {
-		return getOutboxEntries(null, null);
+	public List<OutboxTweet> getUnsentOutboxEntries () {
+		return getOutboxEntries(
+				TBL_OB_STATUS + "!=?",
+				new String[] { String.valueOf(OutboxTweetStatus.SENT.getCode()) });
 	}
 
 	@Override
@@ -1165,7 +1181,7 @@ public class DbAdapter implements DbInterface {
 		try {
 			c = this.mDb.query(true, TBL_OB,
 					new String[] { TBL_OB_ID, TBL_OB_ACTION, TBL_OB_ACCOUNT_ID, TBL_OB_SERVICES, TBL_OB_BODY, TBL_OB_IN_REPLY_TO_SID, TBL_OB_ATTACHMENT,
-							TBL_OB_STATUS, TBL_OB_ATTEMPT_COUNT, TBL_OB_LAST_ERROR },
+							TBL_OB_STATUS, TBL_OB_STATUS_TIME, TBL_OB_ATTEMPT_COUNT, TBL_OB_LAST_ERROR, TBL_OB_SID },
 					where, whereArgs,
 					null, null,
 					TBL_OB_ID + " asc", null);
@@ -1179,8 +1195,10 @@ public class DbAdapter implements DbInterface {
 				final int colInReplyToSid = c.getColumnIndex(TBL_OB_IN_REPLY_TO_SID);
 				final int colAttachment = c.getColumnIndex(TBL_OB_ATTACHMENT);
 				final int colStatus = c.getColumnIndex(TBL_OB_STATUS);
+				final int colStatusTime = c.getColumnIndex(TBL_OB_STATUS_TIME);
 				final int colAttemptCount = c.getColumnIndex(TBL_OB_ATTEMPT_COUNT);
 				final int colLastError = c.getColumnIndex(TBL_OB_LAST_ERROR);
+				final int colSid = c.getColumnIndex(TBL_OB_SID);
 
 				final List<OutboxTweet> ret = new ArrayList<OutboxTweet>();
 				do {
@@ -1192,10 +1210,12 @@ public class DbAdapter implements DbInterface {
 					final String inReplyToSid = c.getString(colInReplyToSid);
 					final String attachment = c.getString(colAttachment);
 					final Integer status = c.getInt(colStatus);
+					final Long statusTime = c.getLong(colStatusTime);
 					final Integer attemptCount = c.getInt(colAttemptCount);
 					final String lastError = c.getString(colLastError);
+					final String sid = c.getString(colSid);
 					ret.add(new OutboxTweet(uid, action, accountId, svcMetas, body, inReplyToSid, attachment,
-							status, attemptCount, lastError));
+							status, statusTime, attemptCount, lastError, sid));
 				}
 				while (c.moveToNext());
 				return ret;

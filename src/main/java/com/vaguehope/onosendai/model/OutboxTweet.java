@@ -67,7 +67,8 @@ public class OutboxTweet {
 		UNKNOWN(0, "Unknown"), //ES
 		PENDING(1, "Pending"), //ES
 		PERMANENTLY_FAILED(2, "Failed"), //ES
-		PAUSED(3, "Paused"); //ES
+		PAUSED(3, "Paused"), //ES
+		SENT(4, "Sent"); //ES
 
 		private final int code;
 		private final String name;
@@ -97,6 +98,8 @@ public class OutboxTweet {
 					return PERMANENTLY_FAILED;
 				case 3:
 					return PAUSED;
+				case 4:
+					return SENT;
 				default:
 					return UNKNOWN;
 			}
@@ -115,31 +118,42 @@ public class OutboxTweet {
 	private final String inReplyToSid;
 	private final Uri attachment;
 	private final OutboxTweetStatus status;
+	private final Long statusTime;
 	private final Integer attemptCount;
 	private final String lastError;
+	private final String sid;
 
 	/**
 	 * Initial.
 	 */
 	public OutboxTweet (final OutboxAction action, final Account account, final Set<ServiceRef> svcs, final String body, final String inReplyToSid, final Uri attachment) {
-		this(null, action, account.getId(), svcsToList(svcs), body, inReplyToSid, attachment, OutboxTweetStatus.PENDING, 0, null);
+		this(null, action, account.getId(), svcsToList(svcs), body, inReplyToSid, attachment, OutboxTweetStatus.PENDING, null, 0, null, null);
 	}
 
 	/**
 	 * From DB.
 	 */
 	public OutboxTweet (final Long uid, final OutboxAction action, final String accountId, final String svcMetas, final String body, final String inReplyToSid, final String attachment,
-			final Integer statusCode, final Integer attemptCount, final String lastError) {
+			final Integer statusCode, final Long statusTime, final Integer attemptCount, final String lastError,
+			final String sid) {
 		this(uid, action, accountId, svcsStrToList(svcMetas), body, inReplyToSid, safeParseUri(attachment),
-				OutboxTweetStatus.parseCode(statusCode), attemptCount, lastError);
+				OutboxTweetStatus.parseCode(statusCode), statusTime, attemptCount, lastError, sid);
 	}
 
 	/**
 	 * Add error details.
 	 */
-	private OutboxTweet (final OutboxTweet ot, final OutboxTweetStatus status, final Integer attemptCount, final String lastError) {
+	private OutboxTweet (final OutboxTweet ot, final OutboxTweetStatus status, final Long statusTime, final Integer attemptCount, final String lastError) {
 		this(ot.getUid(), ot.getAction(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), ot.getAttachment(),
-				status, attemptCount, lastError);
+				status, statusTime, attemptCount, lastError, ot.getSid());
+	}
+
+	/**
+	 * Mark as sent.
+	 */
+	private OutboxTweet (final OutboxTweet ot, final OutboxTweetStatus status, final Long statusTime, final String lastError, final String sid) {
+		this(ot.getUid(), ot.getAction(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), ot.getAttachment(),
+				status, statusTime, ot.getAttemptCount(), lastError, sid);
 	}
 
 	/**
@@ -147,7 +161,7 @@ public class OutboxTweet {
 	 */
 	private OutboxTweet (final OutboxTweet ot, final Long uid) {
 		this(uid, ot.getAction(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), ot.getAttachment(),
-				ot.getStatus(), ot.getAttemptCount(), ot.getLastError());
+				ot.getStatus(), ot.getStatusTime(), ot.getAttemptCount(), ot.getLastError(), ot.getSid());
 		if (ot.getUid() != null) throw new IllegalArgumentException(String.format("Can not set uid=%s as already have uid=%s.", uid, ot.getUid()));
 	}
 
@@ -156,11 +170,12 @@ public class OutboxTweet {
 	 */
 	private OutboxTweet (final OutboxTweet ot, final Uri attachment) {
 		this(ot.getUid(), ot.getAction(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), attachment,
-				ot.getStatus(), ot.getAttemptCount(), ot.getLastError());
+				ot.getStatus(), ot.getStatusTime(), ot.getAttemptCount(), ot.getLastError(), ot.getSid());
 	}
 
 	private OutboxTweet (final Long uid, final OutboxAction action, final String accountId, final List<String> svcMetas, final String body, final String inReplyToSid, final Uri attachment,
-			final OutboxTweetStatus status, final Integer attemptCount, final String lastError) {
+			final OutboxTweetStatus status, final Long statusTime, final Integer attemptCount, final String lastError,
+			final String sid) {
 		this.uid = uid;
 		this.action = action;
 		this.accountId = accountId;
@@ -169,8 +184,10 @@ public class OutboxTweet {
 		this.inReplyToSid = inReplyToSid;
 		this.attachment = attachment;
 		this.status = status;
+		this.statusTime = statusTime;
 		this.attemptCount = attemptCount;
 		this.lastError = lastError;
+		this.sid = sid;
 	}
 
 	public Long getUid () {
@@ -222,6 +239,13 @@ public class OutboxTweet {
 		return this.status.getCode();
 	}
 
+	/**
+	 * Time current status was set.
+	 */
+	public Long getStatusTime () {
+		return this.statusTime;
+	}
+
 	public int getAttemptCount () {
 		if (this.attemptCount == null) return 0;
 		return this.attemptCount.intValue();
@@ -231,20 +255,28 @@ public class OutboxTweet {
 		return this.lastError;
 	}
 
+	public String getSid () {
+		return this.sid;
+	}
+
 	public OutboxTweet permFailure (final String error) {
-		return new OutboxTweet(this, OutboxTweetStatus.PERMANENTLY_FAILED, getAttemptCount() + 1, error);
+		return new OutboxTweet(this, OutboxTweetStatus.PERMANENTLY_FAILED, System.currentTimeMillis(), getAttemptCount() + 1, error);
 	}
 
 	public OutboxTweet tempFailure (final String error) {
-		return new OutboxTweet(this, OutboxTweetStatus.PENDING, getAttemptCount() + 1, error);
+		return new OutboxTweet(this, OutboxTweetStatus.PENDING, System.currentTimeMillis(), getAttemptCount() + 1, error);
 	}
 
 	public OutboxTweet resetToPending () {
-		return new OutboxTweet(this, OutboxTweetStatus.PENDING, getAttemptCount(), getLastError());
+		return new OutboxTweet(this, OutboxTweetStatus.PENDING, System.currentTimeMillis(), getAttemptCount(), getLastError());
 	}
 
 	public OutboxTweet setPaused () {
-		return new OutboxTweet(this, OutboxTweetStatus.PAUSED, getAttemptCount(), getLastError());
+		return new OutboxTweet(this, OutboxTweetStatus.PAUSED, System.currentTimeMillis(), getAttemptCount(), getLastError());
+	}
+
+	public OutboxTweet markAsSent (final String sid) {
+		return new OutboxTweet(this, OutboxTweetStatus.SENT, System.currentTimeMillis(), "", sid);
 	}
 
 	public OutboxTweet withUid (final long newUid) {

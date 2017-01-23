@@ -46,13 +46,13 @@ public class OutboxTweetTest {
 
 	@Test
 	public void itsOkWithNullServiceString () throws Exception {
-		final OutboxTweet ot = new OutboxTweet(null, null, null, null, null, null, null, null, null, null);
+		final OutboxTweet ot = new OutboxTweet(null, null, null, null, null, null, null, null, null, null, null, null);
 		assertThat(ot.getSvcMetasList(), is(empty()));
 	}
 
 	@Test
 	public void itsOkWithEmptyServiceString () throws Exception {
-		final OutboxTweet ot = new OutboxTweet(null, null, null, "", null, null, null, null, null, null);
+		final OutboxTweet ot = new OutboxTweet(null, null, null, "", null, null, null, null, null, null, null, null);
 		assertThat(ot.getSvcMetasList(), is(empty()));
 	}
 

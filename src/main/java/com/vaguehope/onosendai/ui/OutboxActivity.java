@@ -191,7 +191,7 @@ public class OutboxActivity extends Activity {
 	private void refreshListOnUiThread () {
 		final DbInterface db = getDb();
 		if (db != null) {
-			final List<OutboxTweet> entries = db.getOutboxEntries();
+			final List<OutboxTweet> entries = db.getUnsentOutboxEntries();
 			this.adaptor.setInputData(entries);
 		}
 		else {
@@ -283,10 +283,8 @@ public class OutboxActivity extends Activity {
 	}
 
 	protected void resetPermanentFailures () {
-		for (final OutboxTweet ot : getDb().getOutboxEntries()) {
-			if (ot.getStatus() == OutboxTweetStatus.PERMANENTLY_FAILED) {
-				getDb().updateOutboxEntry(ot.resetToPending());
-			}
+		for (final OutboxTweet ot : getDb().getOutboxEntries(OutboxTweetStatus.PERMANENTLY_FAILED)) {
+			getDb().updateOutboxEntry(ot.resetToPending());
 		}
 	}
 

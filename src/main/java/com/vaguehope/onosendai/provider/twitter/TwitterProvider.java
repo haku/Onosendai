@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import twitter4j.Relationship;
 import twitter4j.ResponseList;
+import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -21,6 +22,7 @@ import twitter4j.conf.ConfigurationBuilder;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
+import com.vaguehope.onosendai.model.TweetBuilder;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.util.ImageMetadata;
 import com.vaguehope.onosendai.util.IoHelper;
@@ -69,7 +71,7 @@ public class TwitterProvider {
 		return TwitterUtils.convertTweet(account, t.showStatus(id), t.getId(), hdMedia, extraMetas, null);
 	}
 
-	public void post (final Account account, final String body, final long inReplyTo, final ImageMetadata media) throws TwitterException, IOException {
+	public Tweet post (final Account account, final String body, final long inReplyTo, final ImageMetadata media) throws TwitterException, IOException {
 		InputStream attachmentIs = null;
 		try {
 			final StatusUpdate s = new StatusUpdate(body);
@@ -78,7 +80,12 @@ public class TwitterProvider {
 				attachmentIs = media.open();
 				s.setMedia(media.getName(), attachmentIs);
 			}
-			getTwitter(account).updateStatus(s);
+			final Status u = getTwitter(account).updateStatus(s);
+
+			return new TweetBuilder()
+					.id(String.valueOf(u.getId()))
+					// TODO fill in other fields?
+					.build();
 		}
 		finally {
 			IoHelper.closeQuietly(attachmentIs);

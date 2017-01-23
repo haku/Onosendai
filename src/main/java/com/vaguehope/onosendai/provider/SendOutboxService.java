@@ -88,8 +88,9 @@ public class SendOutboxService extends DbBindingService {
 				switch (res.getOutcome()) {
 					case SUCCESS:
 					case PREVIOUS_ATTEMPT_SUCCEEDED:
-						LOG.i("Sent (%s): %s", res.getOutcome(), ot);
-						getDb().deleteFromOutbox(ot);
+						final String sid = res.getResponse() != null ? res.getResponse().getSid() : null;
+						LOG.i("Sent (%s, sid=%s): %s", res.getOutcome(), sid, ot);
+						getDb().updateOutboxEntry(ot.markAsSent(sid));
 						break;
 					case TEMPORARY_FAILURE:
 						otStat = ot.tempFailure(res.getEmsg());

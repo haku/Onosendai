@@ -16,6 +16,7 @@ import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetBuilder;
 import com.vaguehope.onosendai.notifications.NotificationIds;
 import com.vaguehope.onosendai.notifications.Notifications;
@@ -96,8 +97,8 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostR
 	private SendResult<PostRequest> postTwitter () {
 		final TwitterProvider p = new TwitterProvider();
 		try {
-			p.post(this.req.getAccount(), this.req.getBody(), this.req.getInReplyToSidLong(), resolveAttachment());
-			return new SendResult<PostRequest>(this.req);
+			final Tweet u = p.post(this.req.getAccount(), this.req.getBody(), this.req.getInReplyToSidLong(), resolveAttachment());
+			return new SendResult<PostRequest>(this.req, u);
 		}
 		catch (final Exception e) { // NOSONAR need to report all errors.
 			return new SendResult<PostRequest>(this.req, e);
@@ -111,7 +112,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostR
 		final SuccessWhaleProvider s = new SuccessWhaleProvider(db);
 		try {
 			s.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody(), this.req.getInReplyToSid(), resolveAttachment());
-			return new SendResult<PostRequest>(this.req);
+			return new SendResult<PostRequest>(this.req, (Tweet) null); // FIXME parse SW response for ID.
 		}
 		catch (final Exception e) { // NOSONAR need to report all errors.
 			return new SendResult<PostRequest>(this.req, e);
@@ -124,7 +125,7 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostR
 	private SendResult<PostRequest> postBufferApp () {
 		final BufferAppProvider b = new BufferAppProvider();
 		try {
-			if (this.req.getInReplyToSid() != null) LOG.w("BufferApp does not support inReplyTo field, ignoring it."); // TODO do not get here.
+			if (this.req.getInReplyToSid() != null) throw new IllegalArgumentException("BufferApp does not support inReplyTo."); // TODO do not get here.
 			if (resolveAttachment() != null) throw new IllegalArgumentException("BufferApp does not support posting images."); // TODO do not get here.
 			b.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody());
 			return new SendResult<PostRequest>(this.req);
