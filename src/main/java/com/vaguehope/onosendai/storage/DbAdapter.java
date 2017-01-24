@@ -1170,6 +1170,20 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public OutboxTweet getOutboxEntry (final long uid) {
+		final List<OutboxTweet> entries = getOutboxEntries(TBL_OB_ID + "=?", new String[] { String.valueOf(uid) });
+		if (entries.size() < 1) {
+			return null;
+		}
+		else if (entries.size() == 1) {
+			return entries.get(0);
+		}
+		else {
+			throw new IllegalStateException("UID matched multiple entries: " + uid);
+		}
+	}
+
+	@Override
 	public List<OutboxTweet> getOutboxEntries (final OutboxTweetStatus status) {
 		if (status == null) throw new IllegalArgumentException("status can not be null.");
 		return getOutboxEntries(TBL_OB_STATUS + "=?", new String[] { String.valueOf(status.getCode()) });

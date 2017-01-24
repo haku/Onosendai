@@ -46,13 +46,13 @@ public class OutboxTweetTest {
 
 	@Test
 	public void itsOkWithNullServiceString () throws Exception {
-		final OutboxTweet ot = new OutboxTweet(null, null, null, null, null, null, null, null, null, null, null, null);
+		final OutboxTweet ot = new OutboxTweet(0L, null, null, null, null, null, null, null, null, null, null, null);
 		assertThat(ot.getSvcMetasList(), is(empty()));
 	}
 
 	@Test
 	public void itsOkWithEmptyServiceString () throws Exception {
-		final OutboxTweet ot = new OutboxTweet(null, null, null, "", null, null, null, null, null, null, null, null);
+		final OutboxTweet ot = new OutboxTweet(0L, null, null, "", null, null, null, null, null, null, null, null);
 		assertThat(ot.getSvcMetasList(), is(empty()));
 	}
 
@@ -60,6 +60,17 @@ public class OutboxTweetTest {
 	public void itConstructsWithAction () throws Exception {
 		final OutboxTweet ot = new OutboxTweet(OutboxAction.RT, this.account, null, null, null, null);
 		assertEquals(OutboxAction.RT, ot.getAction());
+	}
+
+	@Test
+	public void itCreatesTempSid () throws Exception {
+		final OutboxTweet ot = new OutboxTweet(Long.MAX_VALUE, null, null, "", null, null, null, null, null, null, null, null);
+		assertEquals("outbox:" + Long.MAX_VALUE, ot.getTempSid());
+	}
+
+	@Test
+	public void itParsesTempSid () throws Exception {
+		assertEquals(Long.MAX_VALUE, OutboxTweet.uidFromTempSid("outbox:" + Long.MAX_VALUE));
 	}
 
 }

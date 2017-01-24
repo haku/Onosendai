@@ -17,6 +17,7 @@ import com.vaguehope.onosendai.provider.OutboxTask.OtRequest;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
 import com.vaguehope.onosendai.storage.DbBindingService;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.exec.ExecUtils;
 
 public class SendOutboxService extends DbBindingService {
@@ -52,7 +53,7 @@ public class SendOutboxService extends DbBindingService {
 		}
 		LOG.d("Entries to send: %s...", entries.size());
 
-		Config conf;
+		final Config conf;
 		try {
 			final Prefs prefs = new Prefs(getBaseContext());
 			conf = prefs.asConfig();
@@ -66,7 +67,34 @@ public class SendOutboxService extends DbBindingService {
 			final AsyncTask<Void, ?, ? extends SendResult<?>> task;
 			switch (ot.getAction()) {
 				case POST:
-					task = new PostTask(getApplicationContext(), outboxTweetToPostRequest(ot, conf));
+					if (OutboxTweet.isTempSid(ot.getInReplyToSid())) {
+						final long inReplyToObId = OutboxTweet.uidFromTempSid(ot.getInReplyToSid());
+						final OutboxTweet inReplyToObEntry = getDb().getOutboxEntry(inReplyToObId);
+						if (inReplyToObEntry != null) {
+							if (inReplyToObEntry.getStatus() == OutboxTweetStatus.SENT) {
+								if (StringHelper.notEmpty(inReplyToObEntry.getSid())) {
+									// TODO rate limit to avoid Twitter reordering?
+									task = new PostTask(getApplicationContext(), outboxTweetToPostRequest(
+											ot.withInReplyToSid(inReplyToObEntry.getSid()), conf));
+								}
+								else {
+									LOG.w("Unable to send, inReplyToObEntry missing SID: %s", inReplyToObEntry);
+									continue;
+								}
+							}
+							else {
+								LOG.d("Unable to send, temp SID not yet sent: %s", ot);
+								continue;
+							}
+						}
+						else {
+							LOG.w("Unable to send, temp SID not in DB: %s", ot);
+							continue;
+						}
+					}
+					else {
+						task = new PostTask(getApplicationContext(), outboxTweetToPostRequest(ot, conf));
+					}
 					break;
 				case RT:
 					task = new OutboxTask(getApplicationContext(), outboxTweetToOtRequest(OutboxAction.RT, ot, conf));

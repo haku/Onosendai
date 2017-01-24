@@ -103,7 +103,11 @@ public interface DbInterface extends KvStore {
 
 	void addPostToOutput (OutboxTweet ot);
 	void updateOutboxEntry (OutboxTweet ot);
+	OutboxTweet getOutboxEntry(long uid);
 	List<OutboxTweet> getUnsentOutboxEntries();
+	/**
+	 * Returned in ascending ID order.
+	 */
 	List<OutboxTweet> getOutboxEntries(OutboxTweetStatus status);
 	void deleteFromOutbox(OutboxTweet ot);
 

@@ -10,6 +10,7 @@ import java.util.Set;
 import android.net.Uri;
 
 import com.vaguehope.onosendai.config.Account;
+import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.util.ArrayHelper;
 import com.vaguehope.onosendai.util.StringHelper;
@@ -133,7 +134,7 @@ public class OutboxTweet {
 	/**
 	 * From DB.
 	 */
-	public OutboxTweet (final Long uid, final OutboxAction action, final String accountId, final String svcMetas, final String body, final String inReplyToSid, final String attachment,
+	public OutboxTweet (final long uid, final OutboxAction action, final String accountId, final String svcMetas, final String body, final String inReplyToSid, final String attachment,
 			final Integer statusCode, final Long statusTime, final Integer attemptCount, final String lastError,
 			final String sid) {
 		this(uid, action, accountId, svcsStrToList(svcMetas), body, inReplyToSid, safeParseUri(attachment),
@@ -163,6 +164,14 @@ public class OutboxTweet {
 		this(uid, ot.getAction(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), ot.getInReplyToSid(), ot.getAttachment(),
 				ot.getStatus(), ot.getStatusTime(), ot.getAttemptCount(), ot.getLastError(), ot.getSid());
 		if (ot.getUid() != null) throw new IllegalArgumentException(String.format("Can not set uid=%s as already have uid=%s.", uid, ot.getUid()));
+	}
+
+	/**
+	 * Set inReplyToSid when replying to outbox entry.
+	 */
+	private OutboxTweet (final OutboxTweet ot, final String inReplyToSid) {
+		this(ot.getUid(), ot.getAction(), ot.getAccountId(), ot.getSvcMetasList(), ot.getBody(), inReplyToSid, ot.getAttachment(),
+				ot.getStatus(), ot.getStatusTime(), ot.getAttemptCount(), ot.getLastError(), ot.getSid());
 	}
 
 	/**
@@ -283,6 +292,10 @@ public class OutboxTweet {
 		return new OutboxTweet(this, newUid);
 	}
 
+	public OutboxTweet withInReplyToSid (final String newInReplyToSid) {
+		return new OutboxTweet(this, newInReplyToSid);
+	}
+
 	public OutboxTweet withAttachment (final Uri attachment) {
 		return new OutboxTweet(this, attachment);
 	}
@@ -299,6 +312,37 @@ public class OutboxTweet {
 				.append(",").append(this.getAttachmentStr())
 				.append(",").append(this.getLastError())
 				.append("}").toString();
+	}
+
+	public Tweet toTweet (final Config conf) {
+		final Account account = conf.getAccount(this.accountId);
+		return new TweetBuilder()
+				.body(this.body)
+				.fullname(account != null ? account.getUiTitle() : "(unknown account: " + this.accountId + ")")
+				.id(this.sid)
+				.build();
+		// TODO add Metas?
+	}
+
+	private static final String TEMP_SID_PREFIX = "outbox:";
+
+	public String getTempSid () {
+		return TEMP_SID_PREFIX + this.uid;
+	}
+
+	public static boolean isTempSid (final String sid) {
+		if (sid == null) return false;
+		return sid.startsWith(TEMP_SID_PREFIX);
+	}
+
+	public static long uidFromTempSid (final String sid) {
+		if (!isTempSid(sid)) throw new IllegalArgumentException("Not a temp sid: " + sid);
+		try {
+			return Long.parseLong(sid.substring(TEMP_SID_PREFIX.length()));
+		}
+		catch (final NumberFormatException e) {
+			throw new IllegalArgumentException("Invalid temp sid: " + sid, e);
+		}
 	}
 
 	private static Uri safeParseUri (final String s) {

@@ -108,6 +108,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	private HybridBitmapCache imageCache;
 	private ExecutorService exec;
 	private Prefs prefs;
+	private Config conf;
 
 	private AccountAdaptor accountAdaptor;
 	private Spinner spnAccount;
@@ -125,11 +126,10 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		setContentView(R.layout.post);
 
 		Collection<Account> accounts;
-		Config conf;
 		try {
 			this.prefs = new Prefs(getBaseContext());
 			accounts = this.prefs.readAccounts();
-			conf = this.prefs.asConfig();
+			this.conf = this.prefs.asConfig();
 		}
 		catch (final Exception e) { // No point continuing if any exception.
 			DialogHelper.alertAndClose(this, e);
@@ -162,7 +162,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		this.spnAccount.setPadding(0, 0, 0, 0);
 		ab.setCustomView(this.spnAccount);
 
-		setupAccounts(savedInstanceState, accounts, conf);
+		setupAccounts(savedInstanceState, accounts, this.conf);
 
 		setupAttachemnt(savedInstanceState);
 		setupTextBody();
@@ -361,11 +361,19 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	protected void showInReplyToTweetDetails () {
-		Tweet tweet = null;
-		if (this.inReplyToSid != null && this.inReplyToUid > 0L) {
-			final View view = findViewById(R.id.tweetReplyToDetails);
-			view.setVisibility(View.VISIBLE);
-			tweet = getDb().getTweetDetails(this.inReplyToUid);
+		if (this.inReplyToSid != null) {
+			final Tweet tweet;
+			if (this.inReplyToUid > 0L) {
+				tweet = getDb().getTweetDetails(this.inReplyToUid);
+			}
+			else if (OutboxTweet.isTempSid(this.inReplyToSid)) {
+				final OutboxTweet ot = getDb().getOutboxEntry(OutboxTweet.uidFromTempSid(this.inReplyToSid));
+				tweet = ot != null ? ot.toTweet(this.conf) : null;
+			}
+			else {
+				tweet = getDb().getTweetDetails(this.inReplyToSid);
+			}
+
 			if (tweet != null) {
 				LOG.i("inReplyTo:%s", tweet.toFullString());
 				if (!this.enabledPostToAccounts.isServicesPreSpecified()) {
@@ -373,10 +381,27 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 					if (serviceMeta != null) setPostToAccountExclusive(ServiceRef.parseServiceMeta(serviceMeta));
 				}
 
+				final View view = findViewById(R.id.tweetReplyToDetails);
+				view.setVisibility(View.VISIBLE);
+
 				((TextView) view.findViewById(R.id.tweetDetailBody)).setText(tweet.getBody());
-				if (tweet.getAvatarUrl() != null) loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), (ImageView) view.findViewById(R.id.tweetDetailAvatar)));
 				((TextView) view.findViewById(R.id.tweetDetailName)).setText(tweet.getFullname());
-				((TextView) view.findViewById(R.id.tweetDetailDate)).setText(DateHelper.formatDateTime(this, TimeUnit.SECONDS.toMillis(tweet.getTime())));
+
+				final ImageView tweetAvatar = (ImageView) view.findViewById(R.id.tweetDetailAvatar);
+				if (tweet.getAvatarUrl() != null) {
+					loadImage(new ImageLoadRequest(tweet.getAvatarUrl(), tweetAvatar));
+				}
+				else {
+					tweetAvatar.setVisibility(View.GONE);
+				}
+
+				final TextView tweetDate = (TextView) view.findViewById(R.id.tweetDetailDate);
+				if (tweet.getTime() > 0L) {
+					tweetDate.setText(DateHelper.formatDateTime(this, TimeUnit.SECONDS.toMillis(tweet.getTime())));
+				}
+				else {
+					tweetDate.setVisibility(View.GONE);
+				}
 			}
 		}
 		initBody();

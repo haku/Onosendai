@@ -209,13 +209,7 @@ public class OutboxActivity extends Activity {
 	};
 
 	private enum OutboxItemAction implements Titleable {
-		VIEW_ERROR("View Error") { //ES
-			@Override
-			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
-				DialogHelper.alert(oa, ot.getLastError());
-			}
-		},
-		EDIT_AS_NEW("Edit") { //ES
+		EDIT("Edit") { //ES
 			@Override
 			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
 				oa.getDb().updateOutboxEntry(ot.setPaused());
@@ -223,14 +217,25 @@ public class OutboxActivity extends Activity {
 						.putExtra(PostActivity.ARG_ACCOUNT_ID, ot.getAccountId())
 						.putStringArrayListExtra(PostActivity.ARG_SVCS, new ArrayList<String>(ot.getSvcMetasList()))
 						.putExtra(PostActivity.ARG_IN_REPLY_TO_SID, ot.getInReplyToSid())
-						// TODO currently these are not saved in the outbox.
-						// Not specifying these means the preview will not be displayed.
-						// Everything else should work as expected.  Hopefully.
-						// - ARG_IN_REPLY_TO_UID
-						// - ARG_ALT_REPLY_TO_SID
 						.putExtra(PostActivity.ARG_BODY, ot.getBody())
 						.putExtra(PostActivity.ARG_ATTACHMENT, ot.getAttachment())
 						.putExtra(PostActivity.ARG_OUTBOX_UID, ot.getUid().longValue()));
+			}
+		},
+		REPLY("Reply") { //ES
+			@Override
+			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
+				oa.startActivity(new Intent(oa, PostActivity.class)
+						.putExtra(PostActivity.ARG_ACCOUNT_ID, ot.getAccountId())
+						.putStringArrayListExtra(PostActivity.ARG_SVCS, new ArrayList<String>(ot.getSvcMetasList()))
+						.putExtra(PostActivity.ARG_IN_REPLY_TO_SID, ot.getTempSid()));
+			}
+
+		},
+		VIEW_ERROR("View Error") { //ES
+			@Override
+			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
+				DialogHelper.alert(oa, ot.getLastError());
 			}
 		},
 		COPY_BODY("Copy Body") { //ES
