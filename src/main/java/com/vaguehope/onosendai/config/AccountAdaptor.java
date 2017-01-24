@@ -52,9 +52,7 @@ public class AccountAdaptor extends BaseAdapter {
 		AccountAdaptor.AccountRowView rowView;
 		if (view == null) {
 			view = this.layoutInflater.inflate(R.layout.accountlistrow, null);
-			rowView = new AccountRowView(
-					(TextView) view.findViewById(R.id.txtMain)
-					);
+			rowView = new AccountRowView((TextView) view);
 			view.setTag(rowView);
 		}
 		else {

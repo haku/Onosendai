@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -23,16 +24,16 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.method.TextKeyListener;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.MultiAutoCompleteTextView;
-import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -150,7 +151,18 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		LOG.i("inReplyToUid=%d inReplyToSid=%s altReplyToSid=%s mentions=%s outboxUid=%s",
 				this.inReplyToUid, this.inReplyToSid, this.altReplyToSid, Arrays.toString(this.mentions), this.outboxUid);
 
+		final ActionBar ab = getActionBar();
+		ab.setDisplayShowHomeEnabled(false);
+		ab.setDisplayShowTitleEnabled(false);
+		ab.setDisplayShowCustomEnabled(true);
+
+		this.spnAccount = new Spinner(ab.getThemedContext());
+		this.spnAccount.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+		this.spnAccount.setPadding(0, 0, 0, 0);
+		ab.setCustomView(this.spnAccount);
+
 		setupAccounts(savedInstanceState, accounts, conf);
+
 		setupAttachemnt(savedInstanceState);
 		setupTextBody();
 		wireMainButtons();
@@ -239,7 +251,6 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			this.askAccountOnActivate = true;
 		}
 
-		this.spnAccount = (Spinner) findViewById(R.id.spnAccount);
 		this.accountAdaptor = new AccountAdaptor(getBaseContext(), accounts);
 		this.spnAccount.setAdapter(this.accountAdaptor);
 		setSelectedAccount(account);
@@ -266,7 +277,6 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			}
 		}
 		redrawAttachment();
-		((Button) findViewById(R.id.btnMenu)).setOnClickListener(this.menuButtonClickListener);
 	}
 
 	private void setupTextBody () {
@@ -474,49 +484,27 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private static final int SELECT_PICTURE = 105340; // NOSONAR Just a number.
-
-	private ImageMetadata redrawAttachment () {
-		final ImageMetadata metadata = new ImageMetadata(this, this.attachment);
-		final TextView txtAttached = (TextView) findViewById(R.id.txtAttached);
-		txtAttached.setText(getString(R.string.post_attachment_current, metadata.getUiTitle()));
-		txtAttached.setVisibility(metadata.exists() ? View.VISIBLE : View.GONE);
-		return metadata;
+	@Override
+	public boolean onCreateOptionsMenu (final Menu menu) {
+		getMenuInflater().inflate(R.menu.postmenu, menu);
+		return true;
 	}
 
-	protected ImageMetadata setAndRedrawAttachment (final Uri att) {
-		this.attachment = att;
-		return redrawAttachment();
-	}
-
-	private final OnClickListener menuButtonClickListener = new OnClickListener() {
-		@Override
-		public void onClick (final View v) {
-			showMenu(v);
-		}
-	};
-
-	protected void showMenu (final View v) {
-		final PopupMenu popupMenu = new PopupMenu(this, v);
-		popupMenu.getMenuInflater().inflate(R.menu.postmenu, popupMenu.getMenu());
-		popupMenu.setOnMenuItemClickListener(this.menuClickListener);
+	@Override
+	public boolean onPrepareOptionsMenu (final Menu menu) {
 		if (this.attachment == null) {
-			popupMenu.getMenu().findItem(R.id.mnuAttachmentGroup).setVisible(false);
+			menu.findItem(R.id.mnuAttach).setVisible(true);
+			menu.findItem(R.id.mnuAttachmentGroup).setVisible(false);
 		}
 		else {
-			popupMenu.getMenu().findItem(R.id.mnuAttach).setVisible(false);
+			menu.findItem(R.id.mnuAttach).setVisible(false);
+			menu.findItem(R.id.mnuAttachmentGroup).setVisible(true);
 		}
-		popupMenu.show();
+		return true;
 	}
 
-	protected final PopupMenu.OnMenuItemClickListener menuClickListener = new PopupMenu.OnMenuItemClickListener() {
-		@Override
-		public boolean onMenuItemClick (final MenuItem item) {
-			return menuItemClick(item);
-		}
-	};
-
-	protected boolean menuItemClick (final MenuItem item) {
+	@Override
+	public boolean onOptionsItemSelected (final MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.mnuTextFilter:
 				showTextFiltersDlg();
@@ -534,6 +522,23 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			default:
 				return false;
 		}
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private static final int SELECT_PICTURE = 105340; // NOSONAR Just a number.
+
+	private ImageMetadata redrawAttachment () {
+		final ImageMetadata metadata = new ImageMetadata(this, this.attachment);
+		final TextView txtAttached = (TextView) findViewById(R.id.txtAttached);
+		txtAttached.setText(getString(R.string.post_attachment_current, metadata.getUiTitle()));
+		txtAttached.setVisibility(metadata.exists() ? View.VISIBLE : View.GONE);
+		return metadata;
+	}
+
+	protected ImageMetadata setAndRedrawAttachment (final Uri att) {
+		this.attachment = att;
+		return redrawAttachment();
 	}
 
 	private void showTextFiltersDlg () {
