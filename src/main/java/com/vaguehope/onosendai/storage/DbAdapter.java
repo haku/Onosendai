@@ -1170,6 +1170,11 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public List<OutboxTweet> getAllOutboxEntries () {
+		return getOutboxEntries(null, null, 0);
+	}
+
+	@Override
 	public OutboxTweet getOutboxEntry (final long uid) {
 		final List<OutboxTweet> entries = getOutboxEntries(TBL_OB_ID + "=?", new String[] { String.valueOf(uid) }, 2);
 		if (entries.size() < 1) {

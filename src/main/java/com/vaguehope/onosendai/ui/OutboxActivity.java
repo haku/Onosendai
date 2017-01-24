@@ -12,6 +12,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -41,6 +43,8 @@ public class OutboxActivity extends Activity {
 	private DbClient bndDb;
 	private RefreshUiHandler refreshUiHandler;
 	private OutboxAdapter adaptor;
+
+	private boolean showSent = false;
 
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
@@ -154,6 +158,28 @@ public class OutboxActivity extends Activity {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	@Override
+	public boolean onCreateOptionsMenu (final Menu menu) {
+		getMenuInflater().inflate(R.menu.outboxmenu, menu);
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected (final MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.mnuShowSent:
+				item.setChecked(!item.isChecked());
+				item.setTitle(item.isChecked() ? R.string.outbox_menu_hide_sent : R.string.outbox_menu_show_sent);
+				this.showSent = item.isChecked();
+				refreshUi();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	protected OutboxListener getOutboxListener () {
 		return this.outboxListener;
 	}
@@ -191,7 +217,9 @@ public class OutboxActivity extends Activity {
 	private void refreshListOnUiThread () {
 		final DbInterface db = getDb();
 		if (db != null) {
-			final List<OutboxTweet> entries = db.getUnsentOutboxEntries();
+			final List<OutboxTweet> entries = this.showSent
+					? db.getAllOutboxEntries()
+					: db.getUnsentOutboxEntries();
 			this.adaptor.setInputData(entries);
 		}
 		else {
@@ -279,6 +307,8 @@ public class OutboxActivity extends Activity {
 	}
 
 	protected void itemClicked (final OutboxTweet ot) {
+		if (ot.getStatus() == OutboxTweetStatus.SENT) return;
+
 		DialogHelper.askItem(this, "Outbox Item", OutboxItemAction.values(), new Listener<OutboxItemAction>() { //ES
 			@Override
 			public void onAnswer (final OutboxItemAction answer) {

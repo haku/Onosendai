@@ -265,6 +265,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public List<OutboxTweet> getAllOutboxEntries () {
+		return this.dbAdaptor.getAllOutboxEntries();
+	}
+
+	@Override
 	public OutboxTweet getOutboxEntry (final long uid) {
 		return this.dbAdaptor.getOutboxEntry(uid);
 	}

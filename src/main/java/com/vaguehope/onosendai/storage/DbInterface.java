@@ -105,6 +105,7 @@ public interface DbInterface extends KvStore {
 	void updateOutboxEntry (OutboxTweet ot);
 	OutboxTweet getOutboxEntry(long uid);
 	List<OutboxTweet> getUnsentOutboxEntries();
+	List<OutboxTweet> getAllOutboxEntries();
 	/**
 	 * Returned in ascending ID order.
 	 */

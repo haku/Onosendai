@@ -180,6 +180,8 @@
 
 <!-- Outbox. -->
 	<string name="outbox_title">Onosendai Outbox</string>
+	<string name="outbox_menu_show_sent">Show Sent</string>
+	<string name="outbox_menu_hide_sent">Hide Sent</string>
 	<string name="outbox_btn_reset_failures">Reset Failures</string>
 	<string name="outbox_btn_send_pending">Send Pending</string>
 	<string name="outbox_lbl_is_empty">Outbox is empty.</string>
