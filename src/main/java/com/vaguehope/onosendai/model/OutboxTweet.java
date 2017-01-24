@@ -67,7 +67,7 @@ public class OutboxTweet {
 		UNKNOWN(0, "Unknown"), //ES
 		PENDING(1, "Pending"), //ES
 		PERMANENTLY_FAILED(2, "Failed"), //ES
-		PAUSED(3, "Paused"), //ES
+		PAUSED(3, "Draft"), //ES
 		SENT(4, "Sent"); //ES
 
 		private final int code;
@@ -127,7 +127,7 @@ public class OutboxTweet {
 	 * Initial.
 	 */
 	public OutboxTweet (final OutboxAction action, final Account account, final Set<ServiceRef> svcs, final String body, final String inReplyToSid, final Uri attachment) {
-		this(null, action, account.getId(), svcsToList(svcs), body, inReplyToSid, attachment, OutboxTweetStatus.PENDING, null, 0, null, null);
+		this(null, action, account.getId(), svcsToList(svcs), body, inReplyToSid, attachment, OutboxTweetStatus.UNKNOWN, null, 0, null, null);
 	}
 
 	/**
@@ -267,7 +267,7 @@ public class OutboxTweet {
 		return new OutboxTweet(this, OutboxTweetStatus.PENDING, System.currentTimeMillis(), getAttemptCount() + 1, error);
 	}
 
-	public OutboxTweet resetToPending () {
+	public OutboxTweet setPending () {
 		return new OutboxTweet(this, OutboxTweetStatus.PENDING, System.currentTimeMillis(), getAttemptCount(), getLastError());
 	}
 

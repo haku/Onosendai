@@ -52,6 +52,7 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.OutboxTweet;
 import com.vaguehope.onosendai.model.OutboxTweet.OutboxAction;
+import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.EnabledServiceRefs;
 import com.vaguehope.onosendai.provider.SendOutboxService;
@@ -415,6 +416,29 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	protected OutboxTweet makeOutboxTweet (final Account account, final Set<ServiceRef> svcs) {
+		final String replyToSidToSubmit;
+		if (!StringHelper.isEmpty(this.altReplyToSid)) {
+			replyToSidToSubmit = this.altReplyToSid;
+		}
+		else {
+			replyToSidToSubmit = this.inReplyToSid;
+		}
+
+		return new OutboxTweet(OutboxAction.POST, account, svcs, this.txtBody.getText().toString(), replyToSidToSubmit, this.attachment);
+	}
+
+	protected void writeToOutput (final OutboxTweet ot) {
+		new SubmitToOutboxTask(this, ot, this.outboxUid).execute();
+	}
+
+	private void saveDraft () {
+		final Account account = getSelectedAccount();
+		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
+		final OutboxTweet ot = makeOutboxTweet(account, svcs).setPaused();
+		writeToOutput(ot);
+	}
+
 	protected void askPost () {
 		final Account account = getSelectedAccount();
 		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
@@ -435,7 +459,8 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
-				submitPostToOutput(account, svcs);
+				final OutboxTweet ot = makeOutboxTweet(account, svcs).setPending();
+				writeToOutput(ot);
 			}
 		});
 
@@ -447,17 +472,6 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		});
 
 		dlgBld.show();
-	}
-
-	private String getReplyToSidToSubmit () {
-		if (!StringHelper.isEmpty(this.altReplyToSid)) return this.altReplyToSid;
-		return this.inReplyToSid;
-	}
-
-	protected void submitPostToOutput (final Account account, final Set<ServiceRef> svcs) {
-		new SubmitToOutboxTask(this,
-				new OutboxTweet(OutboxAction.POST, account, svcs, this.txtBody.getText().toString(), getReplyToSidToSubmit(), this.attachment),
-				this.outboxUid).execute();
 	}
 
 	private final OnItemSelectedListener accountOnItemSelectedListener = new OnItemSelectedListener() {
@@ -509,6 +523,10 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			case R.id.mnuTextFilter:
 				showTextFiltersDlg();
 				return true;
+			case R.id.mnuSaveAsDraft:
+				saveDraft();
+				return true;
+
 			case R.id.mnuAttach:
 			case R.id.mnuAttachmentChange:
 				askChoosePicture();
@@ -690,7 +708,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 
 		@Override
 		protected void onPreExecute () {
-			this.dialog = ProgressDialog.show(getContext(), "Adding to Outbox", "...", true); //ES
+			this.dialog = ProgressDialog.show(getContext(), "Writing to Outbox", "...", true); //ES
 		}
 
 		@Override
@@ -719,13 +737,15 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				else {
 					otToAdd = this.ot;
 				}
+
 				publishProgress("Writing to Outbox..."); //ES
 				if (this.outboxUid == null) {
 					db.addPostToOutput(otToAdd);
 				}
 				else {
-					db.updateOutboxEntry(otToAdd.withUid(this.outboxUid).resetToPending());
+					db.updateOutboxEntry(otToAdd.withUid(this.outboxUid));
 				}
+
 				return null;
 			}
 			catch (final IOException e) {
@@ -737,15 +757,24 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		protected void onPostExecute (final Exception result) {
 			this.dialog.dismiss();
 			if (result == null) {
-				final String msg;
-				if (this.outboxUid == null) {
-					msg = "Posted via Outbox"; //ES
+				if (this.ot.getStatus() == OutboxTweetStatus.PENDING) {
+					getContext().startService(new Intent(getContext(), SendOutboxService.class));
+
+					final String msg;
+					if (this.outboxUid == null) {
+						msg = "Posted via Outbox"; //ES
+					}
+					else {
+						msg = "Updated Outbox item"; //ES
+					}
+					Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+				}
+				else if (this.ot.getStatus() == OutboxTweetStatus.PAUSED) {
+					Toast.makeText(getContext(), "Draft Saved to Outbox", Toast.LENGTH_SHORT).show(); //ES
 				}
 				else {
-					msg = "Updated Outbox item"; //ES
+					LOG.w("Unexpected OT status: " + this.ot.getStatus());
 				}
-				getContext().startService(new Intent(getContext(), SendOutboxService.class));
-				Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
 				this.activity.finish();
 			}
 			else {

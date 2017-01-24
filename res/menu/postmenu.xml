@@ -31,5 +31,9 @@
 			android:id="@+id/mnuTextFilter"
 			android:title="@string/post_menu_text_filters" />
 
+		<item
+			android:id="@+id/mnuSaveAsDraft"
+			android:title="@string/post_menu_save_as_draft" />
+
 	</group>
 </menu>

@@ -38,7 +38,10 @@ public final class OutboxActionFactory {
 				final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
 				if (svcMeta != null) {
 					final ServiceRef svc = ServiceRef.parseServiceMeta(svcMeta);
-					if (svc != null) return new OutboxTweet(action, account, Collections.singleton(svc), actionBody(action, tweet), sid, null);
+					if (svc != null) {
+						return new OutboxTweet(action, account, Collections.singleton(svc), actionBody(action, tweet), sid, null)
+								.setPending();
+					}
 					throw new IllegalStateException("Invalid service metadata: " + svcMeta.getData());
 				}
 				throw new IllegalStateException("Service metadata missing from: " + tweet);
