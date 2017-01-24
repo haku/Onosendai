@@ -1166,12 +1166,12 @@ public class DbAdapter implements DbInterface {
 	public List<OutboxTweet> getUnsentOutboxEntries () {
 		return getOutboxEntries(
 				TBL_OB_STATUS + "!=?",
-				new String[] { String.valueOf(OutboxTweetStatus.SENT.getCode()) });
+				new String[] { String.valueOf(OutboxTweetStatus.SENT.getCode()) }, 0);
 	}
 
 	@Override
 	public OutboxTweet getOutboxEntry (final long uid) {
-		final List<OutboxTweet> entries = getOutboxEntries(TBL_OB_ID + "=?", new String[] { String.valueOf(uid) });
+		final List<OutboxTweet> entries = getOutboxEntries(TBL_OB_ID + "=?", new String[] { String.valueOf(uid) }, 2);
 		if (entries.size() < 1) {
 			return null;
 		}
@@ -1186,10 +1186,10 @@ public class DbAdapter implements DbInterface {
 	@Override
 	public List<OutboxTweet> getOutboxEntries (final OutboxTweetStatus status) {
 		if (status == null) throw new IllegalArgumentException("status can not be null.");
-		return getOutboxEntries(TBL_OB_STATUS + "=?", new String[] { String.valueOf(status.getCode()) });
+		return getOutboxEntries(TBL_OB_STATUS + "=?", new String[] { String.valueOf(status.getCode()) }, 0);
 	}
 
-	private List<OutboxTweet> getOutboxEntries (final String where, final String[] whereArgs) {
+	private List<OutboxTweet> getOutboxEntries (final String where, final String[] whereArgs, final int numberOf) {
 		if (!checkDbOpen()) return null;
 		Cursor c = null;
 		try {
@@ -1198,7 +1198,8 @@ public class DbAdapter implements DbInterface {
 							TBL_OB_STATUS, TBL_OB_STATUS_TIME, TBL_OB_ATTEMPT_COUNT, TBL_OB_LAST_ERROR, TBL_OB_SID },
 					where, whereArgs,
 					null, null,
-					TBL_OB_ID + " asc", null);
+					TBL_OB_ID + " asc",
+					numberOf > 0 ? String.valueOf(numberOf) : null);
 
 			if (c != null && c.moveToFirst()) {
 				final int colId = c.getColumnIndex(TBL_OB_ID);
@@ -1458,6 +1459,7 @@ public class DbAdapter implements DbInterface {
 		if (!checkDbOpen()) return;
 		pruneMetadataTable();
 		pruneCachedStringsTable();
+		pruneOutbox();
 		vacuum();
 	}
 
@@ -1487,6 +1489,30 @@ public class DbAdapter implements DbInterface {
 		finally {
 			this.mDb.endTransaction();
 		}
+	}
+
+	private void pruneOutbox () {
+		final long deleteBeforeMillis = System.currentTimeMillis() - C.OUTBOX_SENT_EXPIRY_MILLIS;
+		final List<OutboxTweet> oldEntrues = getOutboxEntries(
+				TBL_OB_STATUS + "=? AND " + TBL_OB_STATUS_TIME + "<?",
+				new String[] {
+						String.valueOf(OutboxTweetStatus.SENT.getCode()),
+						String.valueOf(deleteBeforeMillis) },
+				100);
+		int count = 0;
+		for (final OutboxTweet oldEntry : oldEntrues) {
+			final Cursor c = this.mDb.query(true, TBL_OB,
+					new String[] { TBL_OB_ID },
+					TBL_OB_IN_REPLY_TO_SID + "=? AND " + TBL_OB_STATUS + "!=?",
+					new String[] {
+							oldEntry.getTempSid(),
+							String.valueOf(OutboxTweetStatus.SENT.getCode()) },
+					null, null, null, "1");
+			if (c.moveToFirst()) continue;
+			deleteFromOutbox(oldEntry);
+			count += 1;
+		}
+		this.log.i("Pruned table %s: deleted %d rows older than %s.", TBL_OB, count, deleteBeforeMillis);
 	}
 
 	private void vacuum () {

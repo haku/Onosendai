@@ -49,6 +49,7 @@ public final class C {
 	public static final int UPDATER_MAX_THREADS = 3;
 	public static final int SEND_OUTBOX_MAX_THREADS = 1;
 	public static final long SEND_OUTBOX_THREAD_POST_RATE_LIMIT_MILLIS = TimeUnit.SECONDS.toMillis(3);
+	public static final long OUTBOX_SENT_EXPIRY_MILLIS = TimeUnit.DAYS.toMillis(10);
 
 	// For main activity.
 	public static final int LOCAL_MAX_THREADS = 1;
