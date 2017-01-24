@@ -73,7 +73,17 @@ public class SendOutboxService extends DbBindingService {
 						if (inReplyToObEntry != null) {
 							if (inReplyToObEntry.getStatus() == OutboxTweetStatus.SENT) {
 								if (StringHelper.notEmpty(inReplyToObEntry.getSid())) {
-									// TODO rate limit to avoid Twitter reordering?
+									if (inReplyToObEntry.getStatusTime() != null) {
+										final long toWait = C.SEND_OUTBOX_THREAD_POST_RATE_LIMIT_MILLIS
+												- (System.currentTimeMillis() - inReplyToObEntry.getStatusTime());
+										if (toWait > 0) {
+											LOG.i("Sleeping %sms to rate limit posting.", toWait);
+											try {
+												Thread.sleep(toWait);
+											}
+											catch (InterruptedException e) {/* Ignore. */}
+										}
+									}
 									task = new PostTask(getApplicationContext(), outboxTweetToPostRequest(
 											ot.withInReplyToSid(inReplyToObEntry.getSid()), conf));
 								}
