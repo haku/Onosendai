@@ -163,6 +163,7 @@
 	<string name="post_menu_shrink">Shrink</string>
 	<string name="post_menu_remove">Remove</string>
 	<string name="post_menu_text_filters">Text Filters</string>
+	<string name="post_menu_save_as_draft">Save as Draft</string>
 	<string name="post_account_dlg_title">Post to Account</string>
 	<string name="post_attachment_current">Attachment: %s</string>
 	<string name="post_attachment_ask_select">Select Picture</string>
