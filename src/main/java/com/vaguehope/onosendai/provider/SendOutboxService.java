@@ -22,6 +22,8 @@ import com.vaguehope.onosendai.util.exec.ExecUtils;
 
 public class SendOutboxService extends DbBindingService {
 
+	public static final String ARG_TRY_SEND_ALL = "try_send_all";
+
 	protected static final LogWrapper LOG = new LogWrapper("SS");
 
 	private ExecutorService es;
@@ -63,7 +65,17 @@ public class SendOutboxService extends DbBindingService {
 			return;
 		}
 
+		final boolean trySendAll = i.getBooleanExtra(ARG_TRY_SEND_ALL, false);
+
 		for (final OutboxTweet ot : entries) {
+			if (!trySendAll && ot.getStatusTime() != null && ot.getAttemptCount() > 0) {
+				final long toWait = C.SEND_OUTBOX_RETRY_WAIT_MILLIS - (System.currentTimeMillis() - ot.getStatusTime());
+				if (toWait > 0L) {
+					LOG.i("Waiting at least %sms before retrying: %s", toWait, ot);
+					continue;
+				}
+			}
+
 			final AsyncTask<Void, ?, ? extends SendResult<?>> task = makeTask(conf, ot);
 			if (task != null) executeTask(ot, task);
 		}

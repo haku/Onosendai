@@ -82,7 +82,7 @@ public class OutboxActivity extends Activity {
 		((Button) findViewById(R.id.sendPending)).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick (final View v) {
-				scheduleSend();
+				requestSendPendingNow();
 			}
 		});
 	}
@@ -362,8 +362,9 @@ public class OutboxActivity extends Activity {
 		}
 	}
 
-	protected void scheduleSend () {
-		startService(new Intent(this, SendOutboxService.class));
+	protected void requestSendPendingNow () {
+		startService(new Intent(this, SendOutboxService.class)
+					.putExtra(SendOutboxService.ARG_TRY_SEND_ALL, true));
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
