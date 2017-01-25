@@ -26,14 +26,18 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.model.OutboxAdapter;
 import com.vaguehope.onosendai.model.OutboxTweet;
+import com.vaguehope.onosendai.model.OutboxTweet.OutboxAction;
 import com.vaguehope.onosendai.model.OutboxTweet.OutboxTweetStatus;
 import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.OutboxListener;
+import com.vaguehope.onosendai.util.CollectionHelper;
+import com.vaguehope.onosendai.util.CollectionHelper.Function;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.Titleable;
 
 public class OutboxActivity extends Activity {
@@ -249,6 +253,11 @@ public class OutboxActivity extends Activity {
 						.putExtra(PostActivity.ARG_ATTACHMENT, ot.getAttachment())
 						.putExtra(PostActivity.ARG_OUTBOX_UID, ot.getUid().longValue()));
 			}
+
+			@Override
+			public boolean applicable (final OutboxTweet ot) {
+				return ot.getStatus() != OutboxTweetStatus.SENT && ot.getAction() == OutboxAction.POST;
+			}
 		},
 		REPLY("Reply") { //ES
 			@Override
@@ -259,11 +268,20 @@ public class OutboxActivity extends Activity {
 						.putExtra(PostActivity.ARG_IN_REPLY_TO_SID, ot.getTempSid()));
 			}
 
+			@Override
+			public boolean applicable (final OutboxTweet ot) {
+				return ot.getStatus() != OutboxTweetStatus.SENT && ot.getAction() == OutboxAction.POST;
+			}
 		},
 		VIEW_ERROR("View Error") { //ES
 			@Override
 			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
 				DialogHelper.alert(oa, ot.getLastError());
+			}
+
+			@Override
+			public boolean applicable (final OutboxTweet ot) {
+				return StringHelper.notEmpty(ot.getLastError());
 			}
 		},
 		COPY_BODY("Copy Body") { //ES
@@ -272,12 +290,22 @@ public class OutboxActivity extends Activity {
 				((ClipboardManager) oa.getSystemService(Context.CLIPBOARD_SERVICE))
 						.setPrimaryClip(ClipData.newPlainText("Tweet", ot.getBody())); //ES
 			}
+
+			@Override
+			public boolean applicable (final OutboxTweet ot) {
+				return ot.getAction() == OutboxAction.POST;
+			}
 		},
 		COPY_ERROR("Copy Error") { //ES
 			@Override
 			public void onClick (final OutboxActivity oa, final OutboxTweet ot) {
 				((ClipboardManager) oa.getSystemService(Context.CLIPBOARD_SERVICE))
 						.setPrimaryClip(ClipData.newPlainText("Error Message", ot.getLastError())); //ES
+			}
+
+			@Override
+			public boolean applicable (final OutboxTweet ot) {
+				return StringHelper.notEmpty(ot.getLastError());
 			}
 		},
 		DELETE("Delete") { //ES
@@ -289,6 +317,11 @@ public class OutboxActivity extends Activity {
 						oa.getDb().deleteFromOutbox(ot);
 					}
 				});
+			}
+
+			@Override
+			public boolean applicable (final OutboxTweet ot) {
+				return ot.getStatus() != OutboxTweetStatus.SENT;
 			}
 		};
 
@@ -303,13 +336,19 @@ public class OutboxActivity extends Activity {
 			return this.title;
 		}
 
+		public abstract boolean applicable (OutboxTweet ot);
 		public abstract void onClick (OutboxActivity oa, OutboxTweet ot);
 	}
 
 	protected void itemClicked (final OutboxTweet ot) {
-		if (ot.getStatus() == OutboxTweetStatus.SENT) return;
+		final List<OutboxItemAction> actions = CollectionHelper.filter(OutboxItemAction.values(), new Function<OutboxItemAction, Boolean>() {
+			@Override
+			public Boolean exec (final OutboxItemAction input) {
+				return input.applicable(ot);
+			}
+		}, new ArrayList<OutboxItemAction>());
 
-		DialogHelper.askItem(this, "Outbox Item", OutboxItemAction.values(), new Listener<OutboxItemAction>() { //ES
+		DialogHelper.askItem(this, "Outbox Item", actions, new Listener<OutboxItemAction>() { //ES
 			@Override
 			public void onAnswer (final OutboxItemAction answer) {
 				answer.onClick(OutboxActivity.this, ot);

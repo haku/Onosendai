@@ -27,6 +27,17 @@ public final class CollectionHelper {
 		return output;
 	}
 
+	public static <J, I extends J, C extends Collection<I>> C filter (final I[] input, final Function<J, Boolean> funciton, final C output) {
+		return filter(Arrays.asList(input), funciton, output);
+	}
+
+	public static <J, I extends J, C extends Collection<I>> C filter (final Collection<I> input, final Function<J, Boolean> funciton, final C output) {
+		for (final I i : input) {
+			if (funciton.exec(i)) output.add(i);
+		}
+		return output;
+	}
+
 	public interface Function<I, O> {
 		O exec(I input);
 	}
