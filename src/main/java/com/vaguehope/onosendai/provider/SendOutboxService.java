@@ -64,92 +64,64 @@ public class SendOutboxService extends DbBindingService {
 		}
 
 		for (final OutboxTweet ot : entries) {
-			final AsyncTask<Void, ?, ? extends SendResult<?>> task;
-			switch (ot.getAction()) {
-				case POST:
-					if (OutboxTweet.isTempSid(ot.getInReplyToSid())) {
-						final long inReplyToObId = OutboxTweet.uidFromTempSid(ot.getInReplyToSid());
-						final OutboxTweet inReplyToObEntry = getDb().getOutboxEntry(inReplyToObId);
-						if (inReplyToObEntry != null) {
-							if (inReplyToObEntry.getStatus() == OutboxTweetStatus.SENT) {
-								if (StringHelper.notEmpty(inReplyToObEntry.getSid())) {
-									if (inReplyToObEntry.getStatusTime() != null) {
-										final long toWait = C.SEND_OUTBOX_THREAD_POST_RATE_LIMIT_MILLIS
-												- (System.currentTimeMillis() - inReplyToObEntry.getStatusTime());
-										if (toWait > 0) {
-											LOG.i("Sleeping %sms to rate limit posting.", toWait);
-											try {
-												Thread.sleep(toWait);
-											}
-											catch (InterruptedException e) {/* Ignore. */}
-										}
-									}
-									task = new PostTask(getApplicationContext(), outboxTweetToPostRequest(
-											ot.withInReplyToSid(inReplyToObEntry.getSid()), conf));
-								}
-								else {
-									LOG.w("Unable to send, inReplyToObEntry missing SID: %s", inReplyToObEntry);
-									continue;
-								}
-							}
-							else {
-								LOG.d("Unable to send, temp SID not yet sent: %s", ot);
-								continue;
-							}
-						}
-						else {
-							LOG.w("Unable to send, temp SID not in DB: %s", ot);
-							continue;
-						}
-					}
-					else {
-						task = new PostTask(getApplicationContext(), outboxTweetToPostRequest(ot, conf));
-					}
-					break;
-				case RT:
-					task = new OutboxTask(getApplicationContext(), outboxTweetToOtRequest(OutboxAction.RT, ot, conf));
-					break;
-				case FAV:
-					task = new OutboxTask(getApplicationContext(), outboxTweetToOtRequest(OutboxAction.FAV, ot, conf));
-					break;
-				case DELETE:
-					task = new OutboxTask(getApplicationContext(), outboxTweetToOtRequest(OutboxAction.DELETE, ot, conf));
-					break;
-				default:
-					throw new IllegalStateException("Do not know how to process action: " + ot.getAction());
-			}
+			final AsyncTask<Void, ?, ? extends SendResult<?>> task = makeTask(conf, ot);
+			if (task != null) executeTask(ot, task);
+		}
+	}
 
-			task.executeOnExecutor(this.es);
-			OutboxTweet otStat = null;
-			try {
-				final SendResult<?> res = task.get();
-				switch (res.getOutcome()) {
-					case SUCCESS:
-					case PREVIOUS_ATTEMPT_SUCCEEDED:
-						final String sid = res.getResponse() != null ? res.getResponse().getSid() : null;
-						LOG.i("Sent (%s, sid=%s): %s", res.getOutcome(), sid, ot);
-						getDb().updateOutboxEntry(ot.markAsSent(sid));
-						break;
-					case TEMPORARY_FAILURE:
-						otStat = ot.tempFailure(res.getEmsg());
-						break;
-					default:
-						otStat = ot.permFailure(res.getEmsg());
+	private AsyncTask<Void, ?, ? extends SendResult<?>> makeTask (final Config conf, final OutboxTweet ot) {
+		switch (ot.getAction()) {
+			case POST:
+				if (OutboxTweet.isTempSid(ot.getInReplyToSid())) {
+					return makePostTaskReplacingTempSid(conf, ot);
+				}
+				else {
+					return new PostTask(getApplicationContext(), outboxTweetToPostRequest(ot, conf));
+				}
+			case RT:
+				return new OutboxTask(getApplicationContext(), outboxTweetToOtRequest(OutboxAction.RT, ot, conf));
+			case FAV:
+				return new OutboxTask(getApplicationContext(), outboxTweetToOtRequest(OutboxAction.FAV, ot, conf));
+			case DELETE:
+				return new OutboxTask(getApplicationContext(), outboxTweetToOtRequest(OutboxAction.DELETE, ot, conf));
+			default:
+				throw new IllegalStateException("Do not know how to process action: " + ot.getAction());
+		}
+	}
+
+	private AsyncTask<Void, ?, ? extends SendResult<?>> makePostTaskReplacingTempSid (final Config conf, final OutboxTweet ot) {
+		final long inReplyToObId = OutboxTweet.uidFromTempSid(ot.getInReplyToSid());
+		final OutboxTweet inReplyToObEntry = getDb().getOutboxEntry(inReplyToObId);
+		if (inReplyToObEntry != null) {
+			if (inReplyToObEntry.getStatus() == OutboxTweetStatus.SENT) {
+				if (StringHelper.notEmpty(inReplyToObEntry.getSid())) {
+					if (inReplyToObEntry.getStatusTime() != null) {
+						final long toWait = C.SEND_OUTBOX_THREAD_POST_RATE_LIMIT_MILLIS
+								- (System.currentTimeMillis() - inReplyToObEntry.getStatusTime());
+						if (toWait > 0) {
+							LOG.i("Sleeping %sms to rate limit posting.", toWait);
+							try {
+								Thread.sleep(toWait);
+							}
+							catch (InterruptedException e) {/* Ignore. */}
+						}
+					}
+					return new PostTask(getApplicationContext(), outboxTweetToPostRequest(
+							ot.withInReplyToSid(inReplyToObEntry.getSid()), conf));
+				}
+				else {
+					LOG.w("Unable to send, inReplyToObEntry missing SID: %s", inReplyToObEntry);
+					return null;
 				}
 			}
-			catch (final Exception e) { // NOSONAR report all errors.
-				switch (TaskUtils.failureType(e)) {
-					case TEMPORARY_FAILURE:
-						otStat = ot.tempFailure(e.toString());
-						break;
-					default:
-						otStat = ot.permFailure(e.toString());
-				}
+			else {
+				LOG.d("Unable to send, temp SID not yet sent: %s", ot);
+				return null;
 			}
-			if (otStat != null) {
-				LOG.w("Send failed: %s", otStat.getLastError());
-				getDb().updateOutboxEntry(otStat);
-			}
+		}
+		else {
+			LOG.w("Unable to send, temp SID not in DB: %s", ot);
+			return null;
 		}
 	}
 
@@ -171,6 +143,40 @@ public class SendOutboxService extends DbBindingService {
 		if (set == null || set.size() < 1) return null;
 		if (set.size() == 1) return set.iterator().next();
 		throw new IllegalStateException("Expected set " + set + " to contain at most one entry.");
+	}
+
+	private void executeTask (final OutboxTweet ot, final AsyncTask<Void, ?, ? extends SendResult<?>> task) {
+		task.executeOnExecutor(this.es);
+		OutboxTweet otStat = null;
+		try {
+			final SendResult<?> res = task.get();
+			switch (res.getOutcome()) {
+				case SUCCESS:
+				case PREVIOUS_ATTEMPT_SUCCEEDED:
+					final String sid = res.getResponse() != null ? res.getResponse().getSid() : null;
+					LOG.i("Sent (%s, sid=%s): %s", res.getOutcome(), sid, ot);
+					getDb().updateOutboxEntry(ot.markAsSent(sid));
+					break;
+				case TEMPORARY_FAILURE:
+					otStat = ot.tempFailure(res.getEmsg());
+					break;
+				default:
+					otStat = ot.permFailure(res.getEmsg());
+			}
+		}
+		catch (final Exception e) { // NOSONAR report all errors.
+			switch (TaskUtils.failureType(e)) {
+				case TEMPORARY_FAILURE:
+					otStat = ot.tempFailure(e.toString());
+					break;
+				default:
+					otStat = ot.permFailure(e.toString());
+			}
+		}
+		if (otStat != null) {
+			LOG.w("Send failed: %s", otStat.getLastError());
+			getDb().updateOutboxEntry(otStat);
+		}
 	}
 
 }
