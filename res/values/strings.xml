@@ -176,6 +176,8 @@
 	<string name="post_confirm_post_subaccounts">Post to these %1$s accounts?\n%2$s</string>
 	<string name="post_confirm_post_btn_post">Post</string>
 	<string name="post_confirm_post_btn_update_post">Update Post</string>
+	<string name="post_confirm_post_btn_post_and_continue">Post and Continue</string>
+	<string name="post_confirm_post_btn_update_post_and_continue">Update Post and Continue</string>
 	<string name="post_confirm_post_btn_cancel">Cancel</string>
 
 <!-- Outbox. -->

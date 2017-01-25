@@ -101,7 +101,7 @@ public interface DbInterface extends KvStore {
 		void scrollStored(int columnId);
 	}
 
-	void addPostToOutput (OutboxTweet ot);
+	long addPostToOutput (OutboxTweet ot);
 	void updateOutboxEntry (OutboxTweet ot);
 	OutboxTweet getOutboxEntry(long uid);
 	List<OutboxTweet> getUnsentOutboxEntries();

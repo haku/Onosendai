@@ -250,8 +250,8 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public void addPostToOutput (final OutboxTweet ot) {
-		this.dbAdaptor.addPostToOutput(ot);
+	public long addPostToOutput (final OutboxTweet ot) {
+		return this.dbAdaptor.addPostToOutput(ot);
 	}
 
 	@Override

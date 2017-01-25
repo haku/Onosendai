@@ -1106,9 +1106,10 @@ public class DbAdapter implements DbInterface {
 			+ ");";
 
 	@Override
-	public void addPostToOutput (final OutboxTweet ot) {
+	public long addPostToOutput (final OutboxTweet ot) {
 		if (ot.getUid() != null) throw new IllegalArgumentException("Can not add entry that is already in DB.");
 		this.mDb.beginTransaction();
+		final long newId;
 		try {
 			final ContentValues values = new ContentValues();
 			values.put(TBL_OB_ACTION, ot.getAction().getCode());
@@ -1122,7 +1123,8 @@ public class DbAdapter implements DbInterface {
 			values.put(TBL_OB_ATTEMPT_COUNT, ot.getAttemptCount());
 			values.put(TBL_OB_LAST_ERROR, ot.getLastError());
 			values.put(TBL_OB_SID, ot.getSid());
-			this.mDb.insert(TBL_OB, null, values);
+			newId = this.mDb.insert(TBL_OB, null, values);
+			if (newId < 0) throw new IllegalStateException("Outbox insert failed: id=" + newId);
 			this.mDb.setTransactionSuccessful();
 		}
 		finally {
@@ -1130,6 +1132,7 @@ public class DbAdapter implements DbInterface {
 		}
 		this.log.d("Stored in outbox: %s", ot);
 		notifyOutboxListeners();
+		return newId;
 	}
 
 	@Override

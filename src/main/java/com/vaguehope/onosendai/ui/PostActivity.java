@@ -17,6 +17,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
@@ -315,7 +316,14 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		btnPost.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick (final View v) {
-				askPost();
+				askPost(false);
+			}
+		});
+		btnPost.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick (final View v) {
+				askPost(true);
+				return true;
 			}
 		});
 		if (this.outboxUid != null) btnPost.setText(R.string.post_btn_update_post);
@@ -450,21 +458,28 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 			replyToSidToSubmit = this.inReplyToSid;
 		}
 
-		return new OutboxTweet(OutboxAction.POST, account, svcs, this.txtBody.getText().toString(), replyToSidToSubmit, this.attachment);
-	}
-
-	protected void writeToOutput (final OutboxTweet ot) {
-		new SubmitToOutboxTask(this, ot, this.outboxUid).execute();
+		final OutboxTweet ot = new OutboxTweet(OutboxAction.POST, account, svcs, this.txtBody.getText().toString(), replyToSidToSubmit, this.attachment);
+		if (this.outboxUid != null) {
+			return ot.withUid(this.outboxUid);
+		}
+		else {
+			return ot;
+		}
 	}
 
 	private void saveDraft () {
 		final Account account = getSelectedAccount();
 		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
 		final OutboxTweet ot = makeOutboxTweet(account, svcs).setPaused();
-		writeToOutput(ot);
+		new SubmitToOutboxTask(this, ot, new Listener<Long>() {
+			@Override
+			public void onAnswer (final Long newId) {
+				finish();
+			}
+		}).execute();
 	}
 
-	protected void askPost () {
+	protected void askPost (final boolean andContinue) {
 		final Account account = getSelectedAccount();
 		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(this);
@@ -480,12 +495,24 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		}
 		dlgBld.setMessage(msg);
 
-		dlgBld.setPositiveButton(this.outboxUid == null ? R.string.post_confirm_post_btn_post : R.string.post_confirm_post_btn_update_post,
+		final int msgId;
+		if (andContinue) {
+			msgId = this.outboxUid == null
+					? R.string.post_confirm_post_btn_post_and_continue
+					: R.string.post_confirm_post_btn_update_post_and_continue;
+		}
+		else {
+			msgId = this.outboxUid == null
+					? R.string.post_confirm_post_btn_post
+					: R.string.post_confirm_post_btn_update_post;
+		}
+
+		dlgBld.setPositiveButton(msgId,
 				new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
 				final OutboxTweet ot = makeOutboxTweet(account, svcs).setPending();
-				writeToOutput(ot);
+				submitPost(ot, andContinue);
 			}
 		});
 
@@ -497,6 +524,22 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		});
 
 		dlgBld.show();
+	}
+
+	protected void submitPost (final OutboxTweet ot, final boolean andContinue) {
+		new SubmitToOutboxTask(this, ot, new Listener<Long>() {
+			@Override
+			public void onAnswer (final Long newId) {
+				if (andContinue) {
+					startActivity(new Intent(PostActivity.this, PostActivity.class)
+							.putExtra(PostActivity.ARG_ACCOUNT_ID, ot.getAccountId())
+							.putStringArrayListExtra(PostActivity.ARG_SVCS, new ArrayList<String>(ot.getSvcMetasList()))
+							.putExtra(PostActivity.ARG_IN_REPLY_TO_SID,
+									(ot.getUid() == null ? ot.withUid(newId) : ot).getTempSid()));
+				}
+				finish();
+			}
+		}).execute();
 	}
 
 	private final OnItemSelectedListener accountOnItemSelectedListener = new OnItemSelectedListener() {
@@ -714,16 +757,15 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 
 	private static class SubmitToOutboxTask extends DbBindingAsyncTask<Void, String, Exception> {
 
-		private final Activity activity;
 		private final OutboxTweet ot;
-		private final Long outboxUid;
 		private ProgressDialog dialog;
+		private final Listener<Long> onSuccess;
+		private volatile Long newId;
 
-		public SubmitToOutboxTask (final Activity activity, final OutboxTweet ot, final Long outboxUid) {
-			super(null, activity);
-			this.activity = activity;
+		public SubmitToOutboxTask (final Context context, final OutboxTweet ot, final Listener<Long> onSuccess) {
+			super(null, context);
 			this.ot = ot;
-			this.outboxUid = outboxUid;
+			this.onSuccess = onSuccess;
 		}
 
 		@Override
@@ -764,11 +806,11 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				}
 
 				publishProgress("Writing to Outbox..."); //ES
-				if (this.outboxUid == null) {
-					db.addPostToOutput(otToAdd);
+				if (otToAdd.getUid() == null) {
+					this.newId = db.addPostToOutput(otToAdd);
 				}
 				else {
-					db.updateOutboxEntry(otToAdd.withUid(this.outboxUid));
+					db.updateOutboxEntry(otToAdd);
 				}
 
 				return null;
@@ -786,7 +828,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 					getContext().startService(new Intent(getContext(), SendOutboxService.class));
 
 					final String msg;
-					if (this.outboxUid == null) {
+					if (this.ot.getUid() == null) {
 						msg = "Posted via Outbox"; //ES
 					}
 					else {
@@ -800,7 +842,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				else {
 					LOG.w("Unexpected OT status: " + this.ot.getStatus());
 				}
-				this.activity.finish();
+				this.onSuccess.onAnswer(this.newId);
 			}
 			else {
 				LOG.e("Failed to add to outbox.", result);

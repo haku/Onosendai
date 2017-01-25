@@ -327,6 +327,7 @@ public class OutboxTweet {
 	private static final String TEMP_SID_PREFIX = "outbox:";
 
 	public String getTempSid () {
+		if (this.uid == null) throw new IllegalStateException("UID is not set.");
 		return TEMP_SID_PREFIX + this.uid;
 	}
 
