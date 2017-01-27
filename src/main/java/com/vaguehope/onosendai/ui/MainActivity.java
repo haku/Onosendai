@@ -160,7 +160,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		this.columnTitleStrip.setColumnClickListener(new TitleClickListener(this));
 		ab.setCustomView(this.columnTitleStrip);
 
-		AlarmReceiver.configureAlarms(this); // FIXME be more smart about this?
+		AlarmReceiver.configureAlarms(this);
 	}
 
 	@Override

@@ -26,6 +26,8 @@ public class AlarmReceiver extends BroadcastReceiver {
 
 	private static final LogWrapper LOG = new LogWrapper("AR");
 
+	private static volatile boolean alarmsConfigured = false;
+
 	@Override
 	public void onReceive (final Context context, final Intent intent) {
 		final int action = intent.getExtras().getInt(KEY_ACTION, -1);
@@ -74,9 +76,15 @@ public class AlarmReceiver extends BroadcastReceiver {
 	}
 
 	public static void configureAlarms (final Context context) {
+		if (alarmsConfigured) {
+			LOG.i("Alarm service already configured.");
+			return;
+		}
+
 		final AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 		scheduleUpdates(context, am);
 		scheduleCleanups(context, am);
+		alarmsConfigured = true;
 		LOG.i("Alarm service configured.");
 	}
 
