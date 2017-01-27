@@ -1,4 +1,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<item
+		android:id="@+id/mnuPost"
+		android:title="@string/post_btn_post"
+		android:showAsAction="always|withText" />
+
 	<group android:id="@+id/group_popupmenu">
 
 		<item

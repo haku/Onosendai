@@ -23,16 +23,17 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.text.method.TextKeyListener;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.Spinner;
@@ -159,7 +160,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		ab.setDisplayShowCustomEnabled(true);
 
 		this.spnAccount = new Spinner(ab.getThemedContext());
-		this.spnAccount.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+		this.spnAccount.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT));
 		this.spnAccount.setPadding(0, 0, 0, 0);
 		ab.setCustomView(this.spnAccount);
 
@@ -167,7 +168,6 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 
 		setupAttachemnt(savedInstanceState);
 		setupTextBody();
-		wireMainButtons();
 	}
 
 	@Override
@@ -302,31 +302,6 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		this.txtBody.setAdapter(new UsernameSearchAdapter(this));
 		this.txtBody.addTextChangedListener(new PopupPositioniner(this.txtBody));
 		this.txtBody.setKeyListener(TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES));
-	}
-
-	private void wireMainButtons () {
-		((Button) findViewById(R.id.btnCancel)).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick (final View v) {
-				finish();
-			}
-		});
-
-		final Button btnPost = (Button) findViewById(R.id.btnPost);
-		btnPost.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick (final View v) {
-				askPost(false);
-			}
-		});
-		btnPost.setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick (final View v) {
-				askPost(true);
-				return true;
-			}
-		});
-		if (this.outboxUid != null) btnPost.setText(R.string.post_btn_update_post);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -569,7 +544,31 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	@Override
 	public boolean onCreateOptionsMenu (final Menu menu) {
 		getMenuInflater().inflate(R.menu.postmenu, menu);
+
+		if (this.outboxUid != null) {
+			final MenuItem mnuPost = menu.findItem(R.id.mnuPost);
+			mnuPost.setTitle(R.string.post_btn_update_post);
+		}
+
+		new Handler().post(new Runnable() {
+			@Override
+			public void run () {
+				extraMenuSetup();
+			}
+		});
+
 		return true;
+	}
+
+	protected void extraMenuSetup () {
+		final View mnuPost = findViewById(R.id.mnuPost);
+		mnuPost.setOnLongClickListener(new OnLongClickListener() {
+			@Override
+			public boolean onLongClick (final View v) {
+				askPost(true);
+				return true;
+			}
+		});
 	}
 
 	@Override
@@ -588,6 +587,9 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	@Override
 	public boolean onOptionsItemSelected (final MenuItem item) {
 		switch (item.getItemId()) {
+			case R.id.mnuPost:
+				askPost(false);
+				return true;
 			case R.id.mnuTextFilter:
 				showTextFiltersDlg();
 				return true;
