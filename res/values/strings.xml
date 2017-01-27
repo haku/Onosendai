@@ -12,6 +12,7 @@
 	<string name="send_outbox_service_label">Onosendai send outbox service</string>
 	<string name="cleanup_service_label">Onosendai cleanup service</string>
 	<string name="mark_as_read_service_label">Onosendai mark as read service</string>
+	<string name="battery_notify_service_label">Onosendai battery notify service</string>
 
 <!-- Crash reporting. -->
 	<string name="crash_dialog_title">CSI Onosendai</string>

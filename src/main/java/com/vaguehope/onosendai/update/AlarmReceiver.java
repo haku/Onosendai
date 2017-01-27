@@ -11,6 +11,7 @@ import android.os.PowerManager.WakeLock;
 import android.os.SystemClock;
 
 import com.vaguehope.onosendai.C;
+import com.vaguehope.onosendai.notifications.NotificationIds;
 import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.util.BatteryHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -19,7 +20,6 @@ public class AlarmReceiver extends BroadcastReceiver {
 
 	private static final int TEMP_WAKELOCK_TIMEOUT_MILLIS = 3000;
 
-	private static final int BASE_ALARM_ID = 11000;
 	private static final String KEY_ACTION = "action";
 	private static final int ACTION_UPDATE = 1;
 	private static final int ACTION_CLEANUP = 2;
@@ -48,25 +48,26 @@ public class AlarmReceiver extends BroadcastReceiver {
 		}
 	}
 
-	private void updateIfBetteryOk (final Context context, final float bl) {
+	private static void updateIfBetteryOk (final Context context, final float bl) {
 		final boolean doSend = (bl > C.MIN_BAT_SEND);
 		final boolean doUpdate = (bl > C.MIN_BAT_UPDATE);
 
 		if (doSend || doUpdate) aquireTempWakeLock(context);
 
-		if (doSend) {
+		if (doSend || BatteryNotify.isOverrideEnabled(context)) {
 			context.startService(new Intent(context, SendOutboxService.class));
 		}
 
-		if (doUpdate) {
+		if (doUpdate || BatteryNotify.isOverrideEnabled(context)) {
 			context.startService(new Intent(context, UpdateService.class));
+			BatteryNotify.clearNotUpdating(context); // Clear even if overridden so re-notifies on override expiring.
 		}
 		else {
 			BatteryNotify.notifyNotUpdating(context);
 		}
 	}
 
-	private void aquireTempWakeLock (final Context context) {
+	private static void aquireTempWakeLock (final Context context) {
 		final PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 		final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, C.TAG);
 		wl.acquire(TEMP_WAKELOCK_TIMEOUT_MILLIS);
@@ -80,7 +81,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 	}
 
 	private static void scheduleUpdates (final Context context, final AlarmManager am) {
-		final PendingIntent i = PendingIntent.getBroadcast(context, BASE_ALARM_ID + ACTION_UPDATE,
+		final PendingIntent i = PendingIntent.getBroadcast(context, NotificationIds.BASE_ALARM_ID + ACTION_UPDATE,
 				new Intent(context, AlarmReceiver.class).putExtra(KEY_ACTION, ACTION_UPDATE),
 				PendingIntent.FLAG_CANCEL_CURRENT);
 		am.cancel(i);
@@ -92,7 +93,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 	}
 
 	private static void scheduleCleanups (final Context context, final AlarmManager am) {
-		final PendingIntent i = PendingIntent.getBroadcast(context, BASE_ALARM_ID + ACTION_CLEANUP,
+		final PendingIntent i = PendingIntent.getBroadcast(context, NotificationIds.BASE_ALARM_ID + ACTION_CLEANUP,
 				new Intent(context, AlarmReceiver.class).putExtra(KEY_ACTION, ACTION_CLEANUP),
 				PendingIntent.FLAG_CANCEL_CURRENT);
 		am.cancel(i);

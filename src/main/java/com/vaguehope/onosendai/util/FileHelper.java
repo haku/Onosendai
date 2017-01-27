@@ -62,18 +62,6 @@ public final class FileHelper {
 		return makeSafeName(cleanedPath);
 	}
 
-	public static long fileLastModifiedAgeMillis (final File f) throws IOException {
-		if (!f.exists()) return Long.MAX_VALUE;
-
-		final long lastModified = f.lastModified();
-		if (lastModified != 0) {
-			return System.currentTimeMillis() - lastModified;
-		}
-		else {
-			throw new IOException(String.format("Failed to read last modified date for '%s'.", f.getAbsolutePath()));
-		}
-	}
-
 	public static void touchFile (final File f, final long graceMillis) throws IOException {
 		if (!f.exists()) f.createNewFile();
 
