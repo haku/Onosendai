@@ -12,11 +12,12 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
+import org.robolectric.RobolectricTestRunner;
 
 import android.content.Context;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class BatteryNotifyTest {
 
 	@Mock private Context context;
@@ -24,6 +25,7 @@ public class BatteryNotifyTest {
 
 	@Before
 	public void before () throws Exception {
+		MockitoAnnotations.initMocks(this);
 		when(this.context.getCacheDir()).thenReturn(this.tmp.getRoot());
 	}
 
