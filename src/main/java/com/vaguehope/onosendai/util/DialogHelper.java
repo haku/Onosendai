@@ -90,8 +90,13 @@ public final class DialogHelper {
 	}
 
 	public static void askYesNo (final Context context, final String msg, final String yesLbl, final String noLbl, final Runnable onYes) {
+		askYesNo(context, msg, yesLbl, noLbl, onYes, null);
+	}
+
+	public static void askYesNo (final Context context, final String msg, final String yesLbl, final String noLbl, final Runnable onYes, final Runnable onNo) {
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(context);
 		dlgBld.setMessage(msg);
+
 		dlgBld.setPositiveButton(yesLbl, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick (final DialogInterface dialog, final int which) {
@@ -99,7 +104,20 @@ public final class DialogHelper {
 				onYes.run();
 			}
 		});
-		dlgBld.setNegativeButton(noLbl, DLG_CANCEL_CLICK_LISTENER);
+
+		if (onNo != null) {
+			dlgBld.setNegativeButton(noLbl, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick (final DialogInterface dialog, final int which) {
+					dialog.cancel();
+					onNo.run();
+				}
+			});
+		}
+		else {
+			dlgBld.setNegativeButton(noLbl, DLG_CANCEL_CLICK_LISTENER);
+		}
+
 		dlgBld.show();
 	}
 

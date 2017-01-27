@@ -119,6 +119,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 
 	private final EnabledServiceRefs enabledPostToAccounts = new EnabledServiceRefs();
 	private boolean askAccountOnActivate;
+	private String txtBodyInitialText;
 	private Uri attachment;
 	private Uri tmpAttachment;
 
@@ -195,6 +196,26 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		outState.putParcelable(ARG_ATTACHMENT, this.attachment);
 		outState.putParcelable(ARG_TMP_ATTACHMENT, this.tmpAttachment);
 		super.onSaveInstanceState(outState);
+	}
+
+	@Override
+	public void onBackPressed () {
+		if (isTxtBodyUnedited()) {
+			finish();
+			return;
+		}
+
+		DialogHelper.askYesNo(this, "Save draft?", "Save", "Discard", new Runnable() { //ES
+			@Override
+			public void run () {
+				saveDraft();
+			}
+		}, new Runnable() {
+			@Override
+			public void run () {
+				finish();
+			}
+		});
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -398,9 +419,10 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	}
 
 	private void initBody () {
-		final String intialBody = this.intentExtras != null ? this.intentExtras.getString(ARG_BODY) : null;
-		if (intialBody != null) {
-			this.txtBody.setText(intialBody);
+		final String intentBody = this.intentExtras != null ? this.intentExtras.getString(ARG_BODY) : null;
+		final String initialBody;
+		if (intentBody != null) {
+			initialBody = intentBody;
 		}
 		else {
 			final StringBuilder s = new StringBuilder();
@@ -414,12 +436,23 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 
 			if (s.length() > 0) {
 				s.append(" ");
-				this.txtBody.setText(s.toString());
+				initialBody = s.toString();
+			}
+			else {
+				initialBody = "";
 			}
 		}
+		this.txtBody.setText(initialBody);
+		this.txtBodyInitialText = initialBody;
 
 		final int cursorPosition = this.intentExtras != null ? this.intentExtras.getInt(ARG_BODY_CURSOR_POSITION, -1) : -1;
 		this.txtBody.setSelection(cursorPosition >= 0 ? cursorPosition : this.txtBody.getText().length());
+	}
+
+	private boolean isTxtBodyUnedited () {
+		if (this.txtBodyInitialText == null) return false;
+		return this.txtBodyInitialText.length() == this.txtBody.getText().length()
+				&& this.txtBodyInitialText.equals(this.txtBody.getText().toString());
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -442,7 +475,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		}
 	}
 
-	private void saveDraft () {
+	protected void saveDraft () {
 		final Account account = getSelectedAccount();
 		final Set<ServiceRef> svcs = this.enabledPostToAccounts.copyOfServices();
 		final OutboxTweet ot = makeOutboxTweet(account, svcs).setPaused();
