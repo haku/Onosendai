@@ -97,6 +97,7 @@
 		</receiver>
 		<receiver android:name=".update.AlarmReceiver" />
 		<receiver android:name=".notifications.MarkAsReadReceiver" />
+		<receiver android:name=".update.BatteryNotify" />
 
 		<service
 			android:name=".update.UpdateService"
@@ -122,9 +123,6 @@
 		<service
 			android:name=".notifications.MarkAsReadService"
 			android:label="@string/mark_as_read_service_label" />
-		<service
-			android:name=".update.BatteryNotify"
-			android:label="@string/battery_notify_service_label" />
 
 		<provider
 			android:name="com.vaguehope.onosendai.images.CachedImageFileProvider"

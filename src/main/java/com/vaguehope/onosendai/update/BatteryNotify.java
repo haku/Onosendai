@@ -140,8 +140,8 @@ public class BatteryNotify extends BroadcastReceiver {
 				.setWhen(System.currentTimeMillis())
 				.setContentIntent(makeShowMainActPi(context))
 				.addAction(android.R.drawable.ic_menu_add,
-						String.format("+%s Hour", OVERRIDE_DURATION_HOURS),
-						makePlusTimePi(context)); //ES
+						String.format("+%s Hour", OVERRIDE_DURATION_HOURS), //ES
+						makePlusTimePi(context));
 		getManager(context).notify(NOT_UPDATING_NOTIFICATION_ID, nb.build());
 	}
 
@@ -163,17 +163,26 @@ public class BatteryNotify extends BroadcastReceiver {
 				PendingIntent.FLAG_UPDATE_CURRENT);
 	}
 
+	public BatteryNotify () {
+		super();
+	}
+
 	@Override
 	public void onReceive (final Context context, final Intent intent) {
-		final Bundle extras = intent.getExtras();
-		final int requestCode = extras != null ? extras.getInt(EXTRA_REQUEST_CODE, -1) : -1;
-		switch (requestCode) {
-			case RC_PLUS_TIME:
-				enableOverride(context);
-				getManager(context).cancel(NOT_UPDATING_NOTIFICATION_ID);
-				break;
-			default:
-				LOG.w("Intent with unknown request code %s: %s", requestCode, intent);
+		try {
+			final Bundle extras = intent.getExtras();
+			final int requestCode = extras != null ? extras.getInt(EXTRA_REQUEST_CODE, -1) : -1;
+			switch (requestCode) {
+				case RC_PLUS_TIME:
+					enableOverride(context);
+					getManager(context).cancel(NOT_UPDATING_NOTIFICATION_ID);
+					break;
+				default:
+					LOG.w("Intent with unknown request code %s: %s", requestCode, intent);
+			}
+		}
+		catch (final Exception e) { // NOSONAR record all errors.
+			LOG.e("Failed enable override.", e);
 		}
 	}
 
