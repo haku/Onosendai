@@ -1,7 +1,9 @@
 package com.vaguehope.onosendai.ui.pref;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -25,6 +27,9 @@ public class ColumnStatsActivity extends Activity {
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS); // TODO check return value.
 		setContentView(R.layout.columnstats);
 
+		final ActionBar ab = getActionBar();
+		ab.setDisplayHomeAsUpEnabled(true);
+
 		final ListView statLst = (ListView) findViewById(R.id.statsList);
 		final ArrayAdapter<String> statsAdp = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
 		statLst.setAdapter(statsAdp);
@@ -37,6 +42,17 @@ public class ColumnStatsActivity extends Activity {
 		catch (final Exception e) { // No point continuing if any exception.
 			DialogHelper.alertAndClose(this, e);
 			return;
+		}
+	}
+
+	@Override
+	public boolean onOptionsItemSelected (final MenuItem item) {
+		switch (item.getItemId()) {
+			case android.R.id.home:
+				onBackPressed();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
 		}
 	}
 

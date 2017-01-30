@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -64,6 +65,9 @@ public class OutboxActivity extends Activity {
 			DialogHelper.alertAndClose(this, e);
 			return;
 		}
+
+		final ActionBar ab = getActionBar();
+		ab.setDisplayHomeAsUpEnabled(true);
 
 		this.refreshUiHandler = new RefreshUiHandler(this);
 
@@ -171,12 +175,17 @@ public class OutboxActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected (final MenuItem item) {
 		switch (item.getItemId()) {
+			case android.R.id.home:
+				onBackPressed();
+				return true;
+
 			case R.id.mnuShowSent:
 				item.setChecked(!item.isChecked());
 				item.setTitle(item.isChecked() ? R.string.outbox_menu_hide_sent : R.string.outbox_menu_show_sent);
 				this.showSent = item.isChecked();
 				refreshUi();
 				return true;
+
 			default:
 				return super.onOptionsItemSelected(item);
 		}

@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.acra.ACRA;
 
+import android.app.ActionBar;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -23,6 +25,9 @@ public class OsPreferenceActivity extends PreferenceActivity {
 	@Override
 	protected void onCreate (final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		final ActionBar ab = getActionBar();
+		ab.setDisplayHomeAsUpEnabled(true);
 
 		if (hasHeaders()) {
 			final LayoutInflater inflater = LayoutInflater.from(this);
@@ -88,6 +93,19 @@ public class OsPreferenceActivity extends PreferenceActivity {
 	protected boolean isValidFragment (final String fragmentName) {
 		if (fragmentName == null) return false;
 		return fragmentName.startsWith(this.getClass().getPackage().getName());
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	@Override
+	public boolean onOptionsItemSelected (final MenuItem item) {
+		switch (item.getItemId()) {
+			case android.R.id.home:
+				onBackPressed();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
 	}
 
 }

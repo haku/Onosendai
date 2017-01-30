@@ -156,7 +156,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				this.inReplyToUid, this.inReplyToSid, this.altReplyToSid, Arrays.toString(this.mentions), this.outboxUid);
 
 		final ActionBar ab = getActionBar();
-		ab.setDisplayShowHomeEnabled(false);
+		ab.setDisplayHomeAsUpEnabled(true);
 		ab.setDisplayShowTitleEnabled(false);
 		ab.setDisplayShowCustomEnabled(true);
 
@@ -620,6 +620,9 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	@Override
 	public boolean onOptionsItemSelected (final MenuItem item) {
 		switch (item.getItemId()) {
+			case android.R.id.home:
+				onBackPressed();
+				return true;
 			case R.id.mnuPost:
 				askPost(false);
 				return true;
