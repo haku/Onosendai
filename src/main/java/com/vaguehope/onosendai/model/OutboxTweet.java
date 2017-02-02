@@ -281,6 +281,7 @@ public class OutboxTweet {
 	}
 
 	public OutboxTweet setPaused () {
+		if (this.status == OutboxTweetStatus.PAUSED) return this;
 		return new OutboxTweet(this, OutboxTweetStatus.PAUSED, System.currentTimeMillis(), getAttemptCount(), getLastError());
 	}
 
