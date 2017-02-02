@@ -13,10 +13,12 @@ import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.util.StringHelper;
+import com.vaguehope.onosendai.util.DateHelper.FriendlyDateTimeFormat;
 
 public class OutboxAdapter extends BaseAdapter {
 
 	private final LayoutInflater layoutInflater;
+	private final FriendlyDateTimeFormat friendlyDateTimeFormat;
 	private final Config conf;
 
 	private List<OutboxTweet> listData;
@@ -24,6 +26,7 @@ public class OutboxAdapter extends BaseAdapter {
 	public OutboxAdapter (final Context context, final Config config) {
 		this.conf = config;
 		this.layoutInflater = LayoutInflater.from(context);
+		this.friendlyDateTimeFormat = new FriendlyDateTimeFormat(context);
 	}
 
 	public void setInputData (final List<OutboxTweet> data) {
@@ -70,7 +73,7 @@ public class OutboxAdapter extends BaseAdapter {
 		else {
 			rowView = (RowView) view.getTag();
 		}
-		rowView.setItem(this.listData.get(position), this.conf);
+		rowView.setItem(this.listData.get(position), this.conf, this.friendlyDateTimeFormat);
 		return view;
 	}
 
@@ -94,10 +97,10 @@ public class OutboxAdapter extends BaseAdapter {
 			this.status = status;
 		}
 
-		public void setItem (final OutboxTweet item, final Config conf) {
+		public void setItem (final OutboxTweet item, final Config conf, final FriendlyDateTimeFormat friendlyDateTimeFormat) {
 			this.body.setText(item.getBody());
 			this.account.setText(summariseAccount(item, conf));
-			this.status.setText(summariseStatus(item));
+			this.status.setText(summariseStatus(item, friendlyDateTimeFormat));
 		}
 
 		private static String summariseAccount (final OutboxTweet item, final Config conf) {
@@ -113,9 +116,10 @@ public class OutboxAdapter extends BaseAdapter {
 			return s.toString();
 		}
 
-		private static String summariseStatus (final OutboxTweet item) {
+		private static String summariseStatus (final OutboxTweet item, final FriendlyDateTimeFormat friendlyDateTimeFormat) {
 			final StringBuilder s = new StringBuilder(String.valueOf(item.getStatus()));
 			if (item.getAttemptCount() > 0) s.append(", ").append(item.getAttemptCount()).append(" failures."); //ES
+			if (item.getStatusTime() != null) s.append("\n").append(friendlyDateTimeFormat.format(System.currentTimeMillis(), item.getStatusTime()));
 			if (item.getLastError() != null) s.append("\n").append(StringHelper.maxLength(item.getLastError(), MAX_ERROR_MSG_CHARS));
 			return s.toString();
 		}
