@@ -67,8 +67,7 @@ public class BatteryNotify extends BroadcastReceiver {
 		return (System.currentTimeMillis() - lastModified) <= OVERRIDE_DURATION_MILLIS;
 	}
 
-	// Visible for testing.
-	static void enableOverride (final Context context) {
+	public static void enableOverride (final Context context) {
 		final File file = getOverrideFile(context);
 		try {
 			synchronized (OVERRIDE_LAST_MODIFIED_CACHE_LOCK) {

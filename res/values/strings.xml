@@ -196,5 +196,7 @@
 <!-- Background update and sending. -->
 	<string name="background_updating_disabled_notification_title">Onosendai background updating disabled</string>
 	<string name="background_updating_disabled_notification_msg">Due to low battery.</string>
+	<string name="main_bgupdate_msg">Background updating disabled due to low battery.</string>
+	<string name="main_bgupdate_override">+1 hour</string>
 
 </resources>

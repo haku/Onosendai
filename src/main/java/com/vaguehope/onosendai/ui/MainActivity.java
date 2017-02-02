@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -29,6 +30,7 @@ import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.widget.TextView;
@@ -59,13 +61,16 @@ import com.vaguehope.onosendai.ui.pref.FiltersPrefFragment;
 import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
 import com.vaguehope.onosendai.ui.pref.UiPrefFragment;
 import com.vaguehope.onosendai.update.AlarmReceiver;
+import com.vaguehope.onosendai.update.BatteryNotify;
 import com.vaguehope.onosendai.update.UpdateService;
+import com.vaguehope.onosendai.util.BatteryHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.MultiplexingOnPageChangeListener;
 import com.vaguehope.onosendai.util.NetHelper;
 import com.vaguehope.onosendai.util.exec.ExecUtils;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
+import com.vaguehope.onosendai.util.exec.TrackingAsyncTask;
 import com.vaguehope.onosendai.widget.SidebarAwareViewPager;
 
 public class MainActivity extends FragmentActivity implements ImageLoader, DbProvider, ProviderMgrProvider, OnSharedPreferenceChangeListener {
@@ -161,6 +166,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		ab.setCustomView(this.columnTitleStrip);
 
 		AlarmReceiver.configureAlarms(this);
+		new CheckBackgroundUpdatesRunning(this, this.executorStatus).executeOnExecutor(this.localEs);
 	}
 
 	@Override
@@ -660,6 +666,39 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 			final int position = this.host.convertPagePosition(argPosition);
 			final Column col = this.host.getConf().getColumnByPosition(position);
 			Notifications.clearColumn(this.host, col);
+		}
+
+	}
+
+	private static class CheckBackgroundUpdatesRunning extends TrackingAsyncTask<Void, Void, Boolean> {
+
+		private final Activity activity;
+
+		public CheckBackgroundUpdatesRunning (final Activity activity, final ExecutorEventListener eventListener) {
+			super(eventListener);
+			this.activity = activity;
+		}
+
+		@Override
+		protected Boolean doInBackgroundWithTracking (final Void... params) {
+			final float bl = BatteryHelper.level(this.activity.getApplicationContext());
+			return bl <= C.MIN_BAT_UPDATE
+					&& !BatteryNotify.isOverrideEnabled(this.activity);
+		}
+
+		@Override
+		protected void onPostExecute (final Boolean backgroudUpdatesDisabled) {
+			if (backgroudUpdatesDisabled) {
+				final View backgroundUpdateDetails = this.activity.findViewById(R.id.backgroudUpdateDetails);
+				backgroundUpdateDetails.setVisibility(View.VISIBLE);
+				this.activity.findViewById(R.id.backgroundUpdateOverride).setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick (final View v) {
+						BatteryNotify.enableOverride(CheckBackgroundUpdatesRunning.this.activity);
+						backgroundUpdateDetails.setVisibility(View.GONE);
+					}
+				});
+			}
 		}
 
 	}

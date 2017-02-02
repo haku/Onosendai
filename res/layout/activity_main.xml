@@ -24,5 +24,38 @@
 		android:background="@drawable/warning_border"
 		android:visibility="gone" />
 
+	<LinearLayout
+			android:id="@+id/backgroudUpdateDetails"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			android:layout_alignParentBottom="true"
+			style="?android:attr/buttonBarStyle"
+			android:background="@drawable/warning_border"
+			android:visibility="gone">
+
+			<TextView
+				android:id="@+id/backgroundUpdateMsg"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:layout_gravity="center_vertical"
+				android:paddingTop="5dip"
+				android:paddingBottom="5dip"
+				android:paddingLeft="10dip"
+				android:paddingRight="10dip"
+				android:textSize="16sp"
+				android:text="@string/main_bgupdate_msg" />
+
+			<Button
+				android:id="@+id/backgroundUpdateOverride"
+				android:layout_width="fill_parent"
+				android:layout_height="50dip"
+				android:layout_gravity="center_vertical"
+				style="?android:attr/buttonBarButtonStyle"
+				android:layout_weight="3"
+				android:text="@string/main_bgupdate_override" />
+
+		</LinearLayout>
 
 </LinearLayout>
