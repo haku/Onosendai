@@ -694,7 +694,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 				this.activity.findViewById(R.id.backgroundUpdateOverride).setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick (final View v) {
-						BatteryNotify.enableOverride(CheckBackgroundUpdatesRunning.this.activity);
+						BatteryNotify.plusTime(CheckBackgroundUpdatesRunning.this.activity);
 						backgroundUpdateDetails.setVisibility(View.GONE);
 					}
 				});

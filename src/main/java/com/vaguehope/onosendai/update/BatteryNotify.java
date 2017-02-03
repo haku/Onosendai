@@ -67,7 +67,13 @@ public class BatteryNotify extends BroadcastReceiver {
 		return (System.currentTimeMillis() - lastModified) <= OVERRIDE_DURATION_MILLIS;
 	}
 
-	public static void enableOverride (final Context context) {
+	public static void plusTime (final Context context) {
+		enableOverride(context);
+		getManager(context).cancel(NOT_UPDATING_NOTIFICATION_ID);
+	}
+
+	// Visible for testing.
+	static void enableOverride (final Context context) {
 		final File file = getOverrideFile(context);
 		try {
 			synchronized (OVERRIDE_LAST_MODIFIED_CACHE_LOCK) {
@@ -125,7 +131,6 @@ public class BatteryNotify extends BroadcastReceiver {
 				}
 			}
 		}
-
 	}
 
 	private static void showNotification (final Context context) {
@@ -173,8 +178,7 @@ public class BatteryNotify extends BroadcastReceiver {
 			final int requestCode = extras != null ? extras.getInt(EXTRA_REQUEST_CODE, -1) : -1;
 			switch (requestCode) {
 				case RC_PLUS_TIME:
-					enableOverride(context);
-					getManager(context).cancel(NOT_UPDATING_NOTIFICATION_ID);
+					plusTime(context);
 					break;
 				default:
 					LOG.w("Intent with unknown request code %s: %s", requestCode, intent);
