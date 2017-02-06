@@ -8,6 +8,7 @@ import com.vaguehope.onosendai.util.StringHelper;
 
 public final class TaskUtils {
 
+	private static final int TWITTER_ERROR_CODE_ALREADY_FAVOURITED = 139;
 	private static final int TWITTER_ERROR_CODE_STATUS_IS_A_DUPLICATE = 187;
 
 	private TaskUtils () {
@@ -30,6 +31,7 @@ public final class TaskUtils {
 			if (te.isCausedByNetworkIssue()) return TaskOutcome.TEMPORARY_FAILURE;
 			if (te.exceededRateLimitation()) return TaskOutcome.TEMPORARY_FAILURE;
 			if (te.getErrorCode() == TWITTER_ERROR_CODE_STATUS_IS_A_DUPLICATE) return TaskOutcome.PREVIOUS_ATTEMPT_SUCCEEDED;
+			if (te.getErrorCode() == TWITTER_ERROR_CODE_ALREADY_FAVOURITED) return TaskOutcome.PREVIOUS_ATTEMPT_SUCCEEDED;
 			final int code = te.getStatusCode();
 			return code >= 400 && code < 500 ? TaskOutcome.PERMANENT_FAILURE : TaskOutcome.TEMPORARY_FAILURE; // NOSONAR not magic numbers, this is HTTP spec.
 		}
