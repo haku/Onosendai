@@ -365,14 +365,15 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	protected void showInReplyToTweetDetails () {
+		OutboxTweet inReplyToOutboxTweet = null;
 		if (this.inReplyToSid != null) {
 			final Tweet tweet;
 			if (this.inReplyToUid > 0L) {
 				tweet = getDb().getTweetDetails(this.inReplyToUid);
 			}
 			else if (OutboxTweet.isTempSid(this.inReplyToSid)) {
-				final OutboxTweet ot = getDb().getOutboxEntry(OutboxTweet.uidFromTempSid(this.inReplyToSid));
-				tweet = ot != null ? ot.toTweet(this.conf) : null;
+				inReplyToOutboxTweet = getDb().getOutboxEntry(OutboxTweet.uidFromTempSid(this.inReplyToSid));
+				tweet = inReplyToOutboxTweet != null ? inReplyToOutboxTweet.toTweet(this.conf) : null;
 			}
 			else {
 				tweet = getDb().getTweetDetails(this.inReplyToSid);
@@ -408,7 +409,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 				}
 			}
 		}
-		initBody();
+		initBody(inReplyToOutboxTweet);
 	}
 
 	private void setPostToAccountExclusive (final ServiceRef svc) {
@@ -418,7 +419,7 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		PostToAccountLoaderTask.setAccountBtns(this.llSubAccounts, this.enabledPostToAccounts);
 	}
 
-	private void initBody () {
+	private void initBody (final OutboxTweet inReplyToOutboxTweet) {
 		final String intentBody = this.intentExtras != null ? this.intentExtras.getString(ARG_BODY) : null;
 		final String initialBody;
 		if (intentBody != null) {
@@ -429,6 +430,14 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 
 			if (this.mentions != null) {
 				for (final String mention : this.mentions) {
+					if (s.length() > 0) s.append(" ");
+					s.append("@").append(mention);
+				}
+			}
+			else if (inReplyToOutboxTweet != null) {
+				final List<String> bodyMentions = StringHelper.extractPattern(
+						StringHelper.MENTIONS_PATTERN, inReplyToOutboxTweet.getBody());
+				for (final String mention : bodyMentions) {
 					if (s.length() > 0) s.append(" ");
 					s.append("@").append(mention);
 				}
