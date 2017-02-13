@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -735,31 +736,35 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public List<String> getUsernames (final int numberOf) {
-		return getUsernames(TBL_TW_USERNAME + " NOT NULL", null, TBL_TW_TIME + " desc", numberOf);
-	}
-
-	@Override
 	public List<String> getUsernames (final String prefix, final int numberOf) {
-		return getUsernames(TBL_TW_USERNAME + " LIKE ? ESCAPE ? COLLATE NOCASE",
-				new String[] { escapeSearch(prefix).concat("%"), SEARCH_ESC },
-				TBL_TW_USERNAME + " asc", numberOf);
-	}
-
-	private List<String> getUsernames (final String where, final String[] whereArgs, final String orderBy, final int numberOf) {
 		if (!checkDbOpen()) return null;
-		Cursor c = null;
+
+		final Collection<String> names = new LinkedHashSet<String>();
+
+		final Cursor c = this.mDb.query(true, TBL_TW,
+				new String[] { TBL_TW_USERNAME },
+				TBL_TW_USERNAME + " LIKE ? ESCAPE ? COLLATE NOCASE",
+				new String[] { escapeSearch(prefix).concat("%"), SEARCH_ESC },
+				null, null,
+				TBL_TW_USERNAME + " asc",
+				String.valueOf(numberOf));
 		try {
-			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_USERNAME },
-					where, whereArgs,
-					null, null,
-					orderBy, String.valueOf(numberOf));
-			return columnToStringList(c, TBL_TW_USERNAME);
+			names.addAll(columnToStringList(c, TBL_TW_USERNAME));
 		}
 		finally {
 			IoHelper.closeQuietly(c);
 		}
+
+		if (names.size() < numberOf) {
+			names.addAll(getMetadatas(
+					TBL_TM_TYPE + "=? AND " + TBL_TM_DATA + " LIKE ? ESCAPE ? COLLATE NOCASE",
+					new String[] { String.valueOf(MetaType.MENTION.getId()), escapeSearch(prefix).concat("%"), SEARCH_ESC },
+					TBL_TM_DATA + " asc", numberOf));
+		}
+
+		final List<String> list = new ArrayList<String>(names);
+		Collections.sort(list);
+		return list;
 	}
 
 	@Override
@@ -795,7 +800,7 @@ public class DbAdapter implements DbInterface {
 			while (c.moveToNext());
 			return ret;
 		}
-		return Collections.EMPTY_LIST;
+		return Collections.emptyList();
 	}
 
 	@Override

@@ -180,11 +180,6 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public List<String> getUsernames (final int numberOf) {
-		return this.dbAdaptor.getUsernames(numberOf);
-	}
-
-	@Override
 	public List<String> getUsernames (final String prefix, final int numberOf) {
 		return this.dbAdaptor.getUsernames(prefix, numberOf);
 	}
