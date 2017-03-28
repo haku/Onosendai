@@ -13,6 +13,7 @@ import android.os.SystemClock;
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.notifications.NotificationIds;
 import com.vaguehope.onosendai.provider.SendOutboxService;
+import com.vaguehope.onosendai.ui.pref.FetchingPrefFragment;
 import com.vaguehope.onosendai.util.BatteryHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -51,8 +52,8 @@ public class AlarmReceiver extends BroadcastReceiver {
 	}
 
 	private static void updateIfBetteryOk (final Context context, final float bl) {
-		final boolean doSend = (bl > C.MIN_BAT_SEND);
-		final boolean doUpdate = (bl > C.MIN_BAT_UPDATE);
+		final boolean doSend = (bl > FetchingPrefFragment.readMinBatForSend(context));
+		final boolean doUpdate = (bl > FetchingPrefFragment.readMinBatForUpdate(context));
 
 		if (doSend || doUpdate) aquireTempWakeLock(context);
 

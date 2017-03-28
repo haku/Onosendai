@@ -36,6 +36,7 @@ import com.vaguehope.onosendai.storage.DbBindingService;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.Selection;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
+import com.vaguehope.onosendai.ui.pref.FetchingPrefFragment;
 import com.vaguehope.onosendai.util.BatteryHelper;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -137,7 +138,7 @@ public abstract class AbstractBgFetch<D> extends DbBindingService {
 	}
 
 	private void fetchIfBatteryOk (final Collection<Column> columnsToFetch, final boolean manual, final Config conf) {
-		final double batLimit = manual ? C.MIN_BAT_BG_FETCH_MANUAL : C.MIN_BAT_BG_FETCH_SCHEDULED;
+		final double batLimit = manual ? C.MIN_BAT_BG_FETCH_MANUAL : FetchingPrefFragment.readMinBatForUpdate(this);
 		final float bl = BatteryHelper.level(getApplicationContext());
 		if (bl < batLimit) {
 			getLog().i("Not fetching; battery %s < %s.", bl, batLimit);

@@ -57,6 +57,7 @@ import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbProvider;
 import com.vaguehope.onosendai.ui.LocalSearchDialog.OnTweetListener;
 import com.vaguehope.onosendai.ui.pref.AdvancedPrefFragment;
+import com.vaguehope.onosendai.ui.pref.FetchingPrefFragment;
 import com.vaguehope.onosendai.ui.pref.FiltersPrefFragment;
 import com.vaguehope.onosendai.ui.pref.OsPreferenceActivity;
 import com.vaguehope.onosendai.ui.pref.UiPrefFragment;
@@ -682,7 +683,7 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		@Override
 		protected Boolean doInBackgroundWithTracking (final Void... params) {
 			final float bl = BatteryHelper.level(this.activity.getApplicationContext());
-			return bl <= C.MIN_BAT_UPDATE
+			return bl <= FetchingPrefFragment.readMinBatForUpdate(this.activity)
 					&& !BatteryNotify.isOverrideEnabled(this.activity);
 		}
 

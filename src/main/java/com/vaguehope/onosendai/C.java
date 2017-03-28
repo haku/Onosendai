@@ -60,11 +60,8 @@ public final class C {
 	public static final long SCROLL_TIME_LABEL_TIMEOUT_MILLIS = 3000L;
 
 	// Updates.
-	public static final float MIN_BAT_UPDATE = 0.30f;
-	public static final float MIN_BAT_SEND = 0.15f;
 	public static final float MIN_BAT_CLEANUP = 0.50f;
-	public static final float MIN_BAT_BG_FETCH_SCHEDULED = MIN_BAT_UPDATE;
-	public static final float MIN_BAT_BG_FETCH_MANUAL = 0.20f;
+	public static final float MIN_BAT_BG_FETCH_MANUAL = 0.10f;
 
 	// Disc caches.
 	public static final long IMAGE_DISC_CACHE_TOUCH_AFTER_MILLIS = TimeUnit.DAYS.toMillis(5);
