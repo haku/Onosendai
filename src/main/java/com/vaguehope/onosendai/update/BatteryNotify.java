@@ -70,6 +70,9 @@ public class BatteryNotify extends BroadcastReceiver {
 	public static void plusTime (final Context context) {
 		enableOverride(context);
 		getManager(context).cancel(NOT_UPDATING_NOTIFICATION_ID);
+
+		// Run any updates that were missed now as the user has just clicked a thing.
+		context.startService(new Intent(context, UpdateService.class));
 	}
 
 	// Visible for testing.
