@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ListView;
 
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.images.ImageLoader;
@@ -18,13 +19,13 @@ public class PayloadListAdapter extends BaseAdapter {
 	private final Context context;
 	private final LayoutInflater layoutInflater;
 	private final ImageLoader imageLoader;
-	private final View listView;
+	private final ListView listView;
 	private final PayloadClickListener clickListener;
 
 	private Tweet tweet;
 	private PayloadList listData;
 
-	public PayloadListAdapter (final Context context, final ImageLoader imageLoader, final View listView, final PayloadClickListener clickListener) {
+	public PayloadListAdapter (final Context context, final ImageLoader imageLoader, final ListView listView, final PayloadClickListener clickListener) {
 		this.context = context;
 		this.listView = listView;
 		this.clickListener = clickListener;
@@ -40,6 +41,12 @@ public class PayloadListAdapter extends BaseAdapter {
 		this.tweet = tweet;
 		this.listData = PayloadUtils.makePayloads(this.context, config, tweet);
 		notifyDataSetChanged();
+		this.listView.post(new Runnable() {
+			@Override
+			public void run () {
+				PayloadListAdapter.this.listView.setSelection(0);
+			}
+		});
 	}
 
 	Payload findForMeta(final Meta meta) {
