@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -1541,21 +1542,51 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public double getTweetsPerHour (final int columnId) {
+	public double getTweetsPerDay (final int columnId) {
 		final Cursor c = getTweetsCursor(columnId, Selection.ALL); // TODO Should rate include filters?  hmm...
 		try {
 			if (c != null && c.moveToFirst()) {
-				final int colTime = c.getColumnIndex(TBL_TW_TIME);
-				final long newestTime = c.getLong(colTime);
+				final int colTimeSeconds = c.getColumnIndex(TBL_TW_TIME);
+				final long newestTimeSeconds = c.getLong(colTimeSeconds);
 				c.moveToLast();
-				final long oldestTime = c.getLong(colTime);
-				return (c.getCount() / (double) (newestTime - oldestTime)) * 60 * 60;
+				final long oldestTimeSeconds = c.getLong(colTimeSeconds);
+				return (c.getCount() / (double) (newestTimeSeconds - oldestTimeSeconds)) * 60 * 60 * 24;
 			}
 			return -1;
 		}
 		finally {
 			IoHelper.closeQuietly(c);
 		}
+	}
+
+	@Override
+	public Map<String, Long> getColumnUserStats (final int columnId) {
+		final Cursor c = this.mDb.query(true, TBL_TW,
+				new String[] { TBL_TW_USERNAME, "count(*) AS count" },
+				TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) },
+				TBL_TW_USERNAME,
+				"count>1",
+				"count DESC",
+				"50");
+		try {
+			if (c != null && c.moveToFirst()) {
+				final Map<String, Long> ret = new LinkedHashMap<String, Long>();
+				final int colUsername = c.getColumnIndex(TBL_TW_USERNAME);
+				final int colCount = c.getColumnIndex("count");
+				do {
+					final String username = c.getString(colUsername);
+					final Long count = c.getLong(colCount);
+					ret.put(username, count);
+				}
+				while (c.moveToNext());
+				return ret;
+			}
+			return null;
+		}
+		finally {
+			IoHelper.closeQuietly(c);
+		}
+
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

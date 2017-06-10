@@ -325,8 +325,13 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public double getTweetsPerHour (final int columnId) {
-		return this.dbAdaptor.getTweetsPerHour(columnId);
+	public double getTweetsPerDay (final int columnId) {
+		return this.dbAdaptor.getTweetsPerDay(columnId);
+	}
+
+	@Override
+	public Map<String, Long> getColumnUserStats (final int columnId) {
+		return this.dbAdaptor.getColumnUserStats(columnId);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

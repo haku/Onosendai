@@ -124,6 +124,10 @@ public interface DbInterface extends KvStore {
 	void housekeep ();
 
 	long getTotalTweetsEverSeen ();
-	double getTweetsPerHour (int columnId);
+	double getTweetsPerDay (int columnId);
+	/**
+	 * Returns an ordered map of username => number of tweets.
+	 */
+	Map<String, Long> getColumnUserStats(int columnId);
 
 }
