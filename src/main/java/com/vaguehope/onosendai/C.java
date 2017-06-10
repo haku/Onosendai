@@ -40,9 +40,9 @@ public final class C {
 	public static final int TWITTER_FETCH_COUNT_SEARCH = TWEET_FETCH_COUNT;
 
 	// DB archive.
-	public static final int DATA_TW_MAX_COL_ENTRIES = 500;
+	public static final int DATA_TW_MAX_COL_ENTRIES = 1000;
 	public static final long DATA_CA_TOUCH_AFTER_MILLIS = TimeUnit.DAYS.toMillis(5);
-	public static final long DATA_CA_EXPIRY_MILLIS = TimeUnit.DAYS.toMillis(10);
+	public static final long DATA_CA_EXPIRY_MILLIS = TimeUnit.DAYS.toMillis(20);
 
 	// Sending and receiving.
 	public static final int UPDATER_MIN_COLUMS_TO_USE_THREADPOOL = 2;
