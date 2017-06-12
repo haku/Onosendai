@@ -102,6 +102,7 @@ public final class TwitterUtils {
 
 		metas.add(new Meta(MetaType.ACCOUNT, account.getId()));
 		if (extraMetas != null) metas.addAll(extraMetas);
+		if (statusUser != null) metas.add(new Meta(MetaType.OWNER_NAME, statusUser.getScreenName(), statusUser.getName()));
 
 		final User viaUser;
 		if (status.isRetweet()) {

@@ -1561,17 +1561,21 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public Map<String, Long> getColumnUserStats (final int columnId) {
-		final Cursor c = this.mDb.query(true, TBL_TW,
-				new String[] { TBL_TW_USERNAME, "count(*) AS count" },
-				TBL_TW_COLID + "=?", new String[] { String.valueOf(columnId) },
-				TBL_TW_USERNAME,
+		final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+		qb.setTables(TBL_TW + " INNER JOIN " + TBL_TM + " ON " + TBL_TW + "." + TBL_TW_ID + " = " + TBL_TM_TWID);
+		qb.setDistinct(true);
+		final Cursor c = qb.query(this.mDb,
+				new String[] { TBL_TM_DATA, "count(*) AS count" },
+				TBL_TM_TYPE + "=" + MetaType.OWNER_NAME.getId() + " AND " + TBL_TW_COLID + "=?",
+				new String[] { String.valueOf(columnId) },
+				TBL_TM_DATA,
 				"count>1",
 				"count DESC",
 				"50");
 		try {
+			final Map<String, Long> ret = new LinkedHashMap<String, Long>();
 			if (c != null && c.moveToFirst()) {
-				final Map<String, Long> ret = new LinkedHashMap<String, Long>();
-				final int colUsername = c.getColumnIndex(TBL_TW_USERNAME);
+				final int colUsername = c.getColumnIndex(TBL_TM_DATA);
 				final int colCount = c.getColumnIndex("count");
 				do {
 					final String username = c.getString(colUsername);
@@ -1579,9 +1583,8 @@ public class DbAdapter implements DbInterface {
 					ret.put(username, count);
 				}
 				while (c.moveToNext());
-				return ret;
 			}
-			return null;
+			return ret;
 		}
 		finally {
 			IoHelper.closeQuietly(c);

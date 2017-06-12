@@ -73,6 +73,12 @@ public enum MetaType {
 	 */
 	ALT_TEXT(14),
 	/**
+	 * The username that caused the tweet to appear in the feed.
+	 * Data is the screenname without the preceding "@".
+	 * Title may be the full name.
+	 */
+	OWNER_NAME(15),
+	/**
 	 * This is hack that will never be in the DB.
 	 * This is to attach the source column ID to search results.
 	 */
@@ -116,8 +122,10 @@ public enum MetaType {
 				return FEED_HASH;
 			case 13: // NOSONAR 13 is not magical.
 				return QUOTED_SID;
-			case 14: // NOSONAR 13 is not magical.
+			case 14: // NOSONAR 14 is not magical.
 				return ALT_TEXT;
+			case 15: // NOSONAR 15 is not magical.
+				return OWNER_NAME;
 			case 90:// NOSONAR 90 is not that magical.
 				return COLUMN_ID;
 			default:

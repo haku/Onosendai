@@ -51,7 +51,14 @@ public class TwitterUtilsTest {
 		final Status s = mockTweet("foo");
 		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false, CollectionHelper.listOf(new Meta(MetaType.FEED_HASH, "abcdefgh")), null);
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.FEED_HASH, "abcdefgh")));
-		assertThat(t.getMetas(), hasSize(2));
+		assertThat(t.getMetas(), hasSize(3));
+	}
+
+	@Test
+	public void itAddsOwnerMeta () throws Exception {
+		final Status s = mockTweet("foo");
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false);
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.OWNER_NAME, "screenname", "name")));
 	}
 
 	@Test
