@@ -25,11 +25,15 @@ public class ScrollIndicatorTest {
 	@Test
 	public void itIsCorrectHeightsWhenUsingRelativeScaling () throws Exception {
 		assertThat(ScrollIndicator.barHeightRelative(0), closeTo(0d, 0d));
-		assertThat(ScrollIndicator.barHeightRelative(1), closeTo(0.00692d, 0.001d));
-		assertThat(ScrollIndicator.barHeightRelative(5), closeTo(0.0346d, 0.003d));
-		assertThat(ScrollIndicator.barHeightRelative(15), closeTo(0.0865d, 0.02d));
-		assertThat(ScrollIndicator.barHeightRelative(100), closeTo(0.381d, 0.06d));
-		assertThat(ScrollIndicator.barHeightRelative(500), closeTo(0.95d, 0.01d));
+		assertThat(ScrollIndicator.barHeightRelative(1), closeTo(0.00692d, 0.01d));
+		assertThat(ScrollIndicator.barHeightRelative(5), closeTo(0.0189d, 0.01d));
+		assertThat(ScrollIndicator.barHeightRelative(10), closeTo(0.0346d, 0.01d));
+		assertThat(ScrollIndicator.barHeightRelative(15), closeTo(0.0541d, 0.01d));
+		assertThat(ScrollIndicator.barHeightRelative(30), closeTo(0.102d, 0.01d));
+		assertThat(ScrollIndicator.barHeightRelative(100), closeTo(0.270d, 0.01d));
+		assertThat(ScrollIndicator.barHeightRelative(200), closeTo(0.431d, 0.01d));
+		assertThat(ScrollIndicator.barHeightRelative(500), closeTo(0.707d, 0.01d));
+		assertThat(ScrollIndicator.barHeightRelative(1000), closeTo(0.95d, 0.01d));
 	}
 
 }
