@@ -37,11 +37,16 @@ public class LocalSearchDialog {
 	}
 
 	public static void show (final Context context, final Config conf, final DbProvider dbProvider, final ImageLoader imageLoader, final OnTweetListener onTweetListener) {
+		show(context, conf, dbProvider, imageLoader, onTweetListener, null);
+	}
+
+	public static void show (final Context context, final Config conf, final DbProvider dbProvider, final ImageLoader imageLoader, final OnTweetListener onTweetListener, final String searchTerms) {
 		final LocalSearchDialog lsDlg = new LocalSearchDialog(context, conf, dbProvider, imageLoader, onTweetListener);
 		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(context);
 		dlgBuilder.setView(lsDlg.getRootView());
 		final AlertDialog dlg = dlgBuilder.create();
 		lsDlg.setDialog(dlg);
+		if (searchTerms != null) lsDlg.setSearchTerms(searchTerms);
 		dlg.show();
 	}
 
@@ -88,6 +93,11 @@ public class LocalSearchDialog {
 
 	private void setDialog (final Dialog dialog) {
 		this.dialog = dialog;
+	}
+
+	private void setSearchTerms (final String searchTerms) {
+		this.txtSearch.setText(searchTerms);
+		btnSearchClicked();
 	}
 
 	private View getRootView () {

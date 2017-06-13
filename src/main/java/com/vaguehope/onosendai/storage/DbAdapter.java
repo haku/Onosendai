@@ -34,6 +34,7 @@ import com.vaguehope.onosendai.model.ScrollState.ScrollDirection;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.StringHelper;
 
 public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -576,18 +577,41 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public List<Tweet> searchTweets (final String searchTerm, final List<Column> columns, final int numberOf) {
+	public List<Tweet> searchTweets (final String searchTerms, final List<Column> columns, final int numberOf) {
 		// WHERE body LIKE ? ESCAPE ? COLLATE NOCASE
 		//   AND (
 		//          (colid=? [AND sid NOT IN (SELECT sid FROM tw WHERE colid=? [OR colid=?]]))
 		//     [ OR (colid=? [AND sid NOT IN (SELECT sid FROM tw WHERE colid=? [OR colid=?]]))]
 		//   )
 
-		final StringBuilder where = new StringBuilder()
-				.append(TBL_TW_BODY).append(" LIKE ? ESCAPE ? COLLATE NOCASE");
+		final StringBuilder where = new StringBuilder();
 		final List<String> whereArgs = new ArrayList<String>();
-		whereArgs.add("%" + escapeSearch(searchTerm) + "%");
-		whereArgs.add(SEARCH_ESC);
+
+		final String[] terms = searchTerms.split("\\s", 10);
+		boolean first = true;
+		for (final String term : terms) {
+			if (!first) where.append(" AND ");
+			first = false;
+
+			if (StringHelper.caseInsensitiveStartsWith(term, "u:") && term.length() > 2) {
+				final String termVal = term.substring(2);
+				where.append("(")
+						.append(TBL_TW_USERNAME).append(" LIKE ? ESCAPE ? COLLATE NOCASE")
+						.append(" OR ")
+						.append(TBL_TW_USERSUBTITLE).append(" LIKE ? ESCAPE ? COLLATE NOCASE")
+						.append(")");
+				whereArgs.add(escapeSearch(termVal) + "%");
+				whereArgs.add(SEARCH_ESC);
+				whereArgs.add("%via " + escapeSearch(termVal) + "%"); // FIXME this is a super nasty hack.
+				whereArgs.add(SEARCH_ESC);
+			}
+			else {
+				where.append(TBL_TW_BODY).append(" LIKE ? ESCAPE ? COLLATE NOCASE");
+				whereArgs.add("%" + escapeSearch(term) + "%");
+				whereArgs.add(SEARCH_ESC);
+			}
+		}
+
 
 		if (columns != null && columns.size() > 0) {
 			int columnI = -1;

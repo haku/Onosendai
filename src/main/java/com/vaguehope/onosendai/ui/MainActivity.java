@@ -471,13 +471,17 @@ public class MainActivity extends FragmentActivity implements ImageLoader, DbPro
 		}
 	}
 
-	private void showLocalSearch () {
+	public void showLocalSearch () {
+		showLocalSearch(null);
+	}
+
+	public void showLocalSearch (final String searchTerms) {
 		LocalSearchDialog.show(this, getConf(), this, this, new OnTweetListener() {
 			@Override
 			public void onTweet (final int colId, final Tweet tweet) {
 				MainActivity.this.gotoTweet(colId, tweet);
 			}
-		});
+		}, searchTerms);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

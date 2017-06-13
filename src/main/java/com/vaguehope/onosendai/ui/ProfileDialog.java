@@ -1,7 +1,5 @@
 package com.vaguehope.onosendai.ui;
 
-import java.util.concurrent.Executor;
-
 import twitter4j.Relationship;
 import twitter4j.TwitterException;
 import twitter4j.User;
@@ -31,13 +29,13 @@ public class ProfileDialog {
 	private static final String PROFILE_URL_TEMPLATE = "https://twitter.com/%s";
 	private static final LogWrapper LOG = new LogWrapper("PD");
 
-	public static void show (final Context context, final Executor executor, final ImageLoader imageLoader, final Account account, final String username) {
-		final ProfileDialog pDlg = new ProfileDialog(context, imageLoader, account, username);
-		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(context);
+	public static void show (final MainActivity mainActivity, final ImageLoader imageLoader, final Account account, final String username) {
+		final ProfileDialog pDlg = new ProfileDialog(mainActivity, imageLoader, account, username);
+		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(mainActivity);
 		dlgBuilder.setView(pDlg.getRootView());
 		final AlertDialog dlg = dlgBuilder.create();
 		dlg.show();
-		new FetchUserTask(pDlg, account, username).executeOnExecutor(executor);
+		new FetchUserTask(pDlg, account, username).executeOnExecutor(mainActivity.getNetEs());
 	}
 
 	private final Context context;
@@ -51,13 +49,14 @@ public class ProfileDialog {
 	private final TextView txtUsername;
 	private final TextView txtDescription;
 	private final Button btnProfile;
+	private final Button btnTweets;
 	private final Button btnFollowUnfollow;
 
-	private ProfileDialog (final Context context, final ImageLoader imageLoader, final Account account, final String username) {
-		this.context = context;
+	private ProfileDialog (final MainActivity mainActivity, final ImageLoader imageLoader, final Account account, final String username) {
+		this.context = mainActivity;
 		this.imageLoader = imageLoader;
 		this.account = account;
-		this.parentView = LayoutInflater.from(context).inflate(R.layout.profile, null);
+		this.parentView = LayoutInflater.from(this.context).inflate(R.layout.profile, null);
 
 		this.lUser = this.parentView.findViewById(R.id.lUser);
 		this.imgAvatar = (ImageView) this.parentView.findViewById(R.id.imgAvatar);
@@ -65,6 +64,7 @@ public class ProfileDialog {
 		this.txtUsername = (TextView) this.parentView.findViewById(R.id.txtUsername);
 		this.txtDescription = (TextView) this.parentView.findViewById(R.id.txtDescription);
 		this.btnProfile = (Button) this.parentView.findViewById(R.id.btnProfile);
+		this.btnTweets = (Button) this.parentView.findViewById(R.id.btnTweets);
 		this.btnFollowUnfollow = (Button) this.parentView.findViewById(R.id.btnFollowUnfollow);
 
 		this.txtFullname.setText("...");
@@ -73,6 +73,7 @@ public class ProfileDialog {
 		final String profileUrl = String.format(PROFILE_URL_TEMPLATE, username);
 		this.btnProfile.setText(profileUrl);
 		this.btnProfile.setOnClickListener(new GoToUrlClickListener(profileUrl));
+		this.btnTweets.setOnClickListener(new ShowTweetsClickListener(mainActivity, username));
 	}
 
 	public Context getContext () {
@@ -183,7 +184,23 @@ public class ProfileDialog {
 		public void onClick (final View v) {
 			v.getContext().startActivity(new Intent(Intent.ACTION_VIEW)
 					.setData(Uri.parse(this.url)));
+		}
 
+	}
+
+	private static class ShowTweetsClickListener implements OnClickListener {
+
+		private final MainActivity mainActivity;
+		private final String username;
+
+		public ShowTweetsClickListener (final MainActivity mainActivity, final String username) {
+			this.mainActivity = mainActivity;
+			this.username = username;
+		}
+
+		@Override
+		public void onClick (final View v) {
+			this.mainActivity.showLocalSearch(String.format("u:%s", this.username));
 		}
 
 	}

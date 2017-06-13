@@ -74,6 +74,13 @@
 		style="?android:attr/buttonBarButtonStyle" />
 
 	<Button
+		android:id="@+id/btnTweets"
+		android:layout_width="fill_parent"
+		android:layout_height="50dip"
+		android:text="Tweets"
+		style="?android:attr/buttonBarButtonStyle" />
+
+	<Button
 		android:id="@+id/btnFollowUnfollow"
 		android:layout_width="fill_parent"
 		android:layout_height="50dip"

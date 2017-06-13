@@ -37,6 +37,12 @@ public final class StringHelper {
 		return ELIPSE + s.substring(s.length() - (len - ELIPSE.length()));
 	}
 
+	public static boolean caseInsensitiveStartsWith(final String s, final String lookFor) {
+		if (s == null) return lookFor == null;
+		if (lookFor == null) return false;
+		return s.toLowerCase(Locale.UK).startsWith(lookFor.toLowerCase(Locale.UK));
+	}
+
 	public static boolean safeContainsIgnoreCase (final String s, final String lookFor) {
 		if (s == null) return lookFor == null;
 		if (lookFor == null) return false;
