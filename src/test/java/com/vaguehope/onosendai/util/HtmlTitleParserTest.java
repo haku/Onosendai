@@ -11,9 +11,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import android.text.SpannableStringBuilder;
 
+// https://github.com/danialgoodwin/dev/blob/master/android/testing/robolectric-cheat-sheet.md#error-for-robolectric-22
+@Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
 public class HtmlTitleParserTest {
 
