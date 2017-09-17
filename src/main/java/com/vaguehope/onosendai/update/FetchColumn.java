@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import twitter4j.TwitterException;
 
+import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.ColumnFeed;
@@ -15,6 +16,7 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.instapaper.InstapaperProvider;
+import com.vaguehope.onosendai.provider.mastodon.MastodonProvider;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleFeed;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
@@ -69,6 +71,9 @@ public class FetchColumn implements Callable<Void> {
 			case TWITTER:
 				fetchTwitterColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters);
 				break;
+			case MASTODON:
+				fetchMastodonColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters);
+				break;
 			case SUCCESSWHALE:
 				fetchSuccessWhaleColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters);
 				break;
@@ -98,6 +103,26 @@ public class FetchColumn implements Callable<Void> {
 		catch (final TwitterException e) {
 			LOG.w("Failed to fetch from Twitter: %s", ExcpetionHelper.causeTrace(e));
 			storeError(db, column, TwitterUtils.friendlyExceptionMessage(e));
+		}
+	}
+
+	private static void fetchMastodonColumn (final DbInterface db, final Account account, final Column column, final ColumnFeed columnFeed, final ProviderMgr providerMgr, final Filters filters) {
+		final long startTime = System.nanoTime();
+		try {
+			final MastodonProvider mastodonProvider = providerMgr.getMastodonProvider();
+			mastodonProvider.addAccount(account);
+			final String sinceIdRaw = readSinceId(db, column, columnFeed);
+			final long sinceId = sinceIdRaw != null ? Long.parseLong(sinceIdRaw) : -1;
+			final TweetList tweets = mastodonProvider.getFeed(columnFeed.getResource(), account, sinceId);
+			final int filteredCount = filterAndStore(db, column, columnFeed, filters, tweets);
+			storeQuoted(db, tweets);
+			storeSuccess(db, column);
+			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+			LOG.i("Fetched %d items for '%s' '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), columnFeed.getResource(), durationMillis, filteredCount);
+		}
+		catch (final Mastodon4jRequestException e) {
+			LOG.w("Failed to fetch from Mastodon: %s", ExcpetionHelper.causeTrace(e));
+			storeError(db, column, ExcpetionHelper.causeTrace(e)); // TODO make friendly.
 		}
 	}
 

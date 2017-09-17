@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
 import com.vaguehope.onosendai.provider.hosaka.HosakaProvider;
 import com.vaguehope.onosendai.provider.instapaper.InstapaperProvider;
+import com.vaguehope.onosendai.provider.mastodon.MastodonProvider;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.KvStore;
@@ -16,6 +17,7 @@ public class ProviderMgr {
 	}
 
 	private final TwitterProvider twitterProvider;
+	private final MastodonProvider mastodonProvider;
 	private final SuccessWhaleProvider successWhaleProvider;
 	private final InstapaperProvider instapaperProvider;
 	private final BufferAppProvider bufferAppProvider;
@@ -23,6 +25,7 @@ public class ProviderMgr {
 
 	public ProviderMgr (final KvStore kvStore) {
 		this.twitterProvider = new TwitterProvider();
+		this.mastodonProvider = new MastodonProvider();
 		this.successWhaleProvider = new SuccessWhaleProvider(kvStore);
 		this.instapaperProvider = new InstapaperProvider();
 		this.bufferAppProvider = new BufferAppProvider();
@@ -31,6 +34,10 @@ public class ProviderMgr {
 
 	public TwitterProvider getTwitterProvider () {
 		return this.twitterProvider;
+	}
+
+	public MastodonProvider getMastodonProvider () {
+		return this.mastodonProvider;
 	}
 
 	public SuccessWhaleProvider getSuccessWhaleProvider () {

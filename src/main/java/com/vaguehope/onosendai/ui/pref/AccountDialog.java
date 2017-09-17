@@ -85,6 +85,10 @@ class AccountDialog {
 				this.rowPassword.setVisibility(View.GONE);
 				this.btnTest.setVisibility(View.GONE);
 				break;
+			case MASTODON:
+				this.rowUsername.setVisibility(View.GONE);
+				this.rowPassword.setVisibility(View.GONE);
+				break;
 			case SUCCESSWHALE:
 			case INSTAPAPER:
 			case HOSAKA:
@@ -93,7 +97,7 @@ class AccountDialog {
 					this.txtUsername.setText(initialValue.getAccessToken());
 					this.txtPassword.setText(initialValue.getAccessSecret());
 				}
-				this.btnTest.setOnClickListener(this.btnTestClickListener);
+				this.chkReauthenticate.setVisibility(View.GONE);
 				break;
 			case BUFFER:
 				this.txtUsernameLabel.setText("accessToken");
@@ -101,13 +105,13 @@ class AccountDialog {
 				if (initialValue != null) {
 					this.txtUsername.setText(initialValue.getAccessToken());
 				}
-				this.btnTest.setOnClickListener(this.btnTestClickListener);
+				this.chkReauthenticate.setVisibility(View.GONE);
 				break;
 			default:
 		}
 
+		this.btnTest.setOnClickListener(this.btnTestClickListener);
 		this.chkReauthenticate.setChecked(false);
-		this.chkReauthenticate.setVisibility(initialValue != null && accountProvider == AccountProvider.TWITTER ? View.VISIBLE : View.GONE);
 
 		this.chkDelete.setChecked(false);
 		this.chkDelete.setVisibility(initialValue != null ? View.VISIBLE : View.GONE);
@@ -146,6 +150,7 @@ class AccountDialog {
 	public boolean isSaveable () {
 		switch (this.accountProvider) {
 			case TWITTER:
+			case MASTODON:
 			case SUCCESSWHALE:
 			case INSTAPAPER:
 			case BUFFER:
@@ -160,7 +165,8 @@ class AccountDialog {
 		final String title = this.txtTitle.getText().toString().trim();
 		switch (this.accountProvider) {
 			case TWITTER:
-				if (this.initialValue == null) throw new IllegalStateException("Can not use account dialog to create a Twitter account.");
+			case MASTODON:
+				if (this.initialValue == null) throw new IllegalStateException("Can not use account dialog to create a " + this.accountProvider.getUiTitle() + " account.");
 				return new Account(this.id, title,
 						this.initialValue.getProvider(),
 						this.initialValue.getConsumerKey(), this.initialValue.getConsumerSecret(),
@@ -205,6 +211,9 @@ class AccountDialog {
 			final ProviderMgr provMgr = new ProviderMgr(new VolatileKvStore());
 			try {
 				switch (this.account.getProvider()) {
+					case MASTODON:
+						provMgr.getMastodonProvider().testAccountLogin(this.account);
+						return "Success."; //ES
 					case SUCCESSWHALE:
 						provMgr.getSuccessWhaleProvider().testAccountLogin(this.account);
 						return "Success."; //ES

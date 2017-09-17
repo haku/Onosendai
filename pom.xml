@@ -30,6 +30,13 @@
 		<powermock.version>1.5.6</powermock.version>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 
 		<!-- Test dependencies that need to be in front of android:android below because to annoyingly has explosive stubs inside. -->
@@ -83,7 +90,15 @@
 			<artifactId>twitter4j-core</artifactId>
 			<version>${twitter4j.version}</version>
 		</dependency>
-		
+
+		<!-- Mastodon -->
+
+		<dependency>
+			<groupId>com.github.sys1yagi.mastodon4j</groupId>
+			<artifactId>mastodon4j</artifactId>
+			<version>1.2.0</version>
+		</dependency>
+
 		<!-- Util -->
 
 		<dependency> <!-- FIXME Only here because SW has awkard date format. -->

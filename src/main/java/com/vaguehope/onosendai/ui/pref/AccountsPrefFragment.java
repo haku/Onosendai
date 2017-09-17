@@ -20,6 +20,7 @@ import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthComplete;
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthHelper;
+import com.vaguehope.onosendai.ui.pref.MastodonOauthWizard.MastodonOauthComplete;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -66,7 +67,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 	protected void promptNewAccountType () {
 		DialogHelper.askItem(getActivity(), "Account Type", //ES
-				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.SUCCESSWHALE, AccountProvider.INSTAPAPER, AccountProvider.BUFFER, AccountProvider.HOSAKA },
+				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.MASTODON, AccountProvider.SUCCESSWHALE, AccountProvider.INSTAPAPER, AccountProvider.BUFFER, AccountProvider.HOSAKA },
 				new Listener<AccountProvider>() {
 					@Override
 					public void onAnswer (final AccountProvider answer) {
@@ -79,6 +80,9 @@ public class AccountsPrefFragment extends PreferenceFragment {
 		switch (accountProvider) {
 			case TWITTER:
 				promptAddTwitterAccount();
+				break;
+			case MASTODON:
+				promptAddMastodonAccount();
 				break;
 			case SUCCESSWHALE:
 			case INSTAPAPER:
@@ -120,6 +124,23 @@ public class AccountsPrefFragment extends PreferenceFragment {
 				refreshAccountsList();
 			}
 		});
+	}
+
+	private void promptAddMastodonAccount () {
+		final MastodonOauthWizard wizard = new MastodonOauthWizard(getActivity(), new MastodonOauthComplete() {
+			@Override
+			public String getAccountId () {
+				return AccountsPrefFragment.this.prefs.getNextAccountId();
+			}
+
+			@Override
+			public void onAccount (final Account account, final String screenName) throws JSONException {
+				AccountsPrefFragment.this.prefs.writeNewAccount(account);
+				DialogHelper.alert(getActivity(), "Mastodon account added:\n" + screenName); //ES
+				refreshAccountsList();
+			}
+		});
+		wizard.start();
 	}
 
 	@Override
@@ -168,25 +189,42 @@ public class AccountsPrefFragment extends PreferenceFragment {
 	}
 
 	protected void askReauthenticateAccount (final Account oldAccount) {
-		if (oldAccount.getProvider() != AccountProvider.TWITTER) {
-			DialogHelper.alert(getActivity(), "Reauthenticate not supported for: " + oldAccount.getProvider());
+		if (oldAccount.getProvider() == AccountProvider.TWITTER) {
+			initTwitterOauthWizard();
+			this.twitterOauthWizard.start(new TwitterOauthComplete() {
+				@Override
+				public String getAccountId () {
+					return oldAccount.getId();
+				}
+
+				@Override
+				public void onAccount (final Account newAccount, final String screenName) throws JSONException {
+					AccountsPrefFragment.this.prefs.updateExistingAccount(newAccount);
+					DialogHelper.alert(getActivity(), "Twitter account updated:\n" + screenName); //ES
+					refreshAccountsList();
+				}
+			});
 			return;
 		}
 
-		initTwitterOauthWizard();
-		this.twitterOauthWizard.start(new TwitterOauthComplete() {
-			@Override
-			public String getAccountId () {
-				return oldAccount.getId();
-			}
+		if (oldAccount.getProvider() == AccountProvider.MASTODON) {
+			final MastodonOauthWizard wizard = new MastodonOauthWizard(getActivity(), new MastodonOauthComplete() {
+				@Override
+				public String getAccountId () {
+					return oldAccount.getId();
+				}
 
-			@Override
-			public void onAccount (final Account newAccount, final String screenName) throws JSONException {
-				AccountsPrefFragment.this.prefs.updateExistingAccount(newAccount);
-				DialogHelper.alert(getActivity(), "Twitter account updated:\n" + screenName); //ES
-				refreshAccountsList();
-			}
-		});
+				@Override
+				public void onAccount (final Account newAccount, final String screenName) throws JSONException {
+					AccountsPrefFragment.this.prefs.updateExistingAccount(newAccount);
+					DialogHelper.alert(getActivity(), "Mastodon account updated:\n" + screenName); //ES
+					refreshAccountsList();
+				}
+			});
+			wizard.start();
+		}
+
+		DialogHelper.alert(getActivity(), "Reauthenticate not supported for: " + oldAccount.getProvider());
 	}
 
 	protected void askDeleteAccount (final Account account) {

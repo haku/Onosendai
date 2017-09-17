@@ -13,6 +13,7 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
+import com.vaguehope.onosendai.provider.mastodon.MastodonColumnType;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumnsFetcher;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleSource;
@@ -95,6 +96,9 @@ class ColumnChooser {
 		switch (account.getProvider()) {
 			case TWITTER:
 				promptAddTwitterColumn(account); // TODO pass in existing resource value.
+				break;
+			case MASTODON:
+				promptAddMastodonColumn(account); // TODO pass in existing resource value.
 				break;
 			case SUCCESSWHALE:
 				promptAddSuccessWhaleColumn(account, previousResource);
@@ -200,6 +204,24 @@ class ColumnChooser {
 				onColumn(account, TwitterColumnType.SEARCH.getResource() + answer);
 			}
 		});
+	}
+
+//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	private void promptAddMastodonColumn (final Account account) {
+		DialogHelper.askItem(this.context, "Mastodon Columns", MastodonColumnType.values(), new Listener<MastodonColumnType>() { //ES
+			@Override
+			public void onAnswer (final MastodonColumnType type) {
+				promptAddMastodonColumn(account, type);
+			}
+		});
+	}
+
+	protected void promptAddMastodonColumn (final Account account, final MastodonColumnType type) {
+		switch (type) {
+			default:
+				onColumn(account, type.getResource());
+		}
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

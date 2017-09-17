@@ -123,13 +123,18 @@ public class Account implements Titleable {
 	public Account withoutSecrets () {
 		return new Account(this.id, this.title, this.provider,
 				this.consumerKey, null,
-				this.provider == AccountProvider.BUFFER ? null : this.accessToken, null);
+				this.provider == AccountProvider.BUFFER || this.provider == AccountProvider.MASTODON
+						? null
+						: this.accessToken,
+				null);
 	}
 
 	public boolean hasSecrets () {
 		switch (this.provider) {
 			case TWITTER:
 				return !StringHelper.isEmpty(this.consumerSecret) && !StringHelper.isEmpty(this.accessSecret);
+			case MASTODON:
+				return !StringHelper.isEmpty(this.accessToken);
 			case SUCCESSWHALE:
 			case INSTAPAPER:
 			case HOSAKA:
@@ -148,6 +153,7 @@ public class Account implements Titleable {
 		json.put(KEY_PROVIDER, String.valueOf(this.provider));
 		switch (this.provider) {
 			case TWITTER:
+			case MASTODON:
 				json.put(KEY_CONSUMER_KEY, this.consumerKey);
 				json.put(KEY_CONSUMER_SECRET, this.consumerSecret);
 				json.put(KEY_ACCESS_TOKEN, this.accessToken);
@@ -182,6 +188,9 @@ public class Account implements Titleable {
 			case TWITTER:
 				account = parseTwitterAccount(json, id);
 				break;
+			case MASTODON:
+				account = parseMastodonAccount(json, id);
+				break;
 			case SUCCESSWHALE:
 				account = parseUsernamePasswordLikeAccount(json, id, AccountProvider.SUCCESSWHALE);
 				break;
@@ -207,6 +216,15 @@ public class Account implements Titleable {
 		final String accessToken = accountJson.getString(KEY_ACCESS_TOKEN);
 		final String accessSecret = accountJson.optString(KEY_ACCESS_SECRET);
 		return new Account(id, title, AccountProvider.TWITTER, consumerKey, consumerSecret, accessToken, accessSecret);
+	}
+
+	private static Account parseMastodonAccount (final JSONObject accountJson, final String id) throws JSONException {
+		final String title = accountJson.optString(KEY_TITLE, null);
+		final String consumerKey = accountJson.getString(KEY_CONSUMER_KEY);
+		final String consumerSecret = accountJson.optString(KEY_CONSUMER_SECRET);
+		final String accessToken = accountJson.getString(KEY_ACCESS_TOKEN);
+		final String accessSecret = accountJson.optString(KEY_ACCESS_SECRET);
+		return new Account(id, title, AccountProvider.MASTODON, consumerKey, consumerSecret, accessToken, accessSecret);
 	}
 
 	private static Account parseUsernamePasswordLikeAccount (final JSONObject accountJson, final String id, final AccountProvider provider) throws JSONException {
