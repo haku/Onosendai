@@ -1,4 +1,4 @@
 #!/bin/bash
 set -eu
 mv target/onosendai.apk target/onosendai_${BUILD_NUMBER}_${BUILD_ID}.apk
-$HOME/bin/jenkins-curl "http://localhost:8080/jenkins/job/onosendai/${BUILD_NUMBER}/api/xml?depth=0&xpath=//changeSet" > target/changeSet_${BUILD_NUMBER}_${BUILD_ID}.xml
+$HOME/bin/jenkins-curl "http://localhost:49001/job/onosendai/${BUILD_NUMBER}/api/xml?depth=0&xpath=//changeSet" > target/changeSet_${BUILD_NUMBER}_${BUILD_ID}.xml
