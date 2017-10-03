@@ -11,6 +11,7 @@ public class TweetCursorReader {
 	private int colFullname = -1;
 	private int colUserSubtitle = -1;
 	private int colFullSubtitle = -1;
+	private int colOwnerUsername = -1;
 	private int colBody = -1;
 	private int colAvatar = -1;
 	private int colInlineMedia = -1;
@@ -81,6 +82,12 @@ public class TweetCursorReader {
 		if (fullSubtitle == null) return fullname;
 
 		return String.format("%s\n%s", fullname, fullSubtitle);
+	}
+
+	public String readOwnerUsername (final Cursor c) {
+		if (c == null) return null;
+		if (this.colOwnerUsername < 0) this.colOwnerUsername = c.getColumnIndexOrThrow(DbAdapter.TBL_TW_OWNER_USERNAME);
+		return c.getString(this.colOwnerUsername);
 	}
 
 	public String readBody (final Cursor c) {

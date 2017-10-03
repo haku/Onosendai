@@ -40,7 +40,7 @@ public class DbAdapter implements DbInterface {
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	private static final String DB_NAME = "tweets";
-	private static final int DB_VERSION = 23;
+	private static final int DB_VERSION = 24;
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -152,6 +152,10 @@ public class DbAdapter implements DbInterface {
 					this.log.w("Adding column %s...", TBL_OB_SID);
 					db.execSQL("ALTER TABLE " + TBL_OB + " ADD COLUMN " + TBL_OB_SID + " text;");
 				}
+				if (oldVersion < 24) { // NOSONAR not a magic number.
+					this.log.w("Adding column %s...", TBL_TW_OWNER_USERNAME);
+					db.execSQL("ALTER TABLE " + TBL_TW + " ADD COLUMN " + TBL_TW_OWNER_USERNAME + " text;");
+				}
 			}
 		}
 
@@ -220,6 +224,7 @@ public class DbAdapter implements DbInterface {
 	protected static final String TBL_TW_FULLNAME = "fname";
 	protected static final String TBL_TW_USERSUBTITLE = "usub";
 	protected static final String TBL_TW_FULLSUBTITLE = "fsub";
+	protected static final String TBL_TW_OWNER_USERNAME = "ouname";
 	protected static final String TBL_TW_BODY = "body";
 	protected static final String TBL_TW_AVATAR = "avatar";
 	protected static final String TBL_TW_INLINEMEDIA = "imedia";
@@ -235,6 +240,7 @@ public class DbAdapter implements DbInterface {
 			+ TBL_TW_FULLNAME + " text,"
 			+ TBL_TW_USERSUBTITLE + " text,"
 			+ TBL_TW_FULLSUBTITLE + " text,"
+			+ TBL_TW_OWNER_USERNAME + " text,"
 			+ TBL_TW_BODY + " text,"
 			+ TBL_TW_AVATAR + " text,"
 			+ TBL_TW_INLINEMEDIA + " text,"
@@ -408,9 +414,9 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public List<Tweet> getTweets (final int columnId, final int numberOf, final Selection selection, final Set<Integer> excludeColumnIds) {
+	public List<Tweet> getTweets (final int columnId, final int numberOf, final Selection selection, final Set<Integer> excludeColumnIds, final boolean excludeRetweets) {
 		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweets(columnId, numberOf, selection);
-		final Cursor c = getTweetsCursor(columnId, selection, excludeColumnIds, false, numberOf);
+		final Cursor c = getTweetsCursor(columnId, selection, excludeColumnIds, false, excludeRetweets, numberOf);
 		try {
 			return readTweets(c, false);
 		}
@@ -435,12 +441,12 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly) {
+	public Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final boolean excludeRetweets) {
 		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweetsCursor(columnId, selection, withInlineMediaOnly);
-		return getTweetsCursor(columnId, selection, excludeColumnIds, withInlineMediaOnly, -1);
+		return getTweetsCursor(columnId, selection, excludeColumnIds, withInlineMediaOnly, excludeRetweets, -1);
 	}
 
-	private Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final int numberOf) {
+	private Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final boolean excludeRetweets, final int numberOf) {
 		final StringBuilder where = new StringBuilder()
 				.append(TBL_TW_COLID).append("=?");
 
@@ -449,6 +455,13 @@ public class DbAdapter implements DbInterface {
 
 		if (withInlineMediaOnly) where
 				.append(" AND ").append(TBL_TW_INLINEMEDIA).append(" NOT NULL");
+
+		if (excludeRetweets) where
+				.append(" AND (")
+				.append(TBL_TW_OWNER_USERNAME).append(" IS NULL")
+				.append(" OR ")
+				.append(TBL_TW_OWNER_USERNAME).append(" == ").append(TBL_TW_USERNAME)
+				.append(")");
 
 		where.append(" AND ").append(TBL_TW_SID)
 				.append(" NOT IN (SELECT ").append(TBL_TW_SID)
@@ -496,7 +509,7 @@ public class DbAdapter implements DbInterface {
 	private Cursor getTweetsCursor (final String where, final String[] whereArgs, final String orderBy, final int numberOf) {
 		if (!checkDbOpen()) return null;
 		return this.mDb.query(true, TBL_TW,
-				new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_QUOTED_SID, TBL_TW_COLID, TBL_TW_FILTERED },
+				new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_OWNER_USERNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_QUOTED_SID, TBL_TW_COLID, TBL_TW_FILTERED },
 				where, whereArgs,
 				null, null,
 				orderBy,
@@ -511,6 +524,7 @@ public class DbAdapter implements DbInterface {
 			final int colFullname = c.getColumnIndex(TBL_TW_FULLNAME);
 			final int colUserSubtitle = c.getColumnIndex(TBL_TW_USERSUBTITLE);
 			final int colFullSubtitle = c.getColumnIndex(TBL_TW_FULLSUBTITLE);
+			final int colOwnerUsername = c.getColumnIndex(TBL_TW_OWNER_USERNAME);
 			final int colBody = c.getColumnIndex(TBL_TW_BODY);
 			final int colTime = c.getColumnIndex(TBL_TW_TIME);
 			final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
@@ -527,6 +541,7 @@ public class DbAdapter implements DbInterface {
 				final String fullname = c.getString(colFullname);
 				final String userSubtitle = c.getString(colUserSubtitle);
 				final String fullSubtitle = c.getString(colFullSubtitle);
+				final String ownerUsername = c.getString(colOwnerUsername);
 				final String body = c.getString(colBody);
 				final long time = c.getLong(colTime);
 				final String avatar = c.getString(colAvatar);
@@ -537,7 +552,7 @@ public class DbAdapter implements DbInterface {
 				if (addColumMeta) {
 					metas = Collections.singletonList(new Meta(MetaType.COLUMN_ID, String.valueOf(c.getInt(colColId))));
 				}
-				ret.add(new Tweet(uid, sid, username, fullname, userSubtitle, fullSubtitle, body, time, avatar, inlineMedia, quotedSid, metas, filtered));
+				ret.add(new Tweet(uid, sid, username, fullname, userSubtitle, fullSubtitle, ownerUsername, body, time, avatar, inlineMedia, quotedSid, metas, filtered));
 			}
 			while (c.moveToNext());
 			return ret;
@@ -684,7 +699,7 @@ public class DbAdapter implements DbInterface {
 		Cursor c = null;
 		try {
 			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_QUOTED_SID, TBL_TW_FILTERED },
+					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_OWNER_USERNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_QUOTED_SID, TBL_TW_FILTERED },
 					selection, selectionArgs,
 					null, null, null, null);
 
@@ -695,6 +710,7 @@ public class DbAdapter implements DbInterface {
 				final int colFullname = c.getColumnIndex(TBL_TW_FULLNAME);
 				final int colUserSubtitle = c.getColumnIndex(TBL_TW_USERSUBTITLE);
 				final int colFullSubtitle = c.getColumnIndex(TBL_TW_FULLSUBTITLE);
+				final int colOwnerUsername = c.getColumnIndex(TBL_TW_OWNER_USERNAME);
 				final int colBody = c.getColumnIndex(TBL_TW_BODY);
 				final int colTime = c.getColumnIndex(TBL_TW_TIME);
 				final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
@@ -708,6 +724,7 @@ public class DbAdapter implements DbInterface {
 				final String fullname = c.getString(colFullname);
 				final String userSubtitle = c.getString(colUserSubtitle);
 				final String fullSubtitle = c.getString(colFullSubtitle);
+				final String ownerUsername = c.getString(colOwnerUsername);
 				final String body = c.getString(colBody);
 				final long time = c.getLong(colTime);
 				final String avatar = c.getString(colAvatar);
@@ -715,7 +732,7 @@ public class DbAdapter implements DbInterface {
 				final String quotedSid = c.getString(colQuotedSid);
 				final boolean filtered = !c.isNull(colFiltered);
 				final List<Meta> metas = getTweetMetas(uid);
-				ret = new Tweet(uid, sid, username, fullname, userSubtitle, fullSubtitle, body, time, avatar, inlineMedia, quotedSid, metas, filtered);
+				ret = new Tweet(uid, sid, username, fullname, userSubtitle, fullSubtitle, ownerUsername, body, time, avatar, inlineMedia, quotedSid, metas, filtered);
 			}
 		}
 		finally {
@@ -829,18 +846,18 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public int getUnreadCount (final Column column) {
-		return getUpCount(UpCountType.UNREAD, column, Selection.FILTERED);
+	public int getUnreadCount (final Column column, final boolean excludeRetweets) {
+		return getUpCount(UpCountType.UNREAD, column, Selection.FILTERED, excludeRetweets);
 	}
 
 	@Override
-	public int getUnreadCount (final int columnId, final Set<Integer> excludeColumnIds, final ScrollState scroll) {
-		return getUpCount(UpCountType.UNREAD, columnId, Selection.FILTERED, excludeColumnIds, false, scroll);
+	public int getUnreadCount(final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final boolean excludeRetweets, final ScrollState scroll) {
+		return getUpCount(UpCountType.UNREAD, columnId, selection, excludeColumnIds, withInlineMediaOnly, excludeRetweets, scroll);
 	}
 
 	@Override
-	public int getScrollUpCount (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final ScrollState scroll) {
-		return getUpCount(UpCountType.SCROLL, columnId, selection, excludeColumnIds, withInlineMediaOnly, scroll);
+	public int getScrollUpCount (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final boolean excludeRetweets, final ScrollState scroll) {
+		return getUpCount(UpCountType.SCROLL, columnId, selection, excludeColumnIds, withInlineMediaOnly, excludeRetweets, scroll);
 	}
 
 	private static enum UpCountType {
@@ -859,11 +876,12 @@ public class DbAdapter implements DbInterface {
 		public abstract long getTime (ScrollState ss);
 	}
 
-	public int getUpCount (final UpCountType type, final Column column, final Selection selection) {
-		return getUpCount(type, column.getId(), selection, column.getExcludeColumnIds(), false, null);
+	private int getUpCount (final UpCountType type, final Column column, final Selection selection, final boolean excludeRetweets) {
+		return getUpCount(type, column.getId(), selection, column.getExcludeColumnIds(), false, excludeRetweets, null);
 	}
 
-	public int getUpCount (final UpCountType type, final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final ScrollState scroll) {
+	private int getUpCount (final UpCountType type, final int columnId, final Selection selection,
+			final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final boolean excludeRetweets, final ScrollState scroll) {
 		if (!checkDbOpen()) return -1;
 
 		final StringBuilder where = new StringBuilder()
@@ -874,6 +892,13 @@ public class DbAdapter implements DbInterface {
 
 		if (withInlineMediaOnly) where
 				.append(" AND ").append(TBL_TW_INLINEMEDIA).append(" NOT NULL");
+
+		if (excludeRetweets) where
+				.append(" AND (")
+				.append(TBL_TW_OWNER_USERNAME).append(" IS NULL")
+				.append(" OR ")
+				.append(TBL_TW_OWNER_USERNAME).append(" == ").append(TBL_TW_USERNAME)
+				.append(")");
 
 		where
 				.append(" AND ").append(TBL_TW_TIME).append(">?");

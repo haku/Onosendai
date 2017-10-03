@@ -15,13 +15,13 @@ public class TweetTest {
 
 	@Test
 	public void itConvertsToNiceLine () throws Exception {
-		final Tweet t = new Tweet(null, null, "Their Name", "via foo", "via Foo Bar", "The tweet's body.", UTIME, null, null, null, null);
+		final Tweet t = new Tweet(null, null, "Their Name", "via foo", "via Foo Bar", null, "The tweet's body.", UTIME, null, null, null, null);
 		assertEquals("\"The tweet's body.\" Their Name", t.toHumanLine());
 	}
 
 	@Test
 	public void itConvertsToNiceParagraph () throws Exception {
-		final Tweet t = new Tweet(null, "someone", "Their Name", "via foo", "via Foo Bar", "The tweet's body.", UTIME, null, null, null, null);
+		final Tweet t = new Tweet(null, "someone", "Their Name", "via foo", "via Foo Bar", null, "The tweet's body.", UTIME, null, null, null, null);
 		assertEquals("\"The tweet's body.\"" +
 				"\nTheir Name (someone)" +
 				"\n" + FORMATTED_UTIME, t.toHumanParagraph());
@@ -29,7 +29,7 @@ public class TweetTest {
 
 	@Test
 	public void itIsOnWithoutUserName () throws Exception {
-		final Tweet t = new Tweet(null, null, "Their Name", "via foo", "via Foo Bar", "The tweet's body.", UTIME, null, null, null, null);
+		final Tweet t = new Tweet(null, null, "Their Name", "via foo", "via Foo Bar", null, "The tweet's body.", UTIME, null, null, null, null);
 		assertEquals("\"The tweet's body.\"" +
 				"\nTheir Name" +
 				"\n" + FORMATTED_UTIME, t.toHumanParagraph());

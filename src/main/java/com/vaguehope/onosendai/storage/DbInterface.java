@@ -30,11 +30,11 @@ public interface DbInterface extends KvStore {
 	}
 
 	List<Tweet> getTweets(int columnId, int numberOf, Selection selection);
-	List<Tweet> getTweets(int columnId, int numberOf, Selection selection, Set<Integer> excludeColumnIds);
+	List<Tweet> getTweets(int columnId, int numberOf, Selection selection, Set<Integer> excludeColumnIds, boolean excludeRetweets);
 
 	Cursor getTweetsCursor(int columnId, Selection selection);
 	Cursor getTweetsCursor(int columnId, Selection selection, boolean withInlineMediaOnly);
-	Cursor getTweetsCursor(int columnId, Selection selection, Set<Integer> excludeColumnIds, boolean withInlineMediaOnly);
+	Cursor getTweetsCursor(int columnId, Selection selection, Set<Integer> excludeColumnIds, boolean withInlineMediaOnly, boolean excludeRetweets);
 
 	List<Tweet> getTweetsSinceTime (final int columnId, final long earliestTime, final int numberOf);
 	List<Tweet> getTweetsWithSid (String sid);
@@ -54,9 +54,9 @@ public interface DbInterface extends KvStore {
 	List<String> getUsernames(String prefix, int numberOf);
 	List<String> getHashtags(String prefix, int numberOf);
 
-	int getUnreadCount(Column column);
-	int getUnreadCount(int columnId, Set<Integer> excludeColumnIds, ScrollState scroll);
-	int getScrollUpCount(int columnId, Selection selection, Set<Integer> excludeColumnIds, boolean withInlineMediaOnly, ScrollState scroll);
+	int getUnreadCount(Column column, boolean excludeRetweets);
+	int getUnreadCount(int columnId, Selection selection, Set<Integer> excludeColumnIds, boolean withInlineMediaOnly, boolean excludeRetweets, ScrollState scroll);
+	int getScrollUpCount(int columnId, Selection selection, Set<Integer> excludeColumnIds, boolean withInlineMediaOnly, boolean excludeRetweets, ScrollState scroll);
 
 	void addTwUpdateListener (TwUpdateListener listener);
 	void removeTwUpdateListener (TwUpdateListener listener);

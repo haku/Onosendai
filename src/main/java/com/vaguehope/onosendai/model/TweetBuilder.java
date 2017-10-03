@@ -11,6 +11,7 @@ public class TweetBuilder {
 	private String fullname;
 	private String userSubtitle;
 	private String fullSubtitle;
+	private String ownerUsername;
 	private String body;
 	private long unitTimeSeconds;
 	private String avatarUrl;
@@ -30,6 +31,7 @@ public class TweetBuilder {
 		this.fullname = null;
 		this.userSubtitle = null;
 		this.fullSubtitle = null;
+		this.ownerUsername = null;
 		this.body = null;
 		this.unitTimeSeconds = 0L;
 		this.avatarUrl = null;
@@ -61,6 +63,11 @@ public class TweetBuilder {
 
 	public TweetBuilder fullSubtitle (final String v) {
 		this.fullSubtitle = v;
+		return this;
+	}
+
+	public TweetBuilder ownerUsername (final String v) {
+		this.ownerUsername = v;
 		return this;
 	}
 
@@ -138,7 +145,7 @@ public class TweetBuilder {
 	public Tweet build () {
 		if (this.replyToId != null && !this.replyToId.equals(this.id)) meta(MetaType.REPLYTO, this.replyToId);
 		final Tweet t = new Tweet(this.id, this.username, this.fullname,
-				this.userSubtitle, resolveFullSubtitle(),
+				this.userSubtitle, resolveFullSubtitle(), this.ownerUsername,
 				this.body, this.unitTimeSeconds, this.avatarUrl, this.inlineMediaUrl, null, this.metas);
 		reset();
 		return t;

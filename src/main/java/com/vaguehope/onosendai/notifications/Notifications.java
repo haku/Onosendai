@@ -70,14 +70,16 @@ public final class Notifications {
 
 	private static void updateColumn (final Context context, final DbInterface db, final Column col, final NotificationManager nm) {
 		final int nId = idForColumn(col);
-		final int count = db.getUnreadCount(col);
+		boolean excludeRetweets = col.getNotificationStyle().isExcludeRetweets();
+
+		final int count = db.getUnreadCount(col, excludeRetweets);
 		if (count > 0) {
 			final Intent showMainActI = new Intent(context, MainActivity.class)
 					.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
 					.putExtra(MainActivity.ARG_FOCUS_COLUMN_ID, col.getId());
 			final PendingIntent showMainActPi = PendingIntent.getActivity(context, col.getId(), showMainActI, PendingIntent.FLAG_CANCEL_CURRENT);
 
-			final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5), Selection.FILTERED, col.getExcludeColumnIds());
+			final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5), Selection.FILTERED, col.getExcludeColumnIds(), excludeRetweets);
 			final String msg = makeMsg(col, tweets, count);
 			final Style style = makePreview(tweets, count);
 			final PendingIntent markAsReadPi = MarkAsReadReceiver.makePi(context, col, tweets);

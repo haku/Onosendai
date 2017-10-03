@@ -100,8 +100,8 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public List<Tweet> getTweets (final int columnId, final int numberOf, final Selection selection, final Set<Integer> excludeColumnIds) {
-		return this.dbAdaptor.getTweets(columnId, numberOf, selection, excludeColumnIds);
+	public List<Tweet> getTweets (final int columnId, final int numberOf, final Selection selection, final Set<Integer> excludeColumnIds, final boolean excludeRetweets) {
+		return this.dbAdaptor.getTweets(columnId, numberOf, selection, excludeColumnIds, excludeRetweets);
 	}
 
 	@Override
@@ -115,8 +115,8 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly) {
-		return this.dbAdaptor.getTweetsCursor(columnId, selection, excludeColumnIds, withInlineMediaOnly);
+	public Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final boolean excludeRetweets) {
+		return this.dbAdaptor.getTweetsCursor(columnId, selection, excludeColumnIds, withInlineMediaOnly, excludeRetweets);
 	}
 
 	@Override
@@ -190,18 +190,18 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public int getUnreadCount (final Column column) {
-		return this.dbAdaptor.getUnreadCount(column);
+	public int getUnreadCount (final Column column, final boolean excludeRetweets) {
+		return this.dbAdaptor.getUnreadCount(column, excludeRetweets);
 	}
 
 	@Override
-	public int getUnreadCount (final int columnId, final Set<Integer> excludeColumnIds, final ScrollState scroll) {
-		return this.dbAdaptor.getUnreadCount(columnId, excludeColumnIds, scroll);
+	public int getUnreadCount(final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final boolean excludeRetweets, final ScrollState scroll) {
+		return this.dbAdaptor.getUnreadCount(columnId, selection, excludeColumnIds, withInlineMediaOnly, excludeRetweets, scroll);
 	}
 
 	@Override
-	public int getScrollUpCount (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final ScrollState scroll) {
-		return this.dbAdaptor.getScrollUpCount(columnId, selection, excludeColumnIds, withInlineMediaOnly, scroll);
+	public int getScrollUpCount (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final boolean excludeRetweets, final ScrollState scroll) {
+		return this.dbAdaptor.getScrollUpCount(columnId, selection, excludeColumnIds, withInlineMediaOnly, excludeRetweets, scroll);
 	}
 
 	@Override

@@ -95,6 +95,7 @@ public final class TwitterUtils {
 	static Tweet convertTweet (final Account account, final Status status, final long ownId, final boolean hdMedia, final Collection<Meta> extraMetas, final List<Tweet> quotedTweets) {
 		final User statusUser = status.getUser();
 		final long statusUserId = statusUser != null ? statusUser.getId() : -1;
+		final String statusUserUsername = statusUser != null ? statusUser.getScreenName() : null;
 
 		// The order things are added to these lists is important.
 		final List<Meta> metas = new ArrayList<Meta>();
@@ -158,6 +159,7 @@ public final class TwitterUtils {
 				s.getUser().getScreenName(), s.getUser().getName(),
 				userSubtitle.size() > 0 ? ArrayHelper.join(userSubtitle, ", ") : null,
 				fullSubtitle,
+				statusUserUsername,
 				text,
 				TimeUnit.MILLISECONDS.toSeconds(status.getCreatedAt().getTime()),
 				hdMedia ? s.getUser().getBiggerProfileImageURLHttps() : s.getUser().getProfileImageURLHttps(),

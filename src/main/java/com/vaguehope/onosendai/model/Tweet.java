@@ -18,6 +18,7 @@ public class Tweet {
 	private final String fullname;
 	private final String userSubtitle;
 	private final String fullSubtitle;
+	private final String ownerUsername;
 	private final String body;
 	private final long time;
 	private final String avatarUrl;
@@ -26,17 +27,18 @@ public class Tweet {
 	private final List<Meta> metas;
 	private final boolean filtered;
 
-	public Tweet (final String sid, final String username, final String fullname, final String userSubtitle, final String fullSubtitle, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final String quotedSid, final List<Meta> metas) {
-		this(-1L, sid, username, fullname, userSubtitle, fullSubtitle, body, unitTimeSeconds, avatarUrl, inlineMediaUrl, quotedSid, metas, false);
+	public Tweet (final String sid, final String username, final String fullname, final String userSubtitle, final String fullSubtitle, final String ownerUsername, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final String quotedSid, final List<Meta> metas) {
+		this(-1L, sid, username, fullname, userSubtitle, fullSubtitle, ownerUsername, body, unitTimeSeconds, avatarUrl, inlineMediaUrl, quotedSid, metas, false);
 	}
 
-	public Tweet (final long uid, final String sid, final String username, final String fullname, final String userSubtitle, final String fullSubtitle, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final String quotedSid, final List<Meta> metas, final boolean filtered) {
+	public Tweet (final long uid, final String sid, final String username, final String fullname, final String userSubtitle, final String fullSubtitle, final String ownerUsername, final String body, final long unitTimeSeconds, final String avatarUrl, final String inlineMediaUrl, final String quotedSid, final List<Meta> metas, final boolean filtered) {
 		this.uid = uid;
 		this.sid = sid;
 		this.username = username;
 		this.fullname = fullname;
 		this.userSubtitle = userSubtitle;
 		this.fullSubtitle = fullSubtitle;
+		this.ownerUsername = ownerUsername;
 		this.body = body;
 		this.time = unitTimeSeconds;
 		this.avatarUrl = avatarUrl;
@@ -89,6 +91,10 @@ public class Tweet {
 		return this.fullSubtitle;
 	}
 
+	public String getOwnerUsername () {
+		return this.ownerUsername;
+	}
+
 	public String getBody () {
 		return this.body;
 	}
@@ -129,12 +135,12 @@ public class Tweet {
 		final long utime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
 		final List<Meta> newMetas = new ArrayList<Meta>(this.metas);
 		if (getFirstMetaOfType(MetaType.POST_TIME) == null) newMetas.add(new Meta(MetaType.POST_TIME, String.valueOf(this.time)));
-		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.userSubtitle, this.fullSubtitle, this.body, utime, this.avatarUrl, this.inlineMediaUrl, this.quotedSid, newMetas, this.filtered);
+		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.userSubtitle, this.fullSubtitle, this.ownerUsername, this.body, utime, this.avatarUrl, this.inlineMediaUrl, this.quotedSid, newMetas, this.filtered);
 	}
 
 	public Tweet withFiltered (final boolean newFiltered) {
 		if (newFiltered == this.filtered) return this;
-		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.userSubtitle, this.fullSubtitle, this.body, this.time, this.avatarUrl, this.inlineMediaUrl, this.quotedSid, this.metas, newFiltered);
+		return new Tweet(this.uid, this.sid, this.username, this.fullname, this.userSubtitle, this.fullSubtitle, this.ownerUsername, this.body, this.time, this.avatarUrl, this.inlineMediaUrl, this.quotedSid, this.metas, newFiltered);
 	}
 
 	public String toHumanLine () {
@@ -164,6 +170,7 @@ public class Tweet {
 				.append(",").append(this.fullname)
 				.append(",").append(this.userSubtitle)
 				.append(",").append(this.fullSubtitle)
+				.append(",").append(this.ownerUsername)
 				.append(",").append(this.body)
 				.append(",").append(this.time)
 				.append(",").append(this.avatarUrl)
@@ -176,7 +183,7 @@ public class Tweet {
 	public int hashCode () {
 		return Arrays.hashCode(new Object[] {
 				this.uid, this.sid, this.username, this.fullname,
-				this.userSubtitle, this.fullSubtitle,
+				this.userSubtitle, this.fullSubtitle, this.ownerUsername,
 				this.body, this.time, this.avatarUrl, this.inlineMediaUrl, this.metas });
 	}
 
@@ -195,6 +202,7 @@ public class Tweet {
 				&& EqualHelper.equal(this.fullname, that.fullname)
 				&& EqualHelper.equal(this.userSubtitle, that.userSubtitle)
 				&& EqualHelper.equal(this.fullSubtitle, that.fullSubtitle)
+				&& EqualHelper.equal(this.ownerUsername, that.ownerUsername)
 				&& EqualHelper.equal(this.body, that.body)
 				&& this.time == that.time
 				&& EqualHelper.equal(this.avatarUrl, that.avatarUrl)

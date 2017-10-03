@@ -36,8 +36,8 @@ import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.Selection;
 import com.vaguehope.onosendai.storage.TweetCursorReader;
-import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.CollectionHelper.Function;
+import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.IoHelper;
@@ -237,7 +237,7 @@ public class FiltersPrefFragment extends PreferenceFragment {
 					try {
 						if (c != null && c.moveToFirst()) {
 							do {
-								final boolean newFiltered = filters.matches(reader.readBody(c), reader.readUsername(c), reader.readUserSubtitle(c));
+								final boolean newFiltered = filters.matches(reader.readBody(c), reader.readUsername(c), reader.readOwnerUsername(c));
 								if (reader.readFiltered(c) != newFiltered) {
 									changes.add(new Pair<Long, Boolean>(reader.readUid(c), newFiltered));
 								}

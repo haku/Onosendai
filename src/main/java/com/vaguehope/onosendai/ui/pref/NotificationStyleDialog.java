@@ -18,6 +18,7 @@ class NotificationStyleDialog implements Titleable {
 	private final CheckBox chkLights;
 	private final CheckBox chkVibrate;
 	private final CheckBox chkSound;
+	private final CheckBox chkExcludeRetweets;
 
 	public NotificationStyleDialog (final Context context, final NotificationStyle initialValue) {
 		final LayoutInflater inflater = LayoutInflater.from(context);
@@ -27,6 +28,7 @@ class NotificationStyleDialog implements Titleable {
 		this.chkLights = (CheckBox) this.llParent.findViewById(R.id.chkLights);
 		this.chkVibrate = (CheckBox) this.llParent.findViewById(R.id.chkVibrate);
 		this.chkSound = (CheckBox) this.llParent.findViewById(R.id.chkSound);
+		this.chkExcludeRetweets = (CheckBox) this.llParent.findViewById(R.id.chkExcludeRetweets);
 
 		this.chkNotify.setChecked(initialValue != null);
 		this.chkNotify.setOnClickListener(this.chkNotifyClickListener);
@@ -35,6 +37,7 @@ class NotificationStyleDialog implements Titleable {
 			this.chkLights.setChecked(initialValue.isLights());
 			this.chkVibrate.setChecked(initialValue.isVibrate());
 			this.chkSound.setChecked(initialValue.isSound());
+			this.chkExcludeRetweets.setChecked(initialValue.isExcludeRetweets());
 		}
 	}
 
@@ -50,6 +53,7 @@ class NotificationStyleDialog implements Titleable {
 		this.chkLights.setEnabled(en);
 		this.chkVibrate.setEnabled(en);
 		this.chkSound.setEnabled(en);
+		this.chkExcludeRetweets.setEnabled(en);
 	}
 
 	@Override
@@ -66,7 +70,8 @@ class NotificationStyleDialog implements Titleable {
 		return new NotificationStyle(
 				this.chkLights.isChecked(),
 				this.chkVibrate.isChecked(),
-				this.chkSound.isChecked());
+				this.chkSound.isChecked(),
+				this.chkExcludeRetweets.isChecked());
 	}
 
 }

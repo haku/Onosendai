@@ -137,6 +137,7 @@
 	<string name="notifstydlg_field_lights">Lights</string>
 	<string name="notifstydlg_field_vibrate">Vibrate</string>
 	<string name="notifstydlg_field_sound">Sound</string>
+	<string name="notifstydlg_field_exclude_retweets">Exclude Retweets</string>
 
 	<string name="filterdlg_instructions">
 		By default only matched against body.  Case insensitive.  Start with / for regex.  Regex flags:

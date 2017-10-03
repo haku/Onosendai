@@ -90,6 +90,7 @@ public class GotoMenu implements OnClickListener {
 					this.showFiltered && this.column.getInlineMediaStyle() != InlineMediaStyle.SEAMLESS ? Selection.ALL : Selection.FILTERED,
 					this.column.getExcludeColumnIds(),
 					this.column.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS,
+					false,
 					this.scroll);
 		}
 

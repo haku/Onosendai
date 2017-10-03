@@ -553,7 +553,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		Tweet tweet = getDb().getTweetDetails(this.columnId, tweetSid);
 		if (tweet == null) tweet = getDb().getTweetDetails(tweetSid);
 		// TODO better way of showing this error.
-		if (tweet == null) tweet = new Tweet(tweetSid, "", "", null, null, "Error: tweet with SID=" + tweetSid + " not found.",
+		if (tweet == null) tweet = new Tweet(tweetSid, "", "", null, null, "", "Error: tweet with SID=" + tweetSid + " not found.",
 				TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()), null, null, null, Collections.<Meta> emptyList());
 		this.lstTweetPayloadAdaptor.setInput(getConf(), tweet);
 
@@ -1086,7 +1086,8 @@ public class TweetListFragment extends Fragment implements DbProvider {
 							this.host.getColumnId(),
 							this.host.showFiltered && this.host.getInlineMediaStyle() != InlineMediaStyle.SEAMLESS ? Selection.ALL : Selection.FILTERED,
 							this.host.getColumn().getExcludeColumnIds(),
-							this.host.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS);
+							this.host.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS,
+							false);
 					return new Result<Cursor>(cursor);
 				}
 				return new Result<Cursor>(new IllegalStateException("Failed to refresh column as DB was not bound."));

@@ -77,7 +77,7 @@ public class ColumnTest {
 
 	@Test
 	public void itParsesComplexNotificationStyle () throws Exception {
-		NotificationStyle ns = new NotificationStyle(true, false, true);
+		NotificationStyle ns = new NotificationStyle(true, false, true, false);
 		Column c = new Column(12, "title", new ColumnFeed("accountid", "resource"), 15, CollectionHelper.setOf(1, 2), ns, InlineMediaStyle.NONE, false);
 		String j = c.toJson().toString(2);
 		Column c1 = Column.parseJson(j);

@@ -167,7 +167,7 @@ public abstract class AbstractBgFetch<D> extends DbBindingService {
 	private List<D> findToFetch (final Column col, final Config conf) {
 		final DbInterface db = getDb();
 		final ScrollState scroll = db.getScroll(col.getId());
-		final Cursor cursor = db.getTweetsCursor(col.getId(), Selection.FILTERED, col.getExcludeColumnIds(), this.withInlineMediaOnly);
+		final Cursor cursor = db.getTweetsCursor(col.getId(), Selection.FILTERED, col.getExcludeColumnIds(), this.withInlineMediaOnly, false);
 		try {
 			final TweetCursorReader reader = new TweetCursorReader();
 			if (cursor != null && cursor.moveToFirst()) {

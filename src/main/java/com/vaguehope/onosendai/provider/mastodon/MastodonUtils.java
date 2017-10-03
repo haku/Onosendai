@@ -29,6 +29,7 @@ public class MastodonUtils {
 			final Collection<Meta> extraMetas) {
 		final Account statusUser = status.getAccount();
 		final long statusUserId = statusUser != null ? statusUser.getId() : -1;
+		final String statusUserUsername = statusUser != null ? statusUser.getUserName() : null;
 
 		// The order things are added to these lists is important.
 		final List<Meta> metas = new ArrayList<Meta>();
@@ -84,6 +85,7 @@ public class MastodonUtils {
 				s.getAccount().getDisplayName(),
 				userSubtitle.size() > 0 ? ArrayHelper.join(userSubtitle, ", ") : null,
 				fullSubtitle,
+				statusUserUsername,
 				s.getContent(),
 				unitTimeSeconds,
 				s.getAccount().getAvatar(),
