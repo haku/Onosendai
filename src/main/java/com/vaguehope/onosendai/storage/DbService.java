@@ -190,8 +190,8 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public int getUnreadCount (final Column column, final boolean excludeRetweets) {
-		return this.dbAdaptor.getUnreadCount(column, excludeRetweets);
+	public int getUnreadCount (final Column column) {
+		return this.dbAdaptor.getUnreadCount(column);
 	}
 
 	@Override

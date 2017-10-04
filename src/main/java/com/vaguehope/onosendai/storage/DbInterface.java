@@ -54,7 +54,7 @@ public interface DbInterface extends KvStore {
 	List<String> getUsernames(String prefix, int numberOf);
 	List<String> getHashtags(String prefix, int numberOf);
 
-	int getUnreadCount(Column column, boolean excludeRetweets);
+	int getUnreadCount(Column column);
 	int getUnreadCount(int columnId, Selection selection, Set<Integer> excludeColumnIds, boolean withInlineMediaOnly, boolean excludeRetweets, ScrollState scroll);
 	int getScrollUpCount(int columnId, Selection selection, Set<Integer> excludeColumnIds, boolean withInlineMediaOnly, boolean excludeRetweets, ScrollState scroll);
 

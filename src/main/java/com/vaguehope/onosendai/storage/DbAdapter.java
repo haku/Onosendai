@@ -24,6 +24,7 @@ import android.support.v4.util.Pair;
 
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.NotificationStyle;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.OutboxTweet;
@@ -300,6 +301,7 @@ public class DbAdapter implements DbInterface {
 		try {
 			final ContentValues values = new ContentValues();
 			for (final Tweet tweet : tweets) {
+				this.log.d("Storing tweet: %s", tweet.toFullString());
 				values.clear();
 				values.put(TBL_TW_COLID, columnId);
 				values.put(TBL_TW_SID, tweet.getSid());
@@ -308,6 +310,7 @@ public class DbAdapter implements DbInterface {
 				values.put(TBL_TW_FULLNAME, tweet.getFullname());
 				values.put(TBL_TW_USERSUBTITLE, tweet.getUserSubtitle());
 				values.put(TBL_TW_FULLSUBTITLE, tweet.getFullSubtitle());
+				values.put(TBL_TW_OWNER_USERNAME, tweet.getOwnerUsername());
 				values.put(TBL_TW_BODY, tweet.getBody());
 				values.put(TBL_TW_AVATAR, tweet.getAvatarUrl());
 				values.put(TBL_TW_INLINEMEDIA, tweet.getInlineMediaUrl());
@@ -460,7 +463,7 @@ public class DbAdapter implements DbInterface {
 				.append(" AND (")
 				.append(TBL_TW_OWNER_USERNAME).append(" IS NULL")
 				.append(" OR ")
-				.append(TBL_TW_OWNER_USERNAME).append(" == ").append(TBL_TW_USERNAME)
+				.append(TBL_TW_OWNER_USERNAME).append(" = ").append(TBL_TW_USERNAME)
 				.append(")");
 
 		where.append(" AND ").append(TBL_TW_SID)
@@ -574,7 +577,7 @@ public class DbAdapter implements DbInterface {
 			qb.setTables(TBL_TW + " INNER JOIN " + TBL_TM + " ON " + TBL_TW + "." + TBL_TW_ID + " = " + TBL_TM_TWID);
 			qb.setDistinct(true);
 			c = qb.query(this.mDb,
-					new String[] { TBL_TW + "." + TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_QUOTED_SID, TBL_TW_FILTERED },
+					new String[] { TBL_TW + "." + TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_OWNER_USERNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_QUOTED_SID, TBL_TW_FILTERED },
 					TBL_TW + "." + TBL_TW_ID + "=" + TBL_TM_TWID + " AND " + TBL_TM_TYPE + "=" + metaType.getId() + " AND " + TBL_TM_DATA + "=?"
 							+ (columnId > Integer.MIN_VALUE ? " AND " + TBL_TW_COLID + "=" + columnId : ""),
 					new String[] { data },
@@ -846,8 +849,8 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public int getUnreadCount (final Column column, final boolean excludeRetweets) {
-		return getUpCount(UpCountType.UNREAD, column, Selection.FILTERED, excludeRetweets);
+	public int getUnreadCount (final Column column) {
+		return getUpCount(UpCountType.UNREAD, column, Selection.FILTERED);
 	}
 
 	@Override
@@ -876,7 +879,9 @@ public class DbAdapter implements DbInterface {
 		public abstract long getTime (ScrollState ss);
 	}
 
-	private int getUpCount (final UpCountType type, final Column column, final Selection selection, final boolean excludeRetweets) {
+	private int getUpCount (final UpCountType type, final Column column, final Selection selection) {
+		final NotificationStyle ns = column.getNotificationStyle();
+		final boolean excludeRetweets = ns != null ? ns.isExcludeRetweets() : false;
 		return getUpCount(type, column.getId(), selection, column.getExcludeColumnIds(), false, excludeRetweets, null);
 	}
 
