@@ -20,6 +20,7 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.TimeRange;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
@@ -165,7 +166,11 @@ public class ColumnStatsActivity extends Activity {
 						"%,d tweets ever",
 						db.getTotalTweetsEverSeen()))); //ES
 				for (final Column col : this.conf.getColumns()) {
-					final double tpd = db.getTweetsPerDay(col.getId());
+					final TimeRange range = db.getColumnTimeRange(col.getId());
+					final double tpd = range != null
+							? (range.count / (double) range.rangeSeconds) * 60 * 60 * 24
+							: -1;
+
 					publishProgress(new StatsItem(String.format(
 							"%s : %s /day", //ES
 							col.getTitle(),
@@ -198,10 +203,21 @@ public class ColumnStatsActivity extends Activity {
 		@Override
 		protected Exception doInBackgroundWithDb (final DbInterface db, final Void... params) {
 			try {
+				final TimeRange range = db.getColumnTimeRange(this.column.getId());
+				final long rangeCount = range != null ? range.count : 0;
+
 				final Map<String, Long> stats = db.getColumnUserStats(this.column.getId());
+
 				for (final Entry<String, Long> stat : stats.entrySet()) {
-					publishProgress(new StatsItem(String.format("%s : %s tweets",
-							stat.getKey(), stat.getValue())));
+					final double tpd = range != null
+							? (stat.getValue() / (double) range.rangeSeconds) * 60 * 60 * 24
+							: -1;
+
+					publishProgress(new StatsItem(String.format("%s : %s /day (%s / %s)",
+							stat.getKey(),
+							tpd >= 0 ? roundSigFig(tpd, 3) : '?',
+							stat.getValue(),
+							rangeCount)));
 				}
 				return null;
 			}

@@ -1596,7 +1596,7 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public double getTweetsPerDay (final int columnId) {
+	public TimeRange getColumnTimeRange(final int columnId) {
 		final Cursor c = getTweetsCursor(columnId, Selection.ALL); // TODO Should rate include filters?  hmm...
 		try {
 			if (c != null && c.moveToFirst()) {
@@ -1604,9 +1604,9 @@ public class DbAdapter implements DbInterface {
 				final long newestTimeSeconds = c.getLong(colTimeSeconds);
 				c.moveToLast();
 				final long oldestTimeSeconds = c.getLong(colTimeSeconds);
-				return (c.getCount() / (double) (newestTimeSeconds - oldestTimeSeconds)) * 60 * 60 * 24;
+				return new TimeRange(c.getCount(), newestTimeSeconds - oldestTimeSeconds);
 			}
-			return -1;
+			return null;
 		}
 		finally {
 			IoHelper.closeQuietly(c);
@@ -1643,7 +1643,6 @@ public class DbAdapter implements DbInterface {
 		finally {
 			IoHelper.closeQuietly(c);
 		}
-
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
