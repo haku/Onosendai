@@ -418,7 +418,7 @@ public class DbAdapter implements DbInterface {
 
 	@Override
 	public List<Tweet> getTweets (final int columnId, final int numberOf, final Selection selection, final Set<Integer> excludeColumnIds, final boolean excludeRetweets) {
-		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweets(columnId, numberOf, selection);
+		if ((excludeColumnIds == null || excludeColumnIds.size() < 1) && !excludeRetweets) return getTweets(columnId, numberOf, selection);
 		final Cursor c = getTweetsCursor(columnId, selection, excludeColumnIds, false, excludeRetweets, numberOf);
 		try {
 			return readTweets(c, false);
@@ -436,22 +436,16 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public Cursor getTweetsCursor (final int columnId, final Selection selection, final boolean withInlineMediaOnly) {
-		if (!withInlineMediaOnly) return getTweetsCursor(columnId, selection);
-		String where = TBL_TW_COLID + "=? AND " + TBL_TW_INLINEMEDIA + " NOT NULL";
-		if (selection == Selection.FILTERED) where += " AND " + TBL_TW_FILTERED + " IS NULL";
-		return getTweetsCursor(where, new String[] { String.valueOf(columnId) }, TBL_TW_TIME + " desc", -1);
-	}
-
-	@Override
 	public Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final boolean excludeRetweets) {
-		if (excludeColumnIds == null || excludeColumnIds.size() < 1) return getTweetsCursor(columnId, selection, withInlineMediaOnly);
 		return getTweetsCursor(columnId, selection, excludeColumnIds, withInlineMediaOnly, excludeRetweets, -1);
 	}
 
 	private Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final boolean excludeRetweets, final int numberOf) {
+		final String[] whereArgs = new String[1 + (excludeColumnIds != null ? excludeColumnIds.size() : 0)];
+
 		final StringBuilder where = new StringBuilder()
 				.append(TBL_TW_COLID).append("=?");
+		whereArgs[0] = String.valueOf(columnId);
 
 		if (selection == Selection.FILTERED) where
 				.append(" AND ").append(TBL_TW_FILTERED).append(" IS NULL");
@@ -466,21 +460,22 @@ public class DbAdapter implements DbInterface {
 				.append(TBL_TW_OWNER_USERNAME).append(" = ").append(TBL_TW_USERNAME)
 				.append(")");
 
-		where.append(" AND ").append(TBL_TW_SID)
-				.append(" NOT IN (SELECT ").append(TBL_TW_SID)
-				.append(" FROM ").append(TBL_TW)
-				.append(" WHERE ");
-		final String[] whereArgs = new String[1 + excludeColumnIds.size()];
-		whereArgs[0] = String.valueOf(columnId);
+		if (excludeColumnIds != null && excludeColumnIds.size() > 0) {
+			where.append(" AND ").append(TBL_TW_SID)
+					.append(" NOT IN (SELECT ").append(TBL_TW_SID)
+					.append(" FROM ").append(TBL_TW)
+					.append(" WHERE ");
 
-		int i = 0;
-		for (final Integer id : excludeColumnIds) {
-			if (i > 0) where.append(" OR ");
-			where.append(TBL_TW_COLID).append("=?");
-			whereArgs[1 + i] = String.valueOf(id);
-			i++;
+			int i = 0;
+			for (final Integer id : excludeColumnIds) {
+				if (i > 0) where.append(" OR ");
+				where.append(TBL_TW_COLID).append("=?");
+				whereArgs[1 + i] = String.valueOf(id);
+				i++;
+			}
+			where.append(")");
 		}
-		where.append(")");
+
 		return getTweetsCursor(where.toString(), whereArgs, TBL_TW_TIME + " desc", numberOf);
 	}
 
@@ -902,7 +897,7 @@ public class DbAdapter implements DbInterface {
 				.append(" AND (")
 				.append(TBL_TW_OWNER_USERNAME).append(" IS NULL")
 				.append(" OR ")
-				.append(TBL_TW_OWNER_USERNAME).append(" == ").append(TBL_TW_USERNAME)
+				.append(TBL_TW_OWNER_USERNAME).append(" = ").append(TBL_TW_USERNAME)
 				.append(")");
 
 		where

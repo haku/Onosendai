@@ -110,11 +110,6 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public Cursor getTweetsCursor (final int columnId, final Selection selection, final boolean withInlineMediaOnly) {
-		return this.dbAdaptor.getTweetsCursor(columnId, selection, withInlineMediaOnly);
-	}
-
-	@Override
 	public Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds, final boolean withInlineMediaOnly, final boolean excludeRetweets) {
 		return this.dbAdaptor.getTweetsCursor(columnId, selection, excludeColumnIds, withInlineMediaOnly, excludeRetweets);
 	}
