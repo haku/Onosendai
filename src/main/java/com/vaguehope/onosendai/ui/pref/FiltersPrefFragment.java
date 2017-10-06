@@ -240,9 +240,10 @@ public class FiltersPrefFragment extends PreferenceFragment {
 								final boolean newFiltered = filters.matches(reader.readBody(c), reader.readUsername(c), reader.readOwnerUsername(c));
 								if (reader.readFiltered(c) != newFiltered) {
 									changes.add(new Pair<Long, Boolean>(reader.readUid(c), newFiltered));
+									totalChanges += 1;
 								}
 								processed += 1;
-								if (processed % 100 == 0) publishProgress("Read " + processed + ", found " + changes.size() + " changes ..."); //ES
+								if (processed % 100 == 0) publishProgress("Read " + processed + ", found " + totalChanges + " changes ..."); //ES
 							}
 							while (c.moveToNext());
 						}
@@ -253,7 +254,6 @@ public class FiltersPrefFragment extends PreferenceFragment {
 					publishProgress("Saving " + changes.size() + " changes in " + column.getTitle() + "..."); //ES
 					db.updateTweetFiltered(changes);
 					LOG.i("Saved %s filter changes in %s.", changes.size(), column.getTitle());
-					totalChanges += changes.size();
 				}
 				LOG.i("Checked %s filters against %s tweets and wrote %s changes in %sms.",
 						filters.size(), processed, totalChanges, System.currentTimeMillis() - startTime);
