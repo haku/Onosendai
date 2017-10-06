@@ -455,6 +455,8 @@ public class DbAdapter implements DbInterface {
 
 		if (excludeRetweets) where
 				.append(" AND (")
+				.append(TBL_TW_USERNAME).append(" IS NULL")
+				.append(" OR ")
 				.append(TBL_TW_OWNER_USERNAME).append(" IS NULL")
 				.append(" OR ")
 				.append(TBL_TW_OWNER_USERNAME).append(" = ").append(TBL_TW_USERNAME)
@@ -895,6 +897,8 @@ public class DbAdapter implements DbInterface {
 
 		if (excludeRetweets) where
 				.append(" AND (")
+				.append(TBL_TW_USERNAME).append(" IS NULL")
+				.append(" OR ")
 				.append(TBL_TW_OWNER_USERNAME).append(" IS NULL")
 				.append(" OR ")
 				.append(TBL_TW_OWNER_USERNAME).append(" = ").append(TBL_TW_USERNAME)

@@ -29,8 +29,16 @@ public class Filters {
 		return this.predicates.size();
 	}
 
-	public boolean matches (final String body, final String username, final String retweetByUsername) {
+	public boolean matches (final String body, final String username, final String ownerUsername) {
 		if (StringHelper.isEmpty(body) && StringHelper.isEmpty(username)) return false;
+
+		final String retweetByUsername;
+		if (username == null || ownerUsername == null || ownerUsername.equalsIgnoreCase(username)) {
+			retweetByUsername = null;
+		}
+		else {
+			retweetByUsername = ownerUsername;
+		}
 
 		final String lowerCaseBody = body != null ? body.toLowerCase(Locale.ENGLISH) : null;
 		final String lowerCaseUsername = username != null ? username.toLowerCase(Locale.ENGLISH) : null;
@@ -45,7 +53,7 @@ public class Filters {
 	public List<Tweet> matchAndSet (final List<Tweet> input) {
 		final List<Tweet> ret = new ArrayList<Tweet>(input.size());
 		for (final Tweet tweet : input) {
-			ret.add(tweet.withFiltered(matches(tweet.getBody(), tweet.getUsername(), tweet.getUserSubtitle())));
+			ret.add(tweet.withFiltered(matches(tweet.getBody(), tweet.getUsername(), tweet.getOwnerUsername())));
 		}
 		return ret;
 	}

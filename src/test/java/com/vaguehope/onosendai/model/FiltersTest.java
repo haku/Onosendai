@@ -69,6 +69,26 @@ public class FiltersTest {
 	}
 
 	@Test
+	public void itFiltersAnchoredRegexAgainstRetweetedBy () throws Exception {
+		final Filters f = new Filters("/^annoyingUser$/r");
+		assertTrue(f.matches("body", "otherUser", "annoyingUser"));
+		assertTrue(f.matches("body", "otherUser", "annoyinguser"));
+		assertFalse(f.matches("annoyingUser", "otherUser", "annoyingUser2"));
+	}
+
+	@Test
+	public void itUnderstandsOwnerIsNotRetweet () throws Exception {
+		final Filters f = new Filters("/someUser/r");
+		assertFalse(f.matches("body", "someUser", "someUser"));
+	}
+
+	@Test
+	public void itUnderstandsNullOwnerIsNotRetweet () throws Exception {
+		final Filters f = new Filters("/someUser/r");
+		assertFalse(f.matches("body", null, "someUser"));
+	}
+
+	@Test
 	public void itDoesNotNpe () throws Exception {
 		assertFalse(new Filters("f").matches(null, null, null));
 		assertFalse(new Filters("/f").matches(null, null, null));
