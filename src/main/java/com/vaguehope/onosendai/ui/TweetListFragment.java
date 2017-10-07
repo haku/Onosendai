@@ -1087,6 +1087,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 							this.host.showFiltered && this.host.getInlineMediaStyle() != InlineMediaStyle.SEAMLESS ? Selection.ALL : Selection.FILTERED,
 							this.host.getColumn().getExcludeColumnIds(),
 							this.host.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS,
+							false,
 							false);
 					return new Result<Cursor>(cursor);
 				}

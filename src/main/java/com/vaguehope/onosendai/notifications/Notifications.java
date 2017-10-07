@@ -20,6 +20,7 @@ import android.text.style.StyleSpan;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.config.NotificationStyle;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.storage.DbInterface;
@@ -79,7 +80,9 @@ public final class Notifications {
 
 			final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5),
 					Selection.FILTERED, col.getExcludeColumnIds(),
-					col.getNotificationStyle().isExcludeRetweets());
+					col.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS,
+					col.getNotificationStyle().isExcludeRetweets(),
+					true);
 
 			final String msg = makeMsg(col, tweets, count);
 			final Style style = makePreview(tweets, count);

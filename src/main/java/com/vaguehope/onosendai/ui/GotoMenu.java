@@ -91,6 +91,7 @@ public class GotoMenu implements OnClickListener {
 					this.column.getExcludeColumnIds(),
 					this.column.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS,
 					false,
+					false,
 					this.scroll);
 		}
 

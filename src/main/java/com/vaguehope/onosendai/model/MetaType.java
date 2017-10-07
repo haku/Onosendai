@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.model;
 
+import com.vaguehope.onosendai.storage.DbAdapter;
+
 public enum MetaType {
 
 	/**
@@ -53,6 +55,7 @@ public enum MetaType {
 	 * This tweet has been successfully deleted.
 	 * Data is the utime in seconds of when it was deleted.
 	 * Title is unused.
+	 * @see DbAdapter.TBL_TW_EDIT_SID
 	 */
 	DELETED(11),
 	/**
@@ -76,6 +79,7 @@ public enum MetaType {
 	 * The username that caused the tweet to appear in the feed.
 	 * Data is the screenname without the preceding "@".
 	 * Title may be the full name.
+	 * @see DbAdapter.TBL_TW_OWNER_USERNAME
 	 */
 	OWNER_NAME(15),
 	/**
