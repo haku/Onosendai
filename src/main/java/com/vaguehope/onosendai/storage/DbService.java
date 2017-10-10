@@ -195,15 +195,17 @@ public class DbService extends Service implements DbInterface {
 
 	@Override
 	public int getUnreadCount(final int columnId, final Selection selection, final Set<Integer> excludeColumnIds,
-			final boolean withInlineMediaOnly, final boolean excludeRetweets, final ScrollState scroll) {
+			final boolean withInlineMediaOnly, final boolean excludeRetweets, final boolean excludeEditable,
+			final ScrollState scroll) {
 		return this.dbAdaptor.getUnreadCount(columnId, selection, excludeColumnIds,
-				withInlineMediaOnly, excludeRetweets,
+				withInlineMediaOnly, excludeRetweets, excludeEditable,
 				scroll);
 	}
 
 	@Override
 	public int getScrollUpCount (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds,
-			final boolean withInlineMediaOnly, final boolean excludeRetweets, final boolean excludeEditable, final ScrollState scroll) {
+			final boolean withInlineMediaOnly, final boolean excludeRetweets, final boolean excludeEditable,
+			final ScrollState scroll) {
 		return this.dbAdaptor.getScrollUpCount(columnId, selection, excludeColumnIds,
 				withInlineMediaOnly, excludeRetweets, excludeEditable,
 				scroll);

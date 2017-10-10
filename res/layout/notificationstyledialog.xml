@@ -46,6 +46,13 @@
 			android:gravity="center"
 			android:text="@string/notifstydlg_field_exclude_retweets" />
 
+		<CheckBox
+			android:id="@+id/chkIncludeOwnTweets"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:gravity="center"
+			android:text="@string/notifstydlg_field_include_own_tweets" />
+
 	</LinearLayout>
 
 </ScrollView>

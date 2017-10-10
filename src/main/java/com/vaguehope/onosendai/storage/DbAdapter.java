@@ -867,17 +867,18 @@ public class DbAdapter implements DbInterface {
 		final NotificationStyle ns = column.getNotificationStyle();
 		final boolean withInlineMediaOnly = column.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS;
 		final boolean excludeRetweets = ns != null ? ns.isExcludeRetweets() : false;
+		final boolean excludeEditable = ns != null ? !ns.isIncludeOwnTweets() : true;
 		return getUpCount(UpCountType.UNREAD, column.getId(), Selection.FILTERED, column.getExcludeColumnIds(),
-				withInlineMediaOnly, excludeRetweets, true,
+				withInlineMediaOnly, excludeRetweets, excludeEditable,
 				null);
 	}
 
 	@Override
 	public int getUnreadCount(final int columnId, final Selection selection, final Set<Integer> excludeColumnIds,
-			final boolean withInlineMediaOnly, final boolean excludeRetweets,
+			final boolean withInlineMediaOnly, final boolean excludeRetweets, final boolean excludeEditable,
 			final ScrollState scroll) {
 		return getUpCount(UpCountType.UNREAD, columnId, selection, excludeColumnIds,
-				withInlineMediaOnly, excludeRetweets, true,
+				withInlineMediaOnly, excludeRetweets, excludeEditable,
 				scroll);
 	}
 

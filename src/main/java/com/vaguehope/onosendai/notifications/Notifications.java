@@ -82,7 +82,7 @@ public final class Notifications {
 					Selection.FILTERED, col.getExcludeColumnIds(),
 					col.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS,
 					col.getNotificationStyle().isExcludeRetweets(),
-					true);
+					!col.getNotificationStyle().isIncludeOwnTweets());
 
 			final String msg = makeMsg(col, tweets, count);
 			final Style style = makePreview(tweets, count);

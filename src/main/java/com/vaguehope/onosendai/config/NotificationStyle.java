@@ -13,25 +13,28 @@ import com.vaguehope.onosendai.util.Titleable;
 
 public class NotificationStyle implements Titleable {
 
-	public static final NotificationStyle DEFAULT = new NotificationStyle(false, false, false, false);
+	public static final NotificationStyle DEFAULT = new NotificationStyle(false, false, false, false, false);
 
 	private static final String KEY_LIGHTS = "lights";
 	private static final String KEY_VIBRATE = "vibrate";
 	private static final String KEY_SOUND = "sound";
 	private static final String KEY_EXCLUDE_RETWEETS = "exclude_retweets";
+	private static final String KEY_INCLUDE_OWN_TWEETS = "include_own_tweets";
 
 	private final boolean lights;
 	private final boolean vibrate;
 	private final boolean sound;
 	private final boolean excludeRetweets;
+	private final boolean includeOwnTweets;
 
 	private String title;
 
-	public NotificationStyle (final boolean lights, final boolean vibrate, final boolean sound, final boolean excludeRetweets) {
+	public NotificationStyle (final boolean lights, final boolean vibrate, final boolean sound, final boolean excludeRetweets, final boolean includeOwnTweets) {
 		this.lights = lights;
 		this.vibrate = vibrate;
 		this.sound = sound;
 		this.excludeRetweets = excludeRetweets;
+		this.includeOwnTweets = includeOwnTweets;
 	}
 
 	@Override
@@ -42,6 +45,7 @@ public class NotificationStyle implements Titleable {
 			if (isVibrate()) l.add("vibrate"); //ES
 			if (isSound()) l.add("sound"); //ES
 			if (isExcludeRetweets()) l.add("exclude retweets"); //ES
+			if (isIncludeOwnTweets()) l.add("include own tweets"); //ES
 			if (l.size() > 0) {
 				this.title = ArrayHelper.join(l, ", ");
 			}
@@ -68,12 +72,17 @@ public class NotificationStyle implements Titleable {
 		return this.excludeRetweets;
 	}
 
+	public boolean isIncludeOwnTweets () {
+		return this.includeOwnTweets;
+	}
+
 	public JSONObject toJson () throws JSONException {
 		final JSONObject json = new JSONObject();
 		json.put(KEY_LIGHTS, isLights());
 		json.put(KEY_VIBRATE, isVibrate());
 		json.put(KEY_SOUND, isSound());
 		json.put(KEY_EXCLUDE_RETWEETS, isExcludeRetweets());
+		json.put(KEY_INCLUDE_OWN_TWEETS, isIncludeOwnTweets());
 		return json;
 	}
 
@@ -85,6 +94,7 @@ public class NotificationStyle implements Titleable {
 		result = prime * result + (this.vibrate ? Boolean.TRUE.hashCode() : Boolean.FALSE.hashCode());
 		result = prime * result + (this.sound ? Boolean.TRUE.hashCode() : Boolean.FALSE.hashCode());
 		result = prime * result + (this.excludeRetweets ? Boolean.TRUE.hashCode() : Boolean.FALSE.hashCode());
+		result = prime * result + (this.includeOwnTweets ? Boolean.TRUE.hashCode() : Boolean.FALSE.hashCode());
 		return result;
 	}
 
@@ -97,7 +107,8 @@ public class NotificationStyle implements Titleable {
 		return EqualHelper.equal(this.lights, that.lights) &&
 				EqualHelper.equal(this.vibrate, that.vibrate) &&
 				EqualHelper.equal(this.sound, that.sound) &&
-				EqualHelper.equal(this.excludeRetweets, that.excludeRetweets);
+				EqualHelper.equal(this.excludeRetweets, that.excludeRetweets) &&
+				EqualHelper.equal(this.includeOwnTweets, that.includeOwnTweets);
 	}
 
 	@Override
@@ -107,6 +118,7 @@ public class NotificationStyle implements Titleable {
 				.append(",").append(this.vibrate)
 				.append(",").append(this.sound)
 				.append(",").append(this.excludeRetweets)
+				.append(",").append(this.includeOwnTweets)
 				.append("}").toString();
 	}
 
@@ -132,7 +144,8 @@ public class NotificationStyle implements Titleable {
 				json.getBoolean(KEY_LIGHTS),
 				json.getBoolean(KEY_VIBRATE),
 				json.getBoolean(KEY_SOUND),
-				json.optBoolean(KEY_EXCLUDE_RETWEETS, DEFAULT.isExcludeRetweets()));
+				json.optBoolean(KEY_EXCLUDE_RETWEETS, DEFAULT.isExcludeRetweets()),
+				json.optBoolean(KEY_INCLUDE_OWN_TWEETS, DEFAULT.isIncludeOwnTweets()));
 	}
 
 }

@@ -19,6 +19,7 @@ class NotificationStyleDialog implements Titleable {
 	private final CheckBox chkVibrate;
 	private final CheckBox chkSound;
 	private final CheckBox chkExcludeRetweets;
+	private final CheckBox chkIncludeOwnTweets;
 
 	public NotificationStyleDialog (final Context context, final NotificationStyle initialValue) {
 		final LayoutInflater inflater = LayoutInflater.from(context);
@@ -29,6 +30,7 @@ class NotificationStyleDialog implements Titleable {
 		this.chkVibrate = (CheckBox) this.llParent.findViewById(R.id.chkVibrate);
 		this.chkSound = (CheckBox) this.llParent.findViewById(R.id.chkSound);
 		this.chkExcludeRetweets = (CheckBox) this.llParent.findViewById(R.id.chkExcludeRetweets);
+		this.chkIncludeOwnTweets = (CheckBox) this.llParent.findViewById(R.id.chkIncludeOwnTweets);
 
 		this.chkNotify.setChecked(initialValue != null);
 		this.chkNotify.setOnClickListener(this.chkNotifyClickListener);
@@ -38,6 +40,7 @@ class NotificationStyleDialog implements Titleable {
 			this.chkVibrate.setChecked(initialValue.isVibrate());
 			this.chkSound.setChecked(initialValue.isSound());
 			this.chkExcludeRetweets.setChecked(initialValue.isExcludeRetweets());
+			this.chkIncludeOwnTweets.setChecked(initialValue.isIncludeOwnTweets());
 		}
 	}
 
@@ -54,6 +57,7 @@ class NotificationStyleDialog implements Titleable {
 		this.chkVibrate.setEnabled(en);
 		this.chkSound.setEnabled(en);
 		this.chkExcludeRetweets.setEnabled(en);
+		this.chkIncludeOwnTweets.setEnabled(en);
 	}
 
 	@Override
@@ -71,7 +75,8 @@ class NotificationStyleDialog implements Titleable {
 				this.chkLights.isChecked(),
 				this.chkVibrate.isChecked(),
 				this.chkSound.isChecked(),
-				this.chkExcludeRetweets.isChecked());
+				this.chkExcludeRetweets.isChecked(),
+				this.chkIncludeOwnTweets.isChecked());
 	}
 
 }

@@ -60,11 +60,8 @@ public interface DbInterface extends KvStore {
 	 */
 	int getUnreadCount(Column column);
 
-	/**
-	 * Excludes editable.
-	 */
 	int getUnreadCount(int columnId, Selection selection, Set<Integer> excludeColumnIds,
-			boolean withInlineMediaOnly, boolean excludeRetweets,
+			boolean withInlineMediaOnly, boolean excludeRetweets, boolean excludeEditable,
 			ScrollState scroll);
 
 	int getScrollUpCount(int columnId, Selection selection, Set<Integer> excludeColumnIds,
