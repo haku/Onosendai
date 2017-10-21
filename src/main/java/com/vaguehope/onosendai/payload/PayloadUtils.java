@@ -103,6 +103,7 @@ public final class PayloadUtils {
 			case FEED_HASH:
 			case POST_TIME:
 			case QUOTED_SID:
+			case OWNER_NAME:
 				return null;
 			default:
 				LOG.e("Unknown meta type: %s", meta.getType());
