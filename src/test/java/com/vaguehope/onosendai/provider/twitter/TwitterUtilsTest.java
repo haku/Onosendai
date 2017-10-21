@@ -200,6 +200,7 @@ public class TwitterUtilsTest {
 		testPictureUrlNonExpansion("http://imgur.com/a/8PKUl");
 		testPictureUrlNonExpansion("http://imgur.com/r/aww");
 		testPictureUrlNonExpansion("http://imgur.com/gallery/FpZwD");
+		testPictureUrlNonExpansion("https://imgur.com/gallery/FpZwD/");
 	}
 
 	@Test

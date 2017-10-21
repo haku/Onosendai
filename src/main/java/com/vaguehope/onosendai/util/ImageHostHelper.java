@@ -54,7 +54,7 @@ public final class ImageHostHelper {
 					}
 				}
 
-				if (imgIds.startsWith("a/") || imgIds.startsWith("gallery/")) return null;
+				if (StringHelper.isEmpty(imgIds) || imgIds.startsWith("a/") || imgIds.startsWith("gallery/")) return null;
 
 				final List<String> ret = new ArrayList<String>(1);
 				for (final String imgId : imgIds.split(",")) {
