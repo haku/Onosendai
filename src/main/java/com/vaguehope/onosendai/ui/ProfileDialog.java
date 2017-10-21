@@ -21,12 +21,12 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
+import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class ProfileDialog {
 
-	private static final String PROFILE_URL_TEMPLATE = "https://twitter.com/%s";
 	private static final LogWrapper LOG = new LogWrapper("PD");
 
 	public static void show (final MainActivity mainActivity, final ImageLoader imageLoader, final Account account, final String username) {
@@ -70,7 +70,7 @@ public class ProfileDialog {
 		this.txtFullname.setText("...");
 		this.txtUsername.setText(username);
 
-		final String profileUrl = String.format(PROFILE_URL_TEMPLATE, username);
+		final String profileUrl = TwitterUrls.profileUrl(username);
 		this.btnProfile.setText(profileUrl);
 		this.btnProfile.setOnClickListener(new GoToUrlClickListener(profileUrl));
 		this.btnTweets.setOnClickListener(new ShowTweetsClickListener(mainActivity, username));

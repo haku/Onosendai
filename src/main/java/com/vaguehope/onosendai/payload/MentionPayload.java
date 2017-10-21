@@ -81,6 +81,10 @@ public class MentionPayload extends Payload {
 		return this.screenName;
 	}
 
+	public String getFullName () {
+		return this.fullName;
+	}
+
 	@Override
 	public int hashCode () {
 		final int prime = 31;

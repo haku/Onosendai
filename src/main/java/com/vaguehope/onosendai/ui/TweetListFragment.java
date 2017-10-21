@@ -515,7 +515,8 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				DialogHelper.alert(getActivity(), getMainActivity().getString(R.string.tweetlist_can_not_find_this_tweet_s_account_metadata));
 			}
 			else {
-				ProfileDialog.show(getMainActivity(), this.imageLoader, account, ((MentionPayload) payload).getScreenName());
+				final MentionPayload mentionPayload = (MentionPayload) payload;
+				ProfileMenu.show(getMainActivity(), this.imageLoader, account, mentionPayload.getScreenName(), mentionPayload.getFullName());
 			}
 			return true;
 		}
