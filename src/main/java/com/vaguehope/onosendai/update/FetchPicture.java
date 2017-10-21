@@ -4,6 +4,7 @@ import java.util.concurrent.Callable;
 
 import com.vaguehope.onosendai.images.HybridBitmapCache;
 import com.vaguehope.onosendai.util.HttpHelper;
+import com.vaguehope.onosendai.util.HttpHelper.Method;
 
 public class FetchPicture implements Callable<Void> {
 
@@ -20,7 +21,7 @@ public class FetchPicture implements Callable<Void> {
 	@Override
 	public Void call () throws Exception {
 		if (this.hybridBitmapCache.getCachedFile(this.mediaUrl) == null) {
-			HttpHelper.get(this.mediaUrl, this.hybridBitmapCache.fromHttp(this.mediaUrl));
+			HttpHelper.fetch(Method.GET, this.mediaUrl, this.hybridBitmapCache.fromHttp(this.mediaUrl));
 		}
 		return null;
 	}

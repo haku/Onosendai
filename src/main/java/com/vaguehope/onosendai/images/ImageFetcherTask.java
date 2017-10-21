@@ -8,6 +8,7 @@ import com.vaguehope.onosendai.images.HybridBitmapCache.LoadListener;
 import com.vaguehope.onosendai.images.ImageFetcherTask.ImageFetchResult;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.HttpHelper;
+import com.vaguehope.onosendai.util.HttpHelper.Method;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.StringHelper;
@@ -109,7 +110,7 @@ public class ImageFetcherTask extends TrackingAsyncTask<Void, Object, ImageFetch
 
 							LOG.d("Fetching image: '%s'...", url);
 							publishProgress(0, "fetching"); //ES
-							bmp = HttpHelper.get(url, this.cache.fromHttp(url, this.req.getReqWidth(), this));
+							bmp = HttpHelper.fetch(Method.GET, url, this.cache.fromHttp(url, this.req.getReqWidth(), this));
 						}
 					}
 				}

@@ -1,11 +1,15 @@
 package com.vaguehope.onosendai.update;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
+import android.net.Uri;
 import android.text.Spanned;
+import android.text.SpannedString;
 
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
@@ -14,11 +18,29 @@ import com.vaguehope.onosendai.storage.CachedStringGroup;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.HtmlTitleParser;
 import com.vaguehope.onosendai.util.HttpHelper;
+import com.vaguehope.onosendai.util.HttpHelper.FinalUrlException;
 import com.vaguehope.onosendai.util.HttpHelper.FinalUrlHandler;
-import com.vaguehope.onosendai.util.HttpHelper.TooManyRedirectsException;
+import com.vaguehope.onosendai.util.HttpHelper.HttpStreamHandler;
+import com.vaguehope.onosendai.util.HttpHelper.Method;
+import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.UriHelper;
 
 public class FetchLinkTitle implements Callable<Void> {
+
+	private enum NonHtmlFileTitler implements HttpStreamHandler<Spanned> {
+		INSTANCE;
+
+		@Override
+		public void onError (final Exception e) {/* Unused. */}
+
+		@Override
+		public Spanned handleStream (final URLConnection connection, final InputStream is, final int contentLength) throws IOException {
+			return SpannedString.valueOf(String.format("%s (%s)",
+					UriHelper.uriFileName(connection.getURL()),
+					IoHelper.readableFileSize(contentLength)));
+		}
+	}
 
 	public interface FetchTitleListener {
 		void onLinkTitle (Meta m, String title, URL finalUrl) throws IOException;
@@ -30,8 +52,11 @@ public class FetchLinkTitle implements Callable<Void> {
 	public static boolean shouldFetchTitle (final Meta m) {
 		return m.getType() == MetaType.URL &&
 				m.getData() != null &&
-				TwitterUrls.readTweetSidFromUrl(m.getData()) == null &&
-				!UNTITLEABLE_URL.matcher(m.getData()).matches();
+				TwitterUrls.readTweetSidFromUrl(m.getData()) == null;
+	}
+
+	private static boolean isNonHtml (final Meta m) {
+		return UNTITLEABLE_URL.matcher(UriHelper.uriFileName(Uri.parse(m.getData()))).matches();
 	}
 
 	public static boolean isTitleCached (final DbInterface db, final Meta meta) {
@@ -46,9 +71,12 @@ public class FetchLinkTitle implements Callable<Void> {
 			if (l != null) l.onLinkTitle(m, cachedTitle, cachedDestUrl != null ? new URL(cachedDestUrl) : null);
 		}
 		else {
-			final FinalUrlHandler<Spanned> handler = new FinalUrlHandler<Spanned>(HtmlTitleParser.INSTANCE);
+			final FinalUrlHandler<Spanned> handler = new FinalUrlHandler<Spanned>(
+					isNonHtml(m)
+							? NonHtmlFileTitler.INSTANCE
+							: HtmlTitleParser.INSTANCE);
 			try {
-				final CharSequence title = HttpHelper.get(m.getData(), handler);
+				final CharSequence title = HttpHelper.fetch(Method.GET, m.getData(), handler);
 				final String finalUrl = handler.getUrl().toString();
 				LOG.i("%s: '%s' %s.", m.getData(), title, finalUrl);
 				if (l != null) l.onLinkTitle(m, title != null ? title.toString() : null, handler.getUrl());
@@ -57,9 +85,9 @@ public class FetchLinkTitle implements Callable<Void> {
 				}
 				db.cacheString(CachedStringGroup.LINK_DEST_URL, m.getData(), finalUrl);
 			}
-			catch (final TooManyRedirectsException e) {
+			catch (final FinalUrlException e) {
 				final String lastUrl = e.getLastUrl().toString();
-				LOG.w("%s: too many redirects, stopped at: %s.", m.getData(), lastUrl);
+				LOG.w("%s: Error fetching %s: %s.", m.getData(), lastUrl, e.getMessage());
 				if (l != null) l.onLinkTitle(m, null, handler.getUrl());
 				db.cacheString(CachedStringGroup.LINK_DEST_URL, m.getData(), lastUrl);
 			}

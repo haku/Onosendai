@@ -38,6 +38,11 @@ public final class HttpHelper {
 
 	private static final LogWrapper LOG = new LogWrapper("HH");
 
+	public enum Method {
+		GET,
+		HEAD;
+	}
+
 	public interface HttpStreamHandler<R> {
 
 		/**
@@ -53,6 +58,7 @@ public final class HttpHelper {
 
 		private final HttpStreamHandler<R> delagate;
 		private URL url;
+		private int contentLength;
 
 		public FinalUrlHandler (final HttpStreamHandler<R> delagate) {
 			this.delagate = delagate;
@@ -60,6 +66,10 @@ public final class HttpHelper {
 
 		public URL getUrl () {
 			return this.url;
+		}
+
+		public int getContentLength () {
+			return this.contentLength;
 		}
 
 		@Override
@@ -70,6 +80,7 @@ public final class HttpHelper {
 		@Override
 		public R handleStream (final URLConnection connection, final InputStream is, final int contentLength) throws IOException {
 			this.url = connection.getURL();
+			this.contentLength = contentLength;
 			return this.delagate.handleStream(connection, is, contentLength);
 		}
 
@@ -79,9 +90,9 @@ public final class HttpHelper {
 		throw new AssertionError();
 	}
 
-	public static <R> R get (final String sUrl, final HttpStreamHandler<R> streamHandler) throws IOException {
+	public static <R> R fetch (final Method method, final String sUrl, final HttpStreamHandler<R> streamHandler) throws IOException {
 		try {
-			return getWithFollowRedirects(new URL(sUrl), streamHandler, 0);
+			return fetchWithFollowRedirects(method, new URL(sUrl), streamHandler, 0);
 		}
 		catch (final Exception e) { // NOSONAR need to report failures to onError().
 			streamHandler.onError(e);
@@ -91,10 +102,10 @@ public final class HttpHelper {
 		}
 	}
 
-	private static <R> R getWithFollowRedirects (final URL url, final HttpStreamHandler<R> streamHandler, final int redirectCount) throws IOException, URISyntaxException {
+	private static <R> R fetchWithFollowRedirects (final Method method, final URL url, final HttpStreamHandler<R> streamHandler, final int redirectCount) throws IOException, URISyntaxException {
 		final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		try {
-			connection.setRequestMethod("GET");
+			connection.setRequestMethod(method.toString());
 			connection.setInstanceFollowRedirects(false);
 			connection.setConnectTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_CONNECT_TIMEOUT_SECONDS));
 			connection.setReadTimeout((int) TimeUnit.SECONDS.toMillis(HTTP_READ_TIMEOUT_SECONDS));
@@ -121,11 +132,11 @@ public final class HttpHelper {
 					else {
 						locationUrl = url.toURI().resolve(locationHeader).toURL();
 					}
-					return getWithFollowRedirects(locationUrl, streamHandler, redirectCount + 1);
+					return fetchWithFollowRedirects(method, locationUrl, streamHandler, redirectCount + 1);
 				}
 
 				if (responseCode < 200 || responseCode >= 300) { // NOSONAR not magic numbers.  Its HTTP spec.
-					throw new HttpResponseException(responseCode, summariseHttpErrorResponse(connection));
+					throw new NotOkResponseException(responseCode, connection, url);
 				}
 
 				is = connection.getInputStream();
@@ -150,19 +161,41 @@ public final class HttpHelper {
 				IoHelper.toString(connection.getErrorStream(), MAX_ERR_BODY_LENGTH_CHAR));
 	}
 
-	public static class TooManyRedirectsException extends HttpResponseException {
+	public abstract static class FinalUrlException extends HttpResponseException {
 
-		private static final long serialVersionUID = -2227184694143723083L;
+		private static final long serialVersionUID = -5533900604169920207L;
 
 		private final URL lastUrl;
 
-		public TooManyRedirectsException (final int responseCode, final URL lastUrl, final int redirectCount) {
-			super(responseCode, "Max redirects of " + redirectCount + " exceeded.");
+		public FinalUrlException (final String message, final int responseCode, final URL lastUrl) {
+			super(responseCode, message);
 			this.lastUrl = lastUrl;
 		}
 
 		public URL getLastUrl () {
 			return this.lastUrl;
+		}
+
+	}
+
+	public static class TooManyRedirectsException extends FinalUrlException {
+
+		private static final long serialVersionUID = -7981953690474511370L;
+
+		public TooManyRedirectsException (final int responseCode, final URL lastUrl, final int redirectCount) {
+			super("Max redirects of " + redirectCount + " exceeded.",
+					responseCode, lastUrl);
+		}
+
+	}
+
+	public static class NotOkResponseException extends FinalUrlException {
+
+		private static final long serialVersionUID = 2450727724111193765L;
+
+		public NotOkResponseException (final int responseCode, final HttpURLConnection connection, final URL lastUrl) throws IOException {
+			super(summariseHttpErrorResponse(connection),
+					responseCode, lastUrl);
 		}
 
 	}
