@@ -46,17 +46,29 @@ public class FetchLinkTitle implements Callable<Void> {
 		void onLinkTitle (Meta m, String title, URL finalUrl) throws IOException;
 	}
 
-	private static final Pattern UNTITLEABLE_URL = Pattern.compile("^.*\\.(mp[0-9]|m3u8|mov|webm|mpd|jpe?g|png|gif|pdf)$", Pattern.CASE_INSENSITIVE);
+	private static final Pattern IGNORE_URL = Pattern.compile("^.*\\.(m3u8)$", Pattern.CASE_INSENSITIVE);
+	private static final Pattern NON_HTML_URL = Pattern.compile("^.*\\.(mp[0-9]|mov|webm|mpd|jpe?g|png|gif|pdf)$", Pattern.CASE_INSENSITIVE);
 	private static final LogWrapper LOG = new LogWrapper("FLT");
 
 	public static boolean shouldFetchTitle (final Meta m) {
 		return m.getType() == MetaType.URL &&
 				m.getData() != null &&
-				TwitterUrls.readTweetSidFromUrl(m.getData()) == null;
+				TwitterUrls.readTweetSidFromUrl(m.getData()) == null &&
+				!isIgnoreable(m);
+	}
+
+	private static boolean isIgnoreable (final Meta m) {
+		return metaDataMatchesPattern(m, IGNORE_URL);
 	}
 
 	private static boolean isNonHtml (final Meta m) {
-		return UNTITLEABLE_URL.matcher(UriHelper.uriFileName(Uri.parse(m.getData()))).matches();
+		return metaDataMatchesPattern(m, NON_HTML_URL);
+	}
+
+	private static boolean metaDataMatchesPattern (final Meta m, final Pattern pattern) {
+		final CharSequence uriFileName = UriHelper.uriFileName(Uri.parse(m.getData()));
+		if (uriFileName == null) return false;
+		return pattern.matcher(uriFileName).matches();
 	}
 
 	public static boolean isTitleCached (final DbInterface db, final Meta meta) {
