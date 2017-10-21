@@ -23,6 +23,7 @@ import com.vaguehope.onosendai.storage.DbInterface.DiscardOrder;
 import com.vaguehope.onosendai.update.FetchLinkTitle;
 import com.vaguehope.onosendai.update.FetchLinkTitle.FetchTitleListener;
 import com.vaguehope.onosendai.util.LogWrapper;
+import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 
 public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void> implements FetchTitleListener {
@@ -175,10 +176,21 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 	}
 
 	@Override
-	public void onLinkTitle (final Meta m, final String title, final URL finalUrl) throws IOException {
+	public void onLinkTitle (final Meta m, final String urlTitle, final URL finalUrl) throws IOException {
+		final String nonNullUrlTitle = urlTitle != null ? urlTitle : "Title not found."; //ES
+
+		final CharSequence newTitle;
+		final String finalUrlOrMetaUrl = finalUrl != null ? finalUrl.toExternalForm() : m.getData();
+		if (titleIsPartOfUrl(finalUrlOrMetaUrl, m.getTitle())) {
+			newTitle = nonNullUrlTitle;
+		}
+		else {
+			newTitle = m.getTitle() + "\n" + nonNullUrlTitle;
+		}
+
 		publishProgress(Prg.URL_AND_TITLE, m,
 				finalUrl != null ? finalUrl : new URL(m.getData()),
-				title != null ? title : "Title not found."); //ES
+				newTitle);
 	}
 
 	private void fetchLinkedTweet (final DbInterface db, final Meta meta, final String linkedTweetSid) {
@@ -212,4 +224,11 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 			publishProgress(Prg.FAIL, meta, e);
 		}
 	}
+
+	private static boolean titleIsPartOfUrl (final String url, final String title) {
+		if (title.length() < 4) return false;
+		final String titleWithoutEnd = title.substring(0, title.length() - 3);
+		return StringHelper.safeContainsIgnoreCase(url, titleWithoutEnd);
+	}
+
 }
