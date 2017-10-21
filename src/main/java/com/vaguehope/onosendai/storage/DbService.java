@@ -65,13 +65,13 @@ public class DbService extends Service implements DbInterface {
 //	DB methods.
 
 	@Override
-	public void storeTweets (final Column column, final List<Tweet> tweets) {
-		this.dbAdaptor.storeTweets(column, tweets);
+	public void storeTweets (final Column column, final List<Tweet> tweets, final DiscardOrder discardOrder) {
+		this.dbAdaptor.storeTweets(column, tweets, discardOrder);
 	}
 
 	@Override
-	public void storeTweets (final int columnId, final List<Tweet> tweets) {
-		this.dbAdaptor.storeTweets(columnId, tweets);
+	public void storeTweets (final int columnId, final List<Tweet> tweets, final DiscardOrder discardOrder) {
+		this.dbAdaptor.storeTweets(columnId, tweets, discardOrder);
 	}
 
 	@Override

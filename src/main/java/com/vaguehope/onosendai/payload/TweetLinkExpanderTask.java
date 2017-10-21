@@ -19,6 +19,7 @@ import com.vaguehope.onosendai.provider.TaskUtils;
 import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbInterface.DiscardOrder;
 import com.vaguehope.onosendai.update.FetchLinkTitle;
 import com.vaguehope.onosendai.update.FetchLinkTitle.FetchTitleListener;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -202,7 +203,7 @@ public class TweetLinkExpanderTask extends DbBindingAsyncTask<Void, Object, Void
 			final Tweet linkedTweet = this.provMgr.getTwitterProvider().getTweet(this.account, Long.parseLong(linkedTweetSid), this.hdMedia);
 			LOG.i("Fetched: %s=%s", linkedTweetSid, linkedTweet);
 			if (linkedTweet != null) {
-				db.storeTweets(Column.ID_CACHED, Collections.singletonList(linkedTweet));
+				db.storeTweets(Column.ID_CACHED, Collections.singletonList(linkedTweet), DiscardOrder.FIRST_DOWNLOADED);
 			}
 			publishProgress(Prg.TWEET, meta, linkedTweet);
 		}

@@ -131,7 +131,7 @@ public class Tweet {
 		return this.filtered;
 	}
 
-	public Tweet cloneWithCurrentTimestamp () {
+	public Tweet withCurrentTimestamp () {
 		final long utime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
 		final List<Meta> newMetas = new ArrayList<Meta>(this.metas);
 		if (getFirstMetaOfType(MetaType.POST_TIME) == null) newMetas.add(new Meta(MetaType.POST_TIME, String.valueOf(this.time)));

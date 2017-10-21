@@ -15,6 +15,7 @@ import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.model.TweetRowView.QuotingTweetRowView;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.ProviderMgr.ProviderMgrProvider;
+import com.vaguehope.onosendai.storage.DbInterface.DiscardOrder;
 import com.vaguehope.onosendai.storage.DbProvider;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -257,7 +258,7 @@ public class LinkedTweetLoader {
 					if (account != null) {
 						final Tweet tweet = this.loader.getProvMgr().getTwitterProvider().getTweet(account, Long.parseLong(this.req.getQuotedSid()), this.loader.getHdMedia());
 						LOG.i("Fetched: %s=%s", this.req.getQuotedSid(), tweet);
-						this.loader.getDbProvider().getDb().storeTweets(Column.ID_CACHED, Collections.singletonList(tweet));
+						this.loader.getDbProvider().getDb().storeTweets(Column.ID_CACHED, Collections.singletonList(tweet), DiscardOrder.FIRST_DOWNLOADED);
 						return new Result<Tweet>(tweet);
 					}
 					return new Result<Tweet>(new IllegalStateException("Tweet missing account meta: " + parent));

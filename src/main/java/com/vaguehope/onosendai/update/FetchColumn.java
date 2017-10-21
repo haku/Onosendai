@@ -1,6 +1,5 @@
 package com.vaguehope.onosendai.update;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +25,7 @@ import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterUtils;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
+import com.vaguehope.onosendai.storage.DbInterface.DiscardOrder;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -154,19 +154,17 @@ public class FetchColumn implements Callable<Void> {
 		if (tweets.count() > 0) {
 			final List<Tweet> filteredTweets = filters.matchAndSet(tweets.getTweets());
 			filteredCount = Filters.countFiltered(filteredTweets);
-			db.storeTweets(column, filteredTweets);
+			db.storeTweets(column, filteredTweets, DiscardOrder.FIRST_PUBLISHED);
 			db.storeValue(KvKeys.feedSinceId(column, columnFeed), tweets.getMostRecent().getSid());
 		}
 		return filteredCount;
 	}
 
 	/**
-	 * TODO This should be a short term solution, or until a better idea presents.
+	 * Put the quoted tweets in the cache column, for want of a better place to put them.
 	 */
 	private static void storeQuoted (final DbInterface db, final TweetList tweets) {
-		for (final Tweet t : tweets.getQuotedTweets()) {
-			db.storeTweets(Column.ID_CACHED, Collections.singletonList(t));
-		}
+		db.storeTweets(Column.ID_CACHED, tweets.getQuotedTweets(), DiscardOrder.FIRST_DOWNLOADED);
 	}
 
 	private static void pushInstapaperColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr) {

@@ -76,6 +76,7 @@ import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
+import com.vaguehope.onosendai.storage.DbInterface.DiscardOrder;
 import com.vaguehope.onosendai.storage.DbInterface.ScrollChangeType;
 import com.vaguehope.onosendai.storage.DbInterface.Selection;
 import com.vaguehope.onosendai.storage.DbInterface.TwUpdateListener;
@@ -876,7 +877,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				if (col == null) return new IllegalStateException("Read later column not configured.");
 				switch (this.laterState) {
 					case UNREAD:
-						this.parent.getDb().storeTweets(col, Collections.singletonList(this.tweet.cloneWithCurrentTimestamp()));
+						this.parent.getDb().storeTweets(col, Collections.singletonList(this.tweet.withCurrentTimestamp()),
+								// This is the correct discard order 'cos timestamp is overwritten.
+								DiscardOrder.FIRST_PUBLISHED);
 						return null;
 					case READ:
 						this.parent.getDb().deleteTweet(col, this.tweet);

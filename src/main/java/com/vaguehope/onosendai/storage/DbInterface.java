@@ -17,14 +17,25 @@ import com.vaguehope.onosendai.model.Tweet;
 
 public interface DbInterface extends KvStore {
 
-	void storeTweets(Column column, List<Tweet> tweets);
-	void storeTweets(int columnId, List<Tweet> tweets);
+	enum DiscardOrder {
+		/**
+		 * Delete oldest published time.
+		 */
+		FIRST_PUBLISHED,
+		/**
+		 * Delete first written to local DB.
+		 */
+		FIRST_DOWNLOADED;
+	}
+
+	void storeTweets(Column column, List<Tweet> tweets, DiscardOrder discardOrder);
+	void storeTweets(int columnId, List<Tweet> tweets, DiscardOrder discardOrder);
 	void appendToTweet(Tweet tweet, Meta meta);
 	void deleteTweet(Column column, Tweet tweet);
 	void deleteTweets(Column column);
 	void updateTweetFiltered(List<Pair<Long, Boolean>> uidToFiltered);
 
-	public enum Selection {
+	enum Selection {
 		ALL,
 		FILTERED;
 	}

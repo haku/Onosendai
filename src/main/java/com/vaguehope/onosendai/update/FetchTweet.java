@@ -12,6 +12,7 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbInterface.DiscardOrder;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -79,7 +80,7 @@ public class FetchTweet implements Callable<Void> {
 		final Tweet fetched = provMgr.getTwitterProvider().getTweet(account, Long.parseLong(linkedTweetSid), column.isHdMedia());
 		LOG.i("Fetched: %s=%s", linkedTweetSid, fetched);
 		if (fetched != null) {
-			db.storeTweets(Column.ID_CACHED, Collections.singletonList(fetched));
+			db.storeTweets(Column.ID_CACHED, Collections.singletonList(fetched), DiscardOrder.FIRST_DOWNLOADED);
 		}
 
 	}

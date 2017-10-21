@@ -281,20 +281,33 @@ public class DbAdapter implements DbInterface {
 	private static final String TBL_TM_CREATE_INDEX = "CREATE INDEX " + TBL_TM_INDEX + " ON " + TBL_TM + "(" + TBL_TM_TWID + ");";
 
 	@Override
-	public void storeTweets (final Column column, final List<Tweet> tweets) {
-		storeTweets(column.getId(), tweets);
+	public void storeTweets (final Column column, final List<Tweet> tweets, final DiscardOrder discardOrder) {
+		storeTweets(column.getId(), tweets, discardOrder);
 	}
 
 	@Override
-	public void storeTweets (final int columnId, final List<Tweet> tweets) {
-		// Clear old data.
+	public void storeTweets (final int columnId, final List<Tweet> tweets, final DiscardOrder discardOrder) {
+		// Clear old tweets.
+		final String orderBy;
+		switch (discardOrder) {
+			case FIRST_PUBLISHED:
+				orderBy = TBL_TW_TIME + " DESC";
+				break;
+			case FIRST_DOWNLOADED:
+				orderBy = TBL_TW_ID + " DESC";
+				break;
+			default:
+				throw new IllegalArgumentException("Unsupported discardOrder: " + discardOrder);
+		}
+
 		this.mDb.beginTransaction();
 		try {
 			final int n = this.mDb.delete(TBL_TW,
-					TBL_TW_COLID + "=? AND " + TBL_TW_ID + " NOT IN (SELECT " + TBL_TW_ID + " FROM " + TBL_TW +
+					TBL_TW_COLID + "=? AND " + TBL_TW_ID + " NOT IN" +
+							" (SELECT " + TBL_TW_ID + " FROM " + TBL_TW +
 							" WHERE " + TBL_TW_COLID + "=?" +
-							" ORDER BY " + TBL_TW_TIME +
-							" DESC LIMIT " + C.DATA_TW_MAX_COL_ENTRIES + ")",
+							" ORDER BY " + orderBy +
+							" LIMIT " + C.DATA_TW_MAX_COL_ENTRIES + ")",
 					new String[] { String.valueOf(columnId), String.valueOf(columnId) });
 
 			this.log.d("Deleted %d rows from %s column %d.", n, TBL_TW, columnId);
@@ -304,6 +317,7 @@ public class DbAdapter implements DbInterface {
 			this.mDb.endTransaction();
 		}
 
+		// Write new tweets.
 		this.mDb.beginTransaction();
 		try {
 			final ContentValues values = new ContentValues();
@@ -712,50 +726,47 @@ public class DbAdapter implements DbInterface {
 
 	private Tweet getTweetDetails (final String selection, final String[] selectionArgs) {
 		if (!checkDbOpen()) return null;
-		Tweet ret = null;
-		Cursor c = null;
+		final Cursor c = this.mDb.query(true, TBL_TW,
+				new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_OWNER_USERNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_QUOTED_SID, TBL_TW_FILTERED },
+				selection, selectionArgs,
+				null, null, null, null);
 		try {
-			c = this.mDb.query(true, TBL_TW,
-					new String[] { TBL_TW_ID, TBL_TW_SID, TBL_TW_USERNAME, TBL_TW_FULLNAME, TBL_TW_USERSUBTITLE, TBL_TW_FULLSUBTITLE, TBL_TW_OWNER_USERNAME, TBL_TW_BODY, TBL_TW_TIME, TBL_TW_AVATAR, TBL_TW_INLINEMEDIA, TBL_TW_QUOTED_SID, TBL_TW_FILTERED },
-					selection, selectionArgs,
-					null, null, null, null);
+			if (c == null || !c.moveToFirst()) return null;
 
-			if (c != null && c.moveToFirst()) {
-				final int colId = c.getColumnIndex(TBL_TW_ID);
-				final int colSid = c.getColumnIndex(TBL_TW_SID);
-				final int colUesrname = c.getColumnIndex(TBL_TW_USERNAME);
-				final int colFullname = c.getColumnIndex(TBL_TW_FULLNAME);
-				final int colUserSubtitle = c.getColumnIndex(TBL_TW_USERSUBTITLE);
-				final int colFullSubtitle = c.getColumnIndex(TBL_TW_FULLSUBTITLE);
-				final int colOwnerUsername = c.getColumnIndex(TBL_TW_OWNER_USERNAME);
-				final int colBody = c.getColumnIndex(TBL_TW_BODY);
-				final int colTime = c.getColumnIndex(TBL_TW_TIME);
-				final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
-				final int colInlineMedia = c.getColumnIndex(TBL_TW_INLINEMEDIA);
-				final int colQuotedSid = c.getColumnIndex(TBL_TW_QUOTED_SID);
-				final int colFiltered = c.getColumnIndex(TBL_TW_FILTERED);
+			final int colId = c.getColumnIndex(TBL_TW_ID);
+			final int colSid = c.getColumnIndex(TBL_TW_SID);
+			final int colUesrname = c.getColumnIndex(TBL_TW_USERNAME);
+			final int colFullname = c.getColumnIndex(TBL_TW_FULLNAME);
+			final int colUserSubtitle = c.getColumnIndex(TBL_TW_USERSUBTITLE);
+			final int colFullSubtitle = c.getColumnIndex(TBL_TW_FULLSUBTITLE);
+			final int colOwnerUsername = c.getColumnIndex(TBL_TW_OWNER_USERNAME);
+			final int colBody = c.getColumnIndex(TBL_TW_BODY);
+			final int colTime = c.getColumnIndex(TBL_TW_TIME);
+			final int colAvatar = c.getColumnIndex(TBL_TW_AVATAR);
+			final int colInlineMedia = c.getColumnIndex(TBL_TW_INLINEMEDIA);
+			final int colQuotedSid = c.getColumnIndex(TBL_TW_QUOTED_SID);
+			final int colFiltered = c.getColumnIndex(TBL_TW_FILTERED);
 
-				final long uid = c.getLong(colId);
-				final String sid = c.getString(colSid);
-				final String username = c.getString(colUesrname);
-				final String fullname = c.getString(colFullname);
-				final String userSubtitle = c.getString(colUserSubtitle);
-				final String fullSubtitle = c.getString(colFullSubtitle);
-				final String ownerUsername = c.getString(colOwnerUsername);
-				final String body = c.getString(colBody);
-				final long time = c.getLong(colTime);
-				final String avatar = c.getString(colAvatar);
-				final String inlineMedia = c.getString(colInlineMedia);
-				final String quotedSid = c.getString(colQuotedSid);
-				final boolean filtered = !c.isNull(colFiltered);
-				final List<Meta> metas = getTweetMetas(uid);
-				ret = new Tweet(uid, sid, username, fullname, userSubtitle, fullSubtitle, ownerUsername, body, time, avatar, inlineMedia, quotedSid, metas, filtered);
-			}
+			final long uid = c.getLong(colId);
+			final String sid = c.getString(colSid);
+			final String username = c.getString(colUesrname);
+			final String fullname = c.getString(colFullname);
+			final String userSubtitle = c.getString(colUserSubtitle);
+			final String fullSubtitle = c.getString(colFullSubtitle);
+			final String ownerUsername = c.getString(colOwnerUsername);
+			final String body = c.getString(colBody);
+			final long time = c.getLong(colTime);
+			final String avatar = c.getString(colAvatar);
+			final String inlineMedia = c.getString(colInlineMedia);
+			final String quotedSid = c.getString(colQuotedSid);
+			final boolean filtered = !c.isNull(colFiltered);
+			final List<Meta> metas = getTweetMetas(uid);
+
+			return new Tweet(uid, sid, username, fullname, userSubtitle, fullSubtitle, ownerUsername, body, time, avatar, inlineMedia, quotedSid, metas, filtered);
 		}
 		finally {
 			IoHelper.closeQuietly(c);
 		}
-		return ret;
 	}
 
 	@Override

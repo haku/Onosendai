@@ -23,6 +23,7 @@ import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
+import com.vaguehope.onosendai.storage.DbInterface.DiscardOrder;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.exec.ExecutorEventListener;
 
@@ -179,7 +180,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 	}
 
 	private static void cacheInReplyTos (final DbInterface db, final List<Tweet> tweets) {
-		db.storeTweets(Column.ID_CACHED, tweets);
+		db.storeTweets(Column.ID_CACHED, tweets, DiscardOrder.FIRST_DOWNLOADED);
 	}
 
 	@Override
