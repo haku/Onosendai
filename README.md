@@ -22,7 +22,7 @@ Supported Services
 ------------------
 
 * Twitter columns are supported directly.
-* Twitter and Facebook columns via [SuccessWhale](http://successwhale.com).
+* Twitter and Facebook columns via [SuccessWhale](https://ianrenton.github.io/SuccessWhale/).
 * Posting to [Buffer](https://bufferapp.com) (currently requires advanced config to add account).
 * Forwarding Read Later column to [Instapaper](https://www.instapaper.com).
 
