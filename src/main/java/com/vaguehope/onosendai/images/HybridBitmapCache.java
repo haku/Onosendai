@@ -51,8 +51,14 @@ public class HybridBitmapCache {
 		this.failuresCache = new LruCache<String, String>(100); // TODO extract constant.
 		this.baseDir = getBaseDir(context);
 		if (!this.baseDir.exists() && !this.baseDir.mkdirs()) throw new IllegalStateException("Failed to create cache directory: " + this.baseDir.getAbsolutePath());
-		this.maxMemCacheEntrySize = (int) (maxMemorySizeBytes * C.MAX_MEMORY_IMAGE_CACHE_ENTRY_SIZE_RATIO);
-		LOG.i("in memory cache: total %s bytes, max entry %s bytes.", maxMemorySizeBytes, this.maxMemCacheEntrySize);
+
+		if (this.memCache != null) {
+			this.maxMemCacheEntrySize = (int) (maxMemorySizeBytes * C.MAX_MEMORY_IMAGE_CACHE_ENTRY_SIZE_RATIO);
+			LOG.i("in memory cache: total %s bytes, max entry %s bytes.", maxMemorySizeBytes, this.maxMemCacheEntrySize);
+		}
+		else {
+			this.maxMemCacheEntrySize = 0;
+		}
 	}
 
 	public void forget (final String key) throws IOException {
