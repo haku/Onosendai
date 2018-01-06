@@ -41,7 +41,7 @@ public class CachedImageFileProvider extends FileProvider {
 		return ret;
 	}
 
-	protected static String identifyFileExtension (final File file) {
+	public static String identifyFileExtension (final File file) {
 		return MimeTypeMap.getSingleton().getExtensionFromMimeType(identifyFileMimeType(file));
 	}
 
@@ -131,18 +131,26 @@ public class CachedImageFileProvider extends FileProvider {
 		return updatedCursor;
 	}
 
-	private String makeDisplayName (final String baseName, final Uri uri) {
+	/**
+	 * @param baseName TODO
+	 * @param uri TODO
+	 */
+	public String makeDisplayName (final String baseName, final Uri uri) {
 		final String extension = getExtension(uri.getPath());
 
 		final String key = HybridBitmapCache.readKeyFromMetaFileName(getContext(), baseName(removeExtension(uri)));
 		if (!StringHelper.isEmpty(key)) {
-			final String nameFromKey = FileHelper.nameFromPath(key);
-			if (!StringHelper.isEmpty(nameFromKey)) {
-				return StringHelper.addSuffexIfCaseInsensitiveMissing(nameFromKey, "." + extension);
-			}
+			String displayName = makeDisplayName(key, extension);
+			if (!StringHelper.isEmpty(displayName)) return displayName;
 		}
 
 		return String.format("%s.%s", baseName, extension);
+	}
+
+	public static String makeDisplayName (final String imgUrl, final String extension) {
+		final String nameFromUrl = FileHelper.nameFromPath(imgUrl);
+		if (StringHelper.isEmpty(nameFromUrl)) return null;
+		return StringHelper.addSuffexIfCaseInsensitiveMissing(nameFromUrl, "." + extension);
 	}
 
 	@Override

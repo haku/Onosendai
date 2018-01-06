@@ -29,7 +29,10 @@ public class PayloadListClickListener implements OnItemClickListener, OnItemLong
 
 	@Override
 	public boolean onItemLongClick (final AdapterView<?> parent, final View view, final int position, final long id) {
-		return this.clickListener.payloadLongClicked((Payload) ((ListView) parent).getAdapter().getItem(position));
+		final ListView lv = (ListView) parent;
+		final Payload payload = (Payload) lv.getAdapter().getItem(position);
+		if (payload.longClick(parent.getContext())) return true;
+		return this.clickListener.payloadLongClicked(payload);
 	}
 
 }

@@ -8,11 +8,16 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
 import com.vaguehope.onosendai.R;
+import com.vaguehope.onosendai.images.ImageExporter;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoadRequest.ImageLoadListener;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.EqualHelper;
 import com.vaguehope.onosendai.widget.PendingImage;
@@ -43,6 +48,18 @@ public class MediaPayload extends Payload {
 		final Intent i = new Intent(Intent.ACTION_VIEW);
 		i.setData(Uri.parse(this.clickUrl != null ? this.clickUrl : this.imgUrl));
 		return i;
+	}
+
+	@Override
+	public boolean longClick (final Context context) {
+		final Tweet tweet = getOwnerTweet();
+		// TODO share this code with PrincipalPayload.
+		final Meta postTimeMeta = tweet.getFirstMetaOfType(MetaType.POST_TIME);
+		final long postTime = postTimeMeta != null ? postTimeMeta.toLong(0L) : 0L;
+		final long tweetTime = postTime > 0 ? postTime : tweet.getTime();
+		final Date tweetDate = new Date(TimeUnit.SECONDS.toMillis(tweetTime));
+
+		return ImageExporter.exportToPictures(context, this.imgUrl, tweetDate, tweet.getUsername());
 	}
 
 	@Override

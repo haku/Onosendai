@@ -53,6 +53,10 @@ public abstract class Payload {
 		throw new UnsupportedOperationException("This payload type '" + this.type + "' can not be expressed as an intent.");
 	}
 
+	public boolean longClick (final Context context) {
+		return false;
+	}
+
 	public PayloadLayout getLayout () {
 		return PayloadLayout.TEXT_ONLY;
 	}
