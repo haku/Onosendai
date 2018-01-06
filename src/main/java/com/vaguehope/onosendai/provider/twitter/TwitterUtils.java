@@ -121,7 +121,7 @@ public final class TwitterUtils {
 		addMedia(s, metas, hdMedia, userSubtitle);
 		checkUrlsForMedia(s, metas, hdMedia);
 
-		final String text = removeMediaUrls(expandUrls(s.getText(), s.getURLEntities(), metas), s);
+		final String text = removeMediaAndQuotedUrls(expandUrls(s.getText(), s.getURLEntities(), metas), s);
 		addHashtags(s, metas);
 
 		addMentions(s, metas, statusUserId, ownId);
@@ -228,15 +228,42 @@ public final class TwitterUtils {
 		if (hasVideo) userSubtitle.add("video"); //ES
 	}
 
-	private static String removeMediaUrls(final String text, final Status s) {
-		final MediaEntity[] mes = s.getMediaEntities();
-		if (mes == null || mes.length < 1) return text;
-
+	private static String removeMediaAndQuotedUrls(final String text, final Status s) {
 		String textWithoutMedia = text;
-		for (final MediaEntity me : mes) {
-			textWithoutMedia = StringHelper.replaceOnce(textWithoutMedia, me.getURL(), "");
+
+		final MediaEntity[] mes = s.getMediaEntities();
+		if (mes != null) {
+			for (final MediaEntity me : mes) {
+				textWithoutMedia = StringHelper.replaceOnce(textWithoutMedia, me.getURL(), "");
+				textWithoutMedia = textWithoutMedia.trim();
+			}
 		}
+
+		final Status q = s.getQuotedStatus();
+		if (q != null) {
+			final URLEntity urlEntity = findQuotedTweetUrl(s, q);
+			if (urlEntity != null) {
+				textWithoutMedia = StringHelper.removeSuffex(textWithoutMedia, urlEntity.getURL());
+				textWithoutMedia = StringHelper.removeSuffex(textWithoutMedia, urlEntity.getExpandedURL());
+				textWithoutMedia = textWithoutMedia.trim();
+			}
+		}
+
 		return textWithoutMedia;
+	}
+
+	private static URLEntity findQuotedTweetUrl (final Status outerTweet, final Status quotedTweet) {
+		final String qId = String.valueOf(quotedTweet.getId());
+
+		final URLEntity[] urls = outerTweet.getURLEntities();
+		for (int i = 0; i < urls .length; i++) {
+			final URLEntity url = urls[i];
+			if (StringHelper.endsWith(url.getURL(), qId) || StringHelper.endsWith(url.getExpandedURL(), qId)) {
+				return url;
+			}
+		}
+
+		return null;
 	}
 
 	private static void checkUrlsForMedia (final Status s, final List<Meta> metas, final boolean hdMedia) {

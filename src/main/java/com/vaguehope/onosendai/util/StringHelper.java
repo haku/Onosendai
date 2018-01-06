@@ -85,4 +85,16 @@ public final class StringHelper {
 		return occurances != null ? occurances : Collections.<String>emptyList();
 	}
 
+	public static boolean endsWith (final String str, final String end) {
+		if (str == null || end == null) return false;
+		return str.endsWith(end);
+	}
+
+	public static String removeSuffex (final String str, final String suffex) {
+		if (str == null) return null;
+		if (suffex == null) return str;
+		if (str.endsWith(suffex)) return str.substring(0, str.length() - suffex.length());
+		return str;
+	}
+
 }

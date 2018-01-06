@@ -84,7 +84,7 @@ public class TwitterUtilsTest {
 		final Tweet t = TwitterUtils.convertTweet(this.account, s, -1L, false);
 
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA, "https://pbs.twimg.com/media/BjwsdkfjsAAI-4x.jpg", "https://twitter.com/some*user/status/1235430985/photo/1")));
-		assertEquals("media: ", t.getBody());
+		assertEquals("media:", t.getBody());
 		assertNoMetaOfType(t, MetaType.URL);
 	}
 
@@ -340,6 +340,23 @@ public class TwitterUtilsTest {
 		final List<Meta> metasCopy = new ArrayList<Meta>(t.getMetas());
 		metasCopy.remove(new Meta(MetaType.MENTION, "bob", "Bob"));
 		assertThat(metasCopy, not(hasItem(new Meta(MetaType.MENTION, "bob", "Bob"))));
+	}
+
+	@Test
+	public void itRemovesQuotedTweetUrl () throws Exception {
+		final Status q = mockTweet("bar");
+		when(q.getId()).thenReturn(698806076515479552L);
+
+		final URLEntity ue = mock(URLEntity.class);
+		when(ue.getExpandedURL()).thenReturn("http://twitter.com/stuarthicks/status/698806076515479552");
+		when(ue.getURL()).thenReturn("https://t.co/9JdtE36Djy");
+
+		final Status s = mockTweet("foo https://t.co/9JdtE36Djy");
+		when(s.getURLEntities()).thenReturn(new URLEntity[] { ue });
+		when(s.getQuotedStatus()).thenReturn(q);
+
+		final Tweet t = TwitterUtils.convertTweet(this.account, s, 100, false);
+		assertEquals("foo", t.getBody());
 	}
 
 	private void testPictureUrlExpansion (final String fromUrl, final boolean hdMedia, final String... toUrls) {

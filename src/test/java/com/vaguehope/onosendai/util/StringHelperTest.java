@@ -1,6 +1,8 @@
 package com.vaguehope.onosendai.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -26,6 +28,20 @@ public class StringHelperTest {
 		assertEquals("foo b bat", StringHelper.replaceOnce("foo bar bat", "ar", ""));
 		assertEquals(" bar bat", StringHelper.replaceOnce("foo bar bat", "foo", ""));
 		assertEquals("foo bar ", StringHelper.replaceOnce("foo bar bat", "bat", ""));
+	}
+
+	@Test
+	public void itChecksEndsWith () throws Exception {
+		assertTrue(StringHelper.endsWith("abc123", "23"));
+		assertFalse(StringHelper.endsWith("abc123", "12"));
+		assertFalse(StringHelper.endsWith("a", null));
+		assertFalse(StringHelper.endsWith(null, "1"));
+	}
+
+	@Test
+	public void itRemovesSuffex () throws Exception {
+		assertEquals("foo ", StringHelper.removeSuffex("foo bar", "bar"));
+		assertEquals("foo bar ", StringHelper.removeSuffex("foo bar ", "bar"));
 	}
 
 }
