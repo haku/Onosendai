@@ -37,9 +37,16 @@ public class ImageExporter {
 
 		final String datePrefix = DateHelper.standardDateTimeFormat().format(date);
 		final String extension = CachedImageFileProvider.identifyFileExtension(cacheFile);
-		final String displayName = CachedImageFileProvider.makeDisplayName(imgUrl, extension);
-		final String outputName = String.format("%s.%s.%s", datePrefix, prefix, displayName);
+		final String outputName = String.format("%s.%s.%s.%s",
+				datePrefix, prefix, cacheFile.length(), extension);
 		final File outputFile = new File(outputDir, outputName);
+
+		if (outputFile.exists()) {
+			Toast.makeText(context,
+					String.format("File Already Exists\n%s", outputFile.getName()),
+					Toast.LENGTH_LONG).show(); //ES
+			return true; // Well, we tried to do something.
+		}
 
 		new CopyFileToFile(context, cacheFile, outputFile).execute();
 		return true;

@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,16 +75,18 @@ public final class PayloadUtils {
 	private static void convertMeta (final Context context, final Account account, final Tweet tweet, final Set<Payload> ret) {
 		final List<Meta> metas = tweet.getMetas();
 		if (metas == null) return;
+
+		final AtomicInteger counter = new AtomicInteger(0);
 		for (final Meta meta : metas) {
-			final Payload payload = metaToPayload(context, account, tweet, meta);
+			final Payload payload = metaToPayload(context, account, tweet, meta, counter );
 			if (payload != null) ret.add(payload);
 		}
 	}
 
-	private static Payload metaToPayload (final Context context, final Account account, final Tweet tweet, final Meta meta) {
+	private static Payload metaToPayload (final Context context, final Account account, final Tweet tweet, final Meta meta, final AtomicInteger counter) {
 		switch (meta.getType()) {
 			case MEDIA:
-				return new MediaPayload(tweet, meta);
+				return new MediaPayload(tweet, meta, counter.getAndIncrement());
 			case ALT_TEXT:
 				return new PlaceholderPayload(tweet, meta.getData());
 			case HASHTAG:

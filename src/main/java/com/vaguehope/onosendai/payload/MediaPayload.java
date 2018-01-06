@@ -26,9 +26,11 @@ public class MediaPayload extends Payload {
 
 	private final String imgUrl;
 	private final String clickUrl;
+	private final int numberInTweet;
 
-	public MediaPayload (final Tweet ownerTweet, final Meta meta) {
+	public MediaPayload (final Tweet ownerTweet, final Meta meta, final int numberInTweet) {
 		super(ownerTweet, meta, PayloadType.MEDIA);
+		this.numberInTweet = numberInTweet;
 		this.imgUrl = meta.getData();
 		this.clickUrl = meta.getTitle();
 	}
@@ -59,7 +61,8 @@ public class MediaPayload extends Payload {
 		final long tweetTime = postTime > 0 ? postTime : tweet.getTime();
 		final Date tweetDate = new Date(TimeUnit.SECONDS.toMillis(tweetTime));
 
-		return ImageExporter.exportToPictures(context, this.imgUrl, tweetDate, tweet.getUsername());
+		return ImageExporter.exportToPictures(context, this.imgUrl, tweetDate,
+				String.format("%s.%s.%s", tweet.getUsername(), tweet.getSid(), this.numberInTweet));
 	}
 
 	@Override
