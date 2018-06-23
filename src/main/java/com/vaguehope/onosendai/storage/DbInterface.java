@@ -41,11 +41,13 @@ public interface DbInterface extends KvStore {
 	}
 
 	List<Tweet> getTweets(int columnId, int numberOf, Selection selection);
-	List<Tweet> getTweets(int columnId, int numberOf, Selection selection, Set<Integer> excludeColumnIds,
+	List<Tweet> getTweets(int columnId, int numberOf, Selection selection,
+			Set<Integer> excludeColumnIds, Set<Integer> columnsHidingRetweets,
 			boolean withInlineMediaOnly, boolean excludeRetweets, boolean excludeEditable);
 
 	Cursor getTweetsCursor(int columnId, Selection selection);
-	Cursor getTweetsCursor(int columnId, Selection selection, Set<Integer> excludeColumnIds,
+	Cursor getTweetsCursor(int columnId, Selection selection,
+			Set<Integer> excludeColumnIds, Set<Integer> columnsHidingRetweets,
 			boolean withInlineMediaOnly, boolean excludeRetweets, boolean excludeEditable);
 
 	List<Tweet> getTweetsSinceTime (final int columnId, final long earliestTime, final int numberOf);

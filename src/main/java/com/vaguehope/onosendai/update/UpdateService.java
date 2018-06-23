@@ -103,7 +103,7 @@ public class UpdateService extends DbBindingService {
 		final Collection<FetchFeedRequest> fetches = feedsToFetchs(conf, columns);
 		fetchFeeds(providerMgr, req, fetches);
 
-		if (!req.manual) Notifications.update(getBaseContext(), getDb(), columns);
+		if (!req.manual) Notifications.update(getBaseContext(), getDb(), conf, columns);
 
 		final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 		LOG.i("Fetched %d columns in %d millis.", columns.size(), durationMillis);

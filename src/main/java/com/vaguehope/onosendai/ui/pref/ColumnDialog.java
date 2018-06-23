@@ -67,6 +67,7 @@ class ColumnDialog {
 	private final Spinner spnPosition;
 	private final Button btnFeeds;
 	private final Button btnExclude;
+	private final CheckBox chkHideRetweets;
 	private final Spinner spnRefresh;
 	private final Spinner spnInlineMedia;
 	private final CheckBox chkHdMedia;
@@ -111,6 +112,7 @@ class ColumnDialog {
 		this.spnPosition = (Spinner) this.llParent.findViewById(R.id.spnPosition);
 		this.btnFeeds = (Button) this.llParent.findViewById(R.id.btnFeeds);
 		this.btnExclude = (Button) this.llParent.findViewById(R.id.btnExclude);
+		this.chkHideRetweets = (CheckBox) this.llParent.findViewById(R.id.chkHideRetweets);
 		this.spnRefresh = (Spinner) this.llParent.findViewById(R.id.spnRefresh);
 		this.spnInlineMedia = (Spinner) this.llParent.findViewById(R.id.spnInlineMedia);
 		this.chkHdMedia = (CheckBox) this.llParent.findViewById(R.id.chkHdMedia);
@@ -144,6 +146,7 @@ class ColumnDialog {
 			this.spnPosition.setSelection(posAdapter.getPosition(Integer.valueOf(prefs.readColumnPosition(initialValue.getId()) + 1)));
 			setFeeds(initialValue.getFeeds());
 			setExcludeIds(initialValue.getExcludeColumnIds());
+			this.chkHideRetweets.setChecked(initialValue.isHideRetweets());
 			setDurationSpinner(initialValue.getRefreshIntervalMins(), refAdapter);
 			this.spnInlineMedia.setSelection(inlineMediaAdapter.getPosition(initialValue.getInlineMediaStyle()));
 			this.chkHdMedia.setChecked(initialValue.isHdMedia());
@@ -430,6 +433,7 @@ class ColumnDialog {
 				this.feeds,
 				((Duration) this.spnRefresh.getSelectedItem()).getMins(),
 				this.excludes.size() > 0 ? this.excludes : null,
+				this.chkHideRetweets.isChecked(),
 				this.notificationStyle,
 				(InlineMediaStyle) this.spnInlineMedia.getSelectedItem(),
 				this.chkHdMedia.isChecked());

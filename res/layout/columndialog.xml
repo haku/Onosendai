@@ -38,7 +38,14 @@
 
 			<Spinner
 				android:id="@+id/spnPosition"
+				android:layout_width="0px"
 				android:layout_weight="1" />
+
+			<CheckBox
+				android:id="@+id/chkHideRetweets"
+				android:layout_width="0px"
+				android:layout_weight="1"
+				android:text="@string/columndlg_field_hide_retweets_label" />
 
 		</TableRow>
 

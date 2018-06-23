@@ -1090,8 +1090,9 @@ public class TweetListFragment extends Fragment implements DbProvider {
 							this.host.getColumnId(),
 							this.host.showFiltered && this.host.getInlineMediaStyle() != InlineMediaStyle.SEAMLESS ? Selection.ALL : Selection.FILTERED,
 							this.host.getColumn().getExcludeColumnIds(),
+							this.host.getConf().getColumnsHidingRetweets(),
 							this.host.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS,
-							false,
+							this.host.getColumn().isHideRetweets(),
 							false);
 					return new Result<Cursor>(cursor);
 				}

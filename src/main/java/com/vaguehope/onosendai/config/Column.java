@@ -31,6 +31,7 @@ public class Column implements Titleable {
 	private static final String KEY_RESOURCE = "resource";
 	private static final String KEY_REFRESH = "refresh";
 	private static final String KEY_EXCLUDE = "exclude";
+	private static final String KEY_HIDE_RT = "hide_rt";
 	private static final String KEY_NOTIFY = "notify";
 	private static final String KEY_INLINE_MEDIA = "inline_media";
 	private static final String KEY_HD_MEDIA = "hd_media";
@@ -42,16 +43,19 @@ public class Column implements Titleable {
 	private final Set<ColumnFeed> feeds;
 	private final int refreshIntervalMins;
 	private final Set<Integer> excludeColumnIds;
+	private final boolean hideRetweets;
 	private final NotificationStyle notificationStyle;
 	private final InlineMediaStyle inlineMediaStyle;
 	private final boolean hdMedia;
 
 	public Column (final int id, final Column c) {
-		this(id, c.getTitle(), c.getFeeds(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.getNotificationStyle(), c.getInlineMediaStyle(), c.isHdMedia());
+		this(id, c.getTitle(), c.getFeeds(), c.getRefreshIntervalMins(), c.getExcludeColumnIds(), c.isHideRetweets(),
+				c.getNotificationStyle(), c.getInlineMediaStyle(), c.isHdMedia());
 	}
 
 	public Column (final Set<Integer> newExcludeColumnIds, final Column c) {
-		this(c.getId(), c.getTitle(), c.getFeeds(), c.getRefreshIntervalMins(), newExcludeColumnIds, c.getNotificationStyle(), c.getInlineMediaStyle(), c.isHdMedia());
+		this(c.getId(), c.getTitle(), c.getFeeds(), c.getRefreshIntervalMins(), newExcludeColumnIds, c.isHideRetweets(),
+				c.getNotificationStyle(), c.getInlineMediaStyle(), c.isHdMedia());
 	}
 
 	public Column (
@@ -60,10 +64,12 @@ public class Column implements Titleable {
 			final ColumnFeed feed,
 			final int refreshIntervalMins,
 			final Set<Integer> excludeColumnIds,
+			final boolean hideRetweets,
 			final NotificationStyle notificationStyle,
 			final InlineMediaStyle inlineMediaStyle,
 			final boolean hdMedia) {
-		this(id, title, feed != null ? Collections.singleton(feed) : null, refreshIntervalMins, excludeColumnIds, notificationStyle, inlineMediaStyle, hdMedia);
+		this(id, title, feed != null ? Collections.singleton(feed) : null, refreshIntervalMins, excludeColumnIds, hideRetweets,
+				notificationStyle, inlineMediaStyle, hdMedia);
 	}
 
 	public Column (
@@ -72,6 +78,7 @@ public class Column implements Titleable {
 			final Set<ColumnFeed> feeds,
 			final int refreshIntervalMins,
 			final Set<Integer> excludeColumnIds,
+			final boolean hideRetweets,
 			final NotificationStyle notificationStyle,
 			final InlineMediaStyle inlineMediaStyle,
 			final boolean hdMedia) {
@@ -80,6 +87,7 @@ public class Column implements Titleable {
 		this.feeds = feeds != null ? Collections.unmodifiableSet(CollectionHelper.assertNoNulls(feeds)) : null;
 		this.refreshIntervalMins = refreshIntervalMins;
 		this.excludeColumnIds = excludeColumnIds;
+		this.hideRetweets = hideRetweets;
 		this.notificationStyle = notificationStyle;
 		this.inlineMediaStyle = inlineMediaStyle;
 		this.hdMedia = hdMedia;
@@ -90,7 +98,8 @@ public class Column implements Titleable {
 		if (oldFeed == null) throw new IllegalArgumentException("ICT " + ict + " not found in feeds: " + getFeeds());
 		final List<ColumnFeed> newFeeds = new ArrayList<ColumnFeed>(getFeeds());
 		Collections.replaceAll(newFeeds, oldFeed, new ColumnFeed(newAccount.getId(), oldFeed.getResource()));
-		return new Column(getId(), getTitle(), new LinkedHashSet<ColumnFeed>(newFeeds), getRefreshIntervalMins(), getExcludeColumnIds(), getNotificationStyle(), getInlineMediaStyle(), isHdMedia());
+		return new Column(getId(), getTitle(), new LinkedHashSet<ColumnFeed>(newFeeds), getRefreshIntervalMins(),
+				getExcludeColumnIds(), isHideRetweets(), getNotificationStyle(), getInlineMediaStyle(), isHdMedia());
 	}
 
 	@Override
@@ -117,6 +126,7 @@ public class Column implements Titleable {
 				EqualHelper.equal(this.feeds, that.feeds) &&
 				this.refreshIntervalMins == that.refreshIntervalMins &&
 				EqualHelper.equal(this.excludeColumnIds, that.excludeColumnIds) &&
+				EqualHelper.equal(this.hideRetweets, that.hideRetweets) &&
 				EqualHelper.equal(this.notificationStyle, that.notificationStyle) &&
 				EqualHelper.equal(this.inlineMediaStyle, that.inlineMediaStyle) &&
 				EqualHelper.equal(this.hdMedia, that.hdMedia);
@@ -137,6 +147,7 @@ public class Column implements Titleable {
 				.append(",").append(this.feeds)
 				.append(",").append(this.refreshIntervalMins)
 				.append(",").append(this.excludeColumnIds)
+				.append(",").append(this.hideRetweets)
 				.append(",").append(this.notificationStyle)
 				.append(",").append(this.inlineMediaStyle)
 				.append(",").append(this.hdMedia)
@@ -166,6 +177,10 @@ public class Column implements Titleable {
 
 	public Set<Integer> getExcludeColumnIds () {
 		return this.excludeColumnIds;
+	}
+
+	public boolean isHideRetweets () {
+		return this.hideRetweets;
 	}
 
 	public NotificationStyle getNotificationStyle () {
@@ -235,6 +250,7 @@ public class Column implements Titleable {
 
 		json.put(KEY_REFRESH, getRefreshIntervalMins() + "mins");
 		json.put(KEY_EXCLUDE, toJsonArray(getExcludeColumnIds()));
+		json.put(KEY_HIDE_RT, isHideRetweets());
 		json.put(KEY_NOTIFY, getNotificationStyle() != null ? getNotificationStyle().toJson() : null);
 		json.put(KEY_INLINE_MEDIA, getInlineMediaStyle() != null ? getInlineMediaStyle().serialise() : null);
 		json.put(KEY_HD_MEDIA, isHdMedia());
@@ -285,10 +301,11 @@ public class Column implements Titleable {
 			final String refreshRaw = json.optString(KEY_REFRESH, null);
 			final int refreshIntervalMins = parseFeedRefreshInterval(refreshRaw, hasAccount, title);
 			final Set<Integer> excludeColumnIds = parseFeedExcludeColumns(json, title);
+			final boolean hideRetweets = json.optBoolean(KEY_HIDE_RT, false);
 			final NotificationStyle notificationStyle = NotificationStyle.parseJson(json.opt(KEY_NOTIFY));
 			final InlineMediaStyle inlineMedia = InlineMediaStyle.parseJson(json.opt(KEY_INLINE_MEDIA));
 			final boolean hdMedia = json.optBoolean(KEY_HD_MEDIA, false);
-			return new Column(id, title, feeds, refreshIntervalMins, excludeColumnIds, notificationStyle, inlineMedia, hdMedia);
+			return new Column(id, title, feeds, refreshIntervalMins, excludeColumnIds, hideRetweets, notificationStyle, inlineMedia, hdMedia);
 		}
 		catch (final JSONException e) {
 			throw new JSONException("Failed to parse column: " + json.toString() + " > " + ExcpetionHelper.causeTrace(e, " > "));

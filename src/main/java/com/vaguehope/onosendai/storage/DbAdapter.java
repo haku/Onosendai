@@ -441,10 +441,13 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public List<Tweet> getTweets (final int columnId, final int numberOf, final Selection selection, final Set<Integer> excludeColumnIds,
+	public List<Tweet> getTweets (final int columnId, final int numberOf, final Selection selection,
+			final Set<Integer> excludeColumnIds, final Set<Integer> columnsHidingRetweets,
 			final boolean withInlineMediaOnly, final boolean excludeRetweets, final boolean excludeEditable) {
 		if ((excludeColumnIds == null || excludeColumnIds.size() < 1) && !excludeRetweets && !excludeEditable) return getTweets(columnId, numberOf, selection);
-		final Cursor c = getTweetsCursor(columnId, selection, excludeColumnIds, false, excludeRetweets, excludeEditable, numberOf);
+		final Cursor c = getTweetsCursor(columnId, selection,
+				excludeColumnIds, columnsHidingRetweets,
+				false, excludeRetweets, excludeEditable, numberOf);
 		try {
 			return readTweets(c, false);
 		}
@@ -461,12 +464,16 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds,
+	public Cursor getTweetsCursor (final int columnId, final Selection selection,
+			final Set<Integer> excludeColumnIds, final Set<Integer> columnsHidingRetweets,
 			final boolean withInlineMediaOnly, final boolean excludeRetweets, final boolean excludeEditable) {
-		return getTweetsCursor(columnId, selection, excludeColumnIds, withInlineMediaOnly, excludeRetweets, excludeEditable, -1);
+		return getTweetsCursor(columnId, selection,
+				excludeColumnIds, columnsHidingRetweets,
+				withInlineMediaOnly, excludeRetweets, excludeEditable, -1);
 	}
 
-	private Cursor getTweetsCursor (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds,
+	private Cursor getTweetsCursor (final int columnId, final Selection selection,
+			final Set<Integer> excludeColumnIds, final Set<Integer> columnsHidingRetweets,
 			final boolean withInlineMediaOnly, final boolean excludeRetweets, final boolean excludeEditable,
 			final int numberOf) {
 		final String[] whereArgs = new String[1 + (excludeColumnIds != null ? excludeColumnIds.size() : 0)];
@@ -502,8 +509,23 @@ public class DbAdapter implements DbInterface {
 			int i = 0;
 			for (final Integer id : excludeColumnIds) {
 				if (i > 0) where.append(" OR ");
+
+				where.append("(");
 				where.append(TBL_TW_COLID).append("=?");
 				whereArgs[1 + i] = String.valueOf(id);
+
+				// If a column we are excluding is hiding RTs, only exclude non-RTs.
+				if (columnsHidingRetweets.contains(id)) {
+					where.append(" AND (")
+							.append(TBL_TW_USERNAME).append(" IS NULL")
+							.append(" OR ")
+							.append(TBL_TW_OWNER_USERNAME).append(" IS NULL")
+							.append(" OR ")
+							.append(TBL_TW_OWNER_USERNAME).append(" = ").append(TBL_TW_USERNAME)
+							.append(")");
+				}
+				where.append(")");
+
 				i++;
 			}
 			where.append(")");

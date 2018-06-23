@@ -20,6 +20,7 @@ import android.text.style.StyleSpan;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.config.NotificationStyle;
 import com.vaguehope.onosendai.model.Tweet;
@@ -47,13 +48,13 @@ public final class Notifications {
 		}
 	}
 
-	public static void update (final Context context, final DbInterface db, final Collection<Column> columns) {
+	public static void update (final Context context, final DbInterface db, final Config conf, final Collection<Column> columns) {
 		SaveScrollNow.requestAndWaitForUiToSaveScroll(db);
 
 		final NotificationManager nm = getManager(context);
 		for (final Column col : columns) {
 			if (col.getNotificationStyle() == null) continue;
-			updateColumn(context, db, col, nm);
+			updateColumn(context, db, conf, col, nm);
 		}
 	}
 
@@ -69,7 +70,7 @@ public final class Notifications {
 		return (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 	}
 
-	private static void updateColumn (final Context context, final DbInterface db, final Column col, final NotificationManager nm) {
+	private static void updateColumn (final Context context, final DbInterface db, final Config conf, final Column col, final NotificationManager nm) {
 		final int nId = idForColumn(col);
 		final int count = db.getUnreadCount(col);
 		if (count > 0) {
@@ -79,7 +80,7 @@ public final class Notifications {
 			final PendingIntent showMainActPi = PendingIntent.getActivity(context, col.getId(), showMainActI, PendingIntent.FLAG_CANCEL_CURRENT);
 
 			final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5),
-					Selection.FILTERED, col.getExcludeColumnIds(),
+					Selection.FILTERED, col.getExcludeColumnIds(), conf.getColumnsHidingRetweets(),
 					col.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS,
 					col.getNotificationStyle().isExcludeRetweets(),
 					!col.getNotificationStyle().isIncludeOwnTweets());

@@ -16,12 +16,12 @@ public final class TwitterColumnFactory {
 
 	public static Column homeTimeline (final int id, final Account account) {
 		checkAccount(account);
-		return new Column(id, "Home Timeline", new ColumnFeed(account.getId(), MainFeeds.TIMELINE.name()), DEFAULT_REFRESH_MINS, null, null, InlineMediaStyle.NONE, false); //ES
+		return new Column(id, "Home Timeline", new ColumnFeed(account.getId(), MainFeeds.TIMELINE.name()), DEFAULT_REFRESH_MINS, null, false, null, InlineMediaStyle.NONE, false); //ES
 	}
 
 	public static Column mentions (final int id, final Account account) {
 		checkAccount(account);
-		return new Column(id, "Mentions", new ColumnFeed(account.getId(), MainFeeds.MENTIONS.name()), DEFAULT_REFRESH_MINS, null, null, InlineMediaStyle.NONE, false); //ES
+		return new Column(id, "Mentions", new ColumnFeed(account.getId(), MainFeeds.MENTIONS.name()), DEFAULT_REFRESH_MINS, null, false, null, InlineMediaStyle.NONE, false); //ES
 	}
 
 	private static void checkAccount (final Account account) {

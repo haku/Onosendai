@@ -125,6 +125,7 @@
 	<string name="columndlg_field_title_label">Title</string>
 	<string name="columndlg_field_title_hint">e.g. My Column</string>
 	<string name="columndlg_field_position_label">Position</string>
+	<string name="columndlg_field_hide_retweets_label">Hide RTs</string>
 	<string name="columndlg_field_feeds_label">Resource</string>
 	<string name="columndlg_field_exclude_label">Exclude</string>
 	<string name="columndlg_field_refresh_label">Refresh</string>
