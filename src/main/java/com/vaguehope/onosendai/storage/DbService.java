@@ -193,24 +193,28 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
-	public int getUnreadCount (final Column column) {
-		return this.dbAdaptor.getUnreadCount(column);
+	public int getUnreadCount (final Column column, final Set<Integer> columnsHidingRetweets) {
+		return this.dbAdaptor.getUnreadCount(column, columnsHidingRetweets);
 	}
 
 	@Override
-	public int getUnreadCount(final int columnId, final Selection selection, final Set<Integer> excludeColumnIds,
+	public int getUnreadCount(final int columnId, final Selection selection,
+			final Set<Integer> excludeColumnIds, final Set<Integer> columnsHidingRetweets,
 			final boolean withInlineMediaOnly, final boolean excludeRetweets, final boolean excludeEditable,
 			final ScrollState scroll) {
-		return this.dbAdaptor.getUnreadCount(columnId, selection, excludeColumnIds,
+		return this.dbAdaptor.getUnreadCount(columnId, selection,
+				excludeColumnIds, columnsHidingRetweets,
 				withInlineMediaOnly, excludeRetweets, excludeEditable,
 				scroll);
 	}
 
 	@Override
-	public int getScrollUpCount (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds,
+	public int getScrollUpCount (final int columnId, final Selection selection,
+			final Set<Integer> excludeColumnIds, final Set<Integer> columnsHidingRetweets,
 			final boolean withInlineMediaOnly, final boolean excludeRetweets, final boolean excludeEditable,
 			final ScrollState scroll) {
-		return this.dbAdaptor.getScrollUpCount(columnId, selection, excludeColumnIds,
+		return this.dbAdaptor.getScrollUpCount(columnId, selection,
+				excludeColumnIds, columnsHidingRetweets,
 				withInlineMediaOnly, excludeRetweets, excludeEditable,
 				scroll);
 	}

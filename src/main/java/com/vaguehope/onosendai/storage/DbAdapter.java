@@ -896,30 +896,35 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
-	public int getUnreadCount (final Column column) {
+	public int getUnreadCount (final Column column, final Set<Integer> columnsHidingRetweets) {
 		final NotificationStyle ns = column.getNotificationStyle();
 		final boolean withInlineMediaOnly = column.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS;
 		final boolean excludeRetweets = ns != null ? ns.isExcludeRetweets() : false;
 		final boolean excludeEditable = ns != null ? !ns.isIncludeOwnTweets() : true;
-		return getUpCount(UpCountType.UNREAD, column.getId(), Selection.FILTERED, column.getExcludeColumnIds(),
+		return getUpCount(UpCountType.UNREAD, column.getId(), Selection.FILTERED,
+				column.getExcludeColumnIds(), columnsHidingRetweets,
 				withInlineMediaOnly, excludeRetweets, excludeEditable,
 				null);
 	}
 
 	@Override
-	public int getUnreadCount(final int columnId, final Selection selection, final Set<Integer> excludeColumnIds,
+	public int getUnreadCount(final int columnId, final Selection selection,
+			final Set<Integer> excludeColumnIds, final Set<Integer> columnsHidingRetweets,
 			final boolean withInlineMediaOnly, final boolean excludeRetweets, final boolean excludeEditable,
 			final ScrollState scroll) {
-		return getUpCount(UpCountType.UNREAD, columnId, selection, excludeColumnIds,
+		return getUpCount(UpCountType.UNREAD, columnId, selection,
+				excludeColumnIds, columnsHidingRetweets,
 				withInlineMediaOnly, excludeRetweets, excludeEditable,
 				scroll);
 	}
 
 	@Override
-	public int getScrollUpCount (final int columnId, final Selection selection, final Set<Integer> excludeColumnIds,
+	public int getScrollUpCount (final int columnId, final Selection selection,
+			final Set<Integer> excludeColumnIds, final Set<Integer> columnsHidingRetweets,
 			final boolean withInlineMediaOnly, final boolean excludeRetweets, final boolean excludeEditable,
 			final ScrollState scroll) {
-		return getUpCount(UpCountType.SCROLL, columnId, selection, excludeColumnIds,
+		return getUpCount(UpCountType.SCROLL, columnId, selection,
+				excludeColumnIds, columnsHidingRetweets,
 				withInlineMediaOnly, excludeRetweets, excludeEditable,
 				scroll);
 	}
@@ -940,7 +945,8 @@ public class DbAdapter implements DbInterface {
 		public abstract long getTime (ScrollState ss);
 	}
 
-	private int getUpCount (final UpCountType type, final int columnId, final Selection selection, final Set<Integer> excludeColumnIds,
+	private int getUpCount (final UpCountType type, final int columnId, final Selection selection,
+			final Set<Integer> excludeColumnIds, final Set<Integer> columnsHidingRetweets,
 			final boolean withInlineMediaOnly, final boolean excludeRetweets, final boolean excludeEditable,
 			final ScrollState scroll) {
 		if (!checkDbOpen()) return -1;
@@ -988,8 +994,23 @@ public class DbAdapter implements DbInterface {
 			int i = 0;
 			for (final Integer id : excludeColumnIds) {
 				if (i > 0) where.append(" OR ");
+
+				where.append("(");
 				where.append(TBL_TW_COLID).append("=?");
 				whereArgs[2 + i] = String.valueOf(id);
+
+				// If a column we are excluding is hiding RTs, only exclude non-RTs.
+				if (columnsHidingRetweets.contains(id)) {
+					where.append(" AND (")
+							.append(TBL_TW_USERNAME).append(" IS NULL")
+							.append(" OR ")
+							.append(TBL_TW_OWNER_USERNAME).append(" IS NULL")
+							.append(" OR ")
+							.append(TBL_TW_OWNER_USERNAME).append(" = ").append(TBL_TW_USERNAME)
+							.append(")");
+				}
+				where.append(")");
+
 				i++;
 			}
 			where.append(")");

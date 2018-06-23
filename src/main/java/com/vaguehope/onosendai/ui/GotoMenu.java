@@ -1,6 +1,7 @@
 package com.vaguehope.onosendai.ui;
 
 import java.util.List;
+import java.util.Set;
 
 import android.os.AsyncTask;
 import android.view.Menu;
@@ -10,6 +11,7 @@ import android.view.View.OnClickListener;
 import android.widget.PopupMenu;
 
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.InlineMediaStyle;
 import com.vaguehope.onosendai.model.ScrollState;
 import com.vaguehope.onosendai.storage.DbInterface;
@@ -28,12 +30,15 @@ public class GotoMenu implements OnClickListener {
 	@Override
 	public void onClick (final View v) {
 		final PopupMenu mnu = new PopupMenu(this.mainActivity, v);
-		final List<Column> columns = this.mainActivity.getConf().getColumns();
+		final Config conf = this.mainActivity.getConf();
+		final List<Column> columns = conf.getColumns();
+		final Set<Integer> columnsHidingRetweets = conf.getColumnsHidingRetweets();
 		int i = 0;
 		for (final Column col : columns) {
 			final MenuItem menuItem = mnu.getMenu().add(Menu.NONE, MNU_GOTO_BASE_ID + i, Menu.NONE, col.getTitle());
 			final ScrollState scroll = this.mainActivity.getColumnScroll(col.getId());
-			new UnreadCountLoaderTask(this.mainActivity.getDb(), col, this.mainActivity.isShowFiltered(), menuItem, scroll)
+			new UnreadCountLoaderTask(this.mainActivity.getDb(), col, columnsHidingRetweets,
+					this.mainActivity.isShowFiltered(), menuItem, scroll)
 					.executeOnExecutor(this.mainActivity.getLocalEs());
 			i++;
 		}
@@ -67,13 +72,16 @@ public class GotoMenu implements OnClickListener {
 
 		private final DbInterface db;
 		private final Column column;
+		private final Set<Integer> columnsHidingRetweets;
 		private final boolean showFiltered;
 		private final MenuItem menuItem;
 		private final ScrollState scroll;
 
-		public UnreadCountLoaderTask (final DbInterface db, final Column column, final boolean showFiltered, final MenuItem menuItem, final ScrollState scroll) {
+		public UnreadCountLoaderTask (final DbInterface db, final Column column, final Set<Integer> columnsHidingRetweets,
+				final boolean showFiltered, final MenuItem menuItem, final ScrollState scroll) {
 			this.db = db;
 			this.column = column;
+			this.columnsHidingRetweets = columnsHidingRetweets;
 			this.showFiltered = showFiltered;
 			this.menuItem = menuItem;
 			this.scroll = scroll;
@@ -88,9 +96,9 @@ public class GotoMenu implements OnClickListener {
 		protected Integer doInBackground (final Void... params) {
 			return this.db.getScrollUpCount(this.column.getId(),
 					this.showFiltered && this.column.getInlineMediaStyle() != InlineMediaStyle.SEAMLESS ? Selection.ALL : Selection.FILTERED,
-					this.column.getExcludeColumnIds(),
+					this.column.getExcludeColumnIds(), this.columnsHidingRetweets,
 					this.column.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS,
-					false,
+					this.column.isHideRetweets(),
 					false,
 					this.scroll);
 		}

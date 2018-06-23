@@ -3,6 +3,7 @@ package com.vaguehope.onosendai.notifications;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -52,9 +53,11 @@ public final class Notifications {
 		SaveScrollNow.requestAndWaitForUiToSaveScroll(db);
 
 		final NotificationManager nm = getManager(context);
+		final Set<Integer> columnsHidingRetweets = conf.getColumnsHidingRetweets();
+
 		for (final Column col : columns) {
 			if (col.getNotificationStyle() == null) continue;
-			updateColumn(context, db, conf, col, nm);
+			updateColumn(context, db, columnsHidingRetweets, col, nm);
 		}
 	}
 
@@ -70,9 +73,9 @@ public final class Notifications {
 		return (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 	}
 
-	private static void updateColumn (final Context context, final DbInterface db, final Config conf, final Column col, final NotificationManager nm) {
+	private static void updateColumn (final Context context, final DbInterface db, final Set<Integer> columnsHidingRetweets, final Column col, final NotificationManager nm) {
 		final int nId = idForColumn(col);
-		final int count = db.getUnreadCount(col);
+		final int count = db.getUnreadCount(col, columnsHidingRetweets);
 		if (count > 0) {
 			final Intent showMainActI = new Intent(context, MainActivity.class)
 					.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -80,7 +83,7 @@ public final class Notifications {
 			final PendingIntent showMainActPi = PendingIntent.getActivity(context, col.getId(), showMainActI, PendingIntent.FLAG_CANCEL_CURRENT);
 
 			final List<Tweet> tweets = db.getTweets(col.getId(), Math.min(count, 5),
-					Selection.FILTERED, col.getExcludeColumnIds(), conf.getColumnsHidingRetweets(),
+					Selection.FILTERED, col.getExcludeColumnIds(), columnsHidingRetweets,
 					col.getInlineMediaStyle() == InlineMediaStyle.SEAMLESS,
 					col.getNotificationStyle().isExcludeRetweets(),
 					!col.getNotificationStyle().isIncludeOwnTweets());
