@@ -10,7 +10,7 @@ import com.vaguehope.onosendai.util.StringHelper;
 
 public final class TwitterOauth {
 
-	public static final String CALLBACK_URL = "oauth://twitter";
+	public static final String CALLBACK_URL = "http://vaguehope.com/onosendai/nullcallback";
 
 	public static final String IEXTRA_AUTH_URL = "auth_url";
 	public static final String IEXTRA_OAUTH_VERIFIER = "oauth_verifier";
