@@ -14,25 +14,25 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.TweetList;
 
 enum MainFeeds implements FeedGetter {
-	TIMELINE(C.TWITTER_FETCH_COUNT_TIMELINE) {
+	TIMELINE(C.TWITTER_FETCH_COUNT_TIMELINE, false) {
 		@Override
 		public ResponseList<Status> getTweets (final Twitter t, final Paging paging) throws TwitterException {
 			return t.getHomeTimeline(paging);
 		}
 	},
-	MENTIONS(C.TWITTER_FETCH_COUNT_MENTIONS) {
+	MENTIONS(C.TWITTER_FETCH_COUNT_MENTIONS, false) {
 		@Override
 		public ResponseList<Status> getTweets (final Twitter t, final Paging paging) throws TwitterException {
 			return t.getMentionsTimeline(paging);
 		}
 	},
-	ME(C.TWITTER_FETCH_COUNT_ME) {
+	ME(C.TWITTER_FETCH_COUNT_ME, false) {
 		@Override
 		public ResponseList<Status> getTweets (final Twitter t, final Paging paging) throws TwitterException {
 			return t.getUserTimeline(paging);
 		}
 	},
-	FAVORITES(C.TWITTER_FETCH_COUNT_FAVORITES) {
+	FAVORITES(C.TWITTER_FETCH_COUNT_FAVORITES, true) {
 		@Override
 		public ResponseList<Status> getTweets (final Twitter t, final Paging paging) throws TwitterException {
 			return t.getFavorites(paging);
@@ -40,9 +40,11 @@ enum MainFeeds implements FeedGetter {
 	};
 
 	private final int recommendedFetchCount;
+	private final boolean ignoreSinceIdIfManual;
 
-	private MainFeeds (final int recommendedFetchCount) {
+	private MainFeeds (final int recommendedFetchCount, final boolean ignoreSinceIdIfManual) {
 		this.recommendedFetchCount = recommendedFetchCount;
+		this.ignoreSinceIdIfManual = ignoreSinceIdIfManual;
 	}
 
 	@Override
@@ -55,7 +57,9 @@ enum MainFeeds implements FeedGetter {
 
 	@Override
 	public TweetList getTweets (final Account account, final Twitter t, final long sinceId, final boolean hdMedia, final boolean manual, final Collection<Meta> extraMetas) throws TwitterException {
-		return TwitterUtils.fetchTwitterFeed(account, t, this, sinceId, hdMedia, extraMetas);
+		long sid = sinceId;
+		if (this.ignoreSinceIdIfManual && manual) sid = 0;  // 0 disabled using sinceId.
+		return TwitterUtils.fetchTwitterFeed(account, t, this, sid, hdMedia, extraMetas);
 	}
 
 }

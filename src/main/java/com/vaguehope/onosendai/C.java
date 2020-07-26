@@ -35,7 +35,7 @@ public final class C {
 	public static final int TWITTER_FETCH_COUNT_TIMELINE = TWEET_FETCH_COUNT * 2;
 	public static final int TWITTER_FETCH_COUNT_ME = TWEET_FETCH_COUNT;
 	public static final int TWITTER_FETCH_COUNT_MENTIONS = TWEET_FETCH_COUNT;
-	public static final int TWITTER_FETCH_COUNT_FAVORITES = TWEET_FETCH_COUNT;
+	public static final int TWITTER_FETCH_COUNT_FAVORITES = TWEET_FETCH_COUNT * 3;
 	public static final int TWITTER_FETCH_COUNT_LIST = TWEET_FETCH_COUNT;
 	public static final int TWITTER_FETCH_COUNT_SEARCH = TWEET_FETCH_COUNT;
 
