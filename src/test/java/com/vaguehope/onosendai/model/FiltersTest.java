@@ -114,9 +114,7 @@ public class FiltersTest {
 			fail("Expected ex.");
 		}
 		catch (final PatternSyntaxException e) {
-			assertEquals("Empty pattern. near index 0\n"
-					+ "\n"
-					+ "^", e.getMessage());
+			assertEquals("Empty pattern. near index 0\n", e.getMessage());
 		}
 	}
 
