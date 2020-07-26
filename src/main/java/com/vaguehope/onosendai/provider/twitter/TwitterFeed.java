@@ -11,6 +11,6 @@ import com.vaguehope.onosendai.model.TweetList;
 
 public interface TwitterFeed {
 
-	TweetList getTweets (Account account, Twitter t, final long sinceId, final boolean hdMedia, final Collection<Meta> extraMetas) throws TwitterException;
+	TweetList getTweets (Account account, Twitter t, final long sinceId, final boolean hdMedia, final boolean manual, final Collection<Meta> extraMetas) throws TwitterException;
 
 }

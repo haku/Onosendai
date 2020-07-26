@@ -81,7 +81,7 @@ public class UpdateService extends DbBindingService {
 		final Collection<Column> columnsFetched;
 		final ProviderMgr providerMgr = new ProviderMgr(getDb());
 		try {
-			columnsFetched = fetchColumns(conf, req, providerMgr);
+			columnsFetched = fetchColumns(conf, req, providerMgr, manual);
 		}
 		finally {
 			providerMgr.shutdown();
@@ -94,14 +94,14 @@ public class UpdateService extends DbBindingService {
 		return true;
 	}
 
-	private Collection<Column> fetchColumns (final Config conf, final UpdateRequest req, final ProviderMgr providerMgr) {
+	private Collection<Column> fetchColumns (final Config conf, final UpdateRequest req, final ProviderMgr providerMgr, final boolean manual) {
 		final long startTime = System.nanoTime();
 
 		final Collection<Column> columns = columnsToFetch(conf, req);
 		LOG.i("Updating columns: %s.", Column.titles(columns));
 
 		final Collection<FetchFeedRequest> fetches = feedsToFetchs(conf, columns);
-		fetchFeeds(providerMgr, req, fetches);
+		fetchFeeds(providerMgr, req, fetches, manual);
 
 		if (!req.manual) Notifications.update(getBaseContext(), getDb(), conf, columns);
 
@@ -164,29 +164,29 @@ public class UpdateService extends DbBindingService {
 		return ret;
 	}
 
-	private void fetchFeeds (final ProviderMgr providerMgr, final UpdateRequest req, final Collection<FetchFeedRequest> fetches) {
+	private void fetchFeeds (final ProviderMgr providerMgr, final UpdateRequest req, final Collection<FetchFeedRequest> fetches, final boolean manual) {
 		if (fetches.size() >= C.UPDATER_MIN_COLUMS_TO_USE_THREADPOOL) {
-			fetchFeedsMultiThread(providerMgr, fetches, req);
+			fetchFeedsMultiThread(providerMgr, fetches, req, manual);
 		}
 		else {
-			fetchFeedsSingleThread(providerMgr, fetches, req);
+			fetchFeedsSingleThread(providerMgr, fetches, req, manual);
 		}
 	}
 
-	private void fetchFeedsSingleThread (final ProviderMgr providerMgr, final Collection<FetchFeedRequest> feeds, final UpdateRequest req) {
+	private void fetchFeedsSingleThread (final ProviderMgr providerMgr, final Collection<FetchFeedRequest> feeds, final UpdateRequest req, final boolean manual) {
 		for (final FetchFeedRequest feed : feeds) {
-			FetchColumn.fetchColumn(getDb(), feed, providerMgr, req.filters);
+			FetchColumn.fetchColumn(getDb(), feed, providerMgr, req.filters, manual);
 		}
 	}
 
-	private void fetchFeedsMultiThread (final ProviderMgr providerMgr, final Collection<FetchFeedRequest> feeds, final UpdateRequest req) {
+	private void fetchFeedsMultiThread (final ProviderMgr providerMgr, final Collection<FetchFeedRequest> feeds, final UpdateRequest req, final boolean manual) {
 		final int poolSize = Math.min(feeds.size(), C.UPDATER_MAX_THREADS);
 		LOG.i("Using thread pool size %d for %d feeds.", poolSize, feeds.size());
 		final ExecutorService ex = Executors.newFixedThreadPool(poolSize);
 		try {
 			final Map<FetchFeedRequest, Future<Void>> jobs = new LinkedHashMap<FetchFeedRequest, Future<Void>>();
 			for (final FetchFeedRequest feed : feeds) {
-				jobs.put(feed, ex.submit(new FetchColumn(getDb(), feed, providerMgr, req.filters)));
+				jobs.put(feed, ex.submit(new FetchColumn(getDb(), feed, providerMgr, req.filters, manual)));
 			}
 			for (final Entry<FetchFeedRequest, Future<Void>> job : jobs.entrySet()) {
 				try {

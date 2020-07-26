@@ -60,7 +60,7 @@ class ListFeed implements FeedGetter {
 	}
 
 	@Override
-	public TweetList getTweets (final Account account, final Twitter t, final long sinceId, final boolean hdMedia, final Collection<Meta> extraMetas) throws TwitterException {
+	public TweetList getTweets (final Account account, final Twitter t, final long sinceId, final boolean hdMedia, final boolean manual, final Collection<Meta> extraMetas) throws TwitterException {
 		return TwitterUtils.fetchTwitterFeed(account, t, this, sinceId, hdMedia, extraMetas);
 	}
 

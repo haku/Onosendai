@@ -37,8 +37,9 @@ public class FetchColumn implements Callable<Void> {
 	private final FetchFeedRequest ffr;
 	private final ProviderMgr providerMgr;
 	private final Filters filters;
+	private final boolean manual;
 
-	public FetchColumn (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters) {
+	public FetchColumn (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters, final boolean manual) {
 		if (db == null) throw new IllegalArgumentException("db can not be null.");
 		this.db = db;
 		if (ffr == null) throw new IllegalArgumentException("ffr can not be null.");
@@ -48,28 +49,29 @@ public class FetchColumn implements Callable<Void> {
 		if (providerMgr == null) throw new IllegalArgumentException("providerMgr can not be null.");
 		this.providerMgr = providerMgr;
 		this.filters = filters;
+		this.manual = manual;
 	}
 
 	@Override
 	public Void call () {
-		fetchColumn(this.db, this.ffr, this.providerMgr, this.filters);
+		fetchColumn(this.db, this.ffr, this.providerMgr, this.filters, this.manual);
 		return null;
 	}
 
-	public static void fetchColumn (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters) {
+	public static void fetchColumn (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters, final boolean manual) {
 		db.notifyTwListenersColumnState(ffr.column.getId(), ColumnState.UPDATE_RUNNING);
 		try {
-			fetchColumnInner(db, ffr, providerMgr, filters);
+			fetchColumnInner(db, ffr, providerMgr, filters, manual);
 		}
 		finally {
 			db.notifyTwListenersColumnState(ffr.column.getId(), ColumnState.UPDATE_OVER);
 		}
 	}
 
-	private static void fetchColumnInner (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters) {
+	private static void fetchColumnInner (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters, final boolean manual) {
 		switch (ffr.account.getProvider()) {
 			case TWITTER:
-				fetchTwitterColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters);
+				fetchTwitterColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters, manual);
 				break;
 			case MASTODON:
 				fetchMastodonColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters);
@@ -85,7 +87,7 @@ public class FetchColumn implements Callable<Void> {
 		}
 	}
 
-	private static void fetchTwitterColumn (final DbInterface db, final Account account, final Column column, final ColumnFeed columnFeed, final ProviderMgr providerMgr, final Filters filters) {
+	private static void fetchTwitterColumn (final DbInterface db, final Account account, final Column column, final ColumnFeed columnFeed, final ProviderMgr providerMgr, final Filters filters, final boolean manual) {
 		final long startTime = System.nanoTime();
 		try {
 			final TwitterProvider twitterProvider = providerMgr.getTwitterProvider();
@@ -93,7 +95,7 @@ public class FetchColumn implements Callable<Void> {
 			final TwitterFeed feed = TwitterFeeds.parse(columnFeed.getResource());
 			final String sinceIdRaw = readSinceId(db, column, columnFeed);
 			final long sinceId = sinceIdRaw != null ? Long.parseLong(sinceIdRaw) : -1;
-			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia());
+			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia(), manual);
 			final int filteredCount = filterAndStore(db, column, columnFeed, filters, tweets);
 			storeQuoted(db, tweets);
 			storeSuccess(db, column);

@@ -54,12 +54,12 @@ public class TwitterProvider {
 		this.accounts.clear();
 	}
 
-	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId, final boolean hdMedia) throws TwitterException {
-		return getTweets(feed, account, sinceId, hdMedia, null);
+	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId, final boolean hdMedia, final boolean manual) throws TwitterException {
+		return getTweets(feed, account, sinceId, hdMedia, manual, null);
 	}
 
-	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId, final boolean hdMedia, final Collection<Meta> extraMetas) throws TwitterException {
-		return feed.getTweets(account, getTwitter(account), sinceId, hdMedia, extraMetas);
+	public TweetList getTweets (final TwitterFeed feed, final Account account, final long sinceId, final boolean hdMedia, final boolean manual, final Collection<Meta> extraMetas) throws TwitterException {
+		return feed.getTweets(account, getTwitter(account), sinceId, hdMedia, manual, extraMetas);
 	}
 
 	public Tweet getTweet (final Account account, final long id, final boolean hdMedia) throws TwitterException {

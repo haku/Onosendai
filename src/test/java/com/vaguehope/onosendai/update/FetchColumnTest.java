@@ -54,7 +54,7 @@ public class FetchColumnTest {
 	public void before () throws Exception {
 		this.undertest = new FetchColumn(this.db,
 				new FetchFeedRequest(this.column, this.columnFeed, this.account),
-				this.providerMgr, this.filters);
+				this.providerMgr, this.filters, false);
 		Whitebox.setInternalState(FetchColumn.class, "LOG", this.logWrapper);
 
 		when(this.account.getId()).thenReturn(ACC_ID);
@@ -63,7 +63,7 @@ public class FetchColumnTest {
 		when(this.column.getFeeds()).thenReturn(Collections.singleton(this.columnFeed));
 
 		when(this.providerMgr.getTwitterProvider()).thenReturn(this.twitterProvider);
-		when(this.twitterProvider.getTweets(isA(TwitterFeed.class), eq(this.account), anyLong(), anyBoolean())).thenReturn(this.tweetList);
+		when(this.twitterProvider.getTweets(isA(TwitterFeed.class), eq(this.account), anyLong(), anyBoolean(), anyBoolean())).thenReturn(this.tweetList);
 	}
 
 	@Test
@@ -73,7 +73,7 @@ public class FetchColumnTest {
 
 		this.undertest.call();
 
-		verify(this.twitterProvider).getTweets(isA(TwitterFeed.class), eq(this.account), eq(sinceId), anyBoolean());
+		verify(this.twitterProvider).getTweets(isA(TwitterFeed.class), eq(this.account), eq(sinceId), anyBoolean(), anyBoolean());
 	}
 
 }

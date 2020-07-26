@@ -28,7 +28,7 @@ class SearchFeed implements TwitterFeed {
 	}
 
 	@Override
-	public TweetList getTweets (final Account account, final Twitter t, final long sinceId, final boolean hdMedia, final Collection<Meta> extraMetas) throws TwitterException {
+	public TweetList getTweets (final Account account, final Twitter t, final long sinceId, final boolean hdMedia, final boolean manual, final Collection<Meta> extraMetas) throws TwitterException {
 		final List<Tweet> tweets = new ArrayList<Tweet>();
 		final List<Tweet> quotedTweets = new ArrayList<Tweet>();
 		final int page = 1; // First page is 1.

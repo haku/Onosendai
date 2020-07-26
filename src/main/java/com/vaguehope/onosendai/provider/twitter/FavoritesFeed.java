@@ -34,8 +34,10 @@ class FavoritesFeed implements FeedGetter {
 	}
 
 	@Override
-	public TweetList getTweets (final Account account, final Twitter t, final long sinceId, final boolean hdMedia, final Collection<Meta> extraMetas) throws TwitterException {
-		return TwitterUtils.fetchTwitterFeed(account, t, this, sinceId, hdMedia, extraMetas);
+	public TweetList getTweets (final Account account, final Twitter t, final long sinceId, final boolean hdMedia, final boolean manual, final Collection<Meta> extraMetas) throws TwitterException {
+		long sid = sinceId;
+		if (manual) sid = 0;  // 0 disabled using sinceId.
+		return TwitterUtils.fetchTwitterFeed(account, t, this, sid, hdMedia, extraMetas);
 	}
 
 	@Override
