@@ -24,13 +24,16 @@
 
 		<twitter4j.version>4.0.6</twitter4j.version>
 
-		<android-maven.version>3.6.0</android-maven.version>
 		<junit.version>4.11</junit.version>
 		<hamcrest.version>1.3</hamcrest.version>
 		<powermock.version>1.5.6</powermock.version>
 	</properties>
 
 	<repositories>
+		<repository>
+			<id>maven.google.com</id>
+			<url>	https://maven.google.com</url>
+		</repository>
 		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
@@ -181,12 +184,15 @@
 					</configuration>
 				</plugin>
 
+				<!-- http://simpligility.github.io/android-maven-plugin/usage.html -->
 				<plugin>
-					<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+					<groupId>com.simpligility.maven.plugins</groupId>
 					<artifactId>android-maven-plugin</artifactId>
-					<version>${android-maven.version}</version>
+					<version>4.3.0</version>
 					<extensions>true</extensions>
 					<configuration>
+						<androidManifestFile>${basedir}/AndroidManifest.xml</androidManifestFile>
+						<resourceDirectory>${project.basedir}/res</resourceDirectory>
 						<sdk>
 							<platform>${android.platform}</platform>
 						</sdk>
@@ -258,7 +264,7 @@
 		<plugins>
 
 			<plugin>
-				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+				<groupId>com.simpligility.maven.plugins</groupId>
 				<artifactId>android-maven-plugin</artifactId>
 			</plugin>
 
@@ -288,7 +294,7 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+						<groupId>com.simpligility.maven.plugins</groupId>
 						<artifactId>android-maven-plugin</artifactId>
 						<configuration>
 							<proguard>
