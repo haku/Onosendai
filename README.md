@@ -22,16 +22,9 @@ Supported Services
 ------------------
 
 * Twitter columns are supported directly.
-* Twitter and Facebook columns via [SuccessWhale](https://ianrenton.github.io/SuccessWhale/).
+* Very proof-of-concept Mastodon support, read-only with no formatting.
 * Posting to [Buffer](https://bufferapp.com) (currently requires advanced config to add account).
 * Forwarding Read Later column to [Instapaper](https://www.instapaper.com).
-
-Download
---------
-
-There are no 'official' releases of Onosendai, but,
-* Probably stable releases can be installed via this [F-Droid](https://f-droid.org/) repo: https://onosendai.herokuapp.com/repo
-* Recent snapshot builds are here: http://builds.onosendai.mobi
 
 Background Tasks
 ----------------
@@ -157,10 +150,36 @@ Building from source
 --------------------
 
 This code is build using Maven.
-You must first install [maven-android-sdk-deployer](https://github.com/mosabua/maven-android-sdk-deployer).
 
+Maven and Android SDK setup (on Ubuntu).
+Download the sdkmanager from https://developer.android.com/studio under "Command line tools only".
 ```sh
-mvn clean install android:deploy android:run
+$ sudo apt install openjdk-8-jdk maven
+
+$ mkdir ~/opt/android-home
+$ mkdir ~/opt/android-home/cmdline-tools
+$ cd ~/opt/android-home/cmdline-tools
+$ unzip ~/Downloads/commandlinetools-linux-6609375_latest.zip
+
+$ export ANDROID_HOME=~/opt/android-home
+$ $ANDROID_HOME/cmdline-tools/tools/bin/sdkmanager --list
+$ $ANDROID_HOME/cmdline-tools/tools/bin/sdkmanager "platform-tools"
+$ $ANDROID_HOME/cmdline-tools/tools/bin/sdkmanager "build-tools;30.0.1"
+$ $ANDROID_HOME/cmdline-tools/tools/bin/sdkmanager "platforms;android-19"
+$ $ANDROID_HOME/cmdline-tools/tools/bin/sdkmanager "platforms;android-21"
+```
+
+Use [maven-android-sdk-deployer](https://github.com/mosabua/maven-android-sdk-deployer) to get android.jar.
+```sh
+$ git clone https://github.com/simpligility/maven-android-sdk-deployer.git
+$ cd maven-android-sdk-deployer
+$ mvn install -P 5.0
+$ ls ~/.m2/repository/android/android/5.0.1_r2/android-5.0.1_r2.jar
+```
+
+Build the project:
+```sh
+mvn clean package android:deploy android:run
 ```
 
 The APK can be made smaller using ProGuard.  This project is configured to only shrink the output, not obfuscate.  Use this to make a release build.
