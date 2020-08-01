@@ -18,9 +18,7 @@
 
 		<java.version>1.6</java.version>
 
-		<android.version>5.0.1_r2</android.version>
 		<android.platform>19</android.platform> <!-- android:targetSdkVersion, same as project.properties -->
-		<android-compatibility.version>21.0.3</android-compatibility.version>
 
 		<twitter4j.version>4.0.6</twitter4j.version>
 
@@ -63,14 +61,15 @@
 		<dependency> <!-- via maven-android-sdk-deployer. -->
 			<groupId>android</groupId>
 			<artifactId>android</artifactId>
-			<version>${android.version}</version>
+			<version>5.0.1_r2</version>
 			<scope>provided</scope>
 		</dependency>
 
-		<dependency> <!-- via maven-android-sdk-deployer. -->
-			<groupId>android.support</groupId>
-			<artifactId>compatibility-v4</artifactId>
-			<version>${android-compatibility.version}</version>
+		<dependency>
+			<groupId>com.android.support</groupId>
+			<artifactId>support-v4</artifactId>
+			<version>21.0.3</version>
+			<type>aar</type>
 		</dependency>
 
 		<!--
