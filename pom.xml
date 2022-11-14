@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project
-	xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<!-- vim: set noexpandtab: -->
+<project>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.vaguehope</groupId>
 	<artifactId>onosendai</artifactId>
@@ -10,15 +8,12 @@
 	<packaging>apk</packaging>
 	<name>Onosendai</name>
 
-	<!-- https://code.google.com/p/maven-android-plugin/wiki/GettingStarted -->
-
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
 		<java.version>1.6</java.version>
-
 		<android.platform>19</android.platform> <!-- android:targetSdkVersion, same as project.properties -->
+		<android-maven.version>3.6.0</android-maven.version>
 
 		<twitter4j.version>4.0.6</twitter4j.version>
 
@@ -182,15 +177,12 @@
 					</configuration>
 				</plugin>
 
-				<!-- http://simpligility.github.io/android-maven-plugin/usage.html -->
 				<plugin>
-					<groupId>com.simpligility.maven.plugins</groupId>
+					<groupId>com.jayway.maven.plugins.android.generation2</groupId>
 					<artifactId>android-maven-plugin</artifactId>
-					<version>4.3.0</version>
+					<version>${android-maven.version}</version>
 					<extensions>true</extensions>
 					<configuration>
-						<androidManifestFile>${basedir}/AndroidManifest.xml</androidManifestFile>
-						<resourceDirectory>${project.basedir}/res</resourceDirectory>
 						<sdk>
 							<platform>${android.platform}</platform>
 						</sdk>
@@ -262,7 +254,7 @@
 		<plugins>
 
 			<plugin>
-				<groupId>com.simpligility.maven.plugins</groupId>
+				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
 				<artifactId>android-maven-plugin</artifactId>
 			</plugin>
 
@@ -270,7 +262,7 @@
 				<groupId>com.google.code.maven-replacer-plugin</groupId>
 				<artifactId>replacer</artifactId>
 			</plugin>
-			
+
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 			</plugin>
@@ -292,7 +284,7 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>com.simpligility.maven.plugins</groupId>
+						<groupId>com.jayway.maven.plugins.android.generation2</groupId>
 						<artifactId>android-maven-plugin</artifactId>
 						<configuration>
 							<proguard>
