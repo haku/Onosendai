@@ -20,6 +20,9 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.ArrayHelper;
 import com.vaguehope.onosendai.util.StringHelper;
 
+// https://docs.joinmastodon.org/entities/account/
+// https://docs.joinmastodon.org/entities/status/
+
 public class MastodonUtils {
 
 	static Tweet convertStatusToTweet (
@@ -29,7 +32,7 @@ public class MastodonUtils {
 			final Collection<Meta> extraMetas) {
 		final Account statusUser = status.getAccount();
 		final long statusUserId = statusUser != null ? statusUser.getId() : -1;
-		final String statusUserUsername = statusUser != null ? statusUser.getUserName() : null;
+		final String statusUserUsername = statusUser != null ? statusUser.getAcct() : null;
 
 		// The order things are added to these lists is important.
 		final List<Meta> metas = new ArrayList<Meta>();
@@ -37,7 +40,7 @@ public class MastodonUtils {
 
 		metas.add(new Meta(MetaType.ACCOUNT, account.getId()));
 		if (extraMetas != null) metas.addAll(extraMetas);
-		if (statusUser != null) metas.add(new Meta(MetaType.OWNER_NAME, statusUser.getUserName(), statusUser.getDisplayName()));
+		if (statusUser != null) metas.add(new Meta(MetaType.OWNER_NAME, statusUser.getAcct(), statusUser.getDisplayName()));
 
 		final Account viaUser;
 		if (status.getReblog() != null) {
@@ -58,7 +61,7 @@ public class MastodonUtils {
 		addHashtags(s, metas);
 		addMentions(s, metas, statusUserId, ownId);
 
-		if (viaUser != null && viaUser.getId() != ownId) metas.add(new Meta(MetaType.MENTION, viaUser.getUserName(), viaUser.getDisplayName()));
+		if (viaUser != null && viaUser.getId() != ownId) metas.add(new Meta(MetaType.MENTION, viaUser.getAcct(), viaUser.getDisplayName()));
 
 		if (statusUserId == ownId) metas.add(new Meta(MetaType.EDIT_SID, status.getId()));
 		if (s.getInReplyToId() != null) {
@@ -76,12 +79,12 @@ public class MastodonUtils {
 		final int mediaCount = MetaUtils.countMetaOfType(metas, MetaType.MEDIA);
 		if (mediaCount > 1) userSubtitle.add(String.format("%s pictures", mediaCount)); //ES
 
-		if (viaUser != null) userSubtitle.add(String.format("via %s", viaUser.getUserName())); //ES
+		if (viaUser != null) userSubtitle.add(String.format("via %s", viaUser.getAcct())); //ES
 		final String fullSubtitle = viaUser != null ? String.format("via %s", viaUser.getDisplayName()) : null; //ES
 
 		return new Tweet(
 				String.valueOf(s.getId()),
-				s.getAccount().getUserName(),
+				s.getAccount().getAcct(),
 				s.getAccount().getDisplayName(),
 				userSubtitle.size() > 0 ? ArrayHelper.join(userSubtitle, ", ") : null,
 				fullSubtitle,

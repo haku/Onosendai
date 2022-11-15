@@ -72,6 +72,7 @@ import com.vaguehope.onosendai.provider.OutboxActionFactory;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.provider.ServiceRef;
+import com.vaguehope.onosendai.provider.mastodon.MastodonUrls;
 import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
@@ -766,8 +767,31 @@ public class TweetListFragment extends Fragment implements DbProvider {
 	}
 
 	private void doShareIntentLink (final Tweet tweet) {
-		startActivity(new Intent(Intent.ACTION_VIEW)
-				.setData(Uri.parse(TwitterUrls.tweet(tweet))));
+		final Account account = MetaUtils.accountFromMeta(tweet, this.conf);
+		if (account == null) {
+			DialogHelper.alert(getActivity(), getMainActivity().getString(R.string.tweetlist_can_not_find_this_tweet_s_account_metadata));
+			return;
+		}
+
+		final Uri uri;
+		switch (account.getProvider()) {
+			case TWITTER:
+				uri = Uri.parse(TwitterUrls.tweet(tweet));
+				break;
+			case MASTODON:
+				uri = Uri.parse(MastodonUrls.toot(account, tweet));
+				break;
+			default:
+				uri = null;
+				break;
+		}
+
+		if (uri == null) {
+			DialogHelper.alert(getActivity(), "Can not make a URI to this item.");
+			return;
+		}
+
+		startActivity(new Intent(Intent.ACTION_VIEW).setData(uri));
 	}
 
 	private void doShareIntentText (final Tweet tweet) {

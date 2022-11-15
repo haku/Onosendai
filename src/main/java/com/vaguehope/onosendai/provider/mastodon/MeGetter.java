@@ -26,7 +26,12 @@ public class MeGetter implements MastodonFeedGetter {
 	@Override
 	public MastodonRequest<Pageable<Status>> makeRequest (final Range range) throws Mastodon4jRequestException {
 		if (this.accounts == null) throw new IllegalStateException("setClient() not called.");
-		return this.accounts.getStatuses(this.myId, false, range);
+		return this.accounts.getStatuses(
+				this.myId,
+				/* onlyMedia= */false,
+				/* excludeReplies= */false,
+				/* pinned= */false,
+				range);
 	}
 
 }
