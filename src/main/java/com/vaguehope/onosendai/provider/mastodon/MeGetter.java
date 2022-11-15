@@ -34,4 +34,9 @@ public class MeGetter implements MastodonFeedGetter {
 				range);
 	}
 
+	@Override
+	public String toString () {
+		return "MeGetter(" + this.myId + ")";
+	}
+
 }

@@ -23,4 +23,9 @@ public class FavouritesGetter implements MastodonFeedGetter {
 		return this.favourites.getFavourites(range);
 	}
 
+	@Override
+	public String toString () {
+		return "FavouritesGetter()";
+	}
+
 }

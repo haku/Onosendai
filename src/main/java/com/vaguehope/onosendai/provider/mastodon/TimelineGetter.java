@@ -23,4 +23,9 @@ public class TimelineGetter implements MastodonFeedGetter {
 		return this.timelines.getHome(range);
 	}
 
+	@Override
+	public String toString () {
+		return "TimelineGetter()";
+	}
+
 }

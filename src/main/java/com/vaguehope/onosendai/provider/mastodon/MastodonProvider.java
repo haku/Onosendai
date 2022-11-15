@@ -107,7 +107,7 @@ public class MastodonProvider {
 		while (tweets.size() < fetchLimit) {
 			final Pageable<Status> pageable = getter.makeRequest(range).execute();
 			final List<Status> timelinePage = pageable.getPart();
-			LOG.i("Page %d of Home(sinceId=%s) contains %d items.", page, sinceId, timelinePage.size());
+			LOG.i("Page %d of %s(sinceId=%s) contains %d items.", page, getter, sinceId, timelinePage.size());
 			if (timelinePage.size() < 1) break;
 
 			for (final Status status : timelinePage) {

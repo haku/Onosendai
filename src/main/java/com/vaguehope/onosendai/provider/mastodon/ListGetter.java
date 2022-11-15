@@ -29,4 +29,9 @@ public class ListGetter implements MastodonFeedGetter {
 		return this.lists.getListTimeLine(this.listId, range);
 	}
 
+	@Override
+	public String toString () {
+		return "ListGetter(" + this.listId + ")";
+	}
+
 }
