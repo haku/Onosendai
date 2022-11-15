@@ -1,12 +1,20 @@
 package com.vaguehope.onosendai.provider.mastodon;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import org.ccil.cowan.tagsoup.jaxp.SAXParserImpl;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import com.sys1yagi.mastodon4j.api.entity.Account;
 import com.sys1yagi.mastodon4j.api.entity.Attachment;
@@ -18,12 +26,15 @@ import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.util.ArrayHelper;
+import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.StringHelper;
 
 // https://docs.joinmastodon.org/entities/account/
 // https://docs.joinmastodon.org/entities/status/
 
 public class MastodonUtils {
+
+	private static final LogWrapper LOG = new LogWrapper("MU");
 
 	static Tweet convertStatusToTweet (
 			final com.vaguehope.onosendai.config.Account account,
@@ -82,6 +93,8 @@ public class MastodonUtils {
 		if (viaUser != null) userSubtitle.add(String.format("via %s", viaUser.getAcct())); //ES
 		final String fullSubtitle = viaUser != null ? String.format("via %s", viaUser.getDisplayName()) : null; //ES
 
+		final String body = deHtmlBody(s.getContent());
+
 		return new Tweet(
 				String.valueOf(s.getId()),
 				s.getAccount().getAcct(),
@@ -89,7 +102,7 @@ public class MastodonUtils {
 				userSubtitle.size() > 0 ? ArrayHelper.join(userSubtitle, ", ") : null,
 				fullSubtitle,
 				statusUserUsername,
-				s.getContent(),
+				body,
 				unitTimeSeconds,
 				s.getAccount().getAvatar(),
 				MetaUtils.firstMetaOfTypesData(metas, MetaType.MEDIA),
@@ -139,6 +152,63 @@ public class MastodonUtils {
 			if (m.getId() == tweetViewerId) continue;
 			metas.add(new Meta(MetaType.MENTION, m.getAcct()));
 		}
+	}
+
+	private static String deHtmlBody (final String html) {
+		try {
+			final HtmlBodyHandler h = new HtmlBodyHandler();
+			SAXParserImpl.newInstance(null).parse(new InputSource(new StringReader(html)), h);
+			return h.getBody();
+		}
+		catch (final SAXException e) {
+			LOG.w("Failed to parse html body: %s", html);
+			return html;
+		}
+		catch (final IOException e) {
+			LOG.w("Failed to parse html body: %s", html);
+			return html;
+		}
+	}
+
+	private static class HtmlBodyHandler extends DefaultHandler {
+
+		private final StringBuilder output = new StringBuilder();
+		private final StringBuilder currentChars = new StringBuilder();
+
+		public String getBody () {
+			return this.output.toString().trim();
+		}
+
+		private void startTag (final String tag, final Attributes attributes) {
+			//
+		}
+
+		private void endTag (final String tag) {
+			this.output.append(this.currentChars);
+			if ("p".equals(tag)) {
+				if (this.output.length() > 0) this.output.append("\n");
+			}
+			else if ("br".equals(tag)) {
+				this.output.append("\n");
+			}
+			this.currentChars.setLength(0);
+		}
+
+		@Override
+		public void startElement (final String uri, final String localName, final String qName, final Attributes attributes) {
+			startTag(localName.toLowerCase(Locale.ENGLISH), attributes);
+		}
+
+		@Override
+		public void endElement (final String uri, final String localName, final String qName) {
+			endTag(localName.toLowerCase(Locale.ENGLISH));
+		}
+
+		@Override
+		public void characters (final char[] ch, final int start, final int length) throws SAXException {
+			this.currentChars.append(ch, start, length);
+		}
+
 	}
 
 }
