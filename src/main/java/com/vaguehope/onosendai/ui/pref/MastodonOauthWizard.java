@@ -34,7 +34,8 @@ public class MastodonOauthWizard {
 
 	public void start () {
 		DialogHelper.askString(getContext(),
-				"instanceName: (e.g. \"mastodon.social\")", //ES
+				"Instance domain name:\n"
+				+ "e.g. \"mastodon.social\"", //ES
 				null, false, false, new Listener<String>() {
 			@Override
 			public void onAnswer (final String instanceName) {
