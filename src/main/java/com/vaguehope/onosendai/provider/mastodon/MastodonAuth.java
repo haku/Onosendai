@@ -17,7 +17,7 @@ import okhttp3.OkHttpClient;
 public class MastodonAuth {
 
 	private static final String APP_NAME = "Onosendai";
-	private static final String APP_URL = "http://onosendai.mobi";
+	private static final String APP_URL = "https://github.com/haku/Onosendai";
 
 	private final MastodonClient client;
 

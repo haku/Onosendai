@@ -18,7 +18,7 @@ import com.vaguehope.onosendai.util.LocaleHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 @ReportsCrashes(formKey = "" /* not used */,
-		mailTo = "reports@onosendai.mobi",
+		mailTo = "onosendai-reports@haku.me",
 		mode = ReportingInteractionMode.DIALOG,
 		resDialogText = R.string.crash_dialog_text,
 		resDialogIcon = R.drawable.exclamation_red,
