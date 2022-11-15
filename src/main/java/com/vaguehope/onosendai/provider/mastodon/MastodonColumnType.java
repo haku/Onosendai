@@ -1,10 +1,12 @@
 package com.vaguehope.onosendai.provider.mastodon;
 
+import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.Titleable;
 
 public enum MastodonColumnType implements Titleable {
 
 	TIMELINE("Home Timeline", "TIMELINE"), //ES
+	LIST("A List", "LIST/"), //ES
 	ME("Me", "ME"), //ES
 	FAVORITES("My Favorites", "FAVORITES"); //ES
 
@@ -29,6 +31,7 @@ public enum MastodonColumnType implements Titleable {
 		for (MastodonColumnType type : values()) {
 			if (type.getResource().equalsIgnoreCase(resource)) return type;
 		}
+		if (StringHelper.caseInsensitiveStartsWith(resource, LIST.getResource())) return LIST;
 		return null;
 	}
 

@@ -6,14 +6,15 @@ import java.util.List;
 import java.util.Set;
 
 import org.json.JSONException;
-
 import android.content.Context;
 
+import com.sys1yagi.mastodon4j.api.entity.MastodonList;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.mastodon.MastodonColumnType;
+import com.vaguehope.onosendai.provider.mastodon.MastodonListsFetcher;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumnsFetcher;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleSource;
@@ -22,6 +23,7 @@ import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleSourcesFetcher;
 import com.vaguehope.onosendai.provider.twitter.TwitterColumnType;
 import com.vaguehope.onosendai.provider.twitter.TwitterListsFetcher;
 import com.vaguehope.onosendai.util.CollectionHelper;
+import com.vaguehope.onosendai.util.CollectionHelper.Function;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.DialogHelper.Question;
@@ -219,9 +221,35 @@ class ColumnChooser {
 
 	protected void promptAddMastodonColumn (final Account account, final MastodonColumnType type) {
 		switch (type) {
+			case LIST:
+				promptAddMastodonListColumn(account);
+				break;
 			default:
 				onColumn(account, type.getResource());
 		}
+	}
+
+	protected void promptAddMastodonListColumn (final Account account) {
+		new MastodonListsFetcher(this.context, account, new Listener<List<MastodonList>>() {
+			@Override
+			public void onAnswer (final List<MastodonList> lists) {
+				promptAddMastodonListColumn(account, lists);
+			}
+		}).execute();
+	}
+
+	protected void promptAddMastodonListColumn (final Account account, final List<MastodonList> listSlugs) {
+		DialogHelper.askItem(this.context, "Mastodon Lists", listSlugs, new Function<MastodonList, String>() {
+			@Override
+			public String exec (final MastodonList list) {
+				return list.getTitle() + " (" + list.getId() + ")";
+			}
+		}, new Listener<MastodonList>() {
+			@Override
+			public void onAnswer (final MastodonList answer) {
+				onColumn(account, MastodonColumnType.LIST.getResource() + answer.getId(), answer.getTitle());
+			}
+		});
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

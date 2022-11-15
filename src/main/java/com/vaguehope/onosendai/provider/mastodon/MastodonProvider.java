@@ -12,9 +12,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.sys1yagi.mastodon4j.MastodonClient;
 import com.sys1yagi.mastodon4j.api.Pageable;
 import com.sys1yagi.mastodon4j.api.Range;
+import com.sys1yagi.mastodon4j.api.entity.MastodonList;
 import com.sys1yagi.mastodon4j.api.entity.Status;
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
 import com.sys1yagi.mastodon4j.api.method.Accounts;
+import com.sys1yagi.mastodon4j.api.method.MastodonLists;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
@@ -70,12 +72,15 @@ public class MastodonProvider {
 	}
 
 	public TweetList getFeed (final String resource, final Account account, final long sinceId) throws Mastodon4jRequestException {
-		MastodonColumnType type = MastodonColumnType.parseResource(resource);
+		final MastodonColumnType type = MastodonColumnType.parseResource(resource);
 		if (type == null) throw new IllegalArgumentException("Unknown resource: " + resource);
 
 		switch (type) {
 			case TIMELINE:
 				return getFeed(account, new TimelineGetter(), sinceId, null);
+			case LIST:
+				final long listId = Long.parseLong(resource.substring(MastodonColumnType.LIST.getResource().length()));
+				return getFeed(account, new ListGetter(listId), sinceId, null);
 			case ME:
 				return getFeed(account, new MeGetter(getOwnId(account)), sinceId, null);
 			case FAVORITES:
@@ -114,6 +119,13 @@ public class MastodonProvider {
 		}
 
 		return new TweetList(tweets, quotedTweets);
+	}
+
+	public List<MastodonList> getLists(final Account account) throws Mastodon4jRequestException {
+		final MastodonClient client = getAccount(account);
+		final MastodonLists lists = new MastodonLists(client);
+		final Pageable<MastodonList> pageable = lists.getLists().execute();
+		return pageable.getPart();
 	}
 
 	private MastodonClient makeMastodonClient (final Account account) {
