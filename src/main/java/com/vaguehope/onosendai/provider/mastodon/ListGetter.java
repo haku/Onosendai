@@ -1,7 +1,6 @@
 package com.vaguehope.onosendai.provider.mastodon;
 
 import com.sys1yagi.mastodon4j.MastodonClient;
-import com.sys1yagi.mastodon4j.MastodonRequest;
 import com.sys1yagi.mastodon4j.api.Pageable;
 import com.sys1yagi.mastodon4j.api.Range;
 import com.sys1yagi.mastodon4j.api.entity.Status;
@@ -24,9 +23,9 @@ public class ListGetter implements MastodonFeedGetter {
 	}
 
 	@Override
-	public MastodonRequest<Pageable<Status>> makeRequest (final Range range) throws Mastodon4jRequestException {
+	public Pageable<Status> makeRequest (final Range range) throws Mastodon4jRequestException {
 		if (this.lists == null) throw new IllegalStateException("setClient() not called.");
-		return this.lists.getListTimeLine(this.listId, range);
+		return this.lists.getListTimeLine(this.listId, range).execute();
 	}
 
 	@Override

@@ -16,6 +16,12 @@ public class MastodonColumnFactory {
 				DEFAULT_REFRESH_MINS, null, false, null, InlineMediaStyle.INLINE, true);
 	}
 
+	public static Column mentions (final int id, final Account account) {
+		checkAccount(account);
+		return new Column(id, "Mentions", new ColumnFeed(account.getId(), MastodonColumnType.MENTIONS.getResource()), //ES
+				DEFAULT_REFRESH_MINS, null, false, null, InlineMediaStyle.INLINE, true);
+	}
+
 	private static void checkAccount (final Account account) {
 		if (account == null) throw new IllegalArgumentException("Account must not be null.");
 		if (account.getProvider() != AccountProvider.MASTODON) throw new IllegalArgumentException("Account must be of type Mastodon.");

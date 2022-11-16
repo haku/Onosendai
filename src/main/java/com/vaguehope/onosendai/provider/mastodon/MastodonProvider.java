@@ -82,6 +82,8 @@ public class MastodonProvider {
 			case LIST:
 				final long listId = Long.parseLong(resource.substring(MastodonColumnType.LIST.getResource().length()));
 				return getFeed(account, new ListGetter(listId), sinceId, null);
+			case MENTIONS:
+				return getFeed(account, new MentionsGetter(), sinceId, null);
 			case ME:
 				return getFeed(account, new MeGetter(getOwnId(account)), sinceId, null);
 			case FAVORITES:
@@ -106,7 +108,7 @@ public class MastodonProvider {
 		int page = 1; // First page is 1.
 		Range range = new Range(null, sinceId, pageLimit);
 		while (tweets.size() < fetchLimit) {
-			final Pageable<Status> pageable = getter.makeRequest(range).execute();
+			final Pageable<Status> pageable = getter.makeRequest(range);
 			final List<Status> timelinePage = pageable.getPart();
 			LOG.i("Page %d of %s(sinceId=%s) contains %d items.", page, getter, sinceId, timelinePage.size());
 			if (timelinePage.size() < 1) break;

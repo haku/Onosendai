@@ -1,7 +1,6 @@
 package com.vaguehope.onosendai.provider.mastodon;
 
 import com.sys1yagi.mastodon4j.MastodonClient;
-import com.sys1yagi.mastodon4j.MastodonRequest;
 import com.sys1yagi.mastodon4j.api.Pageable;
 import com.sys1yagi.mastodon4j.api.Range;
 import com.sys1yagi.mastodon4j.api.entity.Status;
@@ -18,9 +17,9 @@ public class TimelineGetter implements MastodonFeedGetter {
 	}
 
 	@Override
-	public MastodonRequest<Pageable<Status>> makeRequest (final Range range) throws Mastodon4jRequestException {
+	public Pageable<Status> makeRequest (final Range range) throws Mastodon4jRequestException {
 		if (this.timelines == null) throw new IllegalStateException("setClient() not called.");
-		return this.timelines.getHome(range);
+		return this.timelines.getHome(range).execute();
 	}
 
 	@Override

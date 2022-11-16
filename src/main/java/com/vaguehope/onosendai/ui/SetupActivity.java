@@ -238,6 +238,7 @@ public class SetupActivity extends Activity {
 			new ConfigBuilder()
 					.account(account)
 					.column(MastodonColumnFactory.homeTimeline(-1, account))
+					.column(MastodonColumnFactory.mentions(-1, account))
 					.readLater()
 					.writeOverMain(this);
 			startActivity(new Intent(getApplicationContext(), MainActivity.class));

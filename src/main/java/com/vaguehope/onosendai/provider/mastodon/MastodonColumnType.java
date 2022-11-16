@@ -7,6 +7,7 @@ public enum MastodonColumnType implements Titleable {
 
 	TIMELINE("Home Timeline", "TIMELINE"), //ES
 	LIST("A List", "LIST/"), //ES
+	MENTIONS("Mentions", "MENTIONS"), //ES
 	ME("Me", "ME"), //ES
 	FAVORITES("My Favorites", "FAVORITES"); //ES
 
