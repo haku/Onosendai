@@ -8,6 +8,7 @@ import java.util.concurrent.Executor;
 import twitter4j.TwitterException;
 import android.content.Context;
 
+import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
@@ -83,6 +84,8 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 			switch (account.getProvider()) {
 				case TWITTER:
 					return twitter(db, account, this.threadTweet);
+				case MASTODON:
+					return mastodon(db, account, this.threadTweet);
 				case SUCCESSWHALE:
 					return successWhale(db, account, this.threadTweet);
 				default:
@@ -108,6 +111,28 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 		catch (final TwitterException e) {
 			LOG.w("Failed to retrieve tweet %s: %s", inReplyToMeta.getData(), e.toString());
 			return new ReplyLoaderResult("Error fetching tweet: " + e.getMessage(), startingTweet);
+		}
+
+		return null;
+	}
+
+	private ReplyLoaderResult mastodon (final DbInterface db, final Account account, final Tweet startingTweet) {
+		final Meta inReplyToMeta = startingTweet.getFirstMetaOfType(MetaType.INREPLYTO);
+		if (inReplyToMeta == null) return null;
+
+		final ReplyLoaderResult fromCache = fetchFromCache(db, startingTweet, inReplyToMeta.getData());
+		if (fromCache != null) return fromCache;
+
+		try {
+			final Tweet inReplyToTweet = this.provMgr.getMastodonProvider().getToot(account, inReplyToMeta.toLong(0L));
+			if (inReplyToTweet != null) {
+				cacheInReplyTos(db, Collections.singletonList(inReplyToTweet));
+				return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
+			}
+		}
+		catch (final Mastodon4jRequestException e) {
+			LOG.w("Failed to retrieve toot %s: %s", inReplyToMeta.getData(), e.toString());
+			return new ReplyLoaderResult("Error fetching toot: " + e.getMessage(), startingTweet);
 		}
 
 		return null;

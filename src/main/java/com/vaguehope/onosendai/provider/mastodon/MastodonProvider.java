@@ -131,6 +131,12 @@ public class MastodonProvider {
 		return pageable.getPart();
 	}
 
+	public Tweet getToot (final Account account, final long id) throws Mastodon4jRequestException {
+		final long ownId = getOwnId(account);
+		final Status s = new Statuses(getAccount(account)).getStatus(id).execute();
+		return MastodonUtils.convertStatusToTweet(account, s, ownId, null);
+	}
+
 	// TODO finish this
 //	public Tweet post (final Account account, final String body, final long inReplyTo, final ImageMetadata media) throws TwitterException, IOException {
 //		InputStream attachmentIs = null;
