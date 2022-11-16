@@ -2,8 +2,12 @@
 	<group>
 
 		<item
-			android:id="@+id/mnuLink"
-			android:title="@string/sharetweet_link" />
+			android:id="@+id/mnuOpen"
+			android:title="@string/sharetweet_open" />
+
+				<item
+			android:id="@+id/mnuCopyLink"
+			android:title="@string/sharetweet_copy_link" />
 
 		<item
 			android:id="@+id/mnuText"

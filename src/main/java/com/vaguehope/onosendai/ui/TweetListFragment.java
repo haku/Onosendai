@@ -752,8 +752,11 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	protected boolean shareMenuItemClick (final MenuItem item, final Tweet tweet) {
 		switch (item.getItemId()) {
-			case R.id.mnuLink:
-				doShareIntentLink(tweet);
+			case R.id.mnuOpen:
+				doShareIntentLink(tweet, 1);
+				return true;
+			case R.id.mnuCopyLink:
+				doShareIntentLink(tweet, 2);
 				return true;
 			case R.id.mnuText:
 				doShareIntentText(tweet);
@@ -766,7 +769,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		}
 	}
 
-	private void doShareIntentLink (final Tweet tweet) {
+	private void doShareIntentLink (final Tweet tweet, final int mode) {
 		final Account account = MetaUtils.accountFromMeta(tweet, this.conf);
 		if (account == null) {
 			DialogHelper.alert(getActivity(), getMainActivity().getString(R.string.tweetlist_can_not_find_this_tweet_s_account_metadata));
@@ -791,7 +794,15 @@ public class TweetListFragment extends Fragment implements DbProvider {
 			return;
 		}
 
-		startActivity(new Intent(Intent.ACTION_VIEW).setData(uri));
+		if (mode == 1) {  // Open
+			startActivity(new Intent(Intent.ACTION_VIEW).setData(uri));
+		}
+		else if (mode == 2) {  // Copy link.
+			final ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+			final String payload = uri.toString();
+			clipboard.setPrimaryClip(ClipData.newPlainText("URL", payload));
+			Toast.makeText(getActivity(), "Copied:\n" + payload, Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	private void doShareIntentText (final Tweet tweet) {

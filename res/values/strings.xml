@@ -90,7 +90,8 @@
 	<string name="tweetlist_details_quote">Quote</string>
 	<string name="payload_edit_btn_delete">Delete</string>
 	<string name="payload_media_btn_retry">Retry</string>
-	<string name="sharetweet_link">Link</string>
+	<string name="sharetweet_open">Open</string>
+	<string name="sharetweet_copy_link">Copy Link</string>
 	<string name="sharetweet_text">Text</string>
 	<string name="sharetweet_picture">Picture</string>
 
