@@ -59,6 +59,9 @@ public final class PayloadUtils {
 			case TWITTER:
 				set.add(new SharePayload(tweet, NetworkType.TWITTER));
 				break;
+			case MASTODON:
+				set.add(new SharePayload(tweet, NetworkType.MASTODON));
+				break;
 			case SUCCESSWHALE:
 				final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
 				final ServiceRef serviceRef = svcMeta != null ? ServiceRef.parseServiceMeta(svcMeta) : null;

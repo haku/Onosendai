@@ -77,6 +77,10 @@ public class SharePayload extends Payload {
 					btnRt.setText(R.string.tweetlist_details_rt);
 					btnRt.setVisibility(View.VISIBLE);
 					break;
+				case MASTODON:
+					btnRt.setText(R.string.tweetlist_details_boost);
+					btnRt.setVisibility(View.VISIBLE);
+					break;
 				case FACEBOOK:
 					btnRt.setText(R.string.tweetlist_details_like);
 					btnRt.setVisibility(View.VISIBLE);

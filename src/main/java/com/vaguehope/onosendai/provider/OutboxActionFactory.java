@@ -33,6 +33,7 @@ public final class OutboxActionFactory {
 	private static OutboxTweet newAction (final OutboxAction action, final Account account, final String sid, final Tweet tweet) {
 		switch (account.getProvider()) {
 			case TWITTER:
+			case MASTODON:
 				return new OutboxTweet(action, account, null, actionBody(action, tweet), sid, null)
 						.setPending();
 			case SUCCESSWHALE:

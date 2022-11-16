@@ -83,6 +83,8 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostR
 		switch (this.req.getAccount().getProvider()) {
 			case TWITTER:
 				return postTwitter();
+//			case MASTODON:
+//				return postMastodon();
 			case SUCCESSWHALE:
 				return postSuccessWhale(db);
 			case BUFFER:
@@ -107,6 +109,18 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostR
 			p.shutdown();
 		}
 	}
+
+//	TODO
+//	private SendResult<PostRequest> postMastodon () {
+//		MastodonProvider p = new MastodonProvider();
+//		try {
+//			final Tweet u = p.post(this.req.getAccount(), this.req.getBody(), this.req.getInReplyToSidLong(), resolveAttachment());
+//			return new SendResult<PostRequest>(this.req, u);
+//		}
+//		catch (final Exception e) { // NOSONAR need to report all errors.
+//			return new SendResult<PostRequest>(this.req, e);
+//		}
+//	}
 
 	private SendResult<PostRequest> postSuccessWhale (final DbInterface db) {
 		final SuccessWhaleProvider s = new SuccessWhaleProvider(db);

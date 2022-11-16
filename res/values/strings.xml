@@ -86,6 +86,7 @@
 	<string name="tweetlist_details_later">Later</string>
 	<string name="tweetlist_details_read">Read</string>
 	<string name="tweetlist_details_rt">RT</string>
+	<string name="tweetlist_details_boost">Boost</string>
 	<string name="tweetlist_details_like">Like</string>
 	<string name="tweetlist_details_quote">Quote</string>
 	<string name="payload_edit_btn_delete">Delete</string>
