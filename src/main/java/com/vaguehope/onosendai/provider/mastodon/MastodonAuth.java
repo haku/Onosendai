@@ -1,5 +1,7 @@
 package com.vaguehope.onosendai.provider.mastodon;
 
+import java.util.concurrent.TimeUnit;
+
 import com.google.gson.Gson;
 import com.sys1yagi.mastodon4j.MastodonClient;
 import com.sys1yagi.mastodon4j.MastodonClient.Builder;
@@ -97,7 +99,11 @@ public class MastodonAuth {
 	static Builder makeMastodonClientBuilder (final String instanceName) {
 		return new MastodonClient.Builder(
 				instanceName,
-				new OkHttpClient.Builder(),
+        new OkHttpClient.Builder()
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        ,
 				new Gson());
 	}
 
