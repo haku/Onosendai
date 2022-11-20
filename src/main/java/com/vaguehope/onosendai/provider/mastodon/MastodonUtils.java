@@ -120,6 +120,7 @@ public class MastodonUtils {
 	private static void addMedia (final Status s, final List<Meta> metas, final List<String> userSubtitle) {
 		boolean hasGif = false;
 		boolean hasVideo = false;
+		boolean hasAudio = false;
 
 		for (final Attachment me : s.getMediaAttachments()) {
 			final String imgUrl = me.getPreviewUrl();
@@ -134,9 +135,13 @@ public class MastodonUtils {
 			else if ("video".equals(me.getType())) {
 				hasVideo = true;
 			}
+			else if ("audio".equals(me.getType())) {
+				hasAudio = true;
+			}
 		}
 		if (hasGif) userSubtitle.add("gif"); //ES
 		if (hasVideo) userSubtitle.add("video"); //ES
+		if (hasAudio) userSubtitle.add("audio"); //ES
 	}
 
 	private static void addHashtags (final Status s, final List<Meta> metas) {

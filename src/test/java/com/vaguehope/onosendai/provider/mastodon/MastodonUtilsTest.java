@@ -2,9 +2,13 @@ package com.vaguehope.onosendai.provider.mastodon;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -13,6 +17,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.sys1yagi.mastodon4j.api.entity.Attachment;
 import com.sys1yagi.mastodon4j.api.entity.Status;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
@@ -37,6 +42,25 @@ public class MastodonUtilsTest {
 		final Tweet t = MastodonUtils.convertStatusToTweet(this.osAccount, s, 123, null);
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.OWNER_NAME, "user@example.com", "A B")));
 		assertEquals("foo", t.getBody());
+	}
+
+	@Test
+	public void itConvertsATootWithAudio () throws Exception {
+		final Status s = mockToot("<p>foo</p>", "user@example.com", "A B", 456);
+
+		List<Attachment> ma = new ArrayList<Attachment>();
+		ma.add(new Attachment(987, "audio",
+				"http://mastodon.example.com/cache/audio.mp3",
+				"http://home-server.example.com/media/audio.mp3",
+				"http://mastodon.example.com/media/audio.jpg",
+				null));
+		when(s.getMediaAttachments()).thenReturn(ma);
+
+		final Tweet t = MastodonUtils.convertStatusToTweet(this.osAccount, s, 123, null);
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA,
+				"http://mastodon.example.com/media/audio.jpg",
+				"http://home-server.example.com/media/audio.mp3")));
+		assertThat(t.getUsernameWithSubtitle(), containsString("audio"));
 	}
 
 	@Test
