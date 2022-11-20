@@ -6,13 +6,15 @@ import java.util.List;
 public class TweetList {
 
 	private final List<Tweet> tweets;
+	private final SinceIdType sinceIdType;
 	private final List<Tweet> quotedTweets;
 
 	public TweetList (final List<Tweet> tweets) {
-		this(tweets, null);
+		this(tweets, null, null);
 	}
 
-	public TweetList (final List<Tweet> tweets, final List<Tweet> quotedTweets) {
+	public TweetList (final List<Tweet> tweets, final SinceIdType sinceIdType, final List<Tweet> quotedTweets) {
+		this.sinceIdType = sinceIdType;
 		this.tweets = Collections.unmodifiableList(tweets);
 		this.quotedTweets = quotedTweets != null ? Collections.unmodifiableList(quotedTweets) : Collections.<Tweet>emptyList();
 	}
@@ -36,6 +38,19 @@ public class TweetList {
 			if (ret == null || (tweet.getTime() >= ret.getTime() && tweet.getSid().compareTo(ret.getSid()) > 0)) ret = tweet;
 		}
 		return ret;
+	}
+
+	public String getSinceId () {
+		final Tweet mostRecent = getMostRecent();
+		switch (this.sinceIdType) {
+			case SID:
+				return mostRecent.getSid();
+			case NOTIFICAITON_ID_META:
+				final Meta m = mostRecent.getFirstMetaOfType(MetaType.NOTIFICAITON_ID);
+				return m != null ? m.getData() : null;
+			default:
+				throw new IllegalStateException("Unknown sinceIdType: " + this.sinceIdType);
+		}
 	}
 
 	/**

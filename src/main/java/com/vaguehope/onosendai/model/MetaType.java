@@ -83,6 +83,11 @@ public enum MetaType {
 	 */
 	OWNER_NAME(15),
 	/**
+	 * The ID of the notification that this status was attached to.
+	 * Title is unused.
+	 */
+	NOTIFICAITON_ID(16),
+	/**
 	 * This is hack that will never be in the DB.
 	 * This is to attach the source column ID to search results.
 	 */
@@ -130,6 +135,8 @@ public enum MetaType {
 				return ALT_TEXT;
 			case 15: // NOSONAR 15 is not magical.
 				return OWNER_NAME;
+			case 16: // NOSONAR 16 is not magical.
+				return NOTIFICAITON_ID;
 			case 90:// NOSONAR 90 is not that magical.
 				return COLUMN_ID;
 			default:

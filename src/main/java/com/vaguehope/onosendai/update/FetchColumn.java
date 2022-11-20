@@ -114,7 +114,7 @@ public class FetchColumn implements Callable<Void> {
 			final MastodonProvider mastodonProvider = providerMgr.getMastodonProvider();
 			mastodonProvider.addAccount(account);
 			final String sinceIdRaw = readSinceId(db, column, columnFeed);
-			final long sinceId = sinceIdRaw != null ? Long.parseLong(sinceIdRaw) : -1;
+			final Long sinceId = sinceIdRaw != null ? Long.parseLong(sinceIdRaw) : null;
 			final TweetList tweets = mastodonProvider.getFeed(columnFeed.getResource(), account, sinceId);
 			final int filteredCount = filterAndStore(db, column, columnFeed, filters, tweets);
 			storeQuoted(db, tweets);
@@ -157,7 +157,7 @@ public class FetchColumn implements Callable<Void> {
 			final List<Tweet> filteredTweets = filters.matchAndSet(tweets.getTweets());
 			filteredCount = Filters.countFiltered(filteredTweets);
 			db.storeTweets(column, filteredTweets, DiscardOrder.FIRST_PUBLISHED);
-			db.storeValue(KvKeys.feedSinceId(column, columnFeed), tweets.getMostRecent().getSid());
+			db.storeValue(KvKeys.feedSinceId(column, columnFeed), tweets.getSinceId());
 		}
 		return filteredCount;
 	}

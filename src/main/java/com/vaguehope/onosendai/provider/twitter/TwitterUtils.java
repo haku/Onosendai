@@ -25,6 +25,7 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.MetaUtils;
+import com.vaguehope.onosendai.model.SinceIdType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.util.ArrayHelper;
@@ -74,7 +75,7 @@ public final class TwitterUtils {
 			minId = TwitterUtils.minIdOf(minId, timelinePage);
 			page++;
 		}
-		return new TweetList(tweets, quotedTweets);
+		return new TweetList(tweets, SinceIdType.SID, quotedTweets);
 	}
 
 	static void addTweetsToList (final List<Tweet> list, final Account account, final List<Status> tweets, final long ownId, final boolean hdMedia, final Collection<Meta> extraMetas, final List<Tweet> quotedTweets) {

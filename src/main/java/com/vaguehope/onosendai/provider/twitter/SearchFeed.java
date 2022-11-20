@@ -13,6 +13,7 @@ import twitter4j.TwitterException;
 import com.vaguehope.onosendai.C;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
+import com.vaguehope.onosendai.model.SinceIdType;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -45,7 +46,7 @@ class SearchFeed implements TwitterFeed {
 			TwitterUtils.addTweetsToList(tweets, account, resTweets, t.getId(), hdMedia, extraMetas, quotedTweets);
 		}
 		while (tweets.size() < C.TWITTER_FETCH_COUNT_SEARCH && (query = result.nextQuery()) != null); // NOSONAR I am ok with this inner assignment.
-		return new TweetList(tweets, quotedTweets);
+		return new TweetList(tweets, SinceIdType.SID, quotedTweets);
 	}
 
 	@Override

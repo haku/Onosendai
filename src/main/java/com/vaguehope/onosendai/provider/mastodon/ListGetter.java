@@ -6,6 +6,7 @@ import com.sys1yagi.mastodon4j.api.Range;
 import com.sys1yagi.mastodon4j.api.entity.Status;
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
 import com.sys1yagi.mastodon4j.api.method.MastodonLists;
+import com.vaguehope.onosendai.model.SinceIdType;
 
 public class ListGetter implements MastodonFeedGetter {
 
@@ -23,9 +24,15 @@ public class ListGetter implements MastodonFeedGetter {
 	}
 
 	@Override
-	public Pageable<Status> makeRequest (final Range range) throws Mastodon4jRequestException {
+	public GetterResponse<?> makeRequest (final Range range) throws Mastodon4jRequestException {
 		if (this.lists == null) throw new IllegalStateException("setClient() not called.");
-		return this.lists.getListTimeLine(this.listId, range).execute();
+		final Pageable<Status> pageable = this.lists.getListTimeLine(this.listId, range).execute();
+		return new GetterResponse.StatusGetterResponse(pageable);
+	}
+
+	@Override
+	public SinceIdType getSinceIdType () {
+		return SinceIdType.SID;
 	}
 
 	@Override

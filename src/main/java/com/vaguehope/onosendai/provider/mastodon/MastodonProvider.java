@@ -1,7 +1,6 @@
 package com.vaguehope.onosendai.provider.mastodon;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +18,6 @@ import com.sys1yagi.mastodon4j.api.method.Accounts;
 import com.sys1yagi.mastodon4j.api.method.MastodonLists;
 import com.sys1yagi.mastodon4j.api.method.Statuses;
 import com.vaguehope.onosendai.config.Account;
-import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -72,28 +70,28 @@ public class MastodonProvider {
 		}
 	}
 
-	public TweetList getFeed (final String resource, final Account account, final long sinceId) throws Mastodon4jRequestException {
+	public TweetList getFeed (final String resource, final Account account, final Long sinceId) throws Mastodon4jRequestException {
 		final MastodonColumnType type = MastodonColumnType.parseResource(resource);
 		if (type == null) throw new IllegalArgumentException("Unknown resource: " + resource);
 
 		switch (type) {
 			case TIMELINE:
-				return getFeed(account, new TimelineGetter(), sinceId, null);
+				return getFeed(account, new TimelineGetter(), sinceId);
 			case LIST:
 				final long listId = Long.parseLong(resource.substring(MastodonColumnType.LIST.getResource().length()));
-				return getFeed(account, new ListGetter(listId), sinceId, null);
+				return getFeed(account, new ListGetter(listId), sinceId);
 			case MENTIONS:
-				return getFeed(account, new MentionsGetter(), sinceId, null);
+				return getFeed(account, new MentionsGetter(), sinceId);
 			case ME:
-				return getFeed(account, new MeGetter(getOwnId(account)), sinceId, null);
+				return getFeed(account, new MeGetter(getOwnId(account)), sinceId);
 			case FAVORITES:
-				return getFeed(account, new FavouritesGetter(), sinceId, null);
+				return getFeed(account, new FavouritesGetter(), sinceId);
 			default:
 				throw new IllegalArgumentException("Do not know how to fetch: " + type);
 		}
 	}
 
-	public TweetList getFeed (final Account account, final MastodonFeedGetter getter, final Long sinceId, final Collection<Meta> extraMetas) throws Mastodon4jRequestException {
+	public TweetList getFeed (final Account account, final MastodonFeedGetter getter, final Long sinceId) throws Mastodon4jRequestException {
 		final long ownId = getOwnId(account);
 
 		final MastodonClient client = getAccount(account);
@@ -108,20 +106,15 @@ public class MastodonProvider {
 		int page = 1; // First page is 1.
 		Range range = new Range(null, sinceId, pageLimit);
 		while (tweets.size() < fetchLimit) {
-			final Pageable<Status> pageable = getter.makeRequest(range);
-			final List<Status> timelinePage = pageable.getPart();
-			LOG.i("Page %d of %s(sinceId=%s) contains %d items.", page, getter, sinceId, timelinePage.size());
-			if (timelinePage.size() < 1) break;
-
-			for (final Status status : timelinePage) {
-				tweets.add(MastodonUtils.convertStatusToTweet(account, status, ownId, extraMetas));
-			}
-
-			range = pageable.nextRange(pageLimit);
+			final GetterResponse<?> response = getter.makeRequest(range);
+			LOG.i("Page %d of %s(sinceId=%s) contains %d items.", page, getter, sinceId, response.size());
+			if (response.size() < 1) break;
+			response.addTweetsTo(tweets, account, ownId);
+			range = response.nextRange(pageLimit);
 			page++;
 		}
 
-		return new TweetList(tweets, quotedTweets);
+		return new TweetList(tweets, getter.getSinceIdType(), quotedTweets);
 	}
 
 	public List<MastodonList> getLists(final Account account) throws Mastodon4jRequestException {

@@ -1,15 +1,16 @@
 package com.vaguehope.onosendai.provider.mastodon;
 
 import com.sys1yagi.mastodon4j.MastodonClient;
-import com.sys1yagi.mastodon4j.api.Pageable;
 import com.sys1yagi.mastodon4j.api.Range;
-import com.sys1yagi.mastodon4j.api.entity.Status;
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
+import com.vaguehope.onosendai.model.SinceIdType;
 
 public interface MastodonFeedGetter {
 
 	void setClient (MastodonClient client);
 
-	Pageable<Status> makeRequest (Range range) throws Mastodon4jRequestException;
+	GetterResponse<?> makeRequest (Range range) throws Mastodon4jRequestException;
+
+	SinceIdType getSinceIdType();
 
 }
