@@ -45,6 +45,14 @@ public class MastodonUtilsTest {
 	}
 
 	@Test
+	public void itPrependsSpoilerText () throws Exception {
+		final Status s = mockToot("<p>foo</p>", "user@example.com", "A B", 456);
+		when(s.getSpoilerText()).thenReturn("Spoilers for toot...");
+		final Tweet t = MastodonUtils.convertStatusToTweet(this.osAccount, s, 123, null);
+		assertEquals("Spoilers for toot...\n\nfoo", t.getBody());
+	}
+
+	@Test
 	public void itConvertsATootWithAudio () throws Exception {
 		final Status s = mockToot("<p>foo</p>", "user@example.com", "A B", 456);
 
@@ -133,6 +141,7 @@ public class MastodonUtilsTest {
 
 	private static Status mockToot(final String msg, final String acct, final String fullName, final long userId) {
 		final Status s = PowerMockito.mock(Status.class);
+		when(s.getSpoilerText()).thenReturn("");
 		when(s.getContent()).thenReturn(msg);
 
 		when(s.getCreatedAt()).thenReturn("2019-11-26T23:27:31.000Z");

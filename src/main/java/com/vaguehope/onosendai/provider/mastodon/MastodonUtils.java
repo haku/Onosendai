@@ -93,7 +93,10 @@ public class MastodonUtils {
 		if (viaUser != null) userSubtitle.add(String.format("via %s", viaUser.getAcct())); //ES
 		final String fullSubtitle = viaUser != null ? String.format("via %s", viaUser.getDisplayName()) : null; //ES
 
-		final String body = deHtmlBody(s.getContent());
+		String body = deHtmlBody(s.getContent());
+		if (StringHelper.notEmpty(s.getSpoilerText())) {
+			body = s.getSpoilerText() + "\n\n" + body;
+		}
 
 		return new Tweet(
 				String.valueOf(s.getId()),
