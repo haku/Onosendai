@@ -86,8 +86,12 @@ class AccountDialog {
 				this.btnTest.setVisibility(View.GONE);
 				break;
 			case MASTODON:
-				this.rowUsername.setVisibility(View.GONE);
+				this.txtUsernameLabel.setText("Instance");
+				this.txtUsername.setEnabled(false);  // Instance being editable would make list IDs etc get messed up.
 				this.rowPassword.setVisibility(View.GONE);
+				if (initialValue != null) {
+					this.txtUsername.setText(initialValue.getConsumerKey());
+				}
 				break;
 			case SUCCESSWHALE:
 			case INSTAPAPER:
