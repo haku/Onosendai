@@ -53,6 +53,44 @@ public class MastodonUtilsTest {
 	}
 
 	@Test
+	public void itConvertsATootWithImage () throws Exception {
+		final Status s = mockToot("<p>foo</p>", "user@example.com", "A B", 456);
+
+		List<Attachment> ma = new ArrayList<Attachment>();
+		ma.add(new Attachment(989, "image",
+				"http://mastodon.example.com/cache/full.jpg",
+				"http://home-server.example.com/media/full.jpg",
+				"http://mastodon.example.com/cache/thumb.jpg",
+				null));
+		when(s.getMediaAttachments()).thenReturn(ma);
+
+		final Tweet t = MastodonUtils.convertStatusToTweet(this.osAccount, s, 123, null);
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA,
+				"http://mastodon.example.com/cache/full.jpg" /* preview */,
+				"http://mastodon.example.com/cache/full.jpg" /* click */)));
+		assertEquals("user@example.com", t.getUsernameWithSubtitle());
+	}
+
+	@Test
+	public void itConvertsATootWithImageNoLocalFull () throws Exception {
+		final Status s = mockToot("<p>foo</p>", "user@example.com", "A B", 456);
+
+		List<Attachment> ma = new ArrayList<Attachment>();
+		ma.add(new Attachment(989, "image",
+				"",
+				"http://home-server.example.com/media/full.jpg",
+				"http://mastodon.example.com/cache/thumb.jpg",
+				null));
+		when(s.getMediaAttachments()).thenReturn(ma);
+
+		final Tweet t = MastodonUtils.convertStatusToTweet(this.osAccount, s, 123, null);
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA,
+				"http://home-server.example.com/media/full.jpg" /* preview */,
+				"http://home-server.example.com/media/full.jpg" /* click */)));
+		assertEquals("user@example.com", t.getUsernameWithSubtitle());
+	}
+
+	@Test
 	public void itConvertsATootWithAudio () throws Exception {
 		final Status s = mockToot("<p>foo</p>", "user@example.com", "A B", 456);
 
@@ -60,14 +98,14 @@ public class MastodonUtilsTest {
 		ma.add(new Attachment(987, "audio",
 				"http://mastodon.example.com/cache/audio.mp3",
 				"http://home-server.example.com/media/audio.mp3",
-				"http://mastodon.example.com/media/audio.jpg",
+				"http://mastodon.example.com/cache/audio.jpg",
 				null));
 		when(s.getMediaAttachments()).thenReturn(ma);
 
 		final Tweet t = MastodonUtils.convertStatusToTweet(this.osAccount, s, 123, null);
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA,
-				"http://mastodon.example.com/media/audio.jpg",
-				"http://home-server.example.com/media/audio.mp3")));
+				"http://mastodon.example.com/cache/audio.jpg" /* preview */,
+				"http://mastodon.example.com/cache/audio.mp3" /* click */)));
 		assertThat(t.getUsernameWithSubtitle(), containsString("audio"));
 	}
 
