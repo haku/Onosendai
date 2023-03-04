@@ -167,11 +167,11 @@ public class MastodonProvider {
 //	}
 
 	public void boost(final Account account, final long statusId) throws Mastodon4jRequestException {
-		new Statuses(getAccount(account)).postReblog(statusId);
+		new Statuses(getAccount(account)).postReblog(statusId).execute();
 	}
 
 	public void favourite(final Account account, final long statusId) throws Mastodon4jRequestException {
-		new Statuses(getAccount(account)).postFavourite(statusId);
+		new Statuses(getAccount(account)).postFavourite(statusId).execute();
 	}
 
 	public void delete(final Account account, final long statusId) throws Mastodon4jRequestException {
