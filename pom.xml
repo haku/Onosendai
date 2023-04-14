@@ -47,7 +47,7 @@
 		<dependency> <!-- android:android below includes stub of org.json package, so need impl to run tests against. -->
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>20140107</version> <!-- Note: 20140107 is class version 46.0, 20141113 is 52.0 (too high). -->
+			<version>20230227</version> <!-- Note: 20230227 is class version 46.0, 20141113 is 52.0 (too high). -->
 			<scope>test</scope>
 		</dependency>
 
