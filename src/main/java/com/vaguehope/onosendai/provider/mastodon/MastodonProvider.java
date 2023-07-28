@@ -20,6 +20,7 @@ import com.sys1yagi.mastodon4j.api.method.Statuses;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
+import com.vaguehope.onosendai.provider.mastodon.PublicGetter.PublicType;
 import com.vaguehope.onosendai.util.LogWrapper;
 import com.vaguehope.onosendai.util.StringHelper;
 
@@ -77,6 +78,10 @@ public class MastodonProvider {
 		switch (type) {
 			case TIMELINE:
 				return getFeed(account, new TimelineGetter(), sinceId);
+			case LOCAL:
+				return getFeed(account, new PublicGetter(PublicType.INSTANCE_LOCAL), sinceId);
+			case FEDERATED:
+				return getFeed(account, new PublicGetter(PublicType.FEDERATED), sinceId);
 			case LIST:
 				final long listId = Long.parseLong(resource.substring(MastodonColumnType.LIST.getResource().length()));
 				return getFeed(account, new ListGetter(listId), sinceId);

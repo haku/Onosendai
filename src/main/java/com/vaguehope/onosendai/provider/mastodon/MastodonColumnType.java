@@ -6,6 +6,8 @@ import com.vaguehope.onosendai.util.Titleable;
 public enum MastodonColumnType implements Titleable {
 
 	TIMELINE("Home Timeline", "TIMELINE"), //ES
+	LOCAL("Instance Local Timeline", "LOCAL"), //ES
+	FEDERATED("Federated Timeline", "FEDERATED"), //ES
 	LIST("A List", "LIST/"), //ES
 	MENTIONS("Mentions", "MENTIONS"), //ES
 	ME("Me", "ME"), //ES
