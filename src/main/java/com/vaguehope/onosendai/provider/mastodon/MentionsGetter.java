@@ -25,7 +25,7 @@ public class MentionsGetter implements MastodonFeedGetter {
 	}
 
 	@Override
-	public GetterResponse<?> makeRequest (final Range range) throws Mastodon4jRequestException {
+	public GetterResponse<?> makeRequest (final Range range, final boolean manualRefresh) throws Mastodon4jRequestException {
 		if (this.notifications == null) throw new IllegalStateException("setClient() not called.");
 
 		final List<Type> excludeTypes = new ArrayList<Type>();

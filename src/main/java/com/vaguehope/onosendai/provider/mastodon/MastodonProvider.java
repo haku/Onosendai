@@ -71,32 +71,32 @@ public class MastodonProvider {
 		}
 	}
 
-	public TweetList getFeed (final String resource, final Account account, final Long sinceId) throws Mastodon4jRequestException {
+	public TweetList getFeed (final String resource, final Account account, final Long sinceId, final boolean manualRefresh) throws Mastodon4jRequestException {
 		final MastodonColumnType type = MastodonColumnType.parseResource(resource);
 		if (type == null) throw new IllegalArgumentException("Unknown resource: " + resource);
 
 		switch (type) {
 			case TIMELINE:
-				return getFeed(account, new TimelineGetter(), sinceId);
+				return getFeed(account, new TimelineGetter(), sinceId, manualRefresh);
 			case LOCAL:
-				return getFeed(account, new PublicGetter(PublicType.INSTANCE_LOCAL), sinceId);
+				return getFeed(account, new PublicGetter(PublicType.INSTANCE_LOCAL), sinceId, manualRefresh);
 			case FEDERATED:
-				return getFeed(account, new PublicGetter(PublicType.FEDERATED), sinceId);
+				return getFeed(account, new PublicGetter(PublicType.FEDERATED), sinceId, manualRefresh);
 			case LIST:
 				final long listId = Long.parseLong(resource.substring(MastodonColumnType.LIST.getResource().length()));
-				return getFeed(account, new ListGetter(listId), sinceId);
+				return getFeed(account, new ListGetter(listId), sinceId, manualRefresh);
 			case MENTIONS:
-				return getFeed(account, new MentionsGetter(), sinceId);
+				return getFeed(account, new MentionsGetter(), sinceId, manualRefresh);
 			case ME:
-				return getFeed(account, new MeGetter(getOwnId(account)), sinceId);
+				return getFeed(account, new MeGetter(getOwnId(account)), sinceId, manualRefresh);
 			case FAVORITES:
-				return getFeed(account, new FavouritesGetter(), sinceId);
+				return getFeed(account, new FavouritesGetter(), sinceId, manualRefresh);
 			default:
 				throw new IllegalArgumentException("Do not know how to fetch: " + type);
 		}
 	}
 
-	public TweetList getFeed (final Account account, final MastodonFeedGetter getter, final Long sinceId) throws Mastodon4jRequestException {
+	public TweetList getFeed (final Account account, final MastodonFeedGetter getter, final Long sinceId, final boolean manualRefresh) throws Mastodon4jRequestException {
 		final long ownId = getOwnId(account);
 
 		final MastodonClient client = getAccount(account);
@@ -111,7 +111,7 @@ public class MastodonProvider {
 		int page = 1; // First page is 1.
 		Range range = new Range(null, sinceId, pageLimit);
 		while (tweets.size() < fetchLimit) {
-			final GetterResponse<?> response = getter.makeRequest(range);
+			final GetterResponse<?> response = getter.makeRequest(range, manualRefresh);
 			LOG.i("Page %d of %s(sinceId=%s) contains %d items.", page, getter, sinceId, response.size());
 			if (response.size() < 1) break;
 			response.addTweetsTo(tweets, account, ownId);

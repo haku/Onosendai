@@ -9,7 +9,7 @@ public interface MastodonFeedGetter {
 
 	void setClient (MastodonClient client);
 
-	GetterResponse<?> makeRequest (Range range) throws Mastodon4jRequestException;
+	GetterResponse<?> makeRequest (Range range, boolean manualRefresh) throws Mastodon4jRequestException;
 
 	SinceIdType getSinceIdType();
 

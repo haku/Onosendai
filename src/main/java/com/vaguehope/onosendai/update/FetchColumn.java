@@ -74,7 +74,7 @@ public class FetchColumn implements Callable<Void> {
 				fetchTwitterColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters, manual);
 				break;
 			case MASTODON:
-				fetchMastodonColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters);
+				fetchMastodonColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters, manual);
 				break;
 			case SUCCESSWHALE:
 				fetchSuccessWhaleColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters);
@@ -108,14 +108,14 @@ public class FetchColumn implements Callable<Void> {
 		}
 	}
 
-	private static void fetchMastodonColumn (final DbInterface db, final Account account, final Column column, final ColumnFeed columnFeed, final ProviderMgr providerMgr, final Filters filters) {
+	private static void fetchMastodonColumn (final DbInterface db, final Account account, final Column column, final ColumnFeed columnFeed, final ProviderMgr providerMgr, final Filters filters, final boolean manualRefresh) {
 		final long startTime = System.nanoTime();
 		try {
 			final MastodonProvider mastodonProvider = providerMgr.getMastodonProvider();
 			mastodonProvider.addAccount(account);
 			final String sinceIdRaw = readSinceId(db, column, columnFeed);
 			final Long sinceId = sinceIdRaw != null ? Long.parseLong(sinceIdRaw) : null;
-			final TweetList tweets = mastodonProvider.getFeed(columnFeed.getResource(), account, sinceId);
+			final TweetList tweets = mastodonProvider.getFeed(columnFeed.getResource(), account, sinceId, manualRefresh);
 			final int filteredCount = filterAndStore(db, column, columnFeed, filters, tweets);
 			storeQuoted(db, tweets);
 			storeSuccess(db, column);

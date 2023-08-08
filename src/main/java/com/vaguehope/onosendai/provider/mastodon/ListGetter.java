@@ -24,7 +24,7 @@ public class ListGetter implements MastodonFeedGetter {
 	}
 
 	@Override
-	public GetterResponse<?> makeRequest (final Range range) throws Mastodon4jRequestException {
+	public GetterResponse<?> makeRequest (final Range range, final boolean manualRefresh) throws Mastodon4jRequestException {
 		if (this.lists == null) throw new IllegalStateException("setClient() not called.");
 		final Pageable<Status> pageable = this.lists.getListTimeLine(this.listId, range).execute();
 		return new GetterResponse.StatusGetterResponse(pageable);

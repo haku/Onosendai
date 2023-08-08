@@ -24,7 +24,7 @@ public class MeGetter implements MastodonFeedGetter {
 	}
 
 	@Override
-	public GetterResponse<?> makeRequest (final Range range) throws Mastodon4jRequestException {
+	public GetterResponse<?> makeRequest (final Range range, final boolean manualRefresh) throws Mastodon4jRequestException {
 		if (this.accounts == null) throw new IllegalStateException("setClient() not called.");
 		final Pageable<Status> pageable = this.accounts.getStatuses(
 				this.myId,
