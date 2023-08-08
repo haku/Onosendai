@@ -2,20 +2,22 @@ package com.vaguehope.onosendai.ui.pref;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.json.JSONException;
 
-import android.content.Context;
-import android.preference.DialogPreference;
-import android.view.View;
-
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
+import com.vaguehope.onosendai.config.ColumnFeed;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.util.ArrayHelper;
 import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.Functions;
+import android.content.Context;
+import android.preference.DialogPreference;
+import android.view.View;
 
 public class ColumnDialogPreference extends DialogPreference {
 
@@ -56,6 +58,10 @@ public class ColumnDialogPreference extends DialogPreference {
 					persistString(newColumn.toJson().toString());
 					this.columnsPrefFragment.moveColumnToPosition(newColumn, this.dialog.getPosition());
 					this.columnsPrefFragment.refreshColumnsList();
+
+					final Set<ColumnFeed> removedFeeds = new HashSet<ColumnFeed>(this.dialog.getInitialValue().getFeeds());
+					removedFeeds.removeAll(newColumn.getFeeds());
+					this.columnsPrefFragment.deleteDataForFeeds(this.column, removedFeeds);
 				}
 			}
 			catch (JSONException e) {

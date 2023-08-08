@@ -154,6 +154,16 @@ public class ColumnsPrefFragment extends PreferenceFragment {
 		LOG.i("Deleted: %s", column);
 	}
 
+	protected void deleteDataForFeeds (final Column column, final Set<ColumnFeed> removedFeeds) {
+		final OsPreferenceActivity act = (OsPreferenceActivity) getActivity();
+		final DbInterface db = act.getDb();
+		if (db == null) throw new IllegalStateException("Database not bound, aborting column deletion.");
+		for (final ColumnFeed feed : removedFeeds) {
+			db.deleteValue(KvKeys.feedSinceId(column, feed));
+		}
+		LOG.i("Deleted matadata for feeds: %s", removedFeeds);
+	}
+
 	private static class AddAcountClickListener implements OnPreferenceClickListener {
 
 		private final ColumnsPrefFragment columnsPrefFragment;
