@@ -57,11 +57,13 @@ public class AlarmReceiver extends BroadcastReceiver {
 
 		if (doSend || doUpdate) aquireTempWakeLock(context);
 
-		if (doSend || BatteryNotify.isOverrideEnabled(context)) {
+		final boolean overrideEnabled = BatteryNotify.isOverrideEnabled(context);
+
+		if (doSend || overrideEnabled) {
 			context.startService(new Intent(context, SendOutboxService.class));
 		}
 
-		if (doUpdate || BatteryNotify.isOverrideEnabled(context)) {
+		if (doUpdate || overrideEnabled) {
 			context.startService(new Intent(context, UpdateService.class));
 			BatteryNotify.clearNotUpdating(context); // Clear even if overridden so re-notifies on override expiring.
 		}

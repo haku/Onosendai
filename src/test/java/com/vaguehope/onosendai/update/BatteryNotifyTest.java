@@ -15,18 +15,21 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 
+import android.app.NotificationManager;
 import android.content.Context;
 
 @RunWith(RobolectricTestRunner.class)
 public class BatteryNotifyTest {
 
 	@Mock private Context context;
+	@Mock private NotificationManager notificationManager;
 	@Rule public TemporaryFolder tmp = new TemporaryFolder();
 
 	@Before
 	public void before () throws Exception {
 		MockitoAnnotations.initMocks(this);
 		when(this.context.getCacheDir()).thenReturn(this.tmp.getRoot());
+		when(this.context.getSystemService(Context.NOTIFICATION_SERVICE)).thenReturn(this.notificationManager);
 	}
 
 	@Test
