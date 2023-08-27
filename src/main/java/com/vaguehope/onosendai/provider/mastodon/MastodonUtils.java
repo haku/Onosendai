@@ -106,7 +106,7 @@ public class MastodonUtils {
 				fullSubtitle,
 				statusUserUsername,
 				body,
-				unitTimeSeconds,
+				unitTimeSeconds,  // columns are sorted by this one.
 				s.getAccount().getAvatar(),
 				MetaUtils.firstMetaOfTypesData(metas, MetaType.MEDIA),
 				quotedSid,
