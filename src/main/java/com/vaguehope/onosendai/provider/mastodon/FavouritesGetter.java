@@ -20,8 +20,15 @@ public class FavouritesGetter implements MastodonFeedGetter {
 	@Override
 	public GetterResponse<?> makeRequest (final Range range, final boolean manualRefresh) throws Mastodon4jRequestException {
 		if (this.favourites == null) throw new IllegalStateException("setClient() not called.");
-		final Range r = manualRefresh ? null : range;
-		final Pageable<Status> pageable = this.favourites.getFavourites(r).execute();
+
+		final Pageable<Status> pageable;
+		if (manualRefresh) {
+			pageable = this.favourites.getFavourites().execute();
+		}
+		else {
+			pageable = this.favourites.getFavourites(range).execute();
+		}
+
 		return new GetterResponse.StatusGetterResponse(pageable);
 	}
 
