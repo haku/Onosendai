@@ -320,6 +320,11 @@ public class DbService extends Service implements DbInterface {
 	}
 
 	@Override
+	public void deleteValuesStartingWith (final String prefix) {
+		this.dbAdaptor.deleteValuesStartingWith(prefix);
+	}
+
+	@Override
 	public void cacheString (final CachedStringGroup group, final String key, final String value) {
 		this.dbAdaptor.cacheString(group, key, value);
 	}

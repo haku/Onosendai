@@ -25,6 +25,7 @@ import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.Selection;
 import com.vaguehope.onosendai.update.CleanupService;
+import com.vaguehope.onosendai.update.KvKeys;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -57,6 +58,7 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		addDumpLogPref();
 		addDumpReadLaterPref();
 		addHousekeepPref();
+		addClearFeedSinceIdsPref();
 	}
 
 	private void addThreadInspector () {
@@ -113,6 +115,14 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		getPreferenceScreen().addPreference(pref);
 	}
 
+	private void addClearFeedSinceIdsPref () {
+		final Preference pref = new Preference(getActivity());
+		pref.setTitle("Clear Feed Since IDs"); //ES
+		pref.setSummary("Try this if new posts are not being fetched."); //ES
+		pref.setOnPreferenceClickListener(this.clearFeedSinceIdsListener);
+		getPreferenceScreen().addPreference(pref);
+	}
+
 	private final OnPreferenceClickListener importClickListener = new OnPreferenceClickListener() {
 		@Override
 		public boolean onPreferenceClick (final Preference preference) {
@@ -149,6 +159,14 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 		@Override
 		public boolean onPreferenceClick (final Preference preference) {
 			housekeep();
+			return true;
+		}
+	};
+
+	private final OnPreferenceClickListener clearFeedSinceIdsListener = new OnPreferenceClickListener() {
+		@Override
+		public boolean onPreferenceClick (final Preference preference) {
+			clearFeedSinceIds();
 			return true;
 		}
 	};
@@ -218,6 +236,10 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 
 	protected void housekeep () {
 		new Housekeep(getActivity()).execute();
+	}
+
+	protected void clearFeedSinceIds () {
+		new ClearFeedSinceIds(getActivity()).execute();
 	}
 
 	private static class DumpLog extends AsyncTask<Void, Void, Exception> {
@@ -361,6 +383,49 @@ public class AdvancedPrefFragment extends PreferenceFragment {
 			this.dialog.dismiss();
 			if (result == null) {
 				DialogHelper.alert(getContext(), "Housekeep complete."); //ES
+			}
+			else {
+				LOG.e("Failed to housekeep.", result);
+				DialogHelper.alert(getContext(), result);
+			}
+		}
+
+	}
+
+	private static class ClearFeedSinceIds extends DbBindingAsyncTask<Void, Void, Exception> {
+
+		private ProgressDialog dialog;
+
+		public ClearFeedSinceIds (final Context context) {
+			super(null, context);
+		}
+
+		@Override
+		protected LogWrapper getLog () {
+			return LOG;
+		}
+
+		@Override
+		protected void onPreExecute () {
+			this.dialog = ProgressDialog.show(getContext(), "Clear Feed Since IDs", "Please wait...", true); //ES
+		}
+
+		@Override
+		protected Exception doInBackgroundWithDb (final DbInterface db, final Void... params) {
+			try {
+				db.deleteValuesStartingWith(KvKeys.FEED_SINCE_ID_PREFIX);
+				return null;
+			}
+			catch (final Exception e) { // NOSONAR show user all errors.
+				return e;
+			}
+		}
+
+		@Override
+		protected void onPostExecute (final Exception result) {
+			this.dialog.dismiss();
+			if (result == null) {
+				DialogHelper.alert(getContext(), "Clear Feed Since IDs complete."); //ES
 			}
 			else {
 				LOG.e("Failed to housekeep.", result);

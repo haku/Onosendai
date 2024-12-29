@@ -10,7 +10,7 @@ public class KvKeys {
 	private static final String KEY_PREFIX_COL_LAST_REFRESH_ERROR = "COL_LAST_REFRESH_ERROR_";
 	private static final String KEY_PREFIX_COL_LAST_PUSH_TIME = "COL_LAST_PUSH_TIME_";
 
-	private static final String FEED_SINCE_ID_PREFIX = "FEED_SINCE_ID_";
+	public static final String FEED_SINCE_ID_PREFIX = "FEED_SINCE_ID_";
 
 	private static final String SW_AUTH_TOKEN_PREFIX = "SW_AUTH_TOKEN_";
 	private static final String SW_PTA_PREFIX = "SW_PTA_";

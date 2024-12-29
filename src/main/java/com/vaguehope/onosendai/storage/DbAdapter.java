@@ -1476,6 +1476,19 @@ public class DbAdapter implements DbInterface {
 	}
 
 	@Override
+	public void deleteValuesStartingWith (final String prefix) {
+		this.mDb.beginTransaction();
+		try {
+			this.mDb.delete(TBL_KV, TBL_KV_KEY + " LIKE ?", new String[] { prefix + "%" });
+			this.mDb.setTransactionSuccessful();
+			this.log.d("Deleted key prefix=%s from %s.", prefix, TBL_KV);
+		}
+		finally {
+			this.mDb.endTransaction();
+		}
+	}
+
+	@Override
 	public String getValue (final String key) {
 		if (!checkDbOpen()) return null;
 		String ret = null;
