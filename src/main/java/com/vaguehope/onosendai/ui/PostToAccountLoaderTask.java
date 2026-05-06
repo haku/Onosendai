@@ -14,8 +14,6 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.provider.EnabledServiceRefs;
 import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.provider.TaskUtils;
-import com.vaguehope.onosendai.provider.bufferapp.BufferAppException;
-import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
@@ -71,17 +69,6 @@ class PostToAccountLoaderTask extends DbBindingAsyncTask<Account, AccountLoaderR
 				}
 				finally {
 					swProv.shutdown();
-				}
-			case BUFFER:
-				final BufferAppProvider bufProv = new BufferAppProvider();
-				try {
-					return new AccountLoaderResult(bufProv.getPostToAccounts(account));
-				}
-				catch (final BufferAppException e) {
-					return new AccountLoaderResult(e);
-				}
-				finally {
-					bufProv.shutdown();
 				}
 			default:
 				throw new IllegalArgumentException("Do not know how to load sub accounts for provider: " + account.getProvider());

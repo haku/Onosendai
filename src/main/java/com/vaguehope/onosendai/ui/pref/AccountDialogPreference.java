@@ -32,7 +32,6 @@ public class AccountDialogPreference extends DialogPreference {
 			case MASTODON:
 			case SUCCESSWHALE:
 			case INSTAPAPER:
-			case BUFFER:
 			case HOSAKA:
 				break;
 			default:

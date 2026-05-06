@@ -504,9 +504,6 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 		String msg;
 		switch (account.getProvider()) {
 			case SUCCESSWHALE:
-			case BUFFER:
-				msg = getString(R.string.post_confirm_post_subaccounts, account.getUiTitle(), ServiceRef.humanList(svcs, "\n"));
-				break;
 			default:
 				msg = getString(R.string.post_confirm_post, account.getUiTitle());
 		}
@@ -572,7 +569,6 @@ public class PostActivity extends Activity implements ImageLoader, DbProvider {
 	protected void accountSelected (final Account account) {
 		switch (account.getProvider()) {
 			case SUCCESSWHALE:
-			case BUFFER:
 				this.enabledPostToAccounts.setAccount(account);
 				new PostToAccountLoaderTask(getApplicationContext(), this.llSubAccounts, this.enabledPostToAccounts).executeOnExecutor(this.exec, account);
 				break;

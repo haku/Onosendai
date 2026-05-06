@@ -103,14 +103,6 @@ class AccountDialog {
 				}
 				this.chkReauthenticate.setVisibility(View.GONE);
 				break;
-			case BUFFER:
-				this.txtUsernameLabel.setText("accessToken");
-				this.rowPassword.setVisibility(View.GONE);
-				if (initialValue != null) {
-					this.txtUsername.setText(initialValue.getAccessToken());
-				}
-				this.chkReauthenticate.setVisibility(View.GONE);
-				break;
 			default:
 		}
 
@@ -157,7 +149,6 @@ class AccountDialog {
 			case MASTODON:
 			case SUCCESSWHALE:
 			case INSTAPAPER:
-			case BUFFER:
 			case HOSAKA:
 				return true;
 			default:
@@ -183,11 +174,6 @@ class AccountDialog {
 				return new Account(this.id, title,
 						this.accountProvider,
 						null, null, username, password);
-			case BUFFER:
-				final String accessToken = this.txtUsername.getText().toString().trim();
-				return new Account(this.id, title,
-						this.accountProvider,
-						null, null, accessToken, null);
 			default:
 				return null;
 		}
@@ -223,9 +209,6 @@ class AccountDialog {
 						return "Success."; //ES
 					case INSTAPAPER:
 						provMgr.getInstapaperProvider().testAccountLogin(this.account);
-						return "Success."; //ES
-					case BUFFER:
-						provMgr.getBufferAppProvider().testAccountLogin(this.account);
 						return "Success."; //ES
 					case HOSAKA:
 						provMgr.getHosakaProvider().testAccountLogin(this.account);

@@ -123,7 +123,7 @@ public class Account implements Titleable {
 	public Account withoutSecrets () {
 		return new Account(this.id, this.title, this.provider,
 				this.consumerKey, null,
-				this.provider == AccountProvider.BUFFER || this.provider == AccountProvider.MASTODON
+				this.provider == AccountProvider.MASTODON
 						? null
 						: this.accessToken,
 				null);
@@ -139,8 +139,6 @@ public class Account implements Titleable {
 			case INSTAPAPER:
 			case HOSAKA:
 				return !StringHelper.isEmpty(this.accessSecret);
-			case BUFFER:
-				return !StringHelper.isEmpty(this.accessToken);
 			default:
 				throw new IllegalArgumentException("Unsupported account provilder: " + this.provider);
 		}
@@ -164,9 +162,6 @@ public class Account implements Titleable {
 			case HOSAKA:
 				json.put(KEY_USERNAME, this.accessToken);
 				json.put(KEY_PASSWORD, this.accessSecret);
-				break;
-			case BUFFER:
-				json.put(KEY_ACCESS_TOKEN, this.accessToken);
 				break;
 			default:
 				throw new IllegalArgumentException("Unsupported account provilder: " + this.provider);
@@ -200,9 +195,6 @@ public class Account implements Titleable {
 			case HOSAKA:
 				account = parseUsernamePasswordLikeAccount(json, id, AccountProvider.HOSAKA);
 				break;
-			case BUFFER:
-				account = parseBufferAccount(json, id);
-				break;
 			default:
 				throw new IllegalArgumentException("Unknown provider: " + provider);
 		}
@@ -232,12 +224,6 @@ public class Account implements Titleable {
 		final String accessSecret = accountJson.optString(KEY_PASSWORD);
 		final String title = accountJson.optString(KEY_TITLE, accessToken);
 		return new Account(id, title, provider, null, null, accessToken, accessSecret);
-	}
-
-	private static Account parseBufferAccount (final JSONObject accountJson, final String id) {
-		final String title = accountJson.optString(KEY_TITLE, null);
-		final String accessToken = accountJson.optString(KEY_ACCESS_TOKEN);
-		return new Account(id, title, AccountProvider.BUFFER, null, null, accessToken, null);
 	}
 
 }

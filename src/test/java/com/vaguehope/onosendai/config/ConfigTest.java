@@ -43,7 +43,7 @@ public class ConfigTest {
 	@Test
 	public void itReadsAccounts () throws Exception {
 		Map<String, Account> as = this.undertest.getAccounts();
-		assertEquals(3, as.size());
+		assertEquals(2, as.size());
 
 		Account a = as.get("t0");
 		assertEquals(AccountProvider.TWITTER, a.getProvider());
@@ -58,13 +58,6 @@ public class ConfigTest {
 		assertEquals(null, b.getConsumerSecret());
 		assertEquals("?username?", b.getAccessToken());
 		assertEquals("?password?", b.getAccessSecret());
-
-		Account c = as.get("b0");
-		assertEquals(AccountProvider.BUFFER, c.getProvider());
-		assertEquals(null, c.getConsumerKey());
-		assertEquals(null, c.getConsumerSecret());
-		assertEquals("?accesstoken?", c.getAccessToken());
-		assertEquals(null, c.getAccessSecret());
 	}
 
 	@Test

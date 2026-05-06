@@ -22,10 +22,6 @@ public enum AccountProvider implements Titleable {
 	 */
 	INSTAPAPER("Instapaper"), //ES
 	/**
-	 * accessToken = accessToken
-	 */
-	BUFFER("Buffer"), //ES
-	/**
 	 * accessToken = username
 	 * accessSecret = passwd
 	 */

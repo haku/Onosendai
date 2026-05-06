@@ -21,7 +21,6 @@ import com.vaguehope.onosendai.model.TweetBuilder;
 import com.vaguehope.onosendai.notifications.NotificationIds;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
-import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
 import com.vaguehope.onosendai.provider.instapaper.InstapaperProvider;
 import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
@@ -87,8 +86,6 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostR
 //				return postMastodon();
 			case SUCCESSWHALE:
 				return postSuccessWhale(db);
-			case BUFFER:
-				return postBufferApp();
 			case INSTAPAPER:
 				return postInstapaper();
 			default:
@@ -133,22 +130,6 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostR
 		}
 		finally {
 			s.shutdown();
-		}
-	}
-
-	private SendResult<PostRequest> postBufferApp () {
-		final BufferAppProvider b = new BufferAppProvider();
-		try {
-			if (this.req.getInReplyToSid() != null) throw new IllegalArgumentException("BufferApp does not support inReplyTo."); // TODO do not get here.
-			if (resolveAttachment() != null) throw new IllegalArgumentException("BufferApp does not support posting images."); // TODO do not get here.
-			b.post(this.req.getAccount(), this.req.getPostToSvc(), this.req.getBody());
-			return new SendResult<PostRequest>(this.req);
-		}
-		catch (final Exception e) { // NOSONAR need to report all errors.
-			return new SendResult<PostRequest>(this.req, e);
-		}
-		finally {
-			b.shutdown();
 		}
 	}
 

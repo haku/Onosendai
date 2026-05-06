@@ -23,7 +23,6 @@ Supported Services
 
 * Twitter columns are supported directly.
 * Very proof-of-concept Mastodon support, read-only with no formatting.
-* Posting to [Buffer](https://bufferapp.com) (currently requires advanced config to add account).
 * Forwarding Read Later column to [Instapaper](https://www.instapaper.com).
 
 Background Tasks
@@ -72,10 +71,6 @@ Column IDs must be positive integers.
       "provider": "successwhale",
       "username": "?username?",
       "password": "?password?"
-    }, {
-      "id": "b0",
-      "provider": "buffer",
-      "accessToken": "?accesstoken?"
     }
   ],
   "feeds": [

@@ -2,7 +2,6 @@ package com.vaguehope.onosendai.provider;
 
 import android.os.AsyncTask;
 
-import com.vaguehope.onosendai.provider.bufferapp.BufferAppProvider;
 import com.vaguehope.onosendai.provider.hosaka.HosakaProvider;
 import com.vaguehope.onosendai.provider.instapaper.InstapaperProvider;
 import com.vaguehope.onosendai.provider.mastodon.MastodonProvider;
@@ -20,7 +19,6 @@ public class ProviderMgr {
 	private final MastodonProvider mastodonProvider;
 	private final SuccessWhaleProvider successWhaleProvider;
 	private final InstapaperProvider instapaperProvider;
-	private final BufferAppProvider bufferAppProvider;
 	private final HosakaProvider hosakaProvider;
 
 	public ProviderMgr (final KvStore kvStore) {
@@ -28,7 +26,6 @@ public class ProviderMgr {
 		this.mastodonProvider = new MastodonProvider();
 		this.successWhaleProvider = new SuccessWhaleProvider(kvStore);
 		this.instapaperProvider = new InstapaperProvider();
-		this.bufferAppProvider = new BufferAppProvider();
 		this.hosakaProvider = new HosakaProvider();
 	}
 
@@ -46,10 +43,6 @@ public class ProviderMgr {
 
 	public InstapaperProvider getInstapaperProvider () {
 		return this.instapaperProvider;
-	}
-
-	public BufferAppProvider getBufferAppProvider () {
-		return this.bufferAppProvider;
 	}
 
 	public HosakaProvider getHosakaProvider () {
@@ -72,12 +65,7 @@ public class ProviderMgr {
 					this.instapaperProvider.shutdown();
 				}
 				finally {
-					try {
-						this.bufferAppProvider.shutdown();
-					}
-					finally {
-						this.hosakaProvider.shutdown();
-					}
+					this.hosakaProvider.shutdown();
 				}
 			}
 		}
