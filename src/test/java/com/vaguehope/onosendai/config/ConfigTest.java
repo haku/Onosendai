@@ -43,14 +43,7 @@ public class ConfigTest {
 	@Test
 	public void itReadsAccounts () throws Exception {
 		Map<String, Account> as = this.undertest.getAccounts();
-		assertEquals(2, as.size());
-
-		Account a = as.get("t0");
-		assertEquals(AccountProvider.TWITTER, a.getProvider());
-		assertEquals("?ckey?", a.getConsumerKey());
-		assertEquals("?csecret?", a.getConsumerSecret());
-		assertEquals("?atoken?", a.getAccessToken());
-		assertEquals("?asecret?", a.getAccessSecret());
+		assertEquals(1, as.size());
 
 		Account m = as.get("m0");
 		assertEquals(AccountProvider.MASTODON, m.getProvider());

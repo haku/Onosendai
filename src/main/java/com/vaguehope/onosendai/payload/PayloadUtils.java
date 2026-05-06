@@ -55,9 +55,6 @@ public final class PayloadUtils {
 	private static void addShareOptions (final Account account, final Tweet tweet, final Set<Payload> set) {
 		if (account.getProvider() == null) return;
 		switch (account.getProvider()) {
-			case TWITTER:
-				set.add(new SharePayload(tweet, NetworkType.TWITTER));
-				break;
 			case MASTODON:
 				set.add(new SharePayload(tweet, NetworkType.MASTODON));
 				break;

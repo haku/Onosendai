@@ -128,8 +128,6 @@ public class Account implements Titleable {
 
 	public boolean hasSecrets () {
 		switch (this.provider) {
-			case TWITTER:
-				return !StringHelper.isEmpty(this.consumerSecret) && !StringHelper.isEmpty(this.accessSecret);
 			case MASTODON:
 				return !StringHelper.isEmpty(this.accessToken);
 			default:
@@ -143,7 +141,6 @@ public class Account implements Titleable {
 		json.put(KEY_TITLE, this.title);
 		json.put(KEY_PROVIDER, String.valueOf(this.provider));
 		switch (this.provider) {
-			case TWITTER:
 			case MASTODON:
 				json.put(KEY_CONSUMER_KEY, this.consumerKey);
 				json.put(KEY_CONSUMER_SECRET, this.consumerSecret);
@@ -167,9 +164,6 @@ public class Account implements Titleable {
 		final AccountProvider provider = AccountProvider.parse(json.getString(KEY_PROVIDER));
 		Account account;
 		switch (provider) {
-			case TWITTER:
-				account = parseTwitterAccount(json, id);
-				break;
 			case MASTODON:
 				account = parseMastodonAccount(json, id);
 				break;
@@ -177,15 +171,6 @@ public class Account implements Titleable {
 				throw new IllegalArgumentException("Unknown provider: " + provider);
 		}
 		return account;
-	}
-
-	private static Account parseTwitterAccount (final JSONObject accountJson, final String id) throws JSONException {
-		final String title = accountJson.optString(KEY_TITLE, null);
-		final String consumerKey = accountJson.getString(KEY_CONSUMER_KEY);
-		final String consumerSecret = accountJson.optString(KEY_CONSUMER_SECRET);
-		final String accessToken = accountJson.getString(KEY_ACCESS_TOKEN);
-		final String accessSecret = accountJson.optString(KEY_ACCESS_SECRET);
-		return new Account(id, title, AccountProvider.TWITTER, consumerKey, consumerSecret, accessToken, accessSecret);
 	}
 
 	private static Account parseMastodonAccount (final JSONObject accountJson, final String id) throws JSONException {

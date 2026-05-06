@@ -88,7 +88,6 @@ public class UpdateService extends DbBindingService {
 		}
 
 		FetchPictureService.startServiceIfConfigured(this, prefs, columnsFetched, manual);
-		FetchLinkService.startServiceIfConfigured(this, prefs, columnsFetched, manual);
 
 		return true;
 	}

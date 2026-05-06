@@ -16,11 +16,9 @@ import android.support.v4.app.NotificationCompat;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
-import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.notifications.NotificationIds;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
-import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.ui.OutboxActivity;
@@ -77,26 +75,10 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostR
 	protected SendResult<PostRequest> doInBackgroundWithDb (final DbInterface db, final Void... params) {
 		LOG.i("Posting: %s", this.req);
 		switch (this.req.getAccount().getProvider()) {
-			case TWITTER:
-				return postTwitter();
 //			case MASTODON:
 //				return postMastodon();
 			default:
 				return new SendResult<PostRequest>(this.req, new UnsupportedOperationException("Do not know how to post to account type: " + this.req.getAccount().getUiTitle()));
-		}
-	}
-
-	private SendResult<PostRequest> postTwitter () {
-		final TwitterProvider p = new TwitterProvider();
-		try {
-			final Tweet u = p.post(this.req.getAccount(), this.req.getBody(), this.req.getInReplyToSidLong(), resolveAttachment());
-			return new SendResult<PostRequest>(this.req, u);
-		}
-		catch (final Exception e) { // NOSONAR need to report all errors.
-			return new SendResult<PostRequest>(this.req, e);
-		}
-		finally {
-			p.shutdown();
 		}
 	}
 

@@ -1,11 +1,7 @@
 package com.vaguehope.onosendai.ui;
 
-import android.content.Intent;
-import android.net.Uri;
-
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.images.ImageLoader;
-import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.Titleable;
@@ -30,30 +26,14 @@ public class ProfileMenu {
 	}
 
 	public static void show (final MainActivity mainActivity, final ImageLoader imageLoader, final Account account, final String username, final String fullName) {
-		final MenuAction profile = new MenuAction("Profile") {
-			@Override
-			public void onClick () {
-				ProfileDialog.show(mainActivity, imageLoader, account, username);
-			}
-		};
-
-		final String profileUrl = TwitterUrls.profileUrl(username);
-		final MenuAction userLink = new MenuAction(profileUrl) {
-			@Override
-			public void onClick () {
-				mainActivity.startActivity(new Intent(Intent.ACTION_VIEW)
-						.setData(Uri.parse(profileUrl)));
-			}
-		};
-
-		final MenuAction tweets = new MenuAction("Tweets") {
+		final MenuAction posts = new MenuAction("Posts") {
 			@Override
 			public void onClick () {
 				mainActivity.showLocalSearch(String.format("u:%s", username));
 			}
 		};
 
-		final MenuAction[] actions = new MenuAction[] { profile, userLink, tweets };
+		final MenuAction[] actions = new MenuAction[] { posts };
 
 		DialogHelper.askItem(mainActivity, fullName, actions, new Listener<MenuAction>() {
 			@Override

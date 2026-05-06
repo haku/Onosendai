@@ -28,7 +28,6 @@ public class AccountDialogPreference extends DialogPreference {
 		setTitle(account.getUiTitle());
 
 		switch(account.getProvider()) {
-			case TWITTER:
 			case MASTODON:
 				break;
 			default:

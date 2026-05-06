@@ -2,6 +2,7 @@ package com.vaguehope.onosendai.payload;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -12,6 +13,7 @@ import android.net.Uri;
 @RunWith(RobolectricTestRunner.class)
 public class HashTagPayloadTest {
 
+	@Ignore  // TODO bring this back when tags are clickable again
 	@Test
 	public void itCreateUrlCorrectly () throws Exception {
 		HashTagPayload tag = new HashTagPayload(null, "#123abc");

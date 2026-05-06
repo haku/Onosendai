@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import twitter4j.TwitterException;
-
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
@@ -15,10 +13,6 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.mastodon.MastodonProvider;
-import com.vaguehope.onosendai.provider.twitter.TwitterFeed;
-import com.vaguehope.onosendai.provider.twitter.TwitterFeeds;
-import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
-import com.vaguehope.onosendai.provider.twitter.TwitterUtils;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
 import com.vaguehope.onosendai.storage.DbInterface.DiscardOrder;
@@ -66,35 +60,11 @@ public class FetchColumn implements Callable<Void> {
 
 	private static void fetchColumnInner (final DbInterface db, final FetchFeedRequest ffr, final ProviderMgr providerMgr, final Filters filters, final boolean manual) {
 		switch (ffr.account.getProvider()) {
-			case TWITTER:
-				fetchTwitterColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters, manual);
-				break;
 			case MASTODON:
 				fetchMastodonColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters, manual);
 				break;
 			default:
 				LOG.e("Unknown account type: %s", ffr.account.getProvider());
-		}
-	}
-
-	private static void fetchTwitterColumn (final DbInterface db, final Account account, final Column column, final ColumnFeed columnFeed, final ProviderMgr providerMgr, final Filters filters, final boolean manual) {
-		final long startTime = System.nanoTime();
-		try {
-			final TwitterProvider twitterProvider = providerMgr.getTwitterProvider();
-			twitterProvider.addAccount(account);
-			final TwitterFeed feed = TwitterFeeds.parse(columnFeed.getResource());
-			final String sinceIdRaw = readSinceId(db, column, columnFeed);
-			final long sinceId = sinceIdRaw != null ? Long.parseLong(sinceIdRaw) : -1;
-			final TweetList tweets = twitterProvider.getTweets(feed, account, sinceId, column.isHdMedia(), manual);
-			final int filteredCount = filterAndStore(db, column, columnFeed, filters, tweets);
-			storeQuoted(db, tweets);
-			storeSuccess(db, column);
-			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-			LOG.i("Fetched %d items for '%s' '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), columnFeed.getResource(), durationMillis, filteredCount);
-		}
-		catch (final TwitterException e) {
-			LOG.w("Failed to fetch from Twitter: %s", ExcpetionHelper.causeTrace(e));
-			storeError(db, column, TwitterUtils.friendlyExceptionMessage(e));
 		}
 	}
 

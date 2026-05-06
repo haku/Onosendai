@@ -5,7 +5,6 @@ import java.util.Locale;
 import com.vaguehope.onosendai.util.Titleable;
 
 public enum AccountProvider implements Titleable {
-	TWITTER("Twitter"), //ES
 	/**
 	 * consumerKey = instanceName
 	 * accessToken = accessToken

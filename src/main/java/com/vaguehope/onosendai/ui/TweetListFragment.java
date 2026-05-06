@@ -71,7 +71,6 @@ import com.vaguehope.onosendai.provider.OutboxActionFactory;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.SendOutboxService;
 import com.vaguehope.onosendai.provider.mastodon.MastodonUrls;
-import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.storage.DbClient;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.ColumnState;
@@ -637,10 +636,11 @@ public class TweetListFragment extends Fragment implements DbProvider {
 				body = String.format("RT @%s %s", StringHelper.firstLine(tweet.getUsername()), tweet.getBody());
 				cursorPosition = body.length();
 				break;
-			case LINK:
-				body = String.format(" %s", TwitterUrls.tweet(tweet));
-				cursorPosition = 0;
-				break;
+			// TODO add this back for mastodon.
+//			case LINK:
+//				body = String.format(" %s", TwitterUrls.tweet(tweet));
+//				cursorPosition = 0;
+//				break;
 			default:
 				return;
 		}
@@ -742,9 +742,6 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 		final Uri uri;
 		switch (account.getProvider()) {
-			case TWITTER:
-				uri = Uri.parse(TwitterUrls.tweet(tweet));
-				break;
 			case MASTODON:
 				uri = Uri.parse(MastodonUrls.toot(account, tweet));
 				break;

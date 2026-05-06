@@ -12,7 +12,6 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.OutboxTask.OtRequest;
 import com.vaguehope.onosendai.provider.mastodon.MastodonProvider;
-import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.ui.OutboxActivity;
@@ -24,7 +23,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
-import twitter4j.TwitterException;
 
 public class OutboxTask extends DbBindingAsyncTask<Void, Void, SendResult<OtRequest>> {
 
@@ -64,41 +62,10 @@ public class OutboxTask extends DbBindingAsyncTask<Void, Void, SendResult<OtRequ
 	protected SendResult<OtRequest> doInBackgroundWithDb (final DbInterface db, final Void... params) {
 		LOG.i("%s: %s", this.req.getAction().getUiVerb(), this.req);
 		switch (this.req.getAccount().getProvider()) {
-			case TWITTER:
-				return viaTwitter(db);
 			case MASTODON:
 				return viaMastodon(db);
 			default:
 				return new SendResult<OtRequest>(this.req, new UnsupportedOperationException("Do not know how to " + this.req.getAction().getUiTitle() + " via account type: " + this.req.getAccount().getUiTitle()));
-		}
-	}
-
-	private SendResult<OtRequest> viaTwitter (final DbInterface db) {
-		final TwitterProvider p = new TwitterProvider();
-		try {
-			switch (this.req.getAction()) {
-				case RT:
-					p.rt(this.req.getAccount(), Long.parseLong(this.req.getSid()));
-					LOG.i("RTed tweet: sid=%s", this.req.getSid());
-					return new SendResult<OtRequest>(this.req);
-				case FAV:
-					p.fav(this.req.getAccount(), Long.parseLong(this.req.getSid()));
-					LOG.i("Favorited tweet: sid=%s", this.req.getSid());
-					return new SendResult<OtRequest>(this.req);
-				case DELETE:
-					p.delete(this.req.getAccount(), Long.parseLong(this.req.getSid()));
-					LOG.i("Deleted tweet: editSid=%s", this.req.getSid());
-					markAsDeleted(db);
-					return new SendResult<OtRequest>(this.req);
-				default:
-					return new SendResult<OtRequest>(this.req, new UnsupportedOperationException("Do not know how to " + this.req.getAction().getUiTitle() + " via account type: " + this.req.getAccount().getUiTitle()));
-			}
-		}
-		catch (final TwitterException e) {
-			return new SendResult<OtRequest>(this.req, e);
-		}
-		finally {
-			p.shutdown();
 		}
 	}
 

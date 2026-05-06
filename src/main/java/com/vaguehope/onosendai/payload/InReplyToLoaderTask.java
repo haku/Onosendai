@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-import twitter4j.TwitterException;
 import android.content.Context;
 
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
@@ -27,6 +26,9 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 
 	private static final LogWrapper LOG = new LogWrapper("RL");
 
+	// How many times it is allowed to call itself, to avoid going forever of long threads.
+	private static final int MAX_INVOCATION_COUNT = 10;
+
 	private final Config conf;
 	private final ProviderMgr provMgr;
 	private final PayloadListAdapter payloadListAdapter;
@@ -35,15 +37,15 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 	private final boolean hdMedia;
 	private final Executor es;
 	private final Payload placeholderPayload;
-	private final boolean firstRun;
+	private final int prevInvocationCount;
 
 	public InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr,
 			final Tweet rootTweet, final boolean hdMedia, final PayloadListAdapter payloadListAdapter, final Executor es) {
-		this(eventListener, context, conf, provMgr, rootTweet, rootTweet, hdMedia, payloadListAdapter, es, true);
+		this(eventListener, context, conf, provMgr, rootTweet, rootTweet, hdMedia, payloadListAdapter, es, 0);
 	}
 
 	private InReplyToLoaderTask (final ExecutorEventListener eventListener, final Context context, final Config conf, final ProviderMgr provMgr,
-			final Tweet rootTweet, final Tweet threadTweet, final boolean hdMedia, final PayloadListAdapter payloadListAdapter, final Executor es, final boolean firstRun) {
+			final Tweet rootTweet, final Tweet threadTweet, final boolean hdMedia, final PayloadListAdapter payloadListAdapter, final Executor es, final int prevInvocationCount) {
 		super(eventListener, context);
 		this.conf = conf;
 		this.provMgr = provMgr;
@@ -53,7 +55,7 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 		this.payloadListAdapter = payloadListAdapter;
 		this.es = es;
 		this.placeholderPayload = new PlaceholderPayload(null, "Fetching conversation...", true); //ES
-		this.firstRun = firstRun;
+		this.prevInvocationCount = prevInvocationCount;
 	}
 
 	@Override
@@ -75,38 +77,13 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 	protected ReplyLoaderResult doInBackgroundWithDb (final DbInterface db, final Void... unused) {
 		final Account account = MetaUtils.accountFromMeta(this.threadTweet, this.conf);
 		if (account != null) {
-			if (this.firstRun) TweetLinkExpanderTask.checkAndRun(getEventListener(), getContext(), this.provMgr, this.rootTweet, this.hdMedia, account, this.payloadListAdapter, this.es);
 			switch (account.getProvider()) {
-				case TWITTER:
-					return twitter(db, account, this.threadTweet);
 				case MASTODON:
 					return mastodon(db, account, this.threadTweet);
 				default:
 			}
 		}
 		return generic(db, this.threadTweet);
-	}
-
-	private ReplyLoaderResult twitter (final DbInterface db, final Account account, final Tweet startingTweet) {
-		final Meta inReplyToMeta = startingTweet.getFirstMetaOfType(MetaType.INREPLYTO);
-		if (inReplyToMeta == null) return null;
-
-		final ReplyLoaderResult fromCache = fetchFromCache(db, startingTweet, inReplyToMeta.getData());
-		if (fromCache != null) return fromCache;
-
-		try {
-			final Tweet inReplyToTweet = this.provMgr.getTwitterProvider().getTweet(account, inReplyToMeta.toLong(0L), this.hdMedia);
-			if (inReplyToTweet != null) {
-				cacheInReplyTos(db, Collections.singletonList(inReplyToTweet));
-				return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
-			}
-		}
-		catch (final TwitterException e) {
-			LOG.w("Failed to retrieve tweet %s: %s", inReplyToMeta.getData(), e.toString());
-			return new ReplyLoaderResult("Error fetching tweet: " + e.getMessage(), startingTweet);
-		}
-
-		return null;
 	}
 
 	private ReplyLoaderResult mastodon (final DbInterface db, final Account account, final Tweet startingTweet) {
@@ -159,8 +136,10 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 			return;
 		}
 		this.payloadListAdapter.replaceItem(this.placeholderPayload, result.getPayloads());
-		if (result.checkAgain()) {
-			new InReplyToLoaderTask(getEventListener(), getContext(), this.conf, this.provMgr, this.rootTweet, result.getFirstTweet(), this.hdMedia, this.payloadListAdapter, this.es, false).executeOnExecutor(this.es);
+		if (result.checkAgain() && this.prevInvocationCount < MAX_INVOCATION_COUNT) {
+			new InReplyToLoaderTask(getEventListener(), getContext(), this.conf, this.provMgr, this.rootTweet, result.getFirstTweet(),
+					this.hdMedia, this.payloadListAdapter, this.es, this.prevInvocationCount + 1)
+			.executeOnExecutor(this.es);
 		}
 	}
 

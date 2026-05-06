@@ -81,11 +81,6 @@
 			android:configChanges="locale|layoutDirection" />
 
 		<activity
-			android:name=".ui.pref.TwitterLoginActivity"
-			android:label="@string/preferences_title"
-			android:configChanges="locale|layoutDirection" />
-
-		<activity
 			android:name=".ui.pref.ColumnStatsActivity"
 			android:label="@string/column_stats_title"
 			android:configChanges="locale|layoutDirection" />

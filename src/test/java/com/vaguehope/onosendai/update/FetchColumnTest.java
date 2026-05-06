@@ -3,7 +3,6 @@ package com.vaguehope.onosendai.update;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,8 +23,7 @@ import com.vaguehope.onosendai.config.ColumnFeed;
 import com.vaguehope.onosendai.model.Filters;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ProviderMgr;
-import com.vaguehope.onosendai.provider.twitter.TwitterFeed;
-import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
+import com.vaguehope.onosendai.provider.mastodon.MastodonProvider;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -45,7 +43,7 @@ public class FetchColumnTest {
 	@Mock private ProviderMgr providerMgr;
 	@Mock private Filters filters;
 
-	@Mock private TwitterProvider twitterProvider;
+	@Mock private MastodonProvider mastodonProvider;
 	@Mock private TweetList tweetList;
 
 	private FetchColumn undertest;
@@ -58,22 +56,22 @@ public class FetchColumnTest {
 		Whitebox.setInternalState(FetchColumn.class, "LOG", this.logWrapper);
 
 		when(this.account.getId()).thenReturn(ACC_ID);
-		when(this.account.getProvider()).thenReturn(AccountProvider.TWITTER);
+		when(this.account.getProvider()).thenReturn(AccountProvider.MASTODON);
 		when(this.column.getId()).thenReturn(COL_ID);
 		when(this.column.getFeeds()).thenReturn(Collections.singleton(this.columnFeed));
 
-		when(this.providerMgr.getTwitterProvider()).thenReturn(this.twitterProvider);
-		when(this.twitterProvider.getTweets(isA(TwitterFeed.class), eq(this.account), anyLong(), anyBoolean(), anyBoolean())).thenReturn(this.tweetList);
+		when(this.providerMgr.getMastodonProvider()).thenReturn(this.mastodonProvider);
+		when(this.mastodonProvider.getFeed(eq(RES), eq(this.account), anyLong(), anyBoolean())).thenReturn(this.tweetList);
 	}
 
 	@Test
-	public void itFindsCorrectSinceIdWhenFetchingFromTwitter () throws Exception {
+	public void itFindsCorrectSinceIdWhenFetchingFromMastodon () throws Exception {
 		final long sinceId = 120394230492830123L;
 		when(this.db.getValue(KvKeys.feedSinceId(this.column, this.columnFeed))).thenReturn(String.valueOf(sinceId));
 
 		this.undertest.call();
 
-		verify(this.twitterProvider).getTweets(isA(TwitterFeed.class), eq(this.account), eq(sinceId), anyBoolean(), anyBoolean());
+		verify(this.mastodonProvider).getFeed(eq(RES), eq(this.account), eq(sinceId), anyBoolean());
 	}
 
 }

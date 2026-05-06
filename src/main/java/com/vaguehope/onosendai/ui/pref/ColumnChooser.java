@@ -12,12 +12,9 @@ import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.mastodon.MastodonColumnType;
 import com.vaguehope.onosendai.provider.mastodon.MastodonListsFetcher;
-import com.vaguehope.onosendai.provider.twitter.TwitterColumnType;
-import com.vaguehope.onosendai.provider.twitter.TwitterListsFetcher;
 import com.vaguehope.onosendai.util.CollectionHelper.Function;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
-import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.Titleable;
 
 class ColumnChooser {
@@ -86,9 +83,6 @@ class ColumnChooser {
 
 	protected void promptAddColumn (final Account account, final String previousResource) {
 		switch (account.getProvider()) {
-			case TWITTER:
-				promptAddTwitterColumn(account); // TODO pass in existing resource value.
-				break;
 			case MASTODON:
 				promptAddMastodonColumn(account); // TODO pass in existing resource value.
 				break;
@@ -103,94 +97,6 @@ class ColumnChooser {
 			@Override
 			public void onAnswer (final InternalColumnType type) {
 				onColumn(null, type.name(), type.getUiTitle());
-			}
-		});
-	}
-
-//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	protected void promptAddTwitterColumn (final Account account) {
-		DialogHelper.askItem(this.context, "Twitter Columns", TwitterColumnType.values(), new Listener<TwitterColumnType>() { //ES
-			@Override
-			public void onAnswer (final TwitterColumnType type) {
-				promptAddTwitterColumn(account, type);
-			}
-		});
-	}
-
-	protected void promptAddTwitterColumn (final Account account, final TwitterColumnType type) {
-		switch (type) {
-			case LIST:
-				promptAddTwitterListColumn(account, null);
-				break;
-			case ANOTHERS_LIST:
-				promptAddTwitterAnothersListColumn(account);
-				break;
-			case ANOTHERS_FAVORITES:
-				promptAddTwitterAnothersFavoritesColumn(account);
-				break;
-			case SEARCH:
-				promptAddTwitterSearchColumn(account);
-				break;
-			default:
-				onColumn(account, type.getResource());
-		}
-	}
-
-	protected void promptAddTwitterAnothersListColumn (final Account account) {
-		// TODO auto complete screen names?
-		DialogHelper.askString(this.context, "Their screen name (without @):", new Listener<String>() { //ES
-			@Override
-			public void onAnswer (final String answer) {
-				if (StringHelper.isEmpty(answer)) {
-					DialogHelper.alert(ColumnChooser.this.context, "Screen name was empty."); //ES
-				}
-				else {
-					promptAddTwitterListColumn(account, answer);
-				}
-			}
-		});
-	}
-
-	protected void promptAddTwitterListColumn (final Account account, final String ownerScreenName) {
-		new TwitterListsFetcher(this.context, account, ownerScreenName, new Listener<List<String>>() {
-			@Override
-			public void onAnswer (final List<String> lists) {
-				promptAddTwitterListColumn(account, ownerScreenName, lists);
-			}
-		}).execute();
-	}
-
-	protected void promptAddTwitterListColumn (final Account account, final String ownerScreenName, final List<String> listSlugs) {
-		DialogHelper.askStringItem(this.context, "Twitter Lists", listSlugs, new Listener<String>() { //ES
-			@Override
-			public void onAnswer (final String answer) {
-				final String owner = StringHelper.isEmpty(ownerScreenName) ? "" : ownerScreenName + "/";
-				onColumn(account, TwitterColumnType.LIST.getResource() + owner + answer);
-			}
-		});
-	}
-
-	protected void promptAddTwitterAnothersFavoritesColumn (final Account account) {
-		// TODO auto complete screen names?
-		DialogHelper.askString(this.context, "Their screen name (without @):", new Listener<String>() { //ES
-			@Override
-			public void onAnswer (final String answer) {
-				if (StringHelper.isEmpty(answer)) {
-					DialogHelper.alert(ColumnChooser.this.context, "Screen name was empty."); //ES
-				}
-				else {
-					onColumn(account, TwitterColumnType.ANOTHERS_FAVORITES.getResource() + answer);
-				}
-			}
-		});
-	}
-
-	protected void promptAddTwitterSearchColumn (final Account account) {
-		DialogHelper.askString(this.context, "Search term:", new Listener<String>() { //ES
-			@Override
-			public void onAnswer (final String answer) {
-				onColumn(account, TwitterColumnType.SEARCH.getResource() + answer);
 			}
 		});
 	}

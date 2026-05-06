@@ -1,7 +1,6 @@
 package com.vaguehope.onosendai.provider;
 
 public enum NetworkType {
-	TWITTER("twitter"),
 	MASTODON("mastodon");
 
 	private final String name; // NOSONAR not a singular field.

@@ -72,10 +72,6 @@ public class SharePayload extends Payload {
 		final TextView btnRt = (TextView) btns.get(BTN_SHARE_RT);
 		if (this.networkType != null) {
 			switch (this.networkType) {
-				case TWITTER:
-					btnRt.setText(R.string.tweetlist_details_rt);
-					btnRt.setVisibility(View.VISIBLE);
-					break;
 				case MASTODON:
 					btnRt.setText(R.string.tweetlist_details_boost);
 					btnRt.setVisibility(View.VISIBLE);

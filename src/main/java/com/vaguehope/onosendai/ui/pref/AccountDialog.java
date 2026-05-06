@@ -31,7 +31,6 @@ class AccountDialog {
 
 	private final View llParent;
 	private final EditText txtTitle;
-	private final View rowUsername;
 	private final TextView txtUsernameLabel;
 	private final EditText txtUsername;
 	private final Button btnTest;
@@ -63,7 +62,6 @@ class AccountDialog {
 		this.llParent = inflater.inflate(R.layout.accountdialog, null);
 
 		this.txtTitle = (EditText) this.llParent.findViewById(R.id.txtTitle);
-		this.rowUsername = this.llParent.findViewById(R.id.rowUsername);
 		this.txtUsername = (EditText) this.llParent.findViewById(R.id.txtUsername);
 		this.txtUsernameLabel = (TextView) this.llParent.findViewById(R.id.txtUsernameLabel);
 		this.btnTest = (Button) this.llParent.findViewById(R.id.btnTestLogin);
@@ -75,10 +73,6 @@ class AccountDialog {
 		}
 
 		switch (this.accountProvider) {
-			case TWITTER:
-				this.rowUsername.setVisibility(View.GONE);
-				this.btnTest.setVisibility(View.GONE);
-				break;
 			case MASTODON:
 				this.txtUsernameLabel.setText("Instance");
 				this.txtUsername.setEnabled(false);  // Instance being editable would make list IDs etc get messed up.
@@ -128,7 +122,6 @@ class AccountDialog {
 	 */
 	public boolean isSaveable () {
 		switch (this.accountProvider) {
-			case TWITTER:
 			case MASTODON:
 				return true;
 			default:
@@ -139,7 +132,6 @@ class AccountDialog {
 	public Account getValue () {
 		final String title = this.txtTitle.getText().toString().trim();
 		switch (this.accountProvider) {
-			case TWITTER:
 			case MASTODON:
 				if (this.initialValue == null) throw new IllegalStateException("Can not use account dialog to create a " + this.accountProvider.getUiTitle() + " account.");
 				return new Account(this.id, title,

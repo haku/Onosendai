@@ -1,12 +1,7 @@
 package com.vaguehope.onosendai.payload;
 
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.Tweet;
-import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.util.EqualHelper;
 
 public class HashTagPayload extends Payload {
@@ -31,17 +26,18 @@ public class HashTagPayload extends Payload {
 		return this.hashtag;
 	}
 
-	@Override
-	public boolean intentable () {
-		return true;
-	}
-
-	@Override
-	public Intent toIntent (final Context context) {
-		final Intent i = new Intent(Intent.ACTION_VIEW);
-		i.setData(Uri.parse(TwitterUrls.hashtag(this.hashtag)));
-		return i;
-	}
+	// TODO Bring this back when i figure out where mastodon tags should link to
+//	@Override
+//	public boolean intentable () {
+//		return true;
+//	}
+//
+//	@Override
+//	public Intent toIntent (final Context context) {
+//		final Intent i = new Intent(Intent.ACTION_VIEW);
+//		i.setData(Uri.parse(String.format(HASHTAG_URL_TEMPLATE, Uri.encode(this.hashtag))));
+//		return i;
+//	}
 
 	@Override
 	public int hashCode () {

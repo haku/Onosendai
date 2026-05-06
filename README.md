@@ -20,8 +20,7 @@ Features
 Supported Services
 ------------------
 
-* Twitter columns are supported directly.
-* Very proof-of-concept Mastodon support, read-only with no formatting.
+* Read-only Mastodon support, write still needs implementing.
 
 Background Tasks
 ----------------
@@ -34,85 +33,6 @@ Note that background tasks will run based on battery level.
 | Fetch tweets                  | 30%         |
 | Prefetch pics and link titles | 30%         |
 | Clean temp files              | 50%         |
-
-Advanced Configuration
-----------------------
-
-Advanced configuration (not using the UI) is available but not recommended for typical users.
-It is both a legacy feature and a useful development hook when testing new features.
-This is via the `deck.conf` file that lives in the root of the external storage device, typically `/sdcard/deck.conf`.
-If this file does not exist a template can be created by the welcome screen for you to edit.
-
-### Example config
-
-**Note**: This is to show what possible.  It is not necessarily a good example of what you should put in your config.  Just saying.
-
-**Account IDs and Feed IDs**: These are used to separate data in the DB.
-The are arbitrary and do not have to be in order.
-If you remove an account or column it may be best not to reuse the ID as strange things may happen.
-Column IDs must be positive integers.
-
-```JSON
-{
-  "accounts": [
-    {
-      "id": "t0",
-      "provider": "twitter",
-      "consumerKey": "?ckey?",
-      "consumerSecret": "?csecret?",
-      "accessToken": "?atoken?",
-      "accessSecret": "?asecret?"
-    }
-  ],
-  "feeds": [
-    {
-      "id": 0,
-      "title": "My World",
-      "account": "t0",
-      "resource": "timeline",
-      "refresh": "30min",
-      "exclude": [1,4]
-    }, {
-      "id": 2,
-      "title": "About Me",
-      "account": "t0",
-      "resource": "mentions",
-      "refresh": "15min",
-      "notify": true
-    }, {
-      "id": 1,
-      "title": "My Tweets",
-      "account": "t0",
-      "resource": "me",
-      "refresh": "1hour"
-    }, {
-      "id": 4,
-      "title": "My List",
-      "account": "t0",
-      "resource": "lists/mylist",
-      "refresh": "15min",
-      "notify": true
-    }, {
-      "id": 10,
-      "title": "My Search for #tag",
-      "account": "t0",
-      "resource": "search/#tag",
-      "refresh": "120min"
-    }, {
-      "id": 7,
-      "title": "Read Later",
-      "resource": "later"
-    }, {
-      "id": 8,
-      "title": "Mentions and Me",
-      "account": "sw0",
-      "resource": "twitter/12345678/statuses/mentions:twitter/12345678/statuses/user_timeline",
-      "refresh": "15min",
-      "notify": true
-    }
-  ]
-}
-```
 
 ### Background refreshing
 
@@ -166,16 +86,6 @@ The APK can be made smaller using ProGuard.  This project is configured to only 
 
 ```sh
 mvn clean install -P release
-```
-
-### Twitter OAuth key and secret
-
-Provide OAuth details build time using environment variables.
-The Maven build will then add these into the `.apk`.
-
-```sh
-export API_TWITTER_CONSUMER_KEY=1234567890abcdef
-export API_TWITTER_CONSUMER_SECRET=1234567890abcdef1234567890abcdef
 ```
 
 Logging

@@ -25,12 +25,8 @@ import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.ConfigBuilder;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.mastodon.MastodonColumnFactory;
-import com.vaguehope.onosendai.provider.twitter.TwitterColumnFactory;
 import com.vaguehope.onosendai.ui.pref.MastodonOauthWizard;
-import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard;
 import com.vaguehope.onosendai.ui.pref.MastodonOauthWizard.MastodonOauthComplete;
-import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthComplete;
-import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
@@ -58,7 +54,6 @@ public class SetupActivity extends Activity {
 
 		this.actAdaptor = new ArrayAdapter<SetupAction>(this, R.layout.setupactionlistrow);
 		this.actAdaptor.add(SetupActionType.MASTODON.toSetupAction(this));
-		this.actAdaptor.add(SetupActionType.TWITTER.toSetupAction(this));
 
 		this.spnAct.setAdapter(this.actAdaptor);
 		this.spnAct.setOnItemSelectedListener(this.actOnItemSelectedListener);
@@ -96,9 +91,6 @@ public class SetupActivity extends Activity {
 	protected void runAction () {
 		final SetupAction act = (SetupAction) this.spnAct.getSelectedItem();
 		switch (act.getType()) {
-			case TWITTER:
-				doTwitter();
-				break;
 			case MASTODON:
 				doMastodon();
 				break;
@@ -132,35 +124,6 @@ public class SetupActivity extends Activity {
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	private TwitterOauthWizard twitterOauthWizard;
-
-	private void initTwitterOauthWizard () {
-		if (this.twitterOauthWizard != null) return;
-		this.twitterOauthWizard = new TwitterOauthWizard(this, new TwitterOauthHelper() {
-			@Override
-			public void deligateStartActivityForResult (final Intent intent, final int requestCode) {
-				startActivityForResult(intent, requestCode);
-			}
-		});
-	}
-
-	private void doTwitter () {
-		initTwitterOauthWizard();
-		this.twitterOauthWizard.start(new TwitterOauthComplete() {
-			@Override
-			public String getAccountId () {
-				return SetupActivity.this.prefs.getNextAccountId();
-			}
-
-			@Override
-			public void onAccount (final Account account, final String screenName) throws JSONException {
-				SetupActivity.this.prefs.writeNewAccount(account);
-				DialogHelper.alert(SetupActivity.this, "Twitter account added:\n" + screenName); //ES
-				onTwitterAccountAdded(account);
-			}
-		});
-	}
-
 	private void doMastodon() {
 		final MastodonOauthWizard wizard = new MastodonOauthWizard(this, new MastodonOauthComplete() {
 			@Override
@@ -176,40 +139,6 @@ public class SetupActivity extends Activity {
 			}
 		});
 		wizard.start();
-	}
-
-	@Override
-	public void onActivityResult (final int requestCode, final int resultCode, final Intent intent) {
-		super.onActivityResult(requestCode, resultCode, intent);
-		this.twitterOauthWizard.onActivityResult(requestCode, resultCode, intent);
-	}
-
-	protected void onTwitterAccountAdded (final Account account) {
-		DialogHelper.alertAndRun(this,
-				"To get you started default Twitter columns will be created.  These can be customised later.", //ES
-				new Runnable() {
-					@Override
-					public void run () {
-						createTwitterColumnsAndFinish(account);
-					}
-				});
-	}
-
-	protected void createTwitterColumnsAndFinish (final Account account) {
-		try {
-			new ConfigBuilder()
-					.account(account)
-					.column(TwitterColumnFactory.homeTimeline(-1, account))
-					.column(TwitterColumnFactory.mentions(-1, account))
-					.readLater()
-					.writeOverMain(this);
-			startActivity(new Intent(getApplicationContext(), MainActivity.class));
-			finish();
-		}
-		catch (final Exception e) { // NOSONAR show user all errors.
-			LOG.e("Failed to setup Twitter account and columns.", e);
-			DialogHelper.alertAndClose(this, e);
-		}
 	}
 
 	protected void onMastodonAccountAdded (final Account account) {
@@ -269,7 +198,6 @@ public class SetupActivity extends Activity {
 	}
 
 	private enum SetupActionType {
-		TWITTER("twitter"),
 		MASTODON("mastodon"),
 		WRITEEXAMPLECONF("writeexampleconf"),
 		USECONF("useconf");

@@ -1,21 +1,17 @@
 package com.vaguehope.onosendai.model;
 
-import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
 import android.view.View;
 
 import com.vaguehope.onosendai.R;
-import com.vaguehope.onosendai.config.Account;
-import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.images.ImageLoadRequest;
 import com.vaguehope.onosendai.images.ImageLoader;
 import com.vaguehope.onosendai.model.TweetRowView.QuotingTweetRowView;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.ProviderMgr.ProviderMgrProvider;
-import com.vaguehope.onosendai.storage.DbInterface.DiscardOrder;
 import com.vaguehope.onosendai.storage.DbProvider;
 import com.vaguehope.onosendai.util.ExcpetionHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -218,7 +214,7 @@ public class LinkedTweetLoader {
 		protected void onPostExecute (final Result<Tweet> result) {
 			if (result == null) {
 				if (this.req.shouldFinishLoading()) {
-					new TweetFetcherTask(this.loader, this.req).executeOnExecutor(this.loader.getNetEs());
+					//new TweetFetcherTask(this.loader, this.req).executeOnExecutor(this.loader.getNetEs());
 				}
 			}
 			else if (result.isSuccess()) {
@@ -232,59 +228,61 @@ public class LinkedTweetLoader {
 
 	}
 
-	private static class TweetFetcherTask extends TrackingAsyncTask<Void, Void, Result<Tweet>> {
+	// TODO bring this back for mastodon once MastodonUtils knows how to populate Tweet.quotedSid.
 
-		private final LinkedTweetLoader loader;
-		private final TweetLoadRequest req;
-
-		public TweetFetcherTask (final LinkedTweetLoader loader, final TweetLoadRequest req) {
-			super(loader.getEventListener());
-			this.loader = loader;
-			this.req = req;
-		}
-
-		@Override
-		public String toString () {
-			return "fetch:" + this.req.getQuotedSid();
-		}
-
-		@Override
-		protected Result<Tweet> doInBackgroundWithTracking (final Void... params) {
-			if (!this.req.shouldFinishLoading()) return null;
-			try {
-				final Tweet parent = this.loader.getDbProvider().getDb().getTweetDetails(this.req.getParentSid());
-				if (parent != null) {
-					final Account account = MetaUtils.accountFromMeta(parent, this.loader.getConf());
-					if (account != null) {
-						final Tweet tweet = this.loader.getProvMgr().getTwitterProvider().getTweet(account, Long.parseLong(this.req.getQuotedSid()), this.loader.getHdMedia());
-						LOG.i("Fetched: %s=%s", this.req.getQuotedSid(), tweet);
-						this.loader.getDbProvider().getDb().storeTweets(Column.ID_CACHED, Collections.singletonList(tweet), DiscardOrder.FIRST_DOWNLOADED);
-						return new Result<Tweet>(tweet);
-					}
-					return new Result<Tweet>(new IllegalStateException("Tweet missing account meta: " + parent));
-				}
-				return new Result<Tweet>(new IllegalStateException("Tweet not in DB: " + this.req.getParentSid()));
-			}
-			catch (final Exception e) { // NOSONAR To report errors.
-				return new Result<Tweet>(e);
-			}
-			catch (final Throwable e) { // NOSONAR To report errors.
-				return new Result<Tweet>(new ExecutionException("Failed to fetch tweet.", e));
-			}
-		}
-
-		@Override
-		protected void onPostExecute (final Result<Tweet> result) {
-			if (result == null) return; // Request was no longer required.
-			if (result.isSuccess()) {
-				this.req.displayIfRequired(result.getData());
-			}
-			else {
-				LOG.e("Error fetching tweet.", result.getE());
-				this.req.displayIfRequired(result.getE());
-			}
-		}
-
-	}
+//	private static class TweetFetcherTask extends TrackingAsyncTask<Void, Void, Result<Tweet>> {
+//
+//		private final LinkedTweetLoader loader;
+//		private final TweetLoadRequest req;
+//
+//		public TweetFetcherTask (final LinkedTweetLoader loader, final TweetLoadRequest req) {
+//			super(loader.getEventListener());
+//			this.loader = loader;
+//			this.req = req;
+//		}
+//
+//		@Override
+//		public String toString () {
+//			return "fetch:" + this.req.getQuotedSid();
+//		}
+//
+//		@Override
+//		protected Result<Tweet> doInBackgroundWithTracking (final Void... params) {
+//			if (!this.req.shouldFinishLoading()) return null;
+//			try {
+//				final Tweet parent = this.loader.getDbProvider().getDb().getTweetDetails(this.req.getParentSid());
+//				if (parent != null) {
+//					final Account account = MetaUtils.accountFromMeta(parent, this.loader.getConf());
+//					if (account != null) {
+//						final Tweet tweet = this.loader.getProvMgr().getTwitterProvider().getTweet(account, Long.parseLong(this.req.getQuotedSid()), this.loader.getHdMedia());
+//						LOG.i("Fetched: %s=%s", this.req.getQuotedSid(), tweet);
+//						this.loader.getDbProvider().getDb().storeTweets(Column.ID_CACHED, Collections.singletonList(tweet), DiscardOrder.FIRST_DOWNLOADED);
+//						return new Result<Tweet>(tweet);
+//					}
+//					return new Result<Tweet>(new IllegalStateException("Tweet missing account meta: " + parent));
+//				}
+//				return new Result<Tweet>(new IllegalStateException("Tweet not in DB: " + this.req.getParentSid()));
+//			}
+//			catch (final Exception e) { // NOSONAR To report errors.
+//				return new Result<Tweet>(e);
+//			}
+//			catch (final Throwable e) { // NOSONAR To report errors.
+//				return new Result<Tweet>(new ExecutionException("Failed to fetch tweet.", e));
+//			}
+//		}
+//
+//		@Override
+//		protected void onPostExecute (final Result<Tweet> result) {
+//			if (result == null) return; // Request was no longer required.
+//			if (result.isSuccess()) {
+//				this.req.displayIfRequired(result.getData());
+//			}
+//			else {
+//				LOG.e("Error fetching tweet.", result.getE());
+//				this.req.displayIfRequired(result.getE());
+//			}
+//		}
+//
+//	}
 
 }

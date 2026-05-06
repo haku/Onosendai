@@ -136,7 +136,7 @@ public class MastodonProvider {
 	}
 
 	// TODO finish this
-//	public Tweet post (final Account account, final String body, final long inReplyTo, final ImageMetadata media) throws TwitterException, IOException {
+//	public Tweet post (final Account account, final String body, final long inReplyTo, final ImageMetadata media) throws IOException {
 //		InputStream attachmentIs = null;
 //		try {
 //			final MastodonClient client = getAccount(account);

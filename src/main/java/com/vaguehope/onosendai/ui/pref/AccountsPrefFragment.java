@@ -13,8 +13,6 @@ import android.preference.PreferenceFragment;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Prefs;
-import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthComplete;
-import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthHelper;
 import com.vaguehope.onosendai.ui.pref.MastodonOauthWizard.MastodonOauthComplete;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
@@ -62,7 +60,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 	protected void promptNewAccountType () {
 		DialogHelper.askItem(getActivity(), "Account Type", //ES
-				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.MASTODON },
+				new AccountProvider[] { AccountProvider.MASTODON },
 				new Listener<AccountProvider>() {
 					@Override
 					public void onAnswer (final AccountProvider answer) {
@@ -73,9 +71,6 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 	protected void promptAddAccount (final AccountProvider accountProvider) {
 		switch (accountProvider) {
-			case TWITTER:
-				promptAddTwitterAccount();
-				break;
 			case MASTODON:
 				promptAddMastodonAccount();
 				break;
@@ -85,35 +80,6 @@ public class AccountsPrefFragment extends PreferenceFragment {
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	private TwitterOauthWizard twitterOauthWizard;
-
-	private void initTwitterOauthWizard () {
-		if (this.twitterOauthWizard != null) return;
-		this.twitterOauthWizard = new TwitterOauthWizard(getActivity(), new TwitterOauthHelper() {
-			@Override
-			public void deligateStartActivityForResult (final Intent intent, final int requestCode) {
-				startActivityForResult(intent, requestCode);
-			}
-		});
-	}
-
-	private void promptAddTwitterAccount () {
-		initTwitterOauthWizard();
-		this.twitterOauthWizard.start(new TwitterOauthComplete() {
-			@Override
-			public String getAccountId () {
-				return AccountsPrefFragment.this.prefs.getNextAccountId();
-			}
-
-			@Override
-			public void onAccount (final Account account, final String screenName) throws JSONException {
-				AccountsPrefFragment.this.prefs.writeNewAccount(account);
-				DialogHelper.alert(getActivity(), "Twitter account added:\n" + screenName); //ES
-				refreshAccountsList();
-			}
-		});
-	}
 
 	private void promptAddMastodonAccount () {
 		final MastodonOauthWizard wizard = new MastodonOauthWizard(getActivity(), new MastodonOauthComplete() {
@@ -136,30 +102,11 @@ public class AccountsPrefFragment extends PreferenceFragment {
 	public void onActivityResult (final int requestCode, final int resultCode, final Intent intent) {
 		LOG.d("onActivityResult(%d, %d, %s)", requestCode, resultCode, intent);
 		super.onActivityResult(requestCode, resultCode, intent);
-		this.twitterOauthWizard.onActivityResult(requestCode, resultCode, intent);
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	protected void askReauthenticateAccount (final Account oldAccount) {
-		if (oldAccount.getProvider() == AccountProvider.TWITTER) {
-			initTwitterOauthWizard();
-			this.twitterOauthWizard.start(new TwitterOauthComplete() {
-				@Override
-				public String getAccountId () {
-					return oldAccount.getId();
-				}
-
-				@Override
-				public void onAccount (final Account newAccount, final String screenName) throws JSONException {
-					AccountsPrefFragment.this.prefs.updateExistingAccount(newAccount);
-					DialogHelper.alert(getActivity(), "Twitter account updated:\n" + screenName); //ES
-					refreshAccountsList();
-				}
-			});
-			return;
-		}
-
 		if (oldAccount.getProvider() == AccountProvider.MASTODON) {
 			final MastodonOauthWizard wizard = new MastodonOauthWizard(getActivity(), new MastodonOauthComplete() {
 				@Override
