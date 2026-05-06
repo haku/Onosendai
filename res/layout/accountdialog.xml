@@ -45,23 +45,6 @@
 		</TableRow>
 
 		<TableRow
-			android:id="@+id/rowPassword"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content">
-
-			<TextView
-				android:id="@+id/txtPasswordLabel"
-				android:paddingRight="10dp"
-				android:text="@string/accountdlg_field_password_label" />
-
-			<EditText
-				android:id="@+id/txtPassword"
-				android:layout_weight="1"
-				android:singleLine="true" />
-
-		</TableRow>
-
-		<TableRow
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:orientation="horizontal">

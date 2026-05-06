@@ -3,7 +3,6 @@ package com.vaguehope.onosendai.ui.pref;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -35,8 +34,6 @@ class AccountDialog {
 	private final View rowUsername;
 	private final TextView txtUsernameLabel;
 	private final EditText txtUsername;
-	private final View rowPassword;
-	private final EditText txtPassword;
 	private final Button btnTest;
 	private final CheckBox chkReauthenticate;
 	private final CheckBox chkDelete;
@@ -69,8 +66,6 @@ class AccountDialog {
 		this.rowUsername = this.llParent.findViewById(R.id.rowUsername);
 		this.txtUsername = (EditText) this.llParent.findViewById(R.id.txtUsername);
 		this.txtUsernameLabel = (TextView) this.llParent.findViewById(R.id.txtUsernameLabel);
-		this.rowPassword = this.llParent.findViewById(R.id.rowPassword);
-		this.txtPassword = (EditText) this.llParent.findViewById(R.id.txtPassword);
 		this.btnTest = (Button) this.llParent.findViewById(R.id.btnTestLogin);
 		this.chkReauthenticate = (CheckBox) this.llParent.findViewById(R.id.chkReauthenticate);
 		this.chkDelete = (CheckBox) this.llParent.findViewById(R.id.chkDelete);
@@ -82,24 +77,14 @@ class AccountDialog {
 		switch (this.accountProvider) {
 			case TWITTER:
 				this.rowUsername.setVisibility(View.GONE);
-				this.rowPassword.setVisibility(View.GONE);
 				this.btnTest.setVisibility(View.GONE);
 				break;
 			case MASTODON:
 				this.txtUsernameLabel.setText("Instance");
 				this.txtUsername.setEnabled(false);  // Instance being editable would make list IDs etc get messed up.
-				this.rowPassword.setVisibility(View.GONE);
 				if (initialValue != null) {
 					this.txtUsername.setText(initialValue.getConsumerKey());
 				}
-				break;
-			case HOSAKA:
-				this.txtPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-				if (initialValue != null) {
-					this.txtUsername.setText(initialValue.getAccessToken());
-					this.txtPassword.setText(initialValue.getAccessSecret());
-				}
-				this.chkReauthenticate.setVisibility(View.GONE);
 				break;
 			default:
 		}
@@ -145,7 +130,6 @@ class AccountDialog {
 		switch (this.accountProvider) {
 			case TWITTER:
 			case MASTODON:
-			case HOSAKA:
 				return true;
 			default:
 		}
@@ -162,12 +146,6 @@ class AccountDialog {
 						this.initialValue.getProvider(),
 						this.initialValue.getConsumerKey(), this.initialValue.getConsumerSecret(),
 						this.initialValue.getAccessToken(), this.initialValue.getAccessSecret());
-			case HOSAKA:
-				final String username = this.txtUsername.getText().toString().trim();
-				final String password = this.txtPassword.getText().toString();
-				return new Account(this.id, title,
-						this.accountProvider,
-						null, null, username, password);
 			default:
 				return null;
 		}
@@ -197,9 +175,6 @@ class AccountDialog {
 				switch (this.account.getProvider()) {
 					case MASTODON:
 						provMgr.getMastodonProvider().testAccountLogin(this.account);
-						return "Success."; //ES
-					case HOSAKA:
-						provMgr.getHosakaProvider().testAccountLogin(this.account);
 						return "Success."; //ES
 					default:
 						return "Do not know how to test account type: " + this.account.getProvider().getUiTitle(); //ES

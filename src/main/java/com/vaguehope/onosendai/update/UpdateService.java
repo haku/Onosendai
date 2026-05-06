@@ -87,7 +87,6 @@ public class UpdateService extends DbBindingService {
 			providerMgr.shutdown();
 		}
 
-		HosakaSyncService.startServiceIfConfigured(this, conf, columnIds);
 		FetchPictureService.startServiceIfConfigured(this, prefs, columnsFetched, manual);
 		FetchLinkService.startServiceIfConfigured(this, prefs, columnsFetched, manual);
 

@@ -11,8 +11,6 @@ public class KvKeys {
 
 	public static final String FEED_SINCE_ID_PREFIX = "FEED_SINCE_ID_";
 
-	public static final String KEY_HOSAKA_STATUS = "HOSAKA_STATUS";
-
 	public static String colLastRefreshTime (final Column col) {
 		return KEY_PREFIX_COL_LAST_REFRESH_TIME + col.getId();
 	}

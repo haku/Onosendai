@@ -10,12 +10,7 @@ public enum AccountProvider implements Titleable {
 	 * consumerKey = instanceName
 	 * accessToken = accessToken
 	 */
-	MASTODON("Mastodon"), //ES
-	/**
-	 * accessToken = username
-	 * accessSecret = passwd
-	 */
-	HOSAKA("Hosaka"); //ES
+	MASTODON("Mastodon"); //ES
 
 	private final String humanName;
 

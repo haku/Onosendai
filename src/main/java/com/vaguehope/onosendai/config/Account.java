@@ -14,9 +14,6 @@ public class Account implements Titleable {
 	private static final String KEY_TITLE = "title";
 	private static final String KEY_PROVIDER = "provider";
 
-	private static final String KEY_USERNAME = "username";
-	private static final String KEY_PASSWORD = "password";
-
 	private static final String KEY_CONSUMER_KEY = "consumerKey";
 	private static final String KEY_CONSUMER_SECRET = "consumerSecret";
 	private static final String KEY_ACCESS_TOKEN = "accessToken";
@@ -135,8 +132,6 @@ public class Account implements Titleable {
 				return !StringHelper.isEmpty(this.consumerSecret) && !StringHelper.isEmpty(this.accessSecret);
 			case MASTODON:
 				return !StringHelper.isEmpty(this.accessToken);
-			case HOSAKA:
-				return !StringHelper.isEmpty(this.accessSecret);
 			default:
 				throw new IllegalArgumentException("Unsupported account provilder: " + this.provider);
 		}
@@ -154,10 +149,6 @@ public class Account implements Titleable {
 				json.put(KEY_CONSUMER_SECRET, this.consumerSecret);
 				json.put(KEY_ACCESS_TOKEN, this.accessToken);
 				json.put(KEY_ACCESS_SECRET, this.accessSecret);
-				break;
-			case HOSAKA:
-				json.put(KEY_USERNAME, this.accessToken);
-				json.put(KEY_PASSWORD, this.accessSecret);
 				break;
 			default:
 				throw new IllegalArgumentException("Unsupported account provilder: " + this.provider);
@@ -182,9 +173,6 @@ public class Account implements Titleable {
 			case MASTODON:
 				account = parseMastodonAccount(json, id);
 				break;
-			case HOSAKA:
-				account = parseUsernamePasswordLikeAccount(json, id, AccountProvider.HOSAKA);
-				break;
 			default:
 				throw new IllegalArgumentException("Unknown provider: " + provider);
 		}
@@ -207,13 +195,6 @@ public class Account implements Titleable {
 		final String accessToken = accountJson.getString(KEY_ACCESS_TOKEN);
 		final String accessSecret = accountJson.optString(KEY_ACCESS_SECRET);
 		return new Account(id, title, AccountProvider.MASTODON, consumerKey, consumerSecret, accessToken, accessSecret);
-	}
-
-	private static Account parseUsernamePasswordLikeAccount (final JSONObject accountJson, final String id, final AccountProvider provider) throws JSONException {
-		final String accessToken = accountJson.getString(KEY_USERNAME);
-		final String accessSecret = accountJson.optString(KEY_PASSWORD);
-		final String title = accountJson.optString(KEY_TITLE, accessToken);
-		return new Account(id, title, provider, null, null, accessToken, accessSecret);
 	}
 
 }

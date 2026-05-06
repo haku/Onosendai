@@ -4,9 +4,6 @@ import java.util.List;
 
 import org.json.JSONException;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -65,7 +62,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 	protected void promptNewAccountType () {
 		DialogHelper.askItem(getActivity(), "Account Type", //ES
-				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.MASTODON, AccountProvider.HOSAKA },
+				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.MASTODON },
 				new Listener<AccountProvider>() {
 					@Override
 					public void onAnswer (final AccountProvider answer) {
@@ -81,9 +78,6 @@ public class AccountsPrefFragment extends PreferenceFragment {
 				break;
 			case MASTODON:
 				promptAddMastodonAccount();
-				break;
-			case HOSAKA:
-				promptAddUsernamePasswordLikeAccount(accountProvider);
 				break;
 			default:
 				DialogHelper.alert(getActivity(), "Do not know how to add account of type: " + accountProvider);
@@ -146,31 +140,6 @@ public class AccountsPrefFragment extends PreferenceFragment {
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	private void promptAddUsernamePasswordLikeAccount (final AccountProvider provider) {
-		final String id = getPrefs().getNextAccountId();
-		final AccountDialog dlg = new AccountDialog(getActivity(), id, provider);
-
-		final AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(getActivity());
-		dlgBuilder.setTitle("New Account (" + id + ")"); //ES
-		dlgBuilder.setView(dlg.getRootView());
-		dlgBuilder.setPositiveButton(android.R.string.ok, new OnClickListener() {
-			@Override
-			public void onClick (final DialogInterface dialog, final int which) {
-				dialog.dismiss();
-				try {
-					final Account newAccount = dlg.getValue();
-					getPrefs().writeNewAccount(newAccount);
-				}
-				catch (final JSONException e) {
-					DialogHelper.alert(getActivity(), "Failed to write new account: ", e);
-				}
-				refreshAccountsList();
-			}
-		});
-		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER); //ES
-		dlgBuilder.create().show();
-	}
 
 	protected void askReauthenticateAccount (final Account oldAccount) {
 		if (oldAccount.getProvider() == AccountProvider.TWITTER) {

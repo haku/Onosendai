@@ -30,7 +30,6 @@ public class AccountDialogPreference extends DialogPreference {
 		switch(account.getProvider()) {
 			case TWITTER:
 			case MASTODON:
-			case HOSAKA:
 				break;
 			default:
 				setEnabled(false);
