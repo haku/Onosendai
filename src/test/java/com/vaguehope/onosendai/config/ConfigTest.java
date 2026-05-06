@@ -43,7 +43,7 @@ public class ConfigTest {
 	@Test
 	public void itReadsAccounts () throws Exception {
 		Map<String, Account> as = this.undertest.getAccounts();
-		assertEquals(1, as.size());
+		assertEquals(2, as.size());
 
 		Account a = as.get("t0");
 		assertEquals(AccountProvider.TWITTER, a.getProvider());
@@ -51,6 +51,13 @@ public class ConfigTest {
 		assertEquals("?csecret?", a.getConsumerSecret());
 		assertEquals("?atoken?", a.getAccessToken());
 		assertEquals("?asecret?", a.getAccessSecret());
+
+		Account m = as.get("m0");
+		assertEquals(AccountProvider.MASTODON, m.getProvider());
+		assertEquals("?ckey?", m.getConsumerKey());
+		assertEquals("?csecret?", m.getConsumerSecret());
+		assertEquals("?atoken?", m.getAccessToken());
+		assertEquals("?asecret?", m.getAccessSecret());
 	}
 
 	@Test
@@ -61,7 +68,7 @@ public class ConfigTest {
 		Column c0 = cs.get(0);
 		assertEquals(0, c0.getId());
 		assertEquals("main", c0.getTitle());
-		assertEquals(Collections.singleton(new ColumnFeed("t0", "timeline")), c0.getFeeds());
+		assertEquals(Collections.singleton(new ColumnFeed("m0", "timeline")), c0.getFeeds());
 		assertEquals(15, c0.getRefreshIntervalMins());
 		assertEquals(null, c0.getNotificationStyle());
 		assertEquals(InlineMediaStyle.NONE, c0.getInlineMediaStyle());
@@ -69,7 +76,7 @@ public class ConfigTest {
 		Column c1 = cs.get(1);
 		assertEquals(1, c1.getId());
 		assertEquals("my list", c1.getTitle());
-		assertEquals(Collections.singleton(new ColumnFeed("t0", "lists/mylist")), c1.getFeeds());
+		assertEquals(Collections.singleton(new ColumnFeed("m0", "lists/mylist")), c1.getFeeds());
 		assertEquals(15, c1.getRefreshIntervalMins());
 		assertEquals(NotificationStyle.DEFAULT, c1.getNotificationStyle());
 		assertEquals(InlineMediaStyle.NONE, c1.getInlineMediaStyle());

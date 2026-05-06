@@ -14,4 +14,12 @@ public class AccountTest {
 		assertEquals(a, a1);
 	}
 
+	@Test
+	public void itRoundTripsMastodon () throws Exception {
+		Account a = new Account("1", "m", AccountProvider.MASTODON, "2", "3", "4", "5");
+		String j = a.toJson().toString(2);
+		Account a1 = Account.parseJson(j);
+		assertEquals(a, a1);
+	}
+
 }
