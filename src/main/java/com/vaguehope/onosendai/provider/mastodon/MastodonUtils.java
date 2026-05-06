@@ -126,30 +126,37 @@ public class MastodonUtils {
 		boolean hasAudio = false;
 
 		for (final Attachment att : s.getMediaAttachments()) {
+			final String attType = att.getType() != null ? att.getType().toLowerCase(Locale.ENGLISH) : null;
+
 			String imgUrl;
-			if ("image".equalsIgnoreCase(att.getType())) {
+			if ("image".equals(attType)) {
 				imgUrl = att.getUrl();
 				if (StringHelper.isEmpty(imgUrl)) imgUrl = att.getRemoteUrl();
 				if (StringHelper.isEmpty(imgUrl)) imgUrl = att.getPreviewUrl();
 			}
-			else {
+			else if ("video".equals(attType) || "gifv".equals(attType)) {
 				imgUrl = att.getPreviewUrl();
 			}
+			else {
+				imgUrl = null;
+			}
 
-			String clickUrl = att.getUrl();
+			String clickUrl = att.getTextUrl();
 			if (StringHelper.isEmpty(clickUrl)) clickUrl = att.getRemoteUrl();
 			if (StringHelper.isEmpty(clickUrl)) clickUrl = att.getPreviewUrl();
-			metas.add(new Meta(MetaType.MEDIA, imgUrl, clickUrl));
+
+			if (imgUrl != null) metas.add(new Meta(MetaType.MEDIA, imgUrl, clickUrl));
 
 			// If alt-text is ever supported, it goes here.
 
-			if ("gifv".equals(att.getType())) {
+			if ("gifv".equals(attType)) {
 				hasGif = true;
 			}
-			else if ("video".equals(att.getType())) {
+			else if ("video".equals(attType)) {
 				hasVideo = true;
 			}
-			else if ("audio".equals(att.getType())) {
+			else if ("audio".equals(attType)) {
+				metas.add(new Meta(MetaType.URL, att.getTextUrl()));
 				hasAudio = true;
 			}
 		}

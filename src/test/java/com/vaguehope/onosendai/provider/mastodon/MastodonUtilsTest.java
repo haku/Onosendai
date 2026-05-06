@@ -57,17 +57,18 @@ public class MastodonUtilsTest {
 		final Status s = mockToot("<p>foo</p>", "user@example.com", "A B", 456);
 
 		List<Attachment> ma = new ArrayList<Attachment>();
+		// https://docs.joinmastodon.org/entities/MediaAttachment/#image
 		ma.add(new Attachment(989, "image",
 				"http://mastodon.example.com/cache/full.jpg",
 				"http://home-server.example.com/media/full.jpg",
 				"http://mastodon.example.com/cache/thumb.jpg",
-				null));
+				"https://mastodon.example.com/media/bar"));
 		when(s.getMediaAttachments()).thenReturn(ma);
 
 		final Tweet t = MastodonUtils.convertStatusToTweet(this.osAccount, s, 123, null);
 		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA,
 				"http://mastodon.example.com/cache/full.jpg" /* preview */,
-				"http://mastodon.example.com/cache/full.jpg" /* click */)));
+				"https://mastodon.example.com/media/bar" /* click */)));
 		assertEquals("user@example.com", t.getUsernameWithSubtitle());
 	}
 
@@ -95,17 +96,17 @@ public class MastodonUtilsTest {
 		final Status s = mockToot("<p>foo</p>", "user@example.com", "A B", 456);
 
 		List<Attachment> ma = new ArrayList<Attachment>();
+		// https://docs.joinmastodon.org/entities/MediaAttachment/#audio
 		ma.add(new Attachment(987, "audio",
-				"http://mastodon.example.com/cache/audio.mp3",
-				"http://home-server.example.com/media/audio.mp3",
-				"http://mastodon.example.com/cache/audio.jpg",
-				null));
+				"https://mastodon.example.com/attachments/original/foo.mp3",  // url
+				null,  // remote_url
+				"https://mastodon.example.com/attachments/small/foo.mp3",  // preview_url
+				"https://mastodon.example.com/media/bar"));  // text_url
 		when(s.getMediaAttachments()).thenReturn(ma);
 
 		final Tweet t = MastodonUtils.convertStatusToTweet(this.osAccount, s, 123, null);
-		assertThat(t.getMetas(), hasItem(new Meta(MetaType.MEDIA,
-				"http://mastodon.example.com/cache/audio.jpg" /* preview */,
-				"http://mastodon.example.com/cache/audio.mp3" /* click */)));
+		assertThat(t.getMetas(), hasItem(new Meta(MetaType.URL,
+				"https://mastodon.example.com/media/bar")));
 		assertThat(t.getUsernameWithSubtitle(), containsString("audio"));
 	}
 
