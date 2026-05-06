@@ -1,7 +1,5 @@
 package com.vaguehope.onosendai.provider;
 
-import java.util.Collections;
-
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
@@ -36,17 +34,6 @@ public final class OutboxActionFactory {
 			case MASTODON:
 				return new OutboxTweet(action, account, null, actionBody(action, tweet), sid, null)
 						.setPending();
-			case SUCCESSWHALE:
-				final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
-				if (svcMeta != null) {
-					final ServiceRef svc = ServiceRef.parseServiceMeta(svcMeta);
-					if (svc != null) {
-						return new OutboxTweet(action, account, Collections.singleton(svc), actionBody(action, tweet), sid, null)
-								.setPending();
-					}
-					throw new IllegalStateException("Invalid service metadata: " + svcMeta.getData());
-				}
-				throw new IllegalStateException("Service metadata missing from: " + tweet);
 			default:
 				throw new UnsupportedOperationException("Do not know how to RT via account type: " + account.getUiTitle());
 		}

@@ -1,11 +1,8 @@
 package com.vaguehope.onosendai.provider;
 
-import android.os.AsyncTask;
-
 import com.vaguehope.onosendai.provider.hosaka.HosakaProvider;
 import com.vaguehope.onosendai.provider.instapaper.InstapaperProvider;
 import com.vaguehope.onosendai.provider.mastodon.MastodonProvider;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.KvStore;
 
@@ -17,14 +14,12 @@ public class ProviderMgr {
 
 	private final TwitterProvider twitterProvider;
 	private final MastodonProvider mastodonProvider;
-	private final SuccessWhaleProvider successWhaleProvider;
 	private final InstapaperProvider instapaperProvider;
 	private final HosakaProvider hosakaProvider;
 
 	public ProviderMgr (final KvStore kvStore) {
 		this.twitterProvider = new TwitterProvider();
 		this.mastodonProvider = new MastodonProvider();
-		this.successWhaleProvider = new SuccessWhaleProvider(kvStore);
 		this.instapaperProvider = new InstapaperProvider();
 		this.hosakaProvider = new HosakaProvider();
 	}
@@ -35,10 +30,6 @@ public class ProviderMgr {
 
 	public MastodonProvider getMastodonProvider () {
 		return this.mastodonProvider;
-	}
-
-	public SuccessWhaleProvider getSuccessWhaleProvider () {
-		return this.successWhaleProvider;
 	}
 
 	public InstapaperProvider getInstapaperProvider () {
@@ -58,35 +49,12 @@ public class ProviderMgr {
 		}
 		finally {
 			try {
-				new SwShutdowner().execute(this.successWhaleProvider);
+				this.instapaperProvider.shutdown();
 			}
 			finally {
-				try {
-					this.instapaperProvider.shutdown();
-				}
-				finally {
-					this.hosakaProvider.shutdown();
-				}
+				this.hosakaProvider.shutdown();
 			}
 		}
-	}
-
-	/**
-	 * Calling shutdown on UI thread triggers android.os.NetworkOnMainThreadException.  lolz.
-	 */
-	private static class SwShutdowner extends AsyncTask<SuccessWhaleProvider, Void, Void> {
-
-		public SwShutdowner () {}
-
-		@Override
-		protected Void doInBackground (final SuccessWhaleProvider... sws) {
-			if (sws == null) return null;
-			for (SuccessWhaleProvider sw : sws) {
-				sw.shutdown();
-			}
-			return null;
-		}
-
 	}
 
 }

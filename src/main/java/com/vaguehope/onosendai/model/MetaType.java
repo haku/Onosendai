@@ -29,6 +29,7 @@ public enum MetaType {
 	/**
 	 * SuccessWhale sub-account type.
 	 */
+	@Deprecated
 	SERVICE(6),
 	/**
 	 * Account (as appears in deck.conf).

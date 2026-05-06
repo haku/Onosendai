@@ -3,7 +3,6 @@ package com.vaguehope.onosendai.provider;
 import twitter4j.TwitterException;
 
 import com.vaguehope.onosendai.model.TaskOutcome;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.util.StringHelper;
 
 public final class TaskUtils {
@@ -34,9 +33,6 @@ public final class TaskUtils {
 			if (te.getErrorCode() == TWITTER_ERROR_CODE_ALREADY_FAVOURITED) return TaskOutcome.PREVIOUS_ATTEMPT_SUCCEEDED;
 			final int code = te.getStatusCode();
 			return code >= 400 && code < 500 ? TaskOutcome.PERMANENT_FAILURE : TaskOutcome.TEMPORARY_FAILURE; // NOSONAR not magic numbers, this is HTTP spec.
-		}
-		else if (e instanceof SuccessWhaleException) {
-			return ((SuccessWhaleException) e).isPermanent() ? TaskOutcome.PERMANENT_FAILURE : TaskOutcome.TEMPORARY_FAILURE;
 		}
 		else if (e instanceof RuntimeException) {
 			return TaskOutcome.PERMANENT_FAILURE;

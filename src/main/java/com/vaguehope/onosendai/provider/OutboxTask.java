@@ -12,9 +12,6 @@ import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.OutboxTask.OtRequest;
 import com.vaguehope.onosendai.provider.mastodon.MastodonProvider;
-import com.vaguehope.onosendai.provider.successwhale.ItemAction;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
@@ -71,8 +68,6 @@ public class OutboxTask extends DbBindingAsyncTask<Void, Void, SendResult<OtRequ
 				return viaTwitter(db);
 			case MASTODON:
 				return viaMastodon(db);
-			case SUCCESSWHALE:
-				return viaSuccessWhale(db);
 			default:
 				return new SendResult<OtRequest>(this.req, new UnsupportedOperationException("Do not know how to " + this.req.getAction().getUiTitle() + " via account type: " + this.req.getAccount().getUiTitle()));
 		}
@@ -130,62 +125,6 @@ public class OutboxTask extends DbBindingAsyncTask<Void, Void, SendResult<OtRequ
 		}
 		catch (final Mastodon4jRequestException e) {
 			return new SendResult<OtRequest>(this.req, e);
-		}
-	}
-
-	private SendResult<OtRequest> viaSuccessWhale (final DbInterface db) {
-		final SuccessWhaleProvider p = new SuccessWhaleProvider(db);
-		try {
-			final ServiceRef svc = this.req.getSvc();
-			if (svc != null) {
-				final NetworkType networkType = svc.getType();
-				if (networkType != null) {
-					switch (networkType) {
-						case TWITTER:
-							switch (this.req.getAction()) {
-								case RT:
-									p.itemAction(this.req.getAccount(), svc, this.req.getSid(), ItemAction.RETWEET);
-									LOG.i("RTed tweet: sid=%s", this.req.getSid());
-									return new SendResult<OtRequest>(this.req);
-								case FAV:
-									p.itemAction(this.req.getAccount(), svc, this.req.getSid(), ItemAction.FAVORITE);
-									LOG.i("Favorited tweet: sid=%s", this.req.getSid());
-									return new SendResult<OtRequest>(this.req);
-								case DELETE:
-									p.itemAction(this.req.getAccount(), svc, this.req.getSid(), ItemAction.DELETE_TWITTER);
-									LOG.i("Deleted SW tweet: editSid=%s", this.req.getSid());
-									markAsDeleted(db);
-									return new SendResult<OtRequest>(this.req);
-								default:
-									return new SendResult<OtRequest>(this.req, new UnsupportedOperationException("Do not know how to " + this.req.getAction().getUiTitle() + " via account type: " + this.req.getAccount().getUiTitle()));
-							}
-						case FACEBOOK:
-							switch (this.req.getAction()) {
-								case RT:
-									p.itemAction(this.req.getAccount(), svc, this.req.getSid(), ItemAction.LIKE);
-									LOG.i("Liked FB update: sid=%s", this.req.getSid());
-									return new SendResult<OtRequest>(this.req);
-								case DELETE:
-									p.itemAction(this.req.getAccount(), svc, this.req.getSid(), ItemAction.DELETE_FACEBOOK);
-									LOG.i("Deleted FB update: editSid=%s", this.req.getSid());
-									markAsDeleted(db);
-									return new SendResult<OtRequest>(this.req);
-								default:
-									return new SendResult<OtRequest>(this.req, new UnsupportedOperationException("Do not know how to " + this.req.getAction().getUiTitle() + " via account type: " + this.req.getAccount().getUiTitle()));
-							}
-						default:
-							return new SendResult<OtRequest>(this.req, new SuccessWhaleException("Unknown network type: " + networkType));
-					}
-				}
-				return new SendResult<OtRequest>(this.req, new SuccessWhaleException("Service metadata missing network type: " + svc));
-			}
-			return new SendResult<OtRequest>(this.req, new SuccessWhaleException("Invalid service metadata: " + svc));
-		}
-		catch (final SuccessWhaleException e) {
-			return new SendResult<OtRequest>(this.req, e);
-		}
-		finally {
-			p.shutdown();
 		}
 	}
 

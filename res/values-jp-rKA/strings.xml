@@ -19,7 +19,6 @@
 	<string name="tweetlist_details_later">ライテル</string>
 	<string name="tweetlist_details_read">レアヅ</string>
 	<string name="tweetlist_details_rt">リツイート</string>
-	<string name="tweetlist_details_like">ライク</string>
 	<string name="tweetlist_details_quote">コヲート</string>
 	<string name="payload_edit_btn_delete">デリート</string>
 	<string name="payload_media_btn_retry">リトライ</string>

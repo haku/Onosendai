@@ -8,8 +8,6 @@ import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.Tweet;
-import com.vaguehope.onosendai.provider.NetworkType;
-import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.util.HttpClientFactory;
 import com.vaguehope.onosendai.util.StringHelper;
@@ -50,16 +48,9 @@ public class InstapaperProvider {
 		final String linkUrl = linkMeta != null && linkMeta.hasData() ? linkMeta.getData() : null;
 		final String linkTitle = linkMeta != null && linkMeta.hasTitle() ? linkMeta.getTitle() : null;
 
-		final NetworkType networkType = findNetworkType(tweet);
 		final String title;
 		final String tweetUrl;
-		if (networkType == NetworkType.FACEBOOK) {
-			title = String.format("%s %s",
-					linkTitle != null ? linkTitle + " via" : "Post by", //ES
-					StringHelper.firstLine(tweet.getFullname()));
-			tweetUrl = facebookUrlOf(tweet);
-		}
-		else if (tweet.getSid() != null) {
+		if (tweet.getSid() != null) {
 			title = String.format("%s %s (@%s)",
 					linkTitle != null ? linkTitle + " via" : "Tweet by", //ES
 							StringHelper.firstLine(tweet.getFullname()),
@@ -95,23 +86,6 @@ public class InstapaperProvider {
 			return new Meta(MetaType.URL, g);
 		}
 		return null;
-	}
-
-	private static NetworkType findNetworkType (final Tweet tweet) {
-		final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
-		final ServiceRef serviceRef = svcMeta != null ? ServiceRef.parseServiceMeta(svcMeta) : null;
-		return serviceRef != null ? serviceRef.getType() : null;
-	}
-
-	private static String facebookUrlOf (final Tweet tweet) {
-		final String tweetSid = tweet.getSid();
-		final int x = tweetSid.indexOf('_');
-		if (x > 0) {
-			final String userId = tweetSid.substring(0, x);
-			final String statusId = tweetSid.substring(x + 1);
-			return "https://www.facebook.com/" + userId + "/posts/" + statusId;
-		}
-		return "http://localhost/invalidfacebookpostid/uid/" + tweet.getSid();
 	}
 
 }

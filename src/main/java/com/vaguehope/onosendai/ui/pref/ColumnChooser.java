@@ -3,30 +3,20 @@ package com.vaguehope.onosendai.ui.pref;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-
 import org.json.JSONException;
 import android.content.Context;
 
 import com.sys1yagi.mastodon4j.api.entity.MastodonList;
 import com.vaguehope.onosendai.config.Account;
-import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.mastodon.MastodonColumnType;
 import com.vaguehope.onosendai.provider.mastodon.MastodonListsFetcher;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumnsFetcher;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleSource;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleSources;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleSourcesFetcher;
 import com.vaguehope.onosendai.provider.twitter.TwitterColumnType;
 import com.vaguehope.onosendai.provider.twitter.TwitterListsFetcher;
-import com.vaguehope.onosendai.util.CollectionHelper;
 import com.vaguehope.onosendai.util.CollectionHelper.Function;
 import com.vaguehope.onosendai.util.DialogHelper;
 import com.vaguehope.onosendai.util.DialogHelper.Listener;
-import com.vaguehope.onosendai.util.DialogHelper.Question;
 import com.vaguehope.onosendai.util.StringHelper;
 import com.vaguehope.onosendai.util.Titleable;
 
@@ -101,9 +91,6 @@ class ColumnChooser {
 				break;
 			case MASTODON:
 				promptAddMastodonColumn(account); // TODO pass in existing resource value.
-				break;
-			case SUCCESSWHALE:
-				promptAddSuccessWhaleColumn(account, previousResource);
 				break;
 			default:
 				onColumn(account, null);
@@ -250,75 +237,6 @@ class ColumnChooser {
 				onColumn(account, MastodonColumnType.LIST.getResource() + answer.getId(), answer.getTitle());
 			}
 		});
-	}
-
-//	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	protected void promptAddSuccessWhaleColumn (final Account account, final String previousResource) {
-		if (previousResource != null) {
-			promptAddSuccessWhaleCustomColumn(account, previousResource);
-			return;
-		}
-
-		final String existing = "Existing Column"; //ES
-		final String custom = "Custom Source Mix"; //ES
-		DialogHelper.askStringItem(this.context, "SuccessWhale Column", CollectionHelper.listOf(existing, custom), new Listener<String>() { //ES
-			@Override
-			public void onAnswer (final String answer) {
-				if (existing.equals(answer)) {
-					promptAddSuccessWhaleExistingColumn(account);
-				}
-				else {
-					promptAddSuccessWhaleCustomColumn(account, null);
-				}
-			}
-		});
-	}
-
-	protected void promptAddSuccessWhaleExistingColumn (final Account account) {
-		new SuccessWhaleColumnsFetcher(this.context, account, new Listener<SuccessWhaleColumns>() {
-			@Override
-			public void onAnswer (final SuccessWhaleColumns columns) {
-				promptAddSuccessWhaleColumn(account, columns);
-			}
-		}).execute();
-	}
-
-	protected void promptAddSuccessWhaleColumn (final Account account, final SuccessWhaleColumns columns) {
-		// TODO allow multi selection.
-		DialogHelper.askItem(this.context, "SuccessWhale Columns", columns.getColumns(), new Listener<Column>() { //ES
-			@Override
-			public void onAnswer (final Column column) {
-				if (column.getFeeds().size() != 1) throw new IllegalArgumentException("Expected column to only have one feed: " + column);
-				onColumn(account, column.getFeeds().iterator().next().getResource(), column.getTitle());
-			}
-		});
-	}
-
-	protected void promptAddSuccessWhaleCustomColumn (final Account account, final String previousResource) {
-		new SuccessWhaleSourcesFetcher(this.context, account, new Listener<SuccessWhaleSources>() {
-			@Override
-			public void onAnswer (final SuccessWhaleSources sources) {
-				promptAddSuccessWhaleColumn(account, sources, previousResource);
-			}
-		}).execute();
-	}
-
-	protected void promptAddSuccessWhaleColumn (final Account account, final SuccessWhaleSources sources, final String previousResource) {
-		final Set<SuccessWhaleSource> previous = SuccessWhaleSources.fromResource(previousResource);
-		DialogHelper.askItems(this.context, "SuccessWhale Sources", sources.getSources(), //ES
-				new Question<SuccessWhaleSource>() {
-					@Override
-					public boolean ask (final SuccessWhaleSource source) {
-						return previous != null && previous.contains(source);
-					}
-				},
-				new Listener<Set<SuccessWhaleSource>>() {
-					@Override
-					public void onAnswer (final Set<SuccessWhaleSource> anwer) {
-						onColumn(account, SuccessWhaleSources.toResource(anwer));
-					}
-				});
 	}
 
 }

@@ -1,6 +1,5 @@
 package com.vaguehope.onosendai.payload;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -16,12 +15,8 @@ import com.vaguehope.onosendai.model.Meta;
 import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.Tweet;
-import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.payload.InReplyToLoaderTask.ReplyLoaderResult;
-import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.ProviderMgr;
-import com.vaguehope.onosendai.provider.ServiceRef;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
 import com.vaguehope.onosendai.storage.DbInterface.DiscardOrder;
@@ -86,8 +81,6 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 					return twitter(db, account, this.threadTweet);
 				case MASTODON:
 					return mastodon(db, account, this.threadTweet);
-				case SUCCESSWHALE:
-					return successWhale(db, account, this.threadTweet);
 				default:
 			}
 		}
@@ -138,31 +131,6 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 		return null;
 	}
 
-	private ReplyLoaderResult successWhale (final DbInterface db, final Account account, final Tweet startingTweet) {
-		final Meta inReplyToMeta = startingTweet.getFirstMetaOfType(MetaType.INREPLYTO);
-		if (inReplyToMeta == null) return fetchComments(account, startingTweet);
-
-		final ReplyLoaderResult fromCache = fetchFromCache(db, startingTweet, inReplyToMeta.getData());
-		if (fromCache != null) return fromCache;
-
-		final Meta serviceMeta = startingTweet.getFirstMetaOfType(MetaType.SERVICE);
-		if (serviceMeta != null) {
-			try {
-				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
-				if (thread != null && thread.count() > 0) {
-					cacheInReplyTos(db, thread.getTweets());
-					return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
-				}
-			}
-			catch (final SuccessWhaleException e) {
-				LOG.w("Failed to retrieve thread %s: %s", inReplyToMeta.getData(), e.toString());
-				return new ReplyLoaderResult("Error fetching thread: " + e.getMessage(), startingTweet);
-			}
-		}
-
-		return null;
-	}
-
 	private static ReplyLoaderResult generic (final DbInterface db, final Tweet startingTweet) {
 		final Meta inReplyToMeta = startingTweet.getFirstMetaOfType(MetaType.INREPLYTO);
 		if (inReplyToMeta == null) return null;
@@ -177,31 +145,6 @@ public class InReplyToLoaderTask extends DbBindingAsyncTask<Void, Void, ReplyLoa
 		final Tweet inReplyToTweet = db.getTweetDetails(inReplyToSid);
 		if (inReplyToTweet != null) return new ReplyLoaderResult(new InReplyToPayload(startingTweet, inReplyToTweet), true);
 		return null;
-	}
-
-	private ReplyLoaderResult fetchComments (final Account account, final Tweet startingTweet) {
-		// Hack because FB items are not immutable and must always be checked for comments.
-		final Meta serviceMeta = startingTweet.getFirstMetaOfType(MetaType.SERVICE);
-		if (serviceMeta != null && ServiceRef.parseServiceMeta(serviceMeta).getType() == NetworkType.FACEBOOK) {
-			try {
-				final TweetList thread = this.provMgr.getSuccessWhaleProvider().getThread(account, serviceMeta.getData(), startingTweet.getSid());
-				if (thread != null && thread.count() > 0) return new ReplyLoaderResult(tweetListToReplyPayloads(startingTweet, thread), false);
-				return new ReplyLoaderResult("No visible comments.", startingTweet); //ES
-			}
-			catch (final SuccessWhaleException e) {
-				LOG.w("Failed to retrieve thread %s: %s", startingTweet.getSid(), e.toString());
-				return new ReplyLoaderResult("Error fetching comments: " + e.getMessage(), startingTweet); //ES
-			}
-		}
-		return null;
-	}
-
-	private static List<InReplyToPayload> tweetListToReplyPayloads (final Tweet startingTweet, final TweetList thread) {
-		final List<InReplyToPayload> ret = new ArrayList<InReplyToPayload>();
-		for (final Tweet tweet : thread.getTweets()) {
-			ret.add(new InReplyToPayload(startingTweet, tweet));
-		}
-		return ret;
 	}
 
 	private static void cacheInReplyTos (final DbInterface db, final List<Tweet> tweets) {

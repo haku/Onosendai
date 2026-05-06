@@ -1,6 +1,5 @@
 package com.vaguehope.onosendai.update;
 
-import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.Column;
 import com.vaguehope.onosendai.config.ColumnFeed;
 
@@ -11,9 +10,6 @@ public class KvKeys {
 	private static final String KEY_PREFIX_COL_LAST_PUSH_TIME = "COL_LAST_PUSH_TIME_";
 
 	public static final String FEED_SINCE_ID_PREFIX = "FEED_SINCE_ID_";
-
-	private static final String SW_AUTH_TOKEN_PREFIX = "SW_AUTH_TOKEN_";
-	private static final String SW_PTA_PREFIX = "SW_PTA_";
 
 	public static final String KEY_HOSAKA_STATUS = "HOSAKA_STATUS";
 
@@ -35,14 +31,6 @@ public class KvKeys {
 
 	public static String feedSinceId (final Column col, final ColumnFeed feed) {
 		return FEED_SINCE_ID_PREFIX + col.getId() + "_" + feed.feedHash();
-	}
-
-	public static String swAuthToken (final Account acc) {
-		return SW_AUTH_TOKEN_PREFIX + acc.getId();
-	}
-
-	public static String swPta (final Account acc) {
-		return SW_PTA_PREFIX + acc.getId();
 	}
 
 }

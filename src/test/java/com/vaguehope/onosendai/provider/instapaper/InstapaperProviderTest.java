@@ -51,18 +51,6 @@ public class InstapaperProviderTest {
 	}
 
 	@Test
-	public void itConvertsFacebookUpdate () throws Exception {
-		final List<Meta> metas = new ArrayList<Meta>();
-		metas.add(new Meta(MetaType.SERVICE, "facebook:561234569"));
-		final Tweet tweet = new Tweet("123455200_12345678029520201", null, "fullname\n1like 2 comments", "via foo", "via Foo Bar", null, "body", System.currentTimeMillis(), "avatarUrl", "inlineMediaUrl", null, metas);
-
-		this.undertest.add(this.account, tweet);
-
-		verify(this.mockInstapaper).add("https://www.facebook.com/123455200/posts/12345678029520201",
-				"Post by fullname", "body");
-	}
-
-	@Test
 	public void itConvertsTweetWithLink () throws Exception {
 		final List<Meta> metas = new ArrayList<Meta>();
 		metas.add(new Meta(MetaType.URL, "http://example.com/thing", "Thing!"));

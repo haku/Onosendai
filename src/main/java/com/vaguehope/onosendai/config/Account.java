@@ -135,7 +135,6 @@ public class Account implements Titleable {
 				return !StringHelper.isEmpty(this.consumerSecret) && !StringHelper.isEmpty(this.accessSecret);
 			case MASTODON:
 				return !StringHelper.isEmpty(this.accessToken);
-			case SUCCESSWHALE:
 			case INSTAPAPER:
 			case HOSAKA:
 				return !StringHelper.isEmpty(this.accessSecret);
@@ -157,7 +156,6 @@ public class Account implements Titleable {
 				json.put(KEY_ACCESS_TOKEN, this.accessToken);
 				json.put(KEY_ACCESS_SECRET, this.accessSecret);
 				break;
-			case SUCCESSWHALE:
 			case INSTAPAPER:
 			case HOSAKA:
 				json.put(KEY_USERNAME, this.accessToken);
@@ -185,9 +183,6 @@ public class Account implements Titleable {
 				break;
 			case MASTODON:
 				account = parseMastodonAccount(json, id);
-				break;
-			case SUCCESSWHALE:
-				account = parseUsernamePasswordLikeAccount(json, id, AccountProvider.SUCCESSWHALE);
 				break;
 			case INSTAPAPER:
 				account = parseUsernamePasswordLikeAccount(json, id, AccountProvider.INSTAPAPER);

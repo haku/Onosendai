@@ -70,7 +70,6 @@ public class SharePayload extends Payload {
 		final Map<Integer, View> btns = rowView.getButtons();
 
 		final TextView btnRt = (TextView) btns.get(BTN_SHARE_RT);
-		final View btnFav = btns.get(BTN_SHARE_FAV);
 		if (this.networkType != null) {
 			switch (this.networkType) {
 				case TWITTER:
@@ -80,11 +79,6 @@ public class SharePayload extends Payload {
 				case MASTODON:
 					btnRt.setText(R.string.tweetlist_details_boost);
 					btnRt.setVisibility(View.VISIBLE);
-					break;
-				case FACEBOOK:
-					btnRt.setText(R.string.tweetlist_details_like);
-					btnRt.setVisibility(View.VISIBLE);
-					btnFav.setVisibility(View.GONE);
 					break;
 				default:
 					btnRt.setVisibility(View.GONE);

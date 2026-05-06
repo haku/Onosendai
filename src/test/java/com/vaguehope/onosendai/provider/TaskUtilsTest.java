@@ -11,7 +11,6 @@ import twitter4j.HttpResponseCode;
 import twitter4j.TwitterException;
 
 import com.vaguehope.onosendai.model.TaskOutcome;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
 
 public class TaskUtilsTest {
 
@@ -23,16 +22,6 @@ public class TaskUtilsTest {
 	@Test
 	public void itCountsRuntimeExAsPerm () throws Exception {
 		assertEquals(TaskOutcome.PERMANENT_FAILURE, TaskUtils.failureType(new RuntimeException("example.")));
-	}
-
-	@Test
-	public void itCountsPermSwExAsPermanent () throws Exception {
-		assertEquals(TaskOutcome.PERMANENT_FAILURE, TaskUtils.failureType(new SuccessWhaleException("example.", true)));
-	}
-
-	@Test
-	public void itCountsNonPermSwExAsTemp () throws Exception {
-		assertEquals(TaskOutcome.TEMPORARY_FAILURE, TaskUtils.failureType(new SuccessWhaleException("example.", false)));
 	}
 
 	@Test

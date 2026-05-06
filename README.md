@@ -54,8 +54,6 @@ The are arbitrary and do not have to be in order.
 If you remove an account or column it may be best not to reuse the ID as strange things may happen.
 Column IDs must be positive integers.
 
-**SuccessWhale feeds**: Refer to [SuccessWhale docs](https://github.com/ianrenton/successwhale-api/blob/master/docs/feed-get.md) for the format of the 'resource' field.
-
 ```JSON
 {
   "accounts": [
@@ -66,11 +64,6 @@ Column IDs must be positive integers.
       "consumerSecret": "?csecret?",
       "accessToken": "?atoken?",
       "accessSecret": "?asecret?"
-    }, {
-      "id": "sw0",
-      "provider": "successwhale",
-      "username": "?username?",
-      "password": "?password?"
     }
   ],
   "feeds": [
@@ -118,12 +111,6 @@ Column IDs must be positive integers.
       "resource": "twitter/12345678/statuses/mentions:twitter/12345678/statuses/user_timeline",
       "refresh": "15min",
       "notify": true
-    }, {
-      "id": 9,
-      "title": "Facebook Home",
-      "account": "sw0",
-      "resource": "facebook/123456789/me/home",
-      "refresh": "30min"
     }
   ]
 }

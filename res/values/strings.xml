@@ -30,7 +30,6 @@
 	</string>
 	<string name="setup_act_twitter">Twitter Account</string>
 	<string name="setup_act_mastodon">Mastodon Account</string>
-	<string name="setup_act_swimport">Import from SuccessWhale</string>
 	<string name="setup_act_writeexampleconf">Manual Configuration</string>
 	<string name="setup_act_useconf">Activate Manual Configuration</string>
 	<string name="setup_des_twitter">
@@ -38,12 +37,6 @@
 	</string>
 	<string name="setup_des_mastodon">
 		Sign in to a Mastodon instance and authorise Onosendai to access your account.
-	</string>
-	<string name="setup_des_swimport">
-		This will import your existing layout from SuccessWhale (SW).
-		For this to you work you must have a SW account with a password configured.
-		\n
-		If you do not have a SW user-name and password please create one before continuing.
 	</string>
 	<string name="setup_des_writeexampleconf">
 		This is an advanced option and requires you to manage a JSON file.
@@ -87,7 +80,6 @@
 	<string name="tweetlist_details_read">Read</string>
 	<string name="tweetlist_details_rt">RT</string>
 	<string name="tweetlist_details_boost">Boost</string>
-	<string name="tweetlist_details_like">Like</string>
 	<string name="tweetlist_details_quote">Quote</string>
 	<string name="payload_edit_btn_delete">Delete</string>
 	<string name="payload_media_btn_retry">Retry</string>
@@ -108,8 +100,6 @@
 
 	<string name="tweetlist_ask_quote_type">Quote Type</string>
 
-	<string name="tweetlist_confirm_like_question">Like?</string>
-	<string name="tweetlist_confirm_like_btn">Like</string>
 	<string name="tweetlist_confirm_rt_question">Retweet?</string>
 	<string name="tweetlist_confirm_rt_button">RT</string>
 	<string name="tweetlist_confirm_favourite_question">Favourite?</string>

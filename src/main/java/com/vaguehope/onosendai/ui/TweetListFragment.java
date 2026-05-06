@@ -67,11 +67,9 @@ import com.vaguehope.onosendai.payload.PayloadListClickListener;
 import com.vaguehope.onosendai.payload.PayloadType;
 import com.vaguehope.onosendai.payload.ReplyLoaderTask;
 import com.vaguehope.onosendai.payload.SharePayload;
-import com.vaguehope.onosendai.provider.NetworkType;
 import com.vaguehope.onosendai.provider.OutboxActionFactory;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.SendOutboxService;
-import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.provider.mastodon.MastodonUrls;
 import com.vaguehope.onosendai.provider.twitter.TwitterUrls;
 import com.vaguehope.onosendai.storage.DbClient;
@@ -300,15 +298,6 @@ public class TweetListFragment extends Fragment implements DbProvider {
 
 	private Executor getNetEs () {
 		return getMainActivity().getNetEs();
-	}
-
-	private ServiceRef findFullService (final Account account, final ServiceRef svc) {
-		final List<ServiceRef> accounts = getProviderMgr().getSuccessWhaleProvider().getPostToAccountsCached(account);
-		if (accounts == null) return null;
-		for (final ServiceRef a : accounts) {
-			if (svc.equals(a)) return a;
-		}
-		return null;
 	}
 
 //	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -572,26 +561,11 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		this.btnDetailsLater.setOnClickListener(new DetailsLaterClickListener(this, tweet, laterColumn));
 	}
 
-	private ServiceRef tweetAndAccoutToServiceRef (final Account account, final Tweet tweet) {
-		final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
-		if (svcMeta != null) {
-			final ServiceRef svc = ServiceRef.parseServiceMeta(svcMeta);
-			if (svc != null) {
-				final ServiceRef fullSvc = findFullService(account, svc);
-				if (fullSvc != null) return fullSvc;
-				return svc;
-			}
-		}
-		return null;
-	}
-
 	private String summariseAccountAndSubAccount (final Account account, final Tweet tweet) {
-		final ServiceRef svcRef = tweetAndAccoutToServiceRef(account, tweet);
-		return summariseAccountAndSubAccount(account, svcRef);
+		return summariseAccountAndSubAccount(account);
 	}
 
-	private static String summariseAccountAndSubAccount (final Account account, final ServiceRef svcRef) {
-		if (svcRef != null) return String.format("%s\n%s", svcRef.getUiTitle(), account.getUiTitle());
+	private static String summariseAccountAndSubAccount (final Account account) {
 		return account.getUiTitle();
 	}
 
@@ -604,21 +578,12 @@ public class TweetListFragment extends Fragment implements DbProvider {
 			return;
 		}
 
-		final ServiceRef svcRef = tweetAndAccoutToServiceRef(account, tweet);
-		final boolean isLike = svcRef != null && svcRef.getType() == NetworkType.FACEBOOK;
-
 		final String question;
 		final String button;
-		if (isLike) {
-			question = getMainActivity().getString(R.string.tweetlist_confirm_like_question);
-			button = getMainActivity().getString(R.string.tweetlist_confirm_like_btn);
-		}
-		else {
-			question = getMainActivity().getString(R.string.tweetlist_confirm_rt_question);
-			button = getMainActivity().getString(R.string.tweetlist_confirm_rt_button);
-		}
+		question = getMainActivity().getString(R.string.tweetlist_confirm_rt_question);
+		button = getMainActivity().getString(R.string.tweetlist_confirm_rt_button);
 
-		final String as = summariseAccountAndSubAccount(account, svcRef);
+		final String as = summariseAccountAndSubAccount(account);
 		String msg = String.format("%s\n%s", question, as);
 
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());
@@ -692,8 +657,7 @@ public class TweetListFragment extends Fragment implements DbProvider {
 		final String question = getMainActivity().getString(R.string.tweetlist_confirm_favourite_question);
 		final String button = getMainActivity().getString(R.string.tweetlist_confirm_favourite_button);
 
-		final ServiceRef svcRef = tweetAndAccoutToServiceRef(account, tweet);
-		final String as = summariseAccountAndSubAccount(account, svcRef);
+		final String as = summariseAccountAndSubAccount(account);
 		String msg = String.format("%s\n%s", question, as);
 
 		final AlertDialog.Builder dlgBld = new AlertDialog.Builder(getActivity());

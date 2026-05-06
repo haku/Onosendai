@@ -16,9 +16,6 @@ import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ProviderMgr;
 import com.vaguehope.onosendai.provider.instapaper.InstapaperProvider;
 import com.vaguehope.onosendai.provider.mastodon.MastodonProvider;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleException;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleFeed;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeed;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeeds;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
@@ -76,9 +73,6 @@ public class FetchColumn implements Callable<Void> {
 			case MASTODON:
 				fetchMastodonColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters, manual);
 				break;
-			case SUCCESSWHALE:
-				fetchSuccessWhaleColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters);
-				break;
 			case INSTAPAPER:
 				pushInstapaperColumn(db, ffr.account, ffr.column, providerMgr);
 				break;
@@ -125,25 +119,6 @@ public class FetchColumn implements Callable<Void> {
 		catch (final Mastodon4jRequestException e) {
 			LOG.w("Failed to fetch from Mastodon: %s", ExcpetionHelper.causeTrace(e));
 			storeError(db, column, ExcpetionHelper.causeTrace(e)); // TODO make friendly.
-		}
-	}
-
-	private static void fetchSuccessWhaleColumn (final DbInterface db, final Account account, final Column column, final ColumnFeed columnFeed, final ProviderMgr providerMgr, final Filters filters) {
-		final long startTime = System.nanoTime();
-		try {
-			final SuccessWhaleProvider successWhaleProvider = providerMgr.getSuccessWhaleProvider();
-			successWhaleProvider.addAccount(account);
-			final SuccessWhaleFeed feed = new SuccessWhaleFeed(column, columnFeed);
-			final String sinceId = readSinceId(db, column, columnFeed);
-			final TweetList tweets = successWhaleProvider.getTweets(feed, account, sinceId);
-			final int filteredCount = filterAndStore(db, column, columnFeed, filters, tweets);
-			storeSuccess(db, column);
-			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-			LOG.i("Fetched %d items for '%s' '%s' in %d millis.  %s filtered.", tweets.count(), column.getTitle(), columnFeed.getResource(), durationMillis, filteredCount);
-		}
-		catch (final SuccessWhaleException e) {
-			LOG.w("Failed to fetch from SuccessWhale: %s", ExcpetionHelper.causeTrace(e));
-			storeError(db, column, e.friendlyMessage());
 		}
 	}
 

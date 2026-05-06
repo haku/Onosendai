@@ -11,25 +11,20 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
-import com.vaguehope.onosendai.config.AccountProvider;
 import com.vaguehope.onosendai.config.Config;
 import com.vaguehope.onosendai.config.ConfigBuilder;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.provider.mastodon.MastodonColumnFactory;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumns;
-import com.vaguehope.onosendai.provider.successwhale.SuccessWhaleColumnsFetcher;
 import com.vaguehope.onosendai.provider.twitter.TwitterColumnFactory;
 import com.vaguehope.onosendai.ui.pref.MastodonOauthWizard;
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard;
@@ -37,7 +32,6 @@ import com.vaguehope.onosendai.ui.pref.MastodonOauthWizard.MastodonOauthComplete
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthComplete;
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthHelper;
 import com.vaguehope.onosendai.util.DialogHelper;
-import com.vaguehope.onosendai.util.DialogHelper.Listener;
 import com.vaguehope.onosendai.util.LogWrapper;
 
 public class SetupActivity extends Activity {
@@ -65,7 +59,6 @@ public class SetupActivity extends Activity {
 		this.actAdaptor = new ArrayAdapter<SetupAction>(this, R.layout.setupactionlistrow);
 		this.actAdaptor.add(SetupActionType.MASTODON.toSetupAction(this));
 		this.actAdaptor.add(SetupActionType.TWITTER.toSetupAction(this));
-		this.actAdaptor.add(SetupActionType.SWIMPORT.toSetupAction(this));
 
 		this.spnAct.setAdapter(this.actAdaptor);
 		this.spnAct.setOnItemSelectedListener(this.actOnItemSelectedListener);
@@ -108,9 +101,6 @@ public class SetupActivity extends Activity {
 				break;
 			case MASTODON:
 				doMastodon();
-				break;
-			case SWIMPORT:
-				doSwImport();
 				break;
 			case WRITEEXAMPLECONF:
 				doWriteExampleConf();
@@ -278,58 +268,9 @@ public class SetupActivity extends Activity {
 		}
 	}
 
-	private void doSwImport () {
-		final ViewGroup llSetupType = (ViewGroup) findViewById(R.id.llSetupType);
-		llSetupType.setVisibility(View.GONE);
-
-		final ViewGroup llLogin = (ViewGroup) findViewById(R.id.llLogin);
-		llLogin.setVisibility(View.VISIBLE);
-
-		final EditText txtUsername = (EditText) findViewById(R.id.txtUsername);
-		txtUsername.requestFocus();
-
-		this.btnContinue.setOnClickListener(this.btnSwContinueListener);
-	}
-
-	private final OnClickListener btnSwContinueListener = new OnClickListener() {
-		@Override
-		public void onClick (final View v) {
-			doSwFetchConfig();
-		}
-	};
-
-	protected void doSwFetchConfig () {
-		final String username = ((EditText) findViewById(R.id.txtUsername)).getText().toString();
-		final String password = ((EditText) findViewById(R.id.txtPassword)).getText().toString();
-		final Account acc = new Account("sw0", username, AccountProvider.SUCCESSWHALE, null, null, username, password);
-		new SuccessWhaleColumnsFetcher(this, acc, new Listener<SuccessWhaleColumns>() {
-			@Override
-			public void onAnswer (final SuccessWhaleColumns answer) {
-				writeConfig(acc, answer);
-			}
-		}).execute();
-	}
-
-	protected void writeConfig (final Account account, final SuccessWhaleColumns columns) {
-		try {
-			new ConfigBuilder()
-					.account(account)
-					.columns(columns.getColumns())
-					.readLater()
-					.writeOverMain(this);
-			startActivity(new Intent(getApplicationContext(), MainActivity.class));
-			finish();
-		}
-		catch (final Exception e) { // NOSONAR show user all errors.
-			getLog().e("Failed to write imported SuccessWhale configuration.", e);
-			DialogHelper.alertAndClose(this, e);
-		}
-	}
-
 	private enum SetupActionType {
 		TWITTER("twitter"),
 		MASTODON("mastodon"),
-		SWIMPORT("swimport"),
 		WRITEEXAMPLECONF("writeexampleconf"),
 		USECONF("useconf");
 

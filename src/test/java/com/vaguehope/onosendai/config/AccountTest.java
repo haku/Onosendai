@@ -15,14 +15,6 @@ public class AccountTest {
 	}
 
 	@Test
-	public void itRoundTripsSuccessWhale () throws Exception {
-		Account a = new Account("1", "t", AccountProvider.SUCCESSWHALE, null, null, "4", "5");
-		String j = a.toJson().toString(2);
-		Account a1 = Account.parseJson(j);
-		assertEquals(a, a1);
-	}
-
-	@Test
 	public void itRoundTripsInstapaper () throws Exception {
 		Account a = new Account("1", "t", AccountProvider.INSTAPAPER, null, null, "4", "5");
 		String j = a.toJson().toString(2);

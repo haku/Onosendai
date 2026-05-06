@@ -15,11 +15,6 @@ public enum AccountProvider implements Titleable {
 	 * accessToken = username
 	 * accessSecret = passwd
 	 */
-	SUCCESSWHALE("SuccessWhale"), //ES
-	/**
-	 * accessToken = username
-	 * accessSecret = passwd
-	 */
 	INSTAPAPER("Instapaper"), //ES
 	/**
 	 * accessToken = username

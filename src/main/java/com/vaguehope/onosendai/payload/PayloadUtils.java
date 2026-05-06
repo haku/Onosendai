@@ -19,7 +19,6 @@ import com.vaguehope.onosendai.model.MetaType;
 import com.vaguehope.onosendai.model.MetaUtils;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.provider.NetworkType;
-import com.vaguehope.onosendai.provider.ServiceRef;
 import com.vaguehope.onosendai.util.DateHelper;
 import com.vaguehope.onosendai.util.EqualHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
@@ -61,13 +60,6 @@ public final class PayloadUtils {
 				break;
 			case MASTODON:
 				set.add(new SharePayload(tweet, NetworkType.MASTODON));
-				break;
-			case SUCCESSWHALE:
-				final Meta svcMeta = tweet.getFirstMetaOfType(MetaType.SERVICE);
-				final ServiceRef serviceRef = svcMeta != null ? ServiceRef.parseServiceMeta(svcMeta) : null;
-				final NetworkType networkType = serviceRef != null ? serviceRef.getType() : null;
-				if (networkType == NetworkType.FACEBOOK) set.add(new AddCommentPayload(account, tweet));
-				set.add(new SharePayload(tweet, networkType));
 				break;
 			default:
 				set.add(new SharePayload(tweet));

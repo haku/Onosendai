@@ -49,7 +49,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 		final Preference pref = new Preference(getActivity());
 		pref.setTitle("Add Account"); //ES
-		pref.setSummary("Add a new Twitter, SuccessWhale, Instapaper or Buffer account"); //ES
+		pref.setSummary("Add a new account"); //ES
 		pref.setOnPreferenceClickListener(new AddAcountClickListener(this));
 		getPreferenceScreen().addPreference(pref);
 
@@ -67,7 +67,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 	protected void promptNewAccountType () {
 		DialogHelper.askItem(getActivity(), "Account Type", //ES
-				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.MASTODON, AccountProvider.SUCCESSWHALE, AccountProvider.INSTAPAPER, AccountProvider.HOSAKA },
+				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.MASTODON, AccountProvider.INSTAPAPER, AccountProvider.HOSAKA },
 				new Listener<AccountProvider>() {
 					@Override
 					public void onAnswer (final AccountProvider answer) {
@@ -84,7 +84,6 @@ public class AccountsPrefFragment extends PreferenceFragment {
 			case MASTODON:
 				promptAddMastodonAccount();
 				break;
-			case SUCCESSWHALE:
 			case INSTAPAPER:
 			case HOSAKA:
 				promptAddUsernamePasswordLikeAccount(accountProvider);
