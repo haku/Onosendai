@@ -14,7 +14,6 @@ import com.vaguehope.onosendai.model.Filters;
 import com.vaguehope.onosendai.model.Tweet;
 import com.vaguehope.onosendai.model.TweetList;
 import com.vaguehope.onosendai.provider.ProviderMgr;
-import com.vaguehope.onosendai.provider.instapaper.InstapaperProvider;
 import com.vaguehope.onosendai.provider.mastodon.MastodonProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeed;
 import com.vaguehope.onosendai.provider.twitter.TwitterFeeds;
@@ -72,9 +71,6 @@ public class FetchColumn implements Callable<Void> {
 				break;
 			case MASTODON:
 				fetchMastodonColumn(db, ffr.account, ffr.column, ffr.feed, providerMgr, filters, manual);
-				break;
-			case INSTAPAPER:
-				pushInstapaperColumn(db, ffr.account, ffr.column, providerMgr);
 				break;
 			default:
 				LOG.e("Unknown account type: %s", ffr.account.getProvider());
@@ -142,35 +138,6 @@ public class FetchColumn implements Callable<Void> {
 	 */
 	private static void storeQuoted (final DbInterface db, final TweetList tweets) {
 		db.storeTweets(Column.ID_CACHED, tweets.getQuotedTweets(), DiscardOrder.FIRST_DOWNLOADED);
-	}
-
-	private static void pushInstapaperColumn (final DbInterface db, final Account account, final Column column, final ProviderMgr providerMgr) {
-		final long startTime = System.nanoTime();
-		try {
-			final InstapaperProvider provider = providerMgr.getInstapaperProvider();
-
-			final String lastPushTimeRaw = db.getValue(KvKeys.colLastPushTime(column));
-			final long lastPushTime = lastPushTimeRaw != null ? Long.parseLong(lastPushTimeRaw) : 0L;
-
-			LOG.i("Looking for items since t=%s to push...", lastPushTime);
-			final List<Tweet> tweets = db.getTweetsSinceTime(column.getId(), lastPushTime, 10); // XXX Arbitrary limit.
-
-			LOG.i("Pushing %s items...", tweets.size());
-			for (final Tweet tweet : tweets) {
-				final Tweet fullTweet = db.getTweetDetails(column.getId(), tweet);
-				provider.add(account, fullTweet);
-				db.storeValue(KvKeys.colLastPushTime(column), String.valueOf(tweet.getTime()));
-				LOG.i("Pushed item sid=%s.", tweet.getSid());
-			}
-
-			storeSuccess(db, column);
-			final long durationMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-			LOG.i("Pushed %d items for '%s' in %d millis.", tweets.size(), column.getTitle(), durationMillis);
-		}
-		catch (final Exception e) {
-			LOG.w("Failed to push to Instapaper: %s", ExcpetionHelper.causeTrace(e));
-			storeError(db, column, ExcpetionHelper.causeTrace(e));
-		}
 	}
 
 	private static void storeSuccess (final DbInterface db, final Column column) {

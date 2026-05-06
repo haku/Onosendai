@@ -93,7 +93,6 @@ class AccountDialog {
 					this.txtUsername.setText(initialValue.getConsumerKey());
 				}
 				break;
-			case INSTAPAPER:
 			case HOSAKA:
 				this.txtPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 				if (initialValue != null) {
@@ -146,7 +145,6 @@ class AccountDialog {
 		switch (this.accountProvider) {
 			case TWITTER:
 			case MASTODON:
-			case INSTAPAPER:
 			case HOSAKA:
 				return true;
 			default:
@@ -164,7 +162,6 @@ class AccountDialog {
 						this.initialValue.getProvider(),
 						this.initialValue.getConsumerKey(), this.initialValue.getConsumerSecret(),
 						this.initialValue.getAccessToken(), this.initialValue.getAccessSecret());
-			case INSTAPAPER:
 			case HOSAKA:
 				final String username = this.txtUsername.getText().toString().trim();
 				final String password = this.txtPassword.getText().toString();
@@ -200,9 +197,6 @@ class AccountDialog {
 				switch (this.account.getProvider()) {
 					case MASTODON:
 						provMgr.getMastodonProvider().testAccountLogin(this.account);
-						return "Success."; //ES
-					case INSTAPAPER:
-						provMgr.getInstapaperProvider().testAccountLogin(this.account);
 						return "Success."; //ES
 					case HOSAKA:
 						provMgr.getHosakaProvider().testAccountLogin(this.account);

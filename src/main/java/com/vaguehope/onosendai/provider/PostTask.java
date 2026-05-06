@@ -17,11 +17,9 @@ import android.support.v4.app.NotificationCompat;
 import com.vaguehope.onosendai.R;
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.model.Tweet;
-import com.vaguehope.onosendai.model.TweetBuilder;
 import com.vaguehope.onosendai.notifications.NotificationIds;
 import com.vaguehope.onosendai.notifications.Notifications;
 import com.vaguehope.onosendai.provider.PostTask.PostRequest;
-import com.vaguehope.onosendai.provider.instapaper.InstapaperProvider;
 import com.vaguehope.onosendai.provider.twitter.TwitterProvider;
 import com.vaguehope.onosendai.storage.DbBindingAsyncTask;
 import com.vaguehope.onosendai.storage.DbInterface;
@@ -83,8 +81,6 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostR
 				return postTwitter();
 //			case MASTODON:
 //				return postMastodon();
-			case INSTAPAPER:
-				return postInstapaper();
 			default:
 				return new SendResult<PostRequest>(this.req, new UnsupportedOperationException("Do not know how to post to account type: " + this.req.getAccount().getUiTitle()));
 		}
@@ -115,24 +111,6 @@ public class PostTask extends DbBindingAsyncTask<Void, Integer, SendResult<PostR
 //			return new SendResult<PostRequest>(this.req, e);
 //		}
 //	}
-
-	private SendResult<PostRequest> postInstapaper () {
-		final InstapaperProvider p = new InstapaperProvider();
-		try {
-			if (this.req.getInReplyToSid() != null) LOG.w("Instapaper does not support inReplyTo field, ignoring it."); // TODO do not get here.
-			if (resolveAttachment() != null) throw new IllegalArgumentException("Instapaper does not support posting images."); // TODO do not get here.
-			final TweetBuilder b = new TweetBuilder();
-			b.body(this.req.getBody());
-			p.add(this.req.getAccount(), b.build());
-			return new SendResult<PostRequest>(this.req);
-		}
-		catch (final Exception e) { // NOSONAR need to report all errors.
-			return new SendResult<PostRequest>(this.req, e);
-		}
-		finally {
-			p.shutdown();
-		}
-	}
 
 	private ImageMetadata resolveAttachment () throws FileNotFoundException {
 		if (this.req.getAttachment() == null) return null;

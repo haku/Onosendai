@@ -15,11 +15,6 @@ public enum AccountProvider implements Titleable {
 	 * accessToken = username
 	 * accessSecret = passwd
 	 */
-	INSTAPAPER("Instapaper"), //ES
-	/**
-	 * accessToken = username
-	 * accessSecret = passwd
-	 */
 	HOSAKA("Hosaka"); //ES
 
 	private final String humanName;

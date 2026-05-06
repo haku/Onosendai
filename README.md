@@ -14,7 +14,6 @@ Features
 * De-duplicate: filter the items in one column out of another.
 * Read Later column: any tweet can be saved locally for reading later.
 * Background feed fetching and caching.
-* In-line image previews from Twitter, Instagram, Twitpic and Imgur.
 * Preemptive background image fetching (handy when out of network range).
 * Posts sent via local outbox - automatically retried when network access is unreliable.
 
@@ -23,7 +22,6 @@ Supported Services
 
 * Twitter columns are supported directly.
 * Very proof-of-concept Mastodon support, read-only with no formatting.
-* Forwarding Read Later column to [Instapaper](https://www.instapaper.com).
 
 Background Tasks
 ----------------

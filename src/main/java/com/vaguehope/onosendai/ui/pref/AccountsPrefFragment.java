@@ -15,8 +15,6 @@ import android.preference.PreferenceFragment;
 
 import com.vaguehope.onosendai.config.Account;
 import com.vaguehope.onosendai.config.AccountProvider;
-import com.vaguehope.onosendai.config.Column;
-import com.vaguehope.onosendai.config.InternalColumnType;
 import com.vaguehope.onosendai.config.Prefs;
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthComplete;
 import com.vaguehope.onosendai.ui.pref.TwitterOauthWizard.TwitterOauthHelper;
@@ -67,7 +65,7 @@ public class AccountsPrefFragment extends PreferenceFragment {
 
 	protected void promptNewAccountType () {
 		DialogHelper.askItem(getActivity(), "Account Type", //ES
-				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.MASTODON, AccountProvider.INSTAPAPER, AccountProvider.HOSAKA },
+				new AccountProvider[] { AccountProvider.TWITTER, AccountProvider.MASTODON, AccountProvider.HOSAKA },
 				new Listener<AccountProvider>() {
 					@Override
 					public void onAnswer (final AccountProvider answer) {
@@ -84,7 +82,6 @@ public class AccountsPrefFragment extends PreferenceFragment {
 			case MASTODON:
 				promptAddMastodonAccount();
 				break;
-			case INSTAPAPER:
 			case HOSAKA:
 				promptAddUsernamePasswordLikeAccount(accountProvider);
 				break;
@@ -164,7 +161,6 @@ public class AccountsPrefFragment extends PreferenceFragment {
 				try {
 					final Account newAccount = dlg.getValue();
 					getPrefs().writeNewAccount(newAccount);
-					accountCreatedHook(newAccount);
 				}
 				catch (final JSONException e) {
 					DialogHelper.alert(getActivity(), "Failed to write new account: ", e);
@@ -174,16 +170,6 @@ public class AccountsPrefFragment extends PreferenceFragment {
 		});
 		dlgBuilder.setNegativeButton("Cancel", DialogHelper.DLG_CANCEL_CLICK_LISTENER); //ES
 		dlgBuilder.create().show();
-	}
-
-	protected void accountCreatedHook (final Account account) throws JSONException {
-		if (account.getProvider() == AccountProvider.INSTAPAPER) {
-			final Column later = getPrefs().asConfig().findInternalColumn(InternalColumnType.LATER);
-			if (later != null) {
-				getPrefs().writeUpdatedColumn(later.replaceAccount(account, InternalColumnType.LATER));
-				LOG.i("Updated column %s to use account %s.", later.getId(), account.getId());
-			}
-		}
 	}
 
 	protected void askReauthenticateAccount (final Account oldAccount) {

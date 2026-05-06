@@ -27,9 +27,6 @@ import com.vaguehope.onosendai.util.HttpClientFactory;
 import com.vaguehope.onosendai.util.IoHelper;
 import com.vaguehope.onosendai.util.LogWrapper;
 
-/**
- * TODO refactor copypasta with Instapaper.
- */
 public class Hosaka {
 
 	private static final String BASE_URL = "https://hosaka.herokuapp.com:443";
